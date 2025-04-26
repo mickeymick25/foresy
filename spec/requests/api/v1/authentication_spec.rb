@@ -79,6 +79,16 @@ RSpec.describe 'Authentication API', type: :request do
           expect(data['error']).to eq('refresh token missing or invalid')
         end
       end
+
+      response '401', 'refresh token expired' do
+        let(:user) { create(:user) }
+        let(:expired_refresh_token) { JsonWebToken.encode({ user_id: user.id }, 1.hour.ago.to_i) }
+        let(:refresh) { { refresh_token: expired_refresh_token } }
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data['error']).to eq('invalid or expired refresh token')
+        end
+      end
     end
   end
 
@@ -104,6 +114,30 @@ RSpec.describe 'Authentication API', type: :request do
       response '401', 'unauthorized' do
         let(:Authorization) { nil }
         run_test!
+      end
+
+      response '422', 'session already expired' do
+        let(:user) { create(:user) }
+        let(:session) { create(:session, user: user, expires_at: 1.hour.ago) }
+        let(:token) { JsonWebToken.encode(user_id: user.id, session_id: session.id) }
+        let(:Authorization) { "Bearer #{token}" }
+
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data['error']).to eq('Session already expired')
+        end
+      end
+
+      response '401', 'no active session' do
+        let(:user) { create(:user) }
+        let(:session) { create(:session, user: user) }
+        let(:token) { JsonWebToken.encode(user_id: user.id, session_id: session.id) }
+        let(:Authorization) { "Bearer #{token}" }
+        before { session.destroy }
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data['error']).to eq('Invalid token')
+        end
       end
     end
   end

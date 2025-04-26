@@ -103,10 +103,13 @@ Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
     ```json
     { "error": "refresh token missing or invalid" }
     ```
-  - Si le refresh token est invalide ou expiré :
+  - Si le refresh token est invalide ou expiré (y compris expiré) :
     ```json
     { "error": "invalid or expired refresh token" }
     ```
+
+**Cas limite testé :**
+- Un utilisateur tentant de rafraîchir un token avec un refresh_token expiré reçoit bien l'erreur ci-dessus.
 
 **Remarque :**
 Le paramètre `refresh_token` peut être transmis à la racine du corps JSON ou imbriqué dans un objet `authentication` selon le client. L'API gère les deux cas.
@@ -127,7 +130,14 @@ Le paramètre `refresh_token` peut être transmis à la racine du corps JSON ou 
   ```json
   { "error": "No active session" }
   ```
+- `401 Unauthorized` :
+  ```json
+  { "error": "Invalid token" }
+  ```
 - `422 Unprocessable Entity` :
   ```json
   { "error": "Session already expired" }
   ```
+
+**Cas limite testé :**
+- Une tentative de logout avec un token dont la session n'existe plus retourne bien l'erreur "Invalid token".
