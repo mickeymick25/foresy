@@ -78,6 +78,36 @@ Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
 
 ## Endpoints d'authentification
 
+### Inscription (signup)
+
+**POST** `/api/v1/signup`
+
+Ce endpoint permet de créer un nouvel utilisateur sans authentification préalable.
+
+**Corps attendu :**
+```json
+{
+  "email": "user@example.com",
+  "password": "votre_mot_de_passe",
+  "password_confirmation": "votre_mot_de_passe"
+}
+```
+
+**Réponses possibles :**
+- `201 Created` :
+  ```json
+  {
+    "token": "<access_token>",
+    "email": "user@example.com"
+  }
+  ```
+- `422 Unprocessable Entity` :
+  ```json
+  {
+    "errors": ["Email has already been taken", ...]
+  }
+  ```
+
 ### Rafraîchissement du token (refresh)
 
 **POST** `/api/v1/auth/refresh`
@@ -151,3 +181,4 @@ Depuis la version actuelle, un refresh_token n'est accepté que si l'utilisateur
 - **Refresh token** : durée de vie de 7 jours (7j)
 - Un refresh_token n'est accepté que si l'utilisateur possède au moins une session active. Si toutes les sessions sont invalidées (logout global), le refresh_token est refusé même s'il n'est pas expiré.
 - Toute tentative d'accès avec un token invalide ou expiré retourne une erreur explicite (401 ou 422). La gestion d'erreur côté API est robuste pour éviter toute fuite d'information ou plantage.
+- La logique d'authentification a été refactorisée pour séparer la gestion des access tokens (pour les endpoints protégés) et des refresh tokens (pour le renouvellement).
