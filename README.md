@@ -144,3 +144,9 @@ Depuis la version actuelle, un refresh_token n'est accepté que si l'utilisateur
 
 **Cas limite testé :**
 - Une tentative de logout avec un token dont la session n'existe plus retourne bien l'erreur "Invalid token".
+
+## Sécurité des tokens
+
+- **Access token** : durée de vie de 1 heure (1h)
+- **Refresh token** : durée de vie de 7 jours (7j)
+- Un refresh_token n'est accepté que si l'utilisateur possède au moins une session active. Si toutes les sessions sont invalidées (logout global), le refresh_token est refusé même s'il n'est pas expiré.
