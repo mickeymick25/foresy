@@ -1,7 +1,7 @@
 module Api
   module V1
     class AuthenticationController < ApplicationController
-      skip_before_action :authenticate_request, only: [:login, :refresh]
+      before_action :authenticate_access_token!, only: [:logout]
 
       # POST /api/v1/auth/login
       def login
