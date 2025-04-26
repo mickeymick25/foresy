@@ -52,9 +52,9 @@ RSpec.describe 'Authentication API', type: :request do
 
       response '200', 'token refreshed' do
         let(:user) { create(:user) }
+        before { user.create_session(ip_address: '127.0.0.1', user_agent: 'rspec') }
         let(:refresh_token) { JsonWebToken.refresh_token(user.id) }
         let(:refresh) { { refresh_token: refresh_token } }
-        before { user.create_session(ip_address: '127.0.0.1', user_agent: 'rspec') }
         run_test! do |response|
           data = JSON.parse(response.body)
           expect(data['token']).to be_present
