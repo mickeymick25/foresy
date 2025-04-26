@@ -54,13 +54,14 @@ RSpec.describe 'Authentication API', type: :request do
         let(:user) { create(:user) }
         let(:refresh_token) { JsonWebToken.refresh_token(user.id) }
         let(:refresh) { { refresh_token: refresh_token } }
+        before { user.create_session(ip_address: '127.0.0.1', user_agent: 'rspec') }
         run_test! do |response|
           data = JSON.parse(response.body)
           expect(data['token']).to be_present
           expect(data['refresh_token']).to be_present
           expect(data['email']).to eq(user.email)
-          expect(user.sessions.count).to eq(1)
-          expect(user.sessions.first.active?).to be true
+          expect(user.sessions.count).to eq(2)
+          expect(user.sessions.last.active?).to be true
         end
       end
 
@@ -141,4 +142,31 @@ RSpec.describe 'Authentication API', type: :request do
       end
     end
   end
-end 
+
+  describe 'refresh token invalidé après invalidate_all_sessions!' do
+    it 'refuse le refresh token après invalidation' do
+      user = create(:user)
+      refresh_token = JsonWebToken.refresh_token(user.id)
+      user.invalidate_all_sessions!
+
+      post '/api/v1/auth/refresh', params: { refresh_token: refresh_token }
+      expect(response).to have_http_status(:unauthorized)
+    end
+  end
+
+  describe 'Access token invalidé après logout' do
+    it "refuse l'accès avec un access token après logout" do
+      user = create(:user)
+      session = user.create_session(ip_address: '127.0.0.1', user_agent: 'rspec')
+      token = JsonWebToken.encode(user_id: user.id, session_id: session.id)
+
+      # Déconnexion
+      delete '/api/v1/auth/logout', headers: { 'Authorization' => "Bearer #{token}" }
+      expect(response).to have_http_status(:ok)
+
+      # Tentative d'accès à un endpoint protégé (logout à nouveau)
+      delete '/api/v1/auth/logout', headers: { 'Authorization' => "Bearer #{token}" }
+      expect([401, 422]).to include(response.status)
+    end
+  end
+end

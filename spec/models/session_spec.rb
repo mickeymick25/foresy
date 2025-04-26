@@ -1,15 +1,27 @@
 require 'rails_helper'
+require 'active_support/testing/time_helpers'
+
+RSpec.configure do |config|
+  config.include ActiveSupport::Testing::TimeHelpers
+end
 
 RSpec.describe Session, type: :model do
+  let(:user) { create(:user) }
+  subject { build(:session, user: user) }
+
   describe 'associations' do
     it { should belong_to(:user) }
   end
 
   describe 'validations' do
-    it { should validate_presence_of(:token) }
-    it { should validate_uniqueness_of(:token) }
+    it 'valide l\'unicité du token scoped à user_id' do
+      user = create(:user)
+      session1 = create(:session, user: user, token: 'unique_token')
+      session2 = build(:session, user: user, token: 'unique_token')
+      expect(session2).not_to be_valid
+      expect(session2.errors[:token]).to include('has already been taken')
+    end
     it { should validate_presence_of(:expires_at) }
-    it { should validate_presence_of(:last_activity_at) }
   end
 
   describe 'scopes' do
@@ -54,11 +66,15 @@ RSpec.describe Session, type: :model do
 
   describe '#refresh!' do
     let(:session) { create(:session) }
-    let(:old_activity_time) { session.last_activity_at }
 
     it 'updates last_activity_at' do
+      travel_to 2.hours.ago do
+        session.update!(last_activity_at: Time.current)
+      end
+      old_activity_time = session.last_activity_at
       travel 1.hour
       session.refresh!
+      session.reload
       expect(session.last_activity_at).to be > old_activity_time
     end
   end

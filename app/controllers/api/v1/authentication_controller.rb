@@ -39,6 +39,9 @@ module Api
 
         if decoded && decoded[:user_id]
           @user = User.find(decoded[:user_id])
+          unless @user.sessions.active.exists?
+            return render json: { error: 'invalid or expired refresh token' }, status: :unauthorized
+          end
           session = @user.create_session(
             ip_address: request.remote_ip,
             user_agent: request.user_agent
@@ -58,8 +61,12 @@ module Api
       # DELETE /api/v1/auth/logout
       def logout
         if current_session
-          current_session.update(expires_at: Time.current)
-          render json: { message: 'Logged out successfully' }, status: :ok
+          if current_session.expired?
+            render json: { error: 'Session already expired' }, status: :unprocessable_entity
+          else
+            current_session.update(expires_at: Time.current)
+            render json: { message: 'Logged out successfully' }, status: :ok
+          end
         else
           render json: { error: 'No active session' }, status: :unauthorized
         end

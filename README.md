@@ -114,6 +114,9 @@ Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
 **Remarque :**
 Le paramètre `refresh_token` peut être transmis à la racine du corps JSON ou imbriqué dans un objet `authentication` selon le client. L'API gère les deux cas.
 
+**Sécurité supplémentaire :**
+Depuis la version actuelle, un refresh_token n'est accepté que si l'utilisateur possède au moins une session active. Si toutes les sessions de l'utilisateur ont été invalidées (par exemple via une déconnexion globale), le refresh_token est refusé même s'il n'est pas expiré.
+
 ### Déconnexion (logout)
 
 **DELETE** `/api/v1/auth/logout`
