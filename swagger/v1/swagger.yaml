@@ -1,0 +1,120 @@
+---
+openapi: 3.0.1
+info:
+  title: API Foresy
+  version: v1
+  description: API documentation pour Foresy
+paths:
+  "/api/v1/auth/login":
+    post:
+      summary: Login user
+      description: Authenticate user and return JWT token
+      tags:
+      - Authentication
+      parameters:
+        - name: email
+          in: body
+          required: true
+          schema:
+            type: string
+        - name: password
+          in: body
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Successful login
+          schema:
+            type: object
+            properties:
+              token:
+                type: string
+              refresh_token:
+                type: string
+              email:
+                type: string
+        401:
+          description: Unauthorized
+  "/api/v1/auth/refresh":
+    post:
+      tags:
+        - Authentication
+      summary: Refresh token
+      description: Get new access token using refresh token
+      parameters:
+        - name: Refresh-Token
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Token refreshed successfully
+          schema:
+            type: object
+            properties:
+              token:
+                type: string
+              refresh_token:
+                type: string
+              email:
+                type: string
+        401:
+          description: Unauthorized
+  "/api/v1/signup":
+    post:
+      summary: Crée un nouvel utilisateur
+      tags:
+      - Users
+      parameters: []
+      responses:
+        '201':
+          description: Utilisateur créé
+        '422':
+          description: Création échouée
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/user"
+servers:
+- url: http://{defaultHost}
+  variables:
+    defaultHost:
+      default: localhost:3000
+components:
+  securitySchemes:
+    bearer_auth:
+      type: http
+      scheme: bearer
+      bearer_format: JWT
+  schemas:
+    user:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        password_confirmation:
+          type: string
+          format: password
+      required:
+      - email
+      - password
+      - password_confirmation
+    login:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+      required:
+      - email
+      - password
