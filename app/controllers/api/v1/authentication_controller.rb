@@ -26,26 +26,32 @@ module Api
       # POST /api/v1/auth/refresh
       def refresh
         refresh_token = params[:refresh_token] || params.dig(:authentication, :refresh_token)
-        if refresh_token
+
+        unless refresh_token.is_a?(String) && refresh_token.present?
+          return render json: { error: 'refresh token missing or invalid' }, status: :unauthorized
+        end
+
+        begin
           decoded = JsonWebToken.decode(refresh_token)
-          if decoded && decoded[:user_id]
-            @user = User.find(decoded[:user_id])
-            session = @user.create_session(
-              ip_address: request.remote_ip,
-              user_agent: request.user_agent
-            )
-            token = JsonWebToken.encode(user_id: @user.id, session_id: session.id)
-            new_refresh_token = JsonWebToken.refresh_token(@user.id)
-            render json: { 
-              token: token, 
-              refresh_token: new_refresh_token,
-              email: @user.email 
-            }, status: :ok
-          else
-            render json: { error: 'invalid refresh token' }, status: :unauthorized
-          end
+        rescue JWT::DecodeError, JWT::ExpiredSignature => e
+          return render json: { error: 'invalid or expired refresh token' }, status: :unauthorized
+        end
+
+        if decoded && decoded[:user_id]
+          @user = User.find(decoded[:user_id])
+          session = @user.create_session(
+            ip_address: request.remote_ip,
+            user_agent: request.user_agent
+          )
+          token = JsonWebToken.encode(user_id: @user.id, session_id: session.id)
+          new_refresh_token = JsonWebToken.refresh_token(@user.id)
+          render json: { 
+            token: token, 
+            refresh_token: new_refresh_token,
+            email: @user.email 
+          }, status: :ok
         else
-          render json: { error: 'refresh token missing' }, status: :unauthorized
+          render json: { error: 'invalid or expired refresh token' }, status: :unauthorized
         end
       end
 

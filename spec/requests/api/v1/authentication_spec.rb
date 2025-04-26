@@ -42,13 +42,18 @@ RSpec.describe 'Authentication API', type: :request do
       tags 'Authentication'
       consumes 'application/json'
       produces 'application/json'
-      parameter name: 'Refresh-Token', in: :header, type: :string, required: true
+      parameter name: :refresh, in: :body, schema: {
+        type: :object,
+        properties: {
+          refresh_token: { type: :string }
+        },
+        required: ['refresh_token']
+      }
 
       response '200', 'token refreshed' do
         let(:user) { create(:user) }
         let(:refresh_token) { JsonWebToken.refresh_token(user.id) }
-        let(:'Refresh-Token') { refresh_token }
-
+        let(:refresh) { { refresh_token: refresh_token } }
         run_test! do |response|
           data = JSON.parse(response.body)
           expect(data['token']).to be_present
@@ -60,9 +65,19 @@ RSpec.describe 'Authentication API', type: :request do
       end
 
       response '401', 'unauthorized' do
-        let(:'Refresh-Token') { 'invalid_token' }
+        let(:refresh) { { refresh_token: 'invalid_token' } }
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data['error']).to eq('invalid or expired refresh token')
+        end
+      end
 
-        run_test!
+      response '401', 'refresh token missing or invalid' do
+        let(:refresh) { { refresh_token: '' } }
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data['error']).to eq('refresh token missing or invalid')
+        end
       end
     end
   end
@@ -87,8 +102,7 @@ RSpec.describe 'Authentication API', type: :request do
       end
 
       response '401', 'unauthorized' do
-        let(:Authorization) { 'Bearer invalid_token' }
-
+        let(:Authorization) { nil }
         run_test!
       end
     end
