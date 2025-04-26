@@ -150,3 +150,4 @@ Depuis la version actuelle, un refresh_token n'est accepté que si l'utilisateur
 - **Access token** : durée de vie de 1 heure (1h)
 - **Refresh token** : durée de vie de 7 jours (7j)
 - Un refresh_token n'est accepté que si l'utilisateur possède au moins une session active. Si toutes les sessions sont invalidées (logout global), le refresh_token est refusé même s'il n'est pas expiré.
+- Toute tentative d'accès avec un token invalide ou expiré retourne une erreur explicite (401 ou 422). La gestion d'erreur côté API est robuste pour éviter toute fuite d'information ou plantage.

@@ -15,21 +15,31 @@ class ApplicationController < ActionController::API
 
     begin
       @decoded = JsonWebToken.decode(header)
-      @current_user = User.find(@decoded[:user_id])
-      @current_session = Session.find(@decoded[:session_id])
-      
-      unless @current_session.active?
-        render json: { error: 'Session already expired' }, status: :unprocessable_entity
-        return
-      end
-
-      @current_session.refresh!
-    rescue ActiveRecord::RecordNotFound => e
-      render json: { error: 'Invalid token' }, status: :unauthorized
-      return
-    rescue JWT::DecodeError => e
+    rescue JWT::DecodeError, JWT::ExpiredSignature
       render json: { error: 'Invalid token' }, status: :unauthorized
       return
     end
+
+    unless @decoded && (@decoded[:user_id] || @decoded['user_id']) && (@decoded[:session_id] || @decoded['session_id'])
+      render json: { error: 'Invalid token' }, status: :unauthorized
+      return
+    end
+
+    user_id = @decoded[:user_id] || @decoded['user_id']
+    session_id = @decoded[:session_id] || @decoded['session_id']
+    @current_user = User.find_by(id: user_id)
+    @current_session = Session.find_by(id: session_id)
+
+    unless @current_user && @current_session
+      render json: { error: 'Invalid token' }, status: :unauthorized
+      return
+    end
+
+    unless @current_session.active?
+      render json: { error: 'Session already expired' }, status: :unprocessable_entity
+      return
+    end
+
+    @current_session.refresh!
   end
 end
