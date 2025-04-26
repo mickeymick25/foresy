@@ -12,8 +12,10 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :v1 do
-      post '/auth/login', to: 'authentication#login'
-      post '/signup', to: 'users#create'
+      post 'auth/login', to: 'authentication#login'
+      post 'auth/refresh', to: 'authentication#refresh'
+      delete 'auth/logout', to: 'authentication#logout'
+      resources :users, only: [:create]
     end
   end
 end

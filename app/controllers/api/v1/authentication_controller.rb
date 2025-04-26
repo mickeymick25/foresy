@@ -7,7 +7,11 @@ module Api
       def login
         @user = User.find_by_email(params[:email])
         if @user&.authenticate(params[:password])
-          token = JsonWebToken.encode(user_id: @user.id)
+          session = @user.create_session(
+            ip_address: request.remote_ip,
+            user_agent: request.user_agent
+          )
+          token = JsonWebToken.encode(user_id: @user.id, session_id: session.id)
           refresh_token = JsonWebToken.refresh_token(@user.id)
           render json: { 
             token: token, 
@@ -26,7 +30,11 @@ module Api
           decoded = JsonWebToken.decode(refresh_token)
           if decoded && decoded[:user_id]
             @user = User.find(decoded[:user_id])
-            token = JsonWebToken.encode(user_id: @user.id)
+            session = @user.create_session(
+              ip_address: request.remote_ip,
+              user_agent: request.user_agent
+            )
+            token = JsonWebToken.encode(user_id: @user.id, session_id: session.id)
             new_refresh_token = JsonWebToken.refresh_token(@user.id)
             render json: { 
               token: token, 
@@ -38,6 +46,16 @@ module Api
           end
         else
           render json: { error: 'refresh token missing' }, status: :unauthorized
+        end
+      end
+
+      # DELETE /api/v1/auth/logout
+      def logout
+        if current_session
+          current_session.update(expires_at: Time.current)
+          render json: { message: 'Logged out successfully' }, status: :ok
+        else
+          render json: { error: 'No active session' }, status: :unauthorized
         end
       end
 
