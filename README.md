@@ -8,6 +8,7 @@ Foresy est une application Ruby on Rails qui fournit une API RESTful pour la ges
 - Système de rafraîchissement des jetons
 - Documentation API avec Swagger
 - Gestion des utilisateurs (inscription, connexion)
+- Invalidation de toutes les sessions actives d'un utilisateur (seules les sessions actives sont concernées)
 
 ## Prérequis
 
@@ -109,3 +110,24 @@ Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
 
 **Remarque :**
 Le paramètre `refresh_token` peut être transmis à la racine du corps JSON ou imbriqué dans un objet `authentication` selon le client. L'API gère les deux cas.
+
+### Déconnexion (logout)
+
+**DELETE** `/api/v1/auth/logout`
+
+**Headers requis :**
+- `Authorization: Bearer <token>`
+
+**Réponses possibles :**
+- `200 OK` :
+  ```json
+  { "message": "Logged out successfully" }
+  ```
+- `401 Unauthorized` :
+  ```json
+  { "error": "No active session" }
+  ```
+- `422 Unprocessable Entity` :
+  ```json
+  { "error": "Session already expired" }
+  ```

@@ -20,7 +20,7 @@ class User < ApplicationRecord
   end
 
   def invalidate_all_sessions!
-    sessions.update_all(expires_at: Time.current)
+    sessions.active.update_all(expires_at: Time.current)
   end
 
   private
