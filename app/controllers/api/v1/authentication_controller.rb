@@ -1,7 +1,7 @@
 module Api
   module V1
     class AuthenticationController < ApplicationController
-      skip_before_action :authenticate_request, only: [:login]
+      skip_before_action :authenticate_request, only: [:login, :refresh]
 
       # POST /api/v1/auth/login
       def login
@@ -25,7 +25,7 @@ module Api
 
       # POST /api/v1/auth/refresh
       def refresh
-        refresh_token = request.headers['Refresh-Token']
+        refresh_token = params[:refresh_token] || params.dig(:authentication, :refresh_token)
         if refresh_token
           decoded = JsonWebToken.decode(refresh_token)
           if decoded && decoded[:user_id]

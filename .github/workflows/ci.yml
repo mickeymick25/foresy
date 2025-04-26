@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ "*" ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ "*" ]
 
 jobs:
   test:
@@ -30,13 +30,10 @@ jobs:
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
-        ruby-version: '3.2.2'
-        bundler-cache: true
+        ruby-version: 3.3.0
 
     - name: Install dependencies
-      run: |
-        gem install bundler
-        bundle install
+      run: bundle install --jobs 4 --retry 3
 
     - name: Setup database
       env:
@@ -50,7 +47,7 @@ jobs:
       env:
         RAILS_ENV: test
         DATABASE_URL: postgres://postgres:postgres@localhost:5432/foresy_test
-      run: bundle exec rails test
+      run: bundle exec rspec
 
   lint:
     runs-on: ubuntu-latest
