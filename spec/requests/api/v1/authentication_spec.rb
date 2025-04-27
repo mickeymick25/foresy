@@ -56,6 +56,7 @@ RSpec.describe 'Authentication API', type: :request do
         let(:refresh_token) { JsonWebToken.refresh_token(user.id) }
         let(:refresh) { { refresh_token: refresh_token } }
         run_test! do |response|
+          expect(response).to have_http_status(:ok)
           data = JSON.parse(response.body)
           expect(data['token']).to be_present
           expect(data['refresh_token']).to be_present
@@ -124,6 +125,7 @@ RSpec.describe 'Authentication API', type: :request do
         let(:Authorization) { "Bearer #{token}" }
 
         run_test! do |response|
+          expect(response).to have_http_status(:unprocessable_entity)
           data = JSON.parse(response.body)
           expect(data['error']).to eq('Session already expired')
         end
@@ -136,6 +138,7 @@ RSpec.describe 'Authentication API', type: :request do
         let(:Authorization) { "Bearer #{token}" }
         before { session.destroy }
         run_test! do |response|
+          expect(response).to have_http_status(:unauthorized)
           data = JSON.parse(response.body)
           expect(data['error']).to eq('Invalid token')
         end
@@ -166,7 +169,7 @@ RSpec.describe 'Authentication API', type: :request do
 
       # Tentative d'accès à un endpoint protégé (logout à nouveau)
       delete '/api/v1/auth/logout', headers: { 'Authorization' => "Bearer #{token}" }
-      expect([401, 422]).to include(response.status)
+      expect(response).to have_http_status(:unauthorized)
     end
   end
 end
