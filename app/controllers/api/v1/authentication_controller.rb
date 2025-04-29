@@ -58,19 +58,25 @@ module Api
         end
       end
 
-      # DELETE /api/v1/auth/logout
-      def logout
-        if current_session
-          if current_session.expired?
-            render json: { error: 'Session already expired' }, status: :unprocessable_entity
-          else
-            current_session.update(expires_at: Time.current)
-            render json: { message: 'Logged out successfully' }, status: :ok
-          end
-        else
+     # DELETE /api/v1/auth/logout
+     def logout
+        Rails.logger.debug "[DEBUG] Authorization header: #{request.headers['Authorization']}"
+        Rails.logger.debug "[DEBUG] current_user: #{current_user.inspect}"
+        Rails.logger.debug "[DEBUG] current_session: #{current_session.inspect}"
+        Rails.logger.debug "[DEBUG] session expired?: #{current_session&.expired?}"
+        
+        if !current_session
           render json: { error: 'No active session' }, status: :unauthorized
+        elsif current_session.expired?
+          render json: { error: 'Session already expired' }, status: :unauthorized
+        else
+          current_session.update(expires_at: Time.current)
+          render json: { message: 'Logged out successfully' }, status: :ok
         end
       end
+    
+
+
 
       private
 

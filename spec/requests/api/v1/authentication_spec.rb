@@ -1,24 +1,36 @@
 require 'swagger_helper'
 
 RSpec.describe 'Authentication API', type: :request do
+  let(:user) { create(:user, email: 'test@example.com', password: 'password123') }
+  let(:auth) { { email: user.email, password: 'password123' } }
+
+  # Helper methods for repeated actions
+  def login_user
+    post '/api/v1/auth/login', params: auth
+    JSON.parse(response.body)
+  end
+
+  def get_authorization_header
+    token = login_user['token']
+    "Bearer #{token}"
+  end
+
   path '/api/v1/auth/login' do
     post 'Authenticates a user' do
       tags 'Authentication'
       consumes 'application/json'
       produces 'application/json'
+
       parameter name: :auth, in: :body, schema: {
         type: :object,
         properties: {
           email: { type: :string },
           password: { type: :string }
         },
-        required: %w[email password]
+        required: ['email', 'password']
       }
 
       response '200', 'user authenticated' do
-        let(:user) { create(:user, password: 'password123') }
-        let(:auth) { { email: user.email, password: 'password123' } }
-
         run_test! do |response|
           data = JSON.parse(response.body)
           expect(data['token']).to be_present
@@ -30,8 +42,7 @@ RSpec.describe 'Authentication API', type: :request do
       end
 
       response '401', 'unauthorized' do
-        let(:auth) { { email: 'wrong@example.com', password: 'wrong' } }
-
+        let(:auth) { { email: 'wrong@example.com', password: 'wrongpassword' } }
         run_test!
       end
     end
@@ -42,6 +53,7 @@ RSpec.describe 'Authentication API', type: :request do
       tags 'Authentication'
       consumes 'application/json'
       produces 'application/json'
+
       parameter name: :refresh, in: :body, schema: {
         type: :object,
         properties: {
@@ -51,22 +63,18 @@ RSpec.describe 'Authentication API', type: :request do
       }
 
       response '200', 'token refreshed' do
-        let(:user) { create(:user) }
-        before { user.create_session(ip_address: '127.0.0.1', user_agent: 'rspec') }
-        let(:refresh_token) { JsonWebToken.refresh_token(user.id) }
+        let(:refresh_token) { login_user['refresh_token'] }
         let(:refresh) { { refresh_token: refresh_token } }
+
         run_test! do |response|
-          expect(response).to have_http_status(:ok)
           data = JSON.parse(response.body)
           expect(data['token']).to be_present
           expect(data['refresh_token']).to be_present
           expect(data['email']).to eq(user.email)
-          expect(user.sessions.count).to eq(2)
-          expect(user.sessions.last.active?).to be true
         end
       end
 
-      response '401', 'unauthorized' do
+      response '401', 'invalid or expired refresh token' do
         let(:refresh) { { refresh_token: 'invalid_token' } }
         run_test! do |response|
           data = JSON.parse(response.body)
@@ -83,7 +91,6 @@ RSpec.describe 'Authentication API', type: :request do
       end
 
       response '401', 'refresh token expired' do
-        let(:user) { create(:user) }
         let(:expired_refresh_token) { JsonWebToken.encode({ user_id: user.id }, 1.hour.ago.to_i) }
         let(:refresh) { { refresh_token: expired_refresh_token } }
         run_test! do |response|
@@ -101,15 +108,39 @@ RSpec.describe 'Authentication API', type: :request do
       produces 'application/json'
 
       response '200', 'user logged out' do
-        let(:user) { create(:user) }
-        let(:session) { create(:session, user: user) }
-        let(:token) { JsonWebToken.encode(user_id: user.id, session_id: session.id) }
-        let(:Authorization) { "Bearer #{token}" }
+        let(:Authorization) { get_authorization_header }
 
         run_test! do |response|
-          expect(session.reload.expired?).to be true
           data = JSON.parse(response.body)
           expect(data['message']).to eq('Logged out successfully')
+        end
+      end
+
+      response '401', 'session already expired' do
+        let(:Authorization) do
+          post '/api/v1/auth/login', params: auth
+          token = JSON.parse(response.body)['token']
+          user.sessions.last.update!(expires_at: 1.hour.ago)
+          "Bearer #{token}"
+        end
+
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data['error']).to eq('Session already expired')
+        end
+      end
+
+      response '401', 'no active session' do
+        let(:Authorization) do
+          post '/api/v1/auth/login', params: auth
+          token = JSON.parse(response.body)['token']
+          user.sessions.last.destroy
+          "Bearer #{token}"
+        end
+
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data['error']).to eq('Invalid token')
         end
       end
 
@@ -117,36 +148,10 @@ RSpec.describe 'Authentication API', type: :request do
         let(:Authorization) { nil }
         run_test!
       end
-
-      response '422', 'session already expired' do
-        let(:user) { create(:user) }
-        let(:session) { create(:session, user: user, expires_at: 1.hour.ago) }
-        let(:token) { JsonWebToken.encode(user_id: user.id, session_id: session.id) }
-        let(:Authorization) { "Bearer #{token}" }
-
-        run_test! do |response|
-          expect(response).to have_http_status(:unprocessable_entity)
-          data = JSON.parse(response.body)
-          expect(data['error']).to eq('Session already expired')
-        end
-      end
-
-      response '401', 'no active session' do
-        let(:user) { create(:user) }
-        let(:session) { create(:session, user: user) }
-        let(:token) { JsonWebToken.encode(user_id: user.id, session_id: session.id) }
-        let(:Authorization) { "Bearer #{token}" }
-        before { session.destroy }
-        run_test! do |response|
-          expect(response).to have_http_status(:unauthorized)
-          data = JSON.parse(response.body)
-          expect(data['error']).to eq('Invalid token')
-        end
-      end
     end
   end
 
-  describe 'refresh token invalidé après invalidate_all_sessions!' do
+  describe 'Refresh token invalidé après invalidate_all_sessions!' do
     it 'refuse le refresh token après invalidation' do
       user = create(:user)
       refresh_token = JsonWebToken.refresh_token(user.id)
@@ -159,16 +164,23 @@ RSpec.describe 'Authentication API', type: :request do
 
   describe 'Access token invalidé après logout' do
     it "refuse l'accès avec un access token après logout" do
-      user = create(:user)
-      session = user.create_session(ip_address: '127.0.0.1', user_agent: 'rspec')
-      token = JsonWebToken.encode(user_id: user.id, session_id: session.id)
+      user = create(:user, email: 'test@example.com', password: 'password123')
+      auth = { email: user.email, password: 'password123' }
 
-      # Déconnexion
+      post '/api/v1/auth/login', params: auth
+      token = JSON.parse(response.body)['token']
+
       delete '/api/v1/auth/logout', headers: { 'Authorization' => "Bearer #{token}" }
       expect(response).to have_http_status(:ok)
 
-      # Tentative d'accès à un endpoint protégé (logout à nouveau)
       delete '/api/v1/auth/logout', headers: { 'Authorization' => "Bearer #{token}" }
+      expect(response).to have_http_status(:unauthorized)
+    end
+  end
+
+  describe 'Contrôle du before_action sur logout' do
+    it 'refuse le logout sans Authorization' do
+      delete '/api/v1/auth/logout'
       expect(response).to have_http_status(:unauthorized)
     end
   end

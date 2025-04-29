@@ -4,6 +4,7 @@ class ApplicationController < ActionController::API
   private
 
   def authenticate_access_token!
+    Rails.logger.warn "[DEBUG] Authorization header reçu: #{request.headers['Authorization'].inspect}"
     header = request.headers['Authorization']
     header = header.split(' ').last if header
 
@@ -35,7 +36,7 @@ class ApplicationController < ActionController::API
     end
 
     unless @current_session.active?
-      render json: { error: 'Session already expired' }, status: :unprocessable_entity
+      render json: { error: 'Session already expired' }, status: :unauthorized
       return
     end
 

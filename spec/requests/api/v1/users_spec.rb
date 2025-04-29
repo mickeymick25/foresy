@@ -6,10 +6,17 @@ RSpec.describe 'API V1 Users', type: :request do
       tags 'Users'
       consumes 'application/json'
       produces 'application/json'
-      parameter name: :user_params, in: :body, schema: { '$ref' => '#/components/schemas/user' }
+
+      parameter name: :user_params, in: :body, required: true, schema: { '$ref' => '#/components/schemas/user' }
 
       response '201', 'Utilisateur créé' do
-        let(:user_params) { { email: 'test@example.com', password: 'password123', password_confirmation: 'password123' } }
+        let(:user_params) do
+          {
+            email: 'test@example.com',
+            password: 'password123',
+            password_confirmation: 'password123'
+          }
+        end
 
         run_test! do |response|
           data = JSON.parse(response.body)
@@ -19,7 +26,13 @@ RSpec.describe 'API V1 Users', type: :request do
       end
 
       response '422', 'Création échouée' do
-        let(:user_params) { { email: 'invalid', password: 'short', password_confirmation: 'different' } }
+        let(:user_params) do
+          {
+            email: 'invalid',
+            password: 'short',
+            password_confirmation: 'different'
+          }
+        end
 
         run_test! do |response|
           data = JSON.parse(response.body)
@@ -28,4 +41,4 @@ RSpec.describe 'API V1 Users', type: :request do
       end
     end
   end
-end 
+end

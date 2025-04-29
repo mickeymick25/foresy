@@ -182,3 +182,16 @@ Depuis la version actuelle, un refresh_token n'est accepté que si l'utilisateur
 - Un refresh_token n'est accepté que si l'utilisateur possède au moins une session active. Si toutes les sessions sont invalidées (logout global), le refresh_token est refusé même s'il n'est pas expiré.
 - Toute tentative d'accès avec un token invalide ou expiré retourne une erreur explicite (401 ou 422). La gestion d'erreur côté API est robuste pour éviter toute fuite d'information ou plantage.
 - La logique d'authentification a été refactorisée pour séparer la gestion des access tokens (pour les endpoints protégés) et des refresh tokens (pour le renouvellement).
+
+## Authentification : gestion des codes de retour
+
+- **200 OK** : Succès (login, refresh, logout si la session est active)
+- **401 Unauthorized** : Token invalide ou session supprimée
+- **422 Unprocessable Entity** : Session expirée (mais toujours présente en base)
+
+### Exemples de scénarios
+- Si un utilisateur tente de se déconnecter avec une session expirée, l'API retourne 422.
+- Si la session a été supprimée (ou n'existe pas), l'API retourne 401.
+- Après un logout, si on réutilise le même token, la première requête retourne 422 (session expirée), la suivante 401 (session supprimée).
+
+Voir les tests dans `spec/requests/api/v1/authentication_spec.rb` pour des exemples précis.

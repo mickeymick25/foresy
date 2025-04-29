@@ -14,12 +14,12 @@ jobs:
         image: postgres:14
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_PASSWORD: password  # corrigé ici !
           POSTGRES_DB: foresy_test
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_isready
+          --health-cmd pg_isready -U postgres
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -33,10 +33,22 @@ jobs:
         ruby-version: 3.3.0
         bundler-cache: true
 
+    - name: Wait for Postgres to be ready
+      run: |
+        echo "Waiting for Postgres to be ready..."
+        for i in {1..10}; do
+          if pg_isready -h localhost -p 5432 -U postgres; then
+            echo "Postgres is ready!"
+            break
+          fi
+          echo "Waiting for Postgres ($i)..."
+          sleep 3
+        done
+
     - name: Setup database
       env:
         RAILS_ENV: test
-        DATABASE_URL: postgres://postgres:postgres@localhost:5432/foresy_test
+        DATABASE_URL: postgres://postgres:password@localhost:5432/foresy_test
       run: |
         bundle exec rails db:create
         bundle exec rails db:schema:load
@@ -44,7 +56,7 @@ jobs:
     - name: Run tests
       env:
         RAILS_ENV: test
-        DATABASE_URL: postgres://postgres:postgres@localhost:5432/foresy_test
+        DATABASE_URL: postgres://postgres:password@localhost:5432/foresy_test
       run: bundle exec rspec
 
   lint:
@@ -59,4 +71,4 @@ jobs:
         bundler-cache: true
 
     - name: Run RuboCop
-      run: bundle exec rubocop 
+      run: bundle exec rubocop
