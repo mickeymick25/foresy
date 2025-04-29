@@ -12,6 +12,9 @@ RSpec.describe 'Authentication API', type: :request do
 
   def get_authorization_header
     token = login_user['token']
+    user.reload # 🔧 Recharger l'utilisateur pour synchroniser les sessions
+    puts "TOKEN: #{token}"
+    puts "SESSIONS AFTER LOGIN: #{user.sessions.inspect}"
     "Bearer #{token}"
   end
 
@@ -197,5 +200,5 @@ RSpec.describe 'Authentication API', type: :request do
       expect(result['refresh_token']).to be_present
     end
   end
-  
+
 end
