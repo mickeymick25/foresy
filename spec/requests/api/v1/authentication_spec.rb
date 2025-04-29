@@ -7,7 +7,9 @@ RSpec.describe 'Authentication API', type: :request do
   # Helper methods for repeated actions
   def login_user
     post '/api/v1/auth/login', params: auth
-    JSON.parse(response.body)
+    response_data = JSON.parse(response.body)
+    puts "Login response: #{response_data}"
+    response_data
   end
 
   def get_authorization_header
@@ -68,7 +70,7 @@ RSpec.describe 'Authentication API', type: :request do
       response '200', 'token refreshed' do
         let(:refresh_token) do
           res = login_user
-          puts "Refresh token obtenu : #{res['refresh_token']}"
+          puts "Refresh token obtenu : #{res['refresh_token']}" # Ajout de log pour debug
           res['refresh_token']
         end
 
@@ -89,7 +91,7 @@ RSpec.describe 'Authentication API', type: :request do
           expect(data['error']).to eq('invalid or expired refresh token')
         end
       end
-
+  
       response '401', 'refresh token missing or invalid' do
         let(:refresh) { { refresh_token: '' } }
         run_test! do |response|
@@ -97,7 +99,7 @@ RSpec.describe 'Authentication API', type: :request do
           expect(data['error']).to eq('refresh token missing or invalid')
         end
       end
-
+  
       response '401', 'refresh token expired' do
         let(:expired_refresh_token) { JsonWebToken.encode({ user_id: user.id }, 1.hour.ago.to_i) }
         let(:refresh) { { refresh_token: expired_refresh_token } }
@@ -106,6 +108,7 @@ RSpec.describe 'Authentication API', type: :request do
           expect(data['error']).to eq('invalid or expired refresh token')
         end
       end
+  
     end
   end
 
@@ -200,5 +203,6 @@ RSpec.describe 'Authentication API', type: :request do
       expect(result['refresh_token']).to be_present
     end
   end
+  
 
 end
