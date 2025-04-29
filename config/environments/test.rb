@@ -61,4 +61,8 @@ Rails.application.configure do
 
   # Raise error when a before_action's only/except options reference missing actions
   config.action_controller.raise_on_missing_callback_actions = true
+
+  # éviter des erreurs liées aux contraintes SQL lors du rake db:fixtures:load
+  config.active_record.verify_foreign_keys_for_fixtures = false
+
 end
