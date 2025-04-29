@@ -63,7 +63,12 @@ RSpec.describe 'Authentication API', type: :request do
       }
 
       response '200', 'token refreshed' do
-        let(:refresh_token) { login_user['refresh_token'] }
+        let(:refresh_token) do
+          res = login_user
+          puts "Refresh token obtenu : #{res['refresh_token']}"
+          res['refresh_token']
+        end
+
         let(:refresh) { { refresh_token: refresh_token } }
 
         run_test! do |response|
@@ -184,4 +189,13 @@ RSpec.describe 'Authentication API', type: :request do
       expect(response).to have_http_status(:unauthorized)
     end
   end
+
+  describe 'DEBUG – refresh_token presence' do
+    it 'génère un refresh_token via login_user' do
+      result = login_user
+      RSpec.configuration.output_stream.puts "REFRESH TOKEN: #{result['refresh_token']}"
+      expect(result['refresh_token']).to be_present
+    end
+  end
+  
 end
