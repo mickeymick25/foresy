@@ -27,5 +27,13 @@ services:
     depends_on:
       - db
 
+  test:
+    build: .
+    command: bundle exec rspec
+    environment:
+      DATABASE_URL: postgres://postgres:password@db:5432/app_development
+    depends_on:
+      - db
+
 volumes:
-  postgres_data: 
+  postgres_data:
