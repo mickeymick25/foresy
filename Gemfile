@@ -55,6 +55,7 @@ group :development, :test do
   gem "rswag"
   gem "rswag-specs"
   gem "rswag-ui"
+  gem 'rubocop', require: false
 end
 
 group :development do
