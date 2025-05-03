@@ -3,83 +3,65 @@ openapi: 3.0.1
 info:
   title: API Foresy
   version: v1
-  description: API documentation pour Foresy
+  description: Documentation de l'API Foresy
 paths:
   "/api/v1/auth/login":
     post:
-      summary: Login user
-      description: Authenticate user and return JWT token
+      summary: Authenticates a user
       tags:
       - Authentication
-      parameters:
-        - name: email
-          in: body
-          required: true
-          schema:
-            type: string
-        - name: password
-          in: body
-          required: true
-          schema:
-            type: string
+      parameters: []
       responses:
-        200:
-          description: Successful login
-          schema:
-            type: object
-            properties:
-              token:
-                type: string
-              refresh_token:
-                type: string
-              email:
-                type: string
-        401:
-          description: Unauthorized
+        '200':
+          description: user authenticated
+        '401':
+          description: unauthorized
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+              required:
+              - email
+              - password
   "/api/v1/auth/refresh":
     post:
+      summary: Refreshes authentication token
       tags:
-        - Authentication
-      summary: Refresh token
-      description: Get new access token using refresh token
-      parameters:
-        - name: Refresh-Token
-          in: header
-          required: true
-          schema:
-            type: string
+      - Authentication
+      parameters: []
       responses:
-        200:
-          description: Token refreshed successfully
-          schema:
-            type: object
-            properties:
-              token:
-                type: string
-              refresh_token:
-                type: string
-              email:
-                type: string
-        401:
-          description: Unauthorized
+        '200':
+          description: token refreshed
+        '401':
+          description: refresh token expired
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh_token:
+                  type: string
+              required:
+              - refresh_token
   "/api/v1/auth/logout":
     delete:
+      summary: Logs out the user
       tags:
-        - Authentication
-      summary: Logout user
-      description: Invalidate current session and logout user
+      - Authentication
       security:
-        - bearer_auth: []
+      - bearer_auth: []
       responses:
-        200:
-          description: Logged out successfully
-          schema:
-            type: object
-            properties:
-              message:
-                type: string
-        401:
-          description: Unauthorized
+        '200':
+          description: user logged out
+        '401':
+          description: unauthorized
   "/api/v1/signup":
     post:
       summary: Crée un nouvel utilisateur
@@ -96,8 +78,10 @@ paths:
           application/json:
             schema:
               "$ref": "#/components/schemas/user"
+        required: true
 servers:
 - url: http://{defaultHost}
+  description: Serveur local de développement
   variables:
     defaultHost:
       default: localhost:3000
@@ -106,7 +90,7 @@ components:
     bearer_auth:
       type: http
       scheme: bearer
-      bearer_format: JWT
+      bearerFormat: JWT
   schemas:
     user:
       type: object
@@ -136,3 +120,5 @@ components:
       required:
       - email
       - password
+security:
+- bearer_auth: []

@@ -1,3 +1,7 @@
+# frozen_string_literal: true
+
+# Migration to create the sessions table, which stores user session data
+# including token, expiration, last activity, IP, and user agent.
 class CreateSessions < ActiveRecord::Migration[7.1]
   def change
     create_table :sessions do |t|
@@ -11,7 +15,13 @@ class CreateSessions < ActiveRecord::Migration[7.1]
       t.timestamps
     end
 
+    add_session_indexes
+  end
+
+  private
+
+  def add_session_indexes
     add_index :sessions, :token, unique: true
     add_index :sessions, :expires_at
   end
-end 
+end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :session do
     association :user
@@ -11,4 +13,4 @@ FactoryBot.define do
       expires_at { 1.hour.ago }
     end
   end
-end 
+end

@@ -1,12 +1,24 @@
-require_relative "boot"
+# frozen_string_literal: true
 
-require "rails/all"
+require_relative 'boot'
+
+require 'rails/all'
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
 module App
+  # Application class for initializing the Rails application.
+  # This class is responsible for setting up the configuration defaults
+  # and loading the necessary gems, middleware, and other resources.
+  #
+  # It inherits from `Rails::Application`, which provides the core Rails setup,
+  # such as configuring the time zone, autoload paths, and any environment-specific settings.
+  #
+  # For instance:
+  # - `config.load_defaults` sets the default configuration for the Rails version.
+  # - `config.autoload_lib` customizes the autoload paths for libraries.
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 7.1
@@ -14,7 +26,7 @@ module App
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
     # Common ones are `templates`, `generators`, or `middleware`, for example.
-    config.autoload_lib(ignore: %w(assets tasks))
+    config.autoload_lib(ignore: %w[assets tasks])
 
     # Configuration for the application, engines, and railties goes here.
     #

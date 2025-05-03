@@ -1,0 +1,28 @@
+
+# frozen_string_literal: true
+
+require 'rails_helper'
+
+RSpec.describe AuthenticationService do
+  describe '.login' do
+    let(:user) { create(:user) }
+    let(:remote_ip) { '192.168.1.1' }
+    let(:user_agent) { 'RSpecAgent/1.0' }
+
+    it 'creates a session and returns token data' do
+      result = described_class.login(user, remote_ip, user_agent)
+
+      expect(result).to be_a(Hash)
+      expect(result[:token]).to be_present
+      expect(result[:refresh_token]).to be_present
+      expect(result[:email]).to eq(user.email)
+
+      # Vérifie que la session est bien enregistrée
+      expect(user.sessions.count).to eq(1)
+      session = user.sessions.first
+      expect(session.ip_address).to eq(remote_ip)
+      expect(session.user_agent).to eq(user_agent)
+      expect(session.active?).to be true
+    end
+  end
+end

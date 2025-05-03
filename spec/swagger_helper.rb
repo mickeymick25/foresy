@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/BlockLength
+
 require 'rails_helper'
 
 RSpec.configure do |config|
@@ -73,3 +75,4 @@ end
 RSpec.configure do |config|
   config.include_context 'with_authenticated_user', type: :request
 end
+# rubocop:enable Metrics/BlockLength

@@ -1,3 +1,24 @@
+# frozen_string_literal: true
+
+# User
+#
+# Represents a system user with authentication credentials.
+# Supports secure password handling, session management, and validation.
+#
+# Associations:
+# - has_many :sessions, dependent: :destroy
+#
+# Validations:
+# - email must be present, unique, and correctly formatted
+# - password must be present and at least 6 characters long when required
+#
+# Callbacks:
+# - before_save: ensures email is downcased
+#
+# Instance methods:
+# - #active_sessions: returns currently active sessions
+# - #create_session: creates a new session with optional metadata
+# - #invalidate_all_sessions!: marks all active sessions as expired
 class User < ApplicationRecord
   has_secure_password
   has_many :sessions, dependent: :destroy

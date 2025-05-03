@@ -1,3 +1,25 @@
+# frozen_string_literal: true
+
+# Session
+#
+# Represents a user session, including its authentication token, expiration,
+# and last activity timestamp. Used to track and validate API access.
+#
+# Associations:
+# - belongs_to :user
+#
+# Validations:
+# - token must be present and unique
+# - expires_at and last_activity_at must be present
+#
+# Scopes:
+# - .active: sessions not yet expired
+# - .expired: sessions that have passed their expiration time
+#
+# Instance methods:
+# - #active?: returns true if session is still valid
+# - #expired?: returns true if session has expired
+# - #refresh!: updates last_activity_at to current time
 class Session < ApplicationRecord
   belongs_to :user
 
@@ -28,4 +50,4 @@ class Session < ApplicationRecord
     self.token ||= SecureRandom.hex(32)
     self.last_activity_at ||= Time.current
   end
-end 
+end

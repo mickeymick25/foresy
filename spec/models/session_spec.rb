@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
 require 'active_support/testing/time_helpers'
 
@@ -12,18 +14,23 @@ RSpec.describe Session, type: :model do
   describe 'associations' do
     it { should belong_to(:user) }
   end
+end
 
+RSpec.describe Session, type: :model do
   describe 'validations' do
     it 'valide l\'unicité du token scoped à user_id' do
       user = create(:user)
-      session1 = create(:session, user: user, token: 'unique_token')
+      create(:session, user: user, token: 'unique_token')
       session2 = build(:session, user: user, token: 'unique_token')
       expect(session2).not_to be_valid
       expect(session2.errors[:token]).to include('has already been taken')
     end
+
     it { should validate_presence_of(:expires_at) }
   end
+end
 
+RSpec.describe Session, type: :model do
   describe 'scopes' do
     describe '.active' do
       let!(:active_session) { create(:session) }
@@ -45,7 +52,9 @@ RSpec.describe Session, type: :model do
       end
     end
   end
+end
 
+RSpec.describe Session, type: :model do
   describe '#active?' do
     let(:session) { create(:session) }
 
@@ -63,7 +72,9 @@ RSpec.describe Session, type: :model do
       end
     end
   end
+end
 
+RSpec.describe Session, type: :model do
   describe '#refresh!' do
     let(:session) { create(:session) }
 
@@ -78,4 +89,4 @@ RSpec.describe Session, type: :model do
       expect(session.last_activity_at).to be > old_activity_time
     end
   end
-end 
+end

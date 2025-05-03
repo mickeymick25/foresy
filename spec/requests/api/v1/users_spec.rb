@@ -1,3 +1,7 @@
+# frozen_string_literal: true
+
+# rubocop:disable Metrics/BlockLength
+
 require 'swagger_helper'
 
 RSpec.describe 'API V1 Users', type: :request do
@@ -42,3 +46,4 @@ RSpec.describe 'API V1 Users', type: :request do
     end
   end
 end
+# rubocop:enable Metrics/BlockLength
