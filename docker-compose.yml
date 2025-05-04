@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     image: postgres:15
@@ -9,6 +7,12 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_USER: postgres
       POSTGRES_DB: app_development
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      retries: 5
+      start_period: 10s
+      timeout: 5s
 
   web:
     build: .
@@ -23,5 +27,13 @@ services:
     depends_on:
       - db
 
+  test:
+    build: .
+    command: bundle exec rspec
+    environment:
+      DATABASE_URL: postgres://postgres:password@db:5432/app_development
+    depends_on:
+      - db
+
 volumes:
-  postgres_data: 
+  postgres_data:

@@ -80,6 +80,7 @@ GEM
       tzinfo (~> 2.0)
     addressable (2.8.7)
       public_suffix (>= 2.0.2, < 7.0)
+    ast (2.4.3)
     base64 (0.2.0)
     bcrypt (3.1.20)
     benchmark (0.4.0)
@@ -112,6 +113,8 @@ GEM
     factory_bot_rails (6.4.4)
       factory_bot (~> 6.5)
       railties (>= 5.0.0)
+    faker (3.5.1)
+      i18n (>= 1.8.11, < 2)
     globalid (1.2.1)
       activesupport (>= 6.1)
     i18n (1.14.7)
@@ -128,11 +131,14 @@ GEM
     jbuilder (2.13.0)
       actionview (>= 5.0.0)
       activesupport (>= 5.0.0)
+    json (2.11.3)
     json-schema (5.1.1)
       addressable (~> 2.8)
       bigdecimal (~> 3.1)
     jwt (2.10.1)
       base64
+    language_server-protocol (3.17.0.4)
+    lint_roller (1.1.0)
     logger (1.7.0)
     loofah (2.24.0)
       crass (~> 1.0.2)
@@ -174,10 +180,15 @@ GEM
       racc (~> 1.4)
     nokogiri (1.18.8-x86_64-linux-musl)
       racc (~> 1.4)
+    parallel (1.27.0)
+    parser (3.3.8.0)
+      ast (~> 2.4.1)
+      racc
     pg (1.5.9)
     pp (0.6.2)
       prettyprint
     prettyprint (0.2.0)
+    prism (1.4.0)
     psych (5.2.3)
       date
       stringio
@@ -226,6 +237,7 @@ GEM
       rake (>= 12.2)
       thor (~> 1.0, >= 1.2.2)
       zeitwerk (~> 2.6)
+    rainbow (3.1.1)
     rake (13.2.1)
     rdoc (6.13.1)
       psych (>= 4.0.0)
@@ -265,6 +277,21 @@ GEM
     rswag-ui (2.16.0)
       actionpack (>= 5.2, < 8.1)
       railties (>= 5.2, < 8.1)
+    rubocop (1.75.4)
+      json (~> 2.3)
+      language_server-protocol (~> 3.17.0.2)
+      lint_roller (~> 1.1.0)
+      parallel (~> 1.10)
+      parser (>= 3.3.0.2)
+      rainbow (>= 2.2.2, < 4.0)
+      regexp_parser (>= 2.9.3, < 3.0)
+      rubocop-ast (>= 1.44.0, < 2.0)
+      ruby-progressbar (~> 1.7)
+      unicode-display_width (>= 2.4.0, < 4.0)
+    rubocop-ast (1.44.1)
+      parser (>= 3.3.7.2)
+      prism (~> 1.4)
+    ruby-progressbar (1.13.0)
     rubyzip (2.4.1)
     securerandom (0.4.1)
     selenium-webdriver (4.31.0)
@@ -273,6 +300,8 @@ GEM
       rexml (~> 3.2, >= 3.2.5)
       rubyzip (>= 1.2.2, < 3.0)
       websocket (~> 1.0)
+    shoulda-matchers (5.3.0)
+      activesupport (>= 5.2.0)
     spring (4.3.0)
     sprockets (4.2.2)
       concurrent-ruby (~> 1.0)
@@ -292,6 +321,9 @@ GEM
       railties (>= 7.1.0)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
+    unicode-display_width (3.1.4)
+      unicode-emoji (~> 4.0, >= 4.0.4)
+    unicode-emoji (4.0.4)
     web-console (4.2.1)
       actionview (>= 6.0.0)
       activemodel (>= 6.0.0)
@@ -323,6 +355,7 @@ DEPENDENCIES
   capybara
   debug
   factory_bot_rails
+  faker
   importmap-rails
   jbuilder
   jwt (~> 2.7)
@@ -335,7 +368,9 @@ DEPENDENCIES
   rswag
   rswag-specs
   rswag-ui
+  rubocop
   selenium-webdriver
+  shoulda-matchers (~> 5.0)
   spring
   sprockets-rails
   stimulus-rails
