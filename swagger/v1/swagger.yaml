@@ -29,6 +29,23 @@ paths:
               required:
               - email
               - password
+  "/api/v1/auth/logout":
+    delete:
+      summary: Logs out the user
+      tags:
+      - Authentication
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
+      responses:
+        '200':
+          description: user logged out
+        '401':
+          description: unauthorized - invalid token
   "/api/v1/auth/refresh":
     post:
       summary: Refreshes authentication token
@@ -50,18 +67,6 @@ paths:
                   type: string
               required:
               - refresh_token
-  "/api/v1/auth/logout":
-    delete:
-      summary: Logs out the user
-      tags:
-      - Authentication
-      security:
-      - bearer_auth: []
-      responses:
-        '200':
-          description: user logged out
-        '401':
-          description: unauthorized
   "/api/v1/signup":
     post:
       summary: Crée un nouvel utilisateur
