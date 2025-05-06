@@ -2,7 +2,7 @@
 
 # Make sure RUBY_VERSION matches the Ruby version in .ruby-version and Gemfile
 ARG RUBY_VERSION=3.3.0
-FROM ruby:3.3.0
+FROM ruby:${RUBY_VERSION}
 
 # Install dependencies
 RUN apt-get update -qq && \
