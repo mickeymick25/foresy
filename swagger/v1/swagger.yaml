@@ -8,6 +8,7 @@ paths:
   "/api/v1/auth/login":
     post:
       summary: Authenticates a user
+<<<<<<< HEAD
       tags:
       - Authentication
       parameters: []
@@ -29,6 +30,46 @@ paths:
               required:
               - email
               - password
+=======
+      tags:
+      - Authentication
+      parameters: []
+      responses:
+        '200':
+          description: user authenticated
+        '401':
+          description: unauthorized
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+              required:
+              - email
+              - password
+  "/api/v1/auth/logout":
+    delete:
+      summary: Logs out the user
+      tags:
+      - Authentication
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
+      responses:
+        '200':
+          description: user logged out
+        '401':
+          description: unauthorized - invalid token
+>>>>>>> main
   "/api/v1/auth/refresh":
     post:
       summary: Refreshes authentication token
@@ -50,6 +91,7 @@ paths:
                   type: string
               required:
               - refresh_token
+<<<<<<< HEAD
   "/api/v1/auth/logout":
     delete:
       summary: Logs out the user
@@ -62,6 +104,8 @@ paths:
           description: user logged out
         '401':
           description: unauthorized
+=======
+>>>>>>> main
   "/api/v1/signup":
     post:
       summary: Crée un nouvel utilisateur
