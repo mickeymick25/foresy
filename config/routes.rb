@@ -22,4 +22,12 @@ Rails.application.routes.draw do
       resources :users, only: [:create]
     end
   end
+
+  # Pour éviter une 404 inutile sur la racine, Définir une racine propre pour l'API
+  root to: proc { [200, { 'Content-Type' => 'application/json' }, ['{"status":"API is live"}']] }
+
+
+  # Ou pour retourner une 404 propre :
+  # root to: proc { [404, {}, ['Not Found']] }
+
 end
