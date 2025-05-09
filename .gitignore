@@ -36,7 +36,7 @@
 /config/credentials/*.key
 
 # Ignore database configuration
-/config/database.yml
+# /config/database.yml
 
 # Ignore node modules
 /node_modules
