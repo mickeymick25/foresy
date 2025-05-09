@@ -23,13 +23,13 @@ COPY . .
 # Precompile assets for production
 RUN if [ "$RAILS_ENV" = "production" ]; then bundle exec rake assets:precompile; fi
 
-# Add entrypoint
-COPY entrypoint.sh /usr/bin/
-RUN chmod +x /usr/bin/entrypoint.sh
-ENTRYPOINT ["entrypoint.sh"]
+# Add entrypoint script
+COPY entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/entrypoint.sh
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 # Expose Render port
 EXPOSE 10000
 
 # Use PORT from env (Render provides it), fallback to 3000
-CMD ["bundle", "exec", "rails", "server", "-b", "0.0.0.0", "-p", "${PORT:-3000}"]
+CMD bundle exec rails server -b 0.0.0.0 -p ${PORT:-3000}
