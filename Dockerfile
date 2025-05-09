@@ -21,7 +21,7 @@ RUN bundle install
 COPY . .
 
 # Precompile assets for production
-RUN bundle exec rake assets:precompile
+RUN if [ "$RAILS_ENV" = "production" ]; then bundle exec rake assets:precompile; fi
 
 # Add entrypoint
 COPY entrypoint.sh /usr/bin/
