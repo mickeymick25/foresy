@@ -1,9 +1,10 @@
 # syntax = docker/dockerfile:1
 
+# Make sure RUBY_VERSION matches the Ruby version in .ruby-version and Gemfile
 ARG RUBY_VERSION=3.3.0
 FROM ruby:${RUBY_VERSION}
 
-# Install OS dependencies
+# Install dependencies
 RUN apt-get update -qq && \
     apt-get install -y build-essential libpq-dev nodejs postgresql-client
 
@@ -17,19 +18,13 @@ RUN gem install bundler
 COPY Gemfile* ./
 RUN bundle install
 
-# Copy application code
+# Copy the rest of the application
 COPY . .
 
-# Precompile assets for production
-RUN if [ "$RAILS_ENV" = "production" ]; then bundle exec rake assets:precompile; fi
-
-# Add entrypoint
+# Add a script to be executed every time the container starts
 COPY entrypoint.sh /usr/bin/
 RUN chmod +x /usr/bin/entrypoint.sh
 ENTRYPOINT ["entrypoint.sh"]
 
-# Expose Render port
-EXPOSE 10000
-
-# Use PORT from env (Render provides it), fallback to 3000
-CMD ["bundle", "exec", "rails", "server", "-b", "0.0.0.0", "-p", "${PORT:-3000}"]
+# Set the default command
+ CMD ["bundle", "exec", "rails", "server", "-b", "0.0.0.0"]
