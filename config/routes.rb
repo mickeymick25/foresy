@@ -1,12 +1,13 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
-  mount Rswag::Ui::Engine => '/api-docs'
-  mount Rswag::Api::Engine => '/api-docs'
+  if Rails.env.development? || Rails.env.test?
+    mount Rswag::Ui::Engine => '/api-docs'
+    mount Rswag::Api::Engine => '/api-docs'
+  end
+
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
-  # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
-  # Can be used by load balancers and uptime monitors to verify that the app is live.
   get 'up' => 'rails/health#show', as: :rails_health_check
 
   # Defines the root path route ("/")
@@ -21,4 +22,12 @@ Rails.application.routes.draw do
       resources :users, only: [:create]
     end
   end
+
+  # Pour éviter une 404 inutile sur la racine, Définir une racine propre pour l'API
+  root to: proc { [200, { 'Content-Type' => 'application/json' }, ['{"status":"API is live"}']] }
+
+
+  # Ou pour retourner une 404 propre :
+  # root to: proc { [404, {}, ['Not Found']] }
+
 end
