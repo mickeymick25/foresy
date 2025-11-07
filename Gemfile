@@ -10,6 +10,9 @@ gem 'bootsnap', require: false
 gem 'importmap-rails'
 gem 'jbuilder'
 gem 'jwt', '~> 2.7'
+gem 'omniauth'
+gem 'omniauth-github'
+gem 'omniauth-google-oauth2'
 gem 'pg', '~> 1.1'
 gem 'puma', '>= 5.0'
 gem 'rack-cors'
@@ -24,6 +27,7 @@ gem 'tzinfo-data', platforms: %i[windows jruby]
 # == Development & Test ==
 group :development, :test do
   gem 'debug', platforms: %i[mri windows]
+  gem 'dotenv-rails'
   gem 'factory_bot_rails'
   gem 'rspec' # <- sécurité si RSpec core non inclus
   gem 'rspec-rails'

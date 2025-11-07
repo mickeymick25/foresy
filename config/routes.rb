@@ -18,8 +18,12 @@ Rails.application.routes.draw do
       post 'auth/login', to: 'authentication#login'
       post 'auth/refresh', to: 'authentication#refresh'
       delete 'auth/logout', to: 'authentication#logout'
+
+      # OAuth callbacks
+      post 'oauth/:provider/callback', to: 'authentication#oauth_callback'
+      get 'oauth/:provider/callback', to: 'authentication#oauth_callback'
+
       post 'signup', to: 'users#create'
-      resources :users, only: [:create]
     end
   end
 

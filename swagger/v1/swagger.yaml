@@ -18,16 +18,83 @@ paths:
               properties:
                 email:
                   type: string
+                  format: email
                 password:
                   type: string
+                  format: password
               required:
                 - email
                 - password
       responses:
-        '200':
-          description: user authenticated
-        '401':
-          description: unauthorized
+        "200":
+          description: User successfully authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: JWT access token
+                  refresh_token:
+                    type: string
+                    description: JWT refresh token
+                  email:
+                    type: string
+                    format: email
+                    description: User's email address
+              example:
+                token: "eyJhbGciOiJIUzI1NiJ9..."
+                refresh_token: "eyJhbGciOiJIUzI1NiJ9..."
+                email: "user@example.com"
+        "400":
+          description: Bad Request - Missing email or password
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Bad Request"
+                  message:
+                    type: string
+                    example: "Email is required"
+              example:
+                error: "Bad Request"
+                message: "Email is required"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+                  message:
+                    type: string
+                    example: "Invalid credentials"
+              example:
+                error: "Unauthorized"
+                message: "Invalid credentials"
+        "403":
+          description: Account inactive or session blocked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Forbidden"
+                  message:
+                    type: string
+                    example: "Account is inactive"
+              example:
+                error: "Forbidden"
+                message: "Account is inactive"
 
   /api/v1/auth/logout:
     delete:
@@ -42,10 +109,42 @@ paths:
           schema:
             type: string
       responses:
-        '200':
-          description: user logged out
-        '401':
-          description: unauthorized - invalid token
+        "200":
+          description: User successfully logged out
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Success message
+              example:
+                message: "Logged out successfully"
+        "401":
+          description: No active session or session expired
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+                  message:
+                    type: string
+                    example: "No active session"
+              examples:
+                no_active_session:
+                  summary: No active session
+                  value:
+                    error: "Unauthorized"
+                    message: "No active session"
+                session_expired:
+                  summary: Session expired
+                  value:
+                    error: "Unauthorized"
+                    message: "Session already expired"
 
   /api/v1/auth/refresh:
     post:
@@ -61,13 +160,64 @@ paths:
               properties:
                 refresh_token:
                   type: string
+                  format: jwt
+                  description: JWT refresh token
               required:
                 - refresh_token
       responses:
-        '200':
-          description: token refreshed
-        '401':
-          description: refresh token expired
+        "200":
+          description: Token successfully refreshed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: JWT access token
+                  refresh_token:
+                    type: string
+                    description: JWT refresh token
+                  email:
+                    type: string
+                    format: email
+                    description: User's email address
+              example:
+                token: "eyJhbGciOiJIUzI1NiJ9..."
+                refresh_token: "eyJhbGciOiJIUzI1NiJ9..."
+                email: "user@example.com"
+        "400":
+          description: Bad Request - Refresh token missing or invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Bad Request"
+                  message:
+                    type: string
+                    example: "Refresh token is missing"
+              example:
+                error: "Bad Request"
+                message: "Refresh token is missing"
+        "401":
+          description: Unable to refresh session - Invalid or expired refresh token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized"
+                  message:
+                    type: string
+                    example: "Unable to refresh session"
+              example:
+                error: "Unauthorized"
+                message: "Unable to refresh session"
 
   /api/v1/signup:
     post:
@@ -82,10 +232,133 @@ paths:
               $ref: "#/components/schemas/user"
         required: true
       responses:
-        '201':
-          description: Utilisateur créé
-        '422':
-          description: Création échouée
+        "201":
+          description: Utilisateur créé avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: JWT access token for the new user
+                  email:
+                    type: string
+                    format: email
+                    description: User's email address
+              example:
+                token: "eyJhbGciOiJIUzI1NiJ9..."
+                email: "newuser@example.com"
+        "422":
+          description: Validation failed - Invalid user data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unprocessable Entity"
+                  message:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      [
+                        "Email has already been taken",
+                        "Password is too short (minimum is 6 characters)",
+                      ]
+              examples:
+                email_taken:
+                  summary: Email already exists
+                  value:
+                    error: "Unprocessable Entity"
+                    message: ["Email has already been taken"]
+                password_invalid:
+                  summary: Password validation failed
+                  value:
+                    error: "Unprocessable Entity"
+                    message: ["Password is too short (minimum is 6 characters)"]
+                email_invalid:
+                  summary: Email format invalid
+                  value:
+                    error: "Unprocessable Entity"
+                    message: ["Email is invalid"]
+
+  /api/v1/oauth/{provider}/callback:
+    get:
+      summary: OAuth callback for authentication
+      tags:
+        - Authentication
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          description: OAuth provider
+          schema:
+            type: string
+            enum: [github, google_oauth2]
+      responses:
+        "200":
+          description: OAuth authentication successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      email:
+                        type: string
+                        format: email
+                      name:
+                        type: string
+        "401":
+          description: OAuth data missing or invalid
+        "422":
+          description: User creation failed
+
+    post:
+      summary: OAuth callback for authentication
+      tags:
+        - Authentication
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          description: OAuth provider
+          schema:
+            type: string
+            enum: [github, google_oauth2]
+      responses:
+        "200":
+          description: OAuth authentication successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      email:
+                        type: string
+                        format: email
+                      name:
+                        type: string
+        "401":
+          description: OAuth data missing or invalid
+        "422":
+          description: User creation failed
 
 servers:
   - url: http://{defaultHost}

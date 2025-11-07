@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
-# rubocop:disable Metrics/BlockLength
 require 'swagger_helper'
+require 'securerandom'
 
 RSpec.describe 'Authentication - Login', type: :request do
-  let(:user) { create(:user, email: 'test@example.com', password: 'password123') }
-  let(:auth) { { email: user.email, password: 'password123' } }
+  let(:valid_user) { create(:user, email: "test_#{SecureRandom.hex(4)}@example.com", password: 'password123') }
+  let(:inactive_user) do
+    create(:user, email: "inactive_#{SecureRandom.hex(4)}@example.com", password: 'password123', active: false)
+  end
 
   path '/api/v1/auth/login' do
     post 'Authenticates a user' do
@@ -23,27 +25,99 @@ RSpec.describe 'Authentication - Login', type: :request do
       }
 
       response '200', 'user authenticated' do
-        let(:auth) { { email: user.email, password: 'password123' } }
+        let(:auth) { { email: valid_user.email, password: 'password123' } }
 
         run_test! do |response|
-          data = JSON.parse(response.body)
+          expect(response).to have_http_status(:ok)
+
+          data = begin
+            JSON.parse(response.body)
+          rescue StandardError
+            {}
+          end
           expect(data['token']).to be_present
           expect(data['refresh_token']).to be_present
-          expect(data['email']).to eq(user.email)
-          expect(user.sessions.count).to eq(1)
-          expect(user.sessions.first.active?).to be true
+          expect(data['email']).to eq(valid_user.email)
+
+          expect(valid_user.sessions.count).to eq(1)
+          expect(valid_user.sessions.first.active?).to be true
         end
       end
 
-      response '401', 'unauthorized' do
+      response '401', 'invalid credentials' do
         let(:auth) { { email: 'wrong@example.com', password: 'wrongpassword' } }
 
         run_test! do |response|
-          data = JSON.parse(response.body)
+          expect(response).to have_http_status(:unauthorized)
+          data = begin
+            JSON.parse(response.body)
+          rescue StandardError
+            {}
+          end
           expect(data['error']).to be_present
+        end
+      end
+
+      response '401', 'missing password' do
+        let(:auth) { { email: valid_user.email, password: '' } }
+
+        run_test! do |response|
+          expect(response).to have_http_status(:unauthorized)
+          data = begin
+            JSON.parse(response.body)
+          rescue StandardError
+            {}
+          end
+          expect(data['error']).to eq('Password is required')
+        end
+      end
+
+      response '401', 'missing email' do
+        let(:auth) { { email: '', password: 'password123' } }
+
+        run_test! do |response|
+          expect(response).to have_http_status(:unauthorized)
+          data = begin
+            JSON.parse(response.body)
+          rescue StandardError
+            {}
+          end
+          expect(data['error']).to eq('Email is required')
+        end
+      end
+
+      response '403', 'inactive user' do
+        let(:auth) { { email: inactive_user.email, password: 'password123' } }
+
+        run_test! do |response|
+          expect(response).to have_http_status(:forbidden)
+          data = begin
+            JSON.parse(response.body)
+          rescue StandardError
+            {}
+          end
+          expect(data['error']).to eq('Forbidden')
+          expect(data['message']).to include('Account is inactive')
+        end
+      end
+
+      response '403', 'blocked session' do
+        let(:auth) do
+          valid_user.sessions.create!(expires_at: 1.hour.ago)
+          { email: valid_user.email, password: 'password123' }
+        end
+
+        run_test! do |response|
+          expect(response).to have_http_status(:forbidden)
+          data = begin
+            JSON.parse(response.body)
+          rescue StandardError
+            {}
+          end
+          expect(data['error']).to eq('Forbidden')
+          expect(data['message']).to match(/Session blocked|Access denied/i)
         end
       end
     end
   end
 end
-# rubocop:enable Metrics/BlockLength

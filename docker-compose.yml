@@ -29,11 +29,19 @@ services:
 
   test:
     build: .
-    command: bundle exec rspec
+    command: bash -c "bundle exec rails db:create db:migrate && bundle exec rspec"
+    volumes:
+      - .:/app
+    working_dir: /app
     environment:
-      DATABASE_URL: postgres://postgres:password@db:5432/app_development
+      RAILS_ENV: test
+      DATABASE_URL: postgres://postgres:password@db:5432/foresy_test
+      DB_HOST: db
+      DB_USERNAME: postgres
+      DB_PASSWORD: password
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
 volumes:
   postgres_data:

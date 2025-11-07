@@ -20,43 +20,43 @@ Foresy est une application Ruby on Rails qui fournit une API RESTful pour la ges
 ## Installation
 
 1. Cloner le dépôt :
-```bash
-git clone https://github.com/votre-username/foresy.git
-cd foresy
-```
+   ```bash
+   git clone https://github.com/votre-username/foresy.git
+   cd foresy
+   ```
 
 2. Installer les dépendances :
-```bash
-bundle install
-```
+   ```bash
+   bundle install
+   ```
 
 3. Configurer la base de données :
-```bash
-cp config/database.yml.example config/database.yml
-# Éditer config/database.yml avec vos paramètres
-```
+   ```bash
+   cp config/database.yml.example config/database.yml
+   # Éditer config/database.yml avec vos paramètres
+   ```
 
 4. Créer et migrer la base de données :
-```bash
-rails db:create db:migrate
-```
+   ```bash
+   rails db:create db:migrate
+   ```
 
 5. Démarrer le serveur :
-```bash
-rails server
-```
+   ```bash
+   rails server
+   ```
 
 ## Utilisation avec Docker
 
 1. Construire les images :
-```bash
-docker-compose build
-```
+   ```bash
+   docker-compose build
+   ```
 
 2. Démarrer les conteneurs :
-```bash
-docker-compose up
-```
+   ```bash
+   docker-compose up
+   ```
 
 ## Documentation API
 
@@ -68,8 +68,30 @@ http://localhost:3000/api-docs
 ## Tests
 
 Pour exécuter les tests :
+
+### Avec Docker Compose (recommandé)
 ```bash
-rails test
+docker-compose up test
+```
+
+Ou pour plus de détails :
+```bash
+docker-compose run --rm test bundle exec rspec --format documentation
+```
+
+### En local
+```bash
+bundle exec rspec
+```
+
+### Linter (RuboCop)
+```bash
+bundle exec rubocop
+```
+
+Ou avec Docker :
+```bash
+docker-compose run --rm test bundle exec rubocop
 ```
 
 ## Licence
@@ -177,10 +199,10 @@ Depuis la version actuelle, un refresh_token n'est accepté que si l'utilisateur
 
 ## Sécurité des tokens
 
-- **Access token** : durée de vie de 1 heure (1h)
-- **Refresh token** : durée de vie de 7 jours (7j)
-- Un refresh_token n'est accepté que si l'utilisateur possède au moins une session active. Si toutes les sessions sont invalidées (logout global), le refresh_token est refusé même s'il n'est pas expiré.
-- Toute tentative d'accès avec un token invalide ou expiré retourne une erreur explicite (401 ou 422). La gestion d'erreur côté API est robuste pour éviter toute fuite d'information ou plantage.
+- **Access token** : durée de vie de **15 minutes** (900 s).  
+- **Refresh token** : durée de vie de **30 jours** (2 592 000 s).  
+- Un refresh_token n'est accepté que si l'utilisateur possède au moins une session active. Si toutes les sessions sont invalidées (logout global), le refresh_token est refusé même s'il n'est pas expiré.  
+- Toute tentative d'accès avec un token invalide ou expiré retourne une erreur explicite (401 ou 422). La gestion d'erreur côté API est robuste pour éviter toute fuite d'information ou plantage.  
 - La logique d'authentification a été refactorisée pour séparer la gestion des access tokens (pour les endpoints protégés) et des refresh tokens (pour le renouvellement).
 
 ## Authentification : gestion des codes de retour

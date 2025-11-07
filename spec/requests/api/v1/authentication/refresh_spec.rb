@@ -20,12 +20,12 @@ RSpec.describe 'Authentication - Token Refresh', type: :request do
         required: ['refresh_token']
       }
 
+      # === SUCCESS ===
       response '200', 'token refreshed' do
         let(:refresh_token) do
           res = login_user(email: user.email, password: 'password123')
           res['refresh_token']
         end
-
         let(:refresh) { { refresh_token: refresh_token } }
 
         run_test! do |response|
@@ -36,40 +36,40 @@ RSpec.describe 'Authentication - Token Refresh', type: :request do
         end
       end
 
+      # === INVALID TOKEN ===
       response '401', 'invalid or expired refresh token' do
         let(:refresh) { { refresh_token: 'invalid_token' } }
 
         run_test! do |response|
           data = JSON.parse(response.body)
-          expect(data['error']).to be_present
-          expect(data['error']).to match(/invalid|expired/i)
+          expect(data['error']).to eq('Unable to refresh session')
         end
       end
 
+      # === MISSING TOKEN ===
       response '401', 'refresh token missing' do
         let(:refresh) { { refresh_token: '' } }
 
         run_test! do |response|
           data = JSON.parse(response.body)
-          expect(data['error']).to be_present
-          expect(data['error']).to match(/missing|invalid/i)
+          expect(data['error']).to eq('Refresh token is missing')
         end
       end
 
+      # === EXPIRED TOKEN ===
       response '401', 'refresh token expired' do
-        let(:expired_refresh_token) do
+        let(:refresh_token) do
           payload = {
             user_id: user.id,
             refresh_exp: 1.hour.ago.to_i
           }
           JWT.encode(payload, Rails.application.secret_key_base)
         end
-
-        let(:refresh) { { refresh_token: expired_refresh_token } }
+        let(:refresh) { { refresh_token: refresh_token } }
 
         run_test! do |response|
           data = JSON.parse(response.body)
-          expect(data['error']).to match(/expired|invalid/i)
+          expect(data['error']).to eq('Unable to refresh session')
         end
       end
     end
