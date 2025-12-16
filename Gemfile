@@ -26,6 +26,7 @@ gem 'tzinfo-data', platforms: %i[windows jruby]
 
 # == Development & Test ==
 group :development, :test do
+  gem 'brakeman'
   gem 'debug', platforms: %i[mri windows]
   gem 'dotenv-rails'
   gem 'factory_bot_rails'

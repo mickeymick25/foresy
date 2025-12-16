@@ -88,6 +88,8 @@ GEM
     bindex (0.8.1)
     bootsnap (1.18.4)
       msgpack (~> 1.2)
+    brakeman (7.1.1)
+      racc
     builder (3.3.0)
     capybara (3.40.0)
       addressable
@@ -402,6 +404,7 @@ PLATFORMS
 DEPENDENCIES
   bcrypt (~> 3.1.18)
   bootsnap
+  brakeman
   capybara
   debug
   dotenv-rails

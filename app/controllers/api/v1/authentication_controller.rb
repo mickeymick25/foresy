@@ -2,6 +2,8 @@
 
 module Api
   module V1
+    # Controller for authentication API endpoints
+    # Handles user login, logout, token refresh, and OAuth authentication
     class AuthenticationController < ApplicationController
       before_action :authenticate_access_token!, only: [:logout]
 
@@ -10,12 +12,21 @@ module Api
         return render_unauthorized('Email is required') if login_params[:email].blank?
         return render_unauthorized('Password is required') if login_params[:password].blank?
 
-        user = User.find_by(email: login_params[:email])
-        return render_unauthorized('Invalid credentials') unless user&.authenticate(login_params[:password])
+        user = find_and_validate_user
+        return render_unauthorized('Invalid credentials') unless user
+
         return render_forbidden('Account is inactive') unless user.active?
         return render_forbidden('Session blocked') if user_has_blocked_session?(user)
 
-        # Utilise AuthenticationService pour éliminer la duplication de logique
+        perform_login(user)
+      end
+
+      def find_and_validate_user
+        user = User.find_by(email: login_params[:email])
+        user&.authenticate(login_params[:password]) ? user : nil
+      end
+
+      def perform_login(user)
         result = AuthenticationService.login(user, request.remote_ip, request.user_agent)
 
         render json: {
@@ -52,14 +63,20 @@ module Api
 
       # === GET|POST /auth/:provider/callback (OAuth) ===
       def oauth_callback
-        # Supporte à la fois request.env['omniauth.auth'] et Rails.application.env_config['omniauth.auth']
-        auth = request.env['omniauth.auth'] || Rails.application.env_config['omniauth.auth']
+        auth = extract_oauth_data
         return render_unauthorized('OAuth data missing') unless auth
 
         user = find_or_create_user_from_auth(auth)
         return render_unprocessable_entity('User creation failed') unless user.persisted?
 
-        # Utilise AuthenticationService pour créer la session et les tokens comme le login normal
+        perform_oauth_login(user)
+      end
+
+      def extract_oauth_data
+        request.env['omniauth.auth'] || Rails.application.env_config['omniauth.auth']
+      end
+
+      def perform_oauth_login(user)
         result = AuthenticationService.login(user, request.remote_ip, request.user_agent)
 
         render json: {
@@ -98,41 +115,84 @@ module Api
       end
 
       def find_or_create_user_from_auth(auth)
-        # Supporte OmniAuth::AuthHash (méthodes) et hash normal (clés)
+        # Extrait les données d'authentification
+        auth_data = extract_auth_data(auth)
+
+        # Trouve ou initialise l'utilisateur
+        user = find_or_initialize_user(auth_data[:provider], auth_data[:uid])
+
+        # Met à jour ou crée l'utilisateur
+        if user.persisted?
+          update_existing_user!(user, auth_data[:email], auth_data[:name], auth_data[:nickname])
+        else
+          create_oauth_user!(user, auth_data[:email], auth_data[:name], auth_data[:nickname])
+        end
+
+        user
+      end
+
+      def extract_auth_data(auth)
+        provider_and_uid = extract_provider_and_uid(auth)
+        info = extract_info_data(auth)
+        extracted_fields = extract_all_info_fields(info)
+
+        {
+          provider: provider_and_uid[:provider],
+          uid: provider_and_uid[:uid],
+          email: extracted_fields[:email],
+          name: extracted_fields[:name],
+          nickname: extracted_fields[:nickname]
+        }
+      end
+
+      def extract_provider_and_uid(auth)
         provider = auth.respond_to?(:provider) ? auth.provider : (auth[:provider] || auth['provider'])
         uid = auth.respond_to?(:uid) ? auth.uid : (auth[:uid] || auth['uid'])
-        info = auth.respond_to?(:info) ? auth.info : (auth[:info] || auth['info'])
 
-        # Cherche d'abord par provider et uid (pour OAuth)
-        user = User.find_or_initialize_by(provider: provider, uid: uid)
+        {
+          provider: provider,
+          uid: uid
+        }
+      end
 
-        # Extrait les valeurs d'info (supporte OmniAuth::AuthHash et hash normal)
-        if info.respond_to?(:email)
-          email = info.email
-          name = info.name
-          nickname = info.nickname
+      def extract_all_info_fields(info)
+        {
+          email: extract_info_field(info, :email),
+          name: extract_info_field(info, :name),
+          nickname: extract_info_field(info, :nickname)
+        }
+      end
+
+      def extract_info_data(auth)
+        auth.respond_to?(:info) ? auth.info : (auth[:info] || auth['info'])
+      end
+
+      def extract_info_field(info, field)
+        return nil if info.blank?
+
+        if info.respond_to?(field)
+          info.send(field)
         else
-          email = info[:email] || info['email']
-          name = info[:name] || info['name']
-          nickname = info[:nickname] || info['nickname']
+          info[field] || info[field.to_s]
         end
+      end
 
-        # Si l'utilisateur existe déjà, on le met à jour si nécessaire
-        if user.persisted?
-          user.email = email if email.present?
-          user.name = name || nickname || user.name || 'No Name'
-          user.save
-          return user
-        end
+      def find_or_initialize_user(provider, uid)
+        User.find_or_initialize_by(provider: provider, uid: uid)
+      end
 
-        # Nouvel utilisateur OAuth
+      def update_existing_user!(user, email, name, nickname)
+        user.email = email if email.present?
+        user.name = name || nickname || user.name || 'No Name'
+        user.save
+      end
+
+      def create_oauth_user!(user, email, name, nickname)
         user.email = email
         user.name = name || nickname || 'No Name'
         user.active = true
 
         Rails.logger.error "Failed to create OAuth user: #{user.errors.full_messages.join(', ')}" unless user.save
-
-        user
       end
 
       # === Error helpers ===
