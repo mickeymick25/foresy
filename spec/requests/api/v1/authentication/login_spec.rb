@@ -100,24 +100,6 @@ RSpec.describe 'Authentication - Login', type: :request do
           expect(data['message']).to include('Account is inactive')
         end
       end
-
-      response '403', 'blocked session' do
-        let(:auth) do
-          valid_user.sessions.create!(expires_at: 1.hour.ago)
-          { email: valid_user.email, password: 'password123' }
-        end
-
-        run_test! do |response|
-          expect(response).to have_http_status(:forbidden)
-          data = begin
-            JSON.parse(response.body)
-          rescue StandardError
-            {}
-          end
-          expect(data['error']).to eq('Forbidden')
-          expect(data['message']).to match(/Session blocked|Access denied/i)
-        end
-      end
     end
   end
 end

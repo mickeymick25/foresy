@@ -2,7 +2,7 @@
 
 # Charger les variables d'environnement spécifiques au test
 require 'dotenv'
-Dotenv.load('.env.test')
+Dotenv.load('.env.test') if File.exist?('.env.test')
 
 # Configuration de l'environnement de test
 ENV['RAILS_ENV'] ||= 'test'

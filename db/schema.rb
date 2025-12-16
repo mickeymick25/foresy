@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_05_15_120000) do
+ActiveRecord::Schema[7.1].define(version: 2025_12_16_144630) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -38,7 +38,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_05_15_120000) do
     t.string "provider"
     t.string "uid"
     t.string "name"
-    t.boolean "active"
+    t.boolean "active", default: true, null: false
   end
 
   add_foreign_key "sessions", "users"

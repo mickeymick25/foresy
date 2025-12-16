@@ -16,7 +16,6 @@ module Api
         return render_unauthorized('Invalid credentials') unless user
 
         return render_forbidden('Account is inactive') unless user.active?
-        return render_forbidden('Session blocked') if user_has_blocked_session?(user)
 
         perform_login(user)
       end
@@ -108,10 +107,6 @@ module Api
 
       def refresh_token_expired?(decoded)
         decoded['refresh_exp'].present? && Time.at(decoded['refresh_exp']) < Time.current
-      end
-
-      def user_has_blocked_session?(user)
-        user.sessions.expired.exists?
       end
 
       def find_or_create_user_from_auth(auth)

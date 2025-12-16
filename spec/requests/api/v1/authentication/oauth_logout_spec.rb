@@ -140,7 +140,7 @@ RSpec.describe 'Authentication - OAuth Logout', type: :request do
             before do
               # Stub pour forcer une erreur dans logout après l'authentification
               allow_any_instance_of(Api::V1::AuthenticationController).to receive(:logout) do |_controller|
-                raise StandardError, 'Something went wrong'
+                raise ApplicationError::InternalServerError, 'Something went wrong'
               end
             end
 

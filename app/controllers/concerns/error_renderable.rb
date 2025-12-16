@@ -1,12 +1,15 @@
 # frozen_string_literal: true
 
+require_relative '../../exceptions/application_error'
+
 module ErrorRenderable
   extend ActiveSupport::Concern
 
   included do
     rescue_from ActiveRecord::RecordNotFound, with: :render_not_found
     rescue_from ActionController::ParameterMissing, with: ->(e) { render_bad_request(e.message) }
-    rescue_from StandardError, with: :render_internal_server_error
+    rescue_from StandardError, with: :render_conditional_server_error
+    rescue_from ApplicationError, with: :render_internal_server_error
   end
 
   private
@@ -29,6 +32,14 @@ module ErrorRenderable
 
   def render_unprocessable_entity(message = 'Unprocessable Entity')
     render_error(message, :unprocessable_entity)
+  end
+
+  def render_conditional_server_error(exception = nil)
+    if Rails.env.production?
+      render_internal_server_error(exception)
+    else
+      raise exception  # Relance l'erreur pour qu'elle soit visible en dev/test
+    end
   end
 
   def render_internal_server_error(exception = nil)
