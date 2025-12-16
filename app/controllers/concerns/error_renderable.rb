@@ -2,6 +2,10 @@
 
 require_relative '../../exceptions/application_error'
 
+# ErrorRenderable
+#
+# Concern that provides error handling methods for controllers.
+# Handles different error rendering strategies based on environment.
 module ErrorRenderable
   extend ActiveSupport::Concern
 
@@ -35,11 +39,9 @@ module ErrorRenderable
   end
 
   def render_conditional_server_error(exception = nil)
-    if Rails.env.production?
-      render_internal_server_error(exception)
-    else
-      raise exception  # Relance l'erreur pour qu'elle soit visible en dev/test
-    end
+    raise exception unless Rails.env.production?
+
+    render_internal_server_error(exception)
   end
 
   def render_internal_server_error(exception = nil)

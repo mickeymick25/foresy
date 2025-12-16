@@ -1,3 +1,14 @@
+# frozen_string_literal: true
+
+# FixUsersActiveColumn
+#
+# Migration to fix the users.active column by adding proper constraints
+# and backfilling existing records with default values.
+#
+# Changes:
+# - Sets default: true for new records
+# - Adds null: false constraint
+# - Backfills existing users with active: true
 class FixUsersActiveColumn < ActiveRecord::Migration[7.1]
   def up
     # Étape 1: Backfill les utilisateurs existants
