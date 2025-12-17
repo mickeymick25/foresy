@@ -29,7 +29,7 @@ services:
 
   test:
     build: .
-    command: bash -c "bundle exec rails db:create db:migrate && bundle exec rspec"
+    command: bash -c "bundle exec rails db:drop db:create db:schema:load && bundle exec rspec"
     volumes:
       - .:/app
     working_dir: /app

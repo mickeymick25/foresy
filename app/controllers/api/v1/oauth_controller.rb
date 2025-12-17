@@ -104,7 +104,7 @@ module Api
         OAuthValidationService.validate_oauth_data(auth_data)
       end
 
-      def find_or_create_user_from_oauth(oauth_data)
+      def find_or_create_user(oauth_data)
         OAuthUserService.find_or_create_user_from_oauth(oauth_data)
       end
 

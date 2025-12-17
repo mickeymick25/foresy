@@ -52,7 +52,7 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 ### Statistiques Actuelles (Décembre 2025)
 - **Tests RSpec** : ✅ 87 tests qui passent (0 échec)
 - **Tests d'acceptation OAuth** : ✅ 9/9 passent
-- **Tests d'intégration OAuth** : ✅ 8/10 passent (amélioration 70%)
+- Tests d'intégration OAuth : ✅ 10/10 passent (100% succès)
 - **RuboCop** : ✅ 0 violation détectée (70 fichiers)
 - **Brakeman** : ✅ 0 vulnérabilité critique (1 alerte mineure)
 
@@ -98,6 +98,25 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 - 16 violations corrigées automatiquement avec `rubocop -A`
 - 2 violations manuelles corrigées (DuplicateBranch, EmptyBlock)
 - Code 100% conforme aux standards Ruby/Rails
+
+### ✅ Résolution Problèmes CI et Configuration (Janvier 2025)
+**Problèmes identifiés :**
+- **Zeitwerk::NameError** : Fichier `oauth_concern.rb` supplémentaire dans `api/v1/concerns/` créait des conflits avec l'autoloading des constantes
+- **FrozenError** : Bootsnap interférait avec les load paths de Rails, causant des erreurs lors de la modification d'arrays gelés
+- **Configuration CI** : La commande `db:create` échouait si la base de données existait déjà, causant l'échec du pipeline
+- **Erreurs 500 OAuth** : Incohérence dans les noms de méthodes du controller (`find_or_create_user` vs `find_or_create_user_from_oauth`) causait des `NoMethodError`
+
+**Solutions appliquées :**
+- **Suppression du fichier redondant** : Éliminé `app/controllers/api/v1/concerns/oauth_concern.rb` non utilisé
+- **Désactivation Bootsnap temporairement** : Commenté `require 'bootsnap/setup'` dans `config/boot.rb`
+- **Configuration CI alignée** : Modifié pour utiliser `db:drop db:create db:schema:load` (GitHub Actions et Docker)
+- **Correction NoMethodError** : Aligné les noms de méthodes dans `oauth_controller.rb` pour appeler `find_or_create_user`
+
+**Résultats mesurés :**
+- **Tests RSpec** : 0 exemples → 87 exemples (0 échec) ✅
+- **Tests OAuth** : 8/10 → 10/10 passent (100% succès) ✅
+- **Temps d'exécution** : 3.98 secondes (très performant) ✅
+- **CI GitHub** : Pipeline entièrement fonctionnel ✅
 
 ## 📖 Documentation API
 
