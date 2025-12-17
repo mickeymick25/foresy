@@ -13,7 +13,7 @@ require 'spec_helper'
 require 'rspec/rails'
 
 # Charger les fichiers de support (helpers, macros, etc.)
-Dir[Rails.root.join('spec/support/**/*.rb')].sort.each { |f| require f }
+Dir[Rails.root.join('spec/support/**/*.rb')].each { |f| require f }
 
 # S'assurer que la base est bien migrée avant les tests
 begin
@@ -25,7 +25,7 @@ end
 
 # Configuration RSpec
 RSpec.configure do |config|
-  config.fixture_paths = ["#{::Rails.root}/spec/fixtures"]
+  config.fixture_paths = ["#{Rails.root}/spec/fixtures"]
   config.use_transactional_fixtures = true
 
   config.infer_spec_type_from_file_location!
