@@ -1,0 +1,123 @@
+# Configuration Rubocop basique pour Foresy API
+# Compatible avec rubocop de base (sans extensions externes)
+
+AllCops:
+  TargetRubyVersion: 3.3
+  NewCops: enable
+  SuggestExtensions: false
+
+  # Exclure les fichiers auto-générés et non pertinents
+  Exclude:
+    - "db/schema.rb"
+    - "db/migrate/*.rb"
+    - "node_modules/**/*"
+    - "vendor/**/*"
+    - "bin/**/*"
+    - "public/**/*"
+    - "storage/**/*"
+    - "tmp/**/*"
+    - "log/**/*"
+    - ".github/**/*"
+    - "docker-compose*.yml"
+    - "Dockerfile*"
+    - "entrypoint.sh*"
+
+# Style/FrozenStringLiteralComment - désactiver pour plus de flexibilité
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+# Metrics/BlockLength - permettre des blocs plus longs pour les tests RSpec
+Metrics/BlockLength:
+  Enabled: true
+  CountAsOne: "array"
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+  Max: 100
+
+# Metrics/MethodLength - ajuster les limites selon le contexte
+Metrics/MethodLength:
+  Enabled: true
+  CountComments: false
+  Max: 20
+  CountAsOne: []
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "db/migrate/*"
+    - "config/initializers/*"
+
+# Metrics/AbcSize - augmenter la limite pour la complexité
+Metrics/AbcSize:
+  Enabled: true
+  Max: 25
+
+# Layout/LineLength - permettre des lignes plus longues
+Layout/LineLength:
+  Enabled: true
+  Max: 120
+
+# Layout/IndentationWidth - configuration standard
+Layout/IndentationWidth:
+  Enabled: true
+  Width: 2
+
+# Style/Documentation - désactiver pour les contrôleurs et services
+Style/Documentation:
+  Enabled: false
+  Exclude:
+    - "app/controllers/**/*"
+    - "app/services/**/*"
+    - "app/models/**/*"
+
+# Style/ClassAndModuleChildren - permettre les namespaces simples
+Style/ClassAndModuleChildren:
+  Enabled: false
+
+# Style/EmptyMethod - permettre les méthodes vides avec des commentaires
+Style/EmptyMethod:
+  Enabled: false
+
+# Metrics/ClassLength - augmenter la limite pour les classes de modèles
+Metrics/ClassLength:
+  Enabled: true
+  Max: 150
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+
+# Style/GuardClause - rendre plus flexible
+Style/GuardClause:
+  Enabled: false
+
+# Style/IfUnlessModifier - permettre les modificateurs
+Style/IfUnlessModifier:
+  Enabled: true
+
+# Style/Next - permettre les next dans les boucles
+Style/Next:
+  Enabled: true
+
+# Style/WhileUntilModifier - permettre les modificateurs
+Style/WhileUntilModifier:
+  Enabled: true
+
+# Style/SymbolProc - permettre les symboles comme blocs
+Style/SymbolProc:
+  Enabled: true
+
+# Style/Lambda - permettre les lambda avec args
+Style/Lambda:
+  Enabled: true
+
+# Style/TrailingCommaInHashLiteral - flexible pour les hashes
+Style/TrailingCommaInHashLiteral:
+  Enabled: false
+
+# Style/HashSyntax - Ruby 1.9 style hash syntax
+Style/HashSyntax:
+  Enabled: true
+
+# Style/RedundantReturn - permettre les returns redondants pour la lisibilité
+Style/RedundantReturn:
+  Enabled: false
