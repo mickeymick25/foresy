@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
 # spec/support/auth_helpers.rb
-RSpec.configure do |_config|
-  module AuthHelpers
-    def login_user(email: 'user@example.com', password: 'password123')
-      post '/api/v1/auth/login', params: { email: email, password: password }
-      JSON.parse(response.body)
-    end
+module AuthHelpers
+  def login_user(email: 'user@example.com', password: 'password123')
+    post '/api/v1/auth/login', params: { email: email, password: password }
+    JSON.parse(response.body)
   end
+end
+
+RSpec.configure do |_config|
+  include AuthHelpers
 end

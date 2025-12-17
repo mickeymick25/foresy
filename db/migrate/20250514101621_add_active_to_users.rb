@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+# AddActiveToUsers
+#
+# Migration to add 'active' column to users table.
+# Enables user account activation/deactivation functionality.
 class AddActiveToUsers < ActiveRecord::Migration[7.1]
   def change
     add_column :users, :active, :boolean

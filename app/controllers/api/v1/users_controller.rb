@@ -16,7 +16,7 @@ module Api
             email: user.email
           }, status: :created
         else
-          render_unprocessable_entity(user.errors.full_messages)
+          render json: { error: 'Validation Failed', message: user.errors.full_messages }, status: :unprocessable_entity
         end
       end
 
@@ -24,13 +24,6 @@ module Api
 
       def user_params
         params.permit(:email, :password, :password_confirmation)
-      end
-
-      def render_unprocessable_entity(errors)
-        render json: {
-          error: 'Validation Failed',
-          message: errors
-        }, status: :unprocessable_entity
       end
     end
   end

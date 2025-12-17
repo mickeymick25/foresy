@@ -3,290 +3,479 @@
 require 'rails_helper'
 
 RSpec.describe 'OAuth Callback', type: :request do
-  let(:user) { create(:user, email: 'oauth_user@example.com', name: 'OAuth User') }
-  let(:mock_auth) do
-    {
-      'provider' => 'github',
-      'uid' => '123456',
-      'info' => {
-        'email' => 'oauth_user@example.com',
-        'name' => 'OAuth User'
-      }
-    }
-  end
+  describe 'POST /auth/:provider/callback' do
+    context 'with valid Google OAuth code' do
+      let(:valid_google_code) do
+        {
+          code: 'valid_google_auth_code',
+          redirect_uri: 'https://client.app/callback'
+        }
+      end
 
-  describe 'GET /api/v1/oauth/{provider}/callback' do
-    context 'when OAuth data is missing' do
-      it 'returns unauthorized with OAuth data missing message' do
-        allow_any_instance_of(ActionDispatch::Request).to receive(:env).and_wrap_original do |m, *args|
-          env = m.call(*args)
-          env['omniauth.auth'] = nil
-          env
-        end
+      it 'returns 200 and valid JWT token' do
+        # Mock Google OAuth response
+        allow(GoogleOAuthService).to receive(:fetch_user_info)
+          .with('valid_google_auth_code', 'https://client.app/callback')
+          .and_return({
+            provider: 'google_oauth2',
+            uid: '123456789',
+            email: 'user@google.com',
+            name: 'Google User'
+          })
 
-        get '/api/v1/oauth/github/callback'
+        allow(JWTService).to receive(:encode)
+          .with({
+            user_id: be_a(String),
+            provider: 'google_oauth2',
+            exp: be_a(Integer)
+          })
+          .and_return('jwt_token')
 
-        expect(response).to have_http_status(:unauthorized)
+        # Mock User creation/find
+        allow(User).to receive(:find_or_create_by!)
+          .with(provider: 'google_oauth2', provider_uid: '123456789')
+          .and_return(
+            double('User',
+              id: 'user-uuid-123',
+              email: 'user@google.com',
+              provider: 'google_oauth2',
+              provider_uid: '123456789'
+            )
+          )
+
+        post '/auth/google_oauth2/callback', params: valid_google_code
+
+        expect(response).to have_http_status(:ok)
         json_response = JSON.parse(response.body)
-        expect(json_response['error']).to eq('OAuth data missing')
+
+        expect(json_response).to include('token', 'user')
+        expect(json_response['token']).to eq('jwt_token')
+        expect(json_response['user']).to include(
+          'id', 'email', 'provider', 'provider_uid'
+        )
+        expect(json_response['user']['provider']).to eq('google_oauth2')
+        expect(json_response['user']['provider_uid']).to eq('123456789')
+        expect(json_response['user']['email']).to eq('user@google.com')
       end
     end
 
-    context 'when user creation fails' do
-      it 'returns unprocessable entity with user creation failed message' do
-        bad_auth = mock_auth.dup
-        bad_auth['info']['email'] = '' # Email vide pour forcer l'échec
-        allow_any_instance_of(ActionDispatch::Request).to receive(:env).and_wrap_original do |m, *args|
-          env = m.call(*args)
-          env['omniauth.auth'] = bad_auth
-          env
-        end
+    context 'with valid GitHub OAuth code' do
+      let(:valid_github_code) do
+        {
+          code: 'valid_github_auth_code',
+          redirect_uri: 'https://client.app/callback'
+        }
+      end
 
-        get '/api/v1/oauth/github/callback'
+      it 'returns 200 and valid JWT token' do
+        # Mock GitHub OAuth response
+        allow(GitHubOAuthService).to receive(:fetch_user_info)
+          .with('valid_github_auth_code', 'https://client.app/callback')
+          .and_return({
+            provider: 'github',
+            uid: '987654321',
+            email: 'user@github.com',
+            name: 'GitHub User'
+          })
+
+        allow(JWTService).to receive(:encode)
+          .with({
+            user_id: be_a(String),
+            provider: 'github',
+            exp: be_a(Integer)
+          })
+          .and_return('github_jwt_token')
+
+        # Mock User creation/find
+        allow(User).to receive(:find_or_create_by!)
+          .with(provider: 'github', provider_uid: '987654321')
+          .and_return(
+            double('User',
+              id: 'user-uuid-456',
+              email: 'user@github.com',
+              provider: 'github',
+              provider_uid: '987654321'
+            )
+          )
+
+        post '/auth/github/callback', params: valid_github_code
+
+        expect(response).to have_http_status(:ok)
+        json_response = JSON.parse(response.body)
+
+        expect(json_response).to include('token', 'user')
+        expect(json_response['token']).to eq('github_jwt_token')
+        expect(json_response['user']).to include(
+          'id', 'email', 'provider', 'provider_uid'
+        )
+        expect(json_response['user']['provider']).to eq('github')
+        expect(json_response['user']['provider_uid']).to eq('987654321')
+        expect(json_response['user']['email']).to eq('user@github.com')
+      end
+    end
+
+    context 'with unsupported provider' do
+      let(:facebook_code) do
+        {
+          code: 'facebook_auth_code',
+          redirect_uri: 'https://client.app/callback'
+        }
+      end
+
+      it 'returns 400 with invalid_provider error' do
+        post '/auth/facebook/callback', params: facebook_code
+
+        expect(response).to have_http_status(:bad_request)
+        json_response = JSON.parse(response.body)
+
+        expect(json_response).to include('error')
+        expect(json_response['error']).to eq('invalid_provider')
+      end
+    end
+
+    context 'with missing authorization code' do
+      let(:payload_without_code) do
+        {
+          redirect_uri: 'https://client.app/callback'
+        }
+      end
+
+      it 'returns 422 with invalid_payload error' do
+        post '/auth/google_oauth2/callback', params: payload_without_code
 
         expect(response).to have_http_status(:unprocessable_entity)
         json_response = JSON.parse(response.body)
-        expect(json_response['error']).to eq('User creation failed')
+
+        expect(json_response).to include('error')
+        expect(json_response['error']).to eq('invalid_payload')
       end
     end
 
-    context 'when OAuth login is successful' do
-      it 'returns JWT token and user info' do
-        # Mise à jour de l'utilisateur pour avoir provider et uid
-        user.update!(provider: 'github', uid: '123456')
-
-        # Mise à jour du mock_auth pour correspondre à l'utilisateur existant
-        mock_auth_for_user = {
-          'provider' => 'github',
-          'uid' => '123456',
-          'info' => {
-            'email' => user.email,
-            'name' => user.name
-          }
+    context 'with missing redirect_uri' do
+      let(:payload_without_redirect) do
+        {
+          code: 'auth_code'
         }
+      end
 
-        allow_any_instance_of(Api::V1::AuthenticationController).to receive(:oauth_callback) do |controller|
-          auth = mock_auth_for_user
-          user_found = controller.send(:find_or_create_user_from_auth, auth)
+      it 'returns 422 with invalid_payload error' do
+        post '/auth/google_oauth2/callback', params: payload_without_redirect
 
-          if user_found.persisted?
-            result = AuthenticationService.login(user_found, controller.request.remote_ip,
-                                                 controller.request.user_agent)
-            controller.render json: {
-              token: result[:token],
-              refresh_token: result[:refresh_token],
-              user: user_found
-            }, status: :ok
-          else
-            controller.render json: { error: 'Unprocessable entity', message: 'User creation failed' },
-                              status: :unprocessable_entity
-          end
-        end
-
-        get '/api/v1/oauth/github/callback'
-
-        expect(response).to have_http_status(:ok)
+        expect(response).to have_http_status(:unprocessable_entity)
         json_response = JSON.parse(response.body)
-        expect(json_response['token']).to be_present
-        expect(json_response['user']['email']).to eq('oauth_user@example.com')
-        expect(json_response['user']['name']).to eq('OAuth User')
-      end
 
-      it 'creates user with GitHub provider' do
-        # Stub request.env['omniauth.auth'] to return GitHub data
-        github_email = "github_#{SecureRandom.hex(4)}@example.com"
-        github_auth = {
-          'provider' => 'github',
-          'uid' => "github_#{SecureRandom.hex(8)}",
-          'info' => {
-            'email' => github_email,
-            'name' => 'GitHub User',
-            'nickname' => 'github_user'
-          }
-        }
-
-        User.where(email: github_email).destroy_all
-
-        allow_any_instance_of(ActionDispatch::Request).to receive(:env).and_wrap_original do |m, *args|
-          env = m.call(*args)
-          env['omniauth.auth'] = github_auth
-          env
-        end
-
-        expect do
-          get '/api/v1/oauth/github/callback'
-        end.to change(User, :count).by(1)
-
-        expect(response).to have_http_status(:ok)
-        new_user = User.last
-        expect(new_user.provider).to eq('github')
-        expect(new_user.uid).to eq(github_auth['uid'])
-        expect(new_user.email).to eq(github_email)
-        expect(new_user.name).to eq('GitHub User')
-      end
-
-      it 'creates user with Google OAuth2 provider' do
-        # Stub request.env['omniauth.auth'] to return Google data
-        google_email = "google_#{SecureRandom.hex(4)}@example.com"
-        google_auth = {
-          'provider' => 'google_oauth2',
-          'uid' => "google_#{SecureRandom.hex(8)}",
-          'info' => {
-            'email' => google_email,
-            'name' => 'Google User'
-          }
-        }
-
-        User.where(email: google_email).destroy_all
-
-        allow_any_instance_of(ActionDispatch::Request).to receive(:env).and_wrap_original do |m, *args|
-          env = m.call(*args)
-          env['omniauth.auth'] = google_auth
-          env
-        end
-
-        expect do
-          get '/api/v1/oauth/google_oauth2/callback'
-        end.to change(User, :count).by(1)
-
-        expect(response).to have_http_status(:ok)
-        new_user = User.last
-        expect(new_user.provider).to eq('google_oauth2')
-        expect(new_user.uid).to eq(google_auth['uid'])
-        expect(new_user.email).to eq(google_email)
-        expect(new_user.name).to eq('Google User')
-      end
-
-      it 'finds existing user by provider and uid' do
-        # Create existing user
-        existing_user = create(:user,
-                               provider: 'github',
-                               uid: '123456',
-                               email: 'existing@example.com',
-                               name: 'Existing User')
-
-        # Stub request.env['omniauth.auth'] to return data for existing user
-        existing_auth = {
-          'provider' => 'github',
-          'uid' => '123456',
-          'info' => {
-            'email' => existing_user.email,
-            'name' => existing_user.name
-          }
-        }
-
-        allow_any_instance_of(ActionDispatch::Request).to receive(:env).and_wrap_original do |m, *args|
-          env = m.call(*args)
-          env['omniauth.auth'] = existing_auth
-          env
-        end
-
-        expect do
-          get '/api/v1/oauth/github/callback'
-        end.not_to change(User, :count)
-
-        expect(response).to have_http_status(:ok)
-        json_response = JSON.parse(response.body)
-        expect(json_response['user']['email']).to eq('existing@example.com')
-        expect(json_response['user']['name']).to eq('Existing User')
-      end
-
-      it 'handles missing name and uses nickname' do
-        # Stub request.env['omniauth.auth'] with missing name but with nickname
-        nickname_email = "nickname_#{SecureRandom.hex(4)}@example.com"
-        auth_with_nickname = {
-          'provider' => 'github',
-          'uid' => SecureRandom.hex(8),
-          'info' => {
-            'email' => nickname_email,
-            'nickname' => 'nickname_user'
-          }
-        }
-
-        User.where(email: nickname_email).destroy_all
-
-        allow_any_instance_of(ActionDispatch::Request).to receive(:env).and_wrap_original do |m, *args|
-          env = m.call(*args)
-          env['omniauth.auth'] = auth_with_nickname
-          env
-        end
-
-        expect do
-          get '/api/v1/oauth/github/callback'
-        end.to change(User, :count).by(1)
-
-        new_user = User.last
-        expect(new_user.name).to eq('nickname_user')
-      end
-
-      it 'handles missing name and nickname with default' do
-        # Stub request.env['omniauth.auth'] with missing name and nickname
-        no_name_email = "no_name_#{SecureRandom.hex(4)}@example.com"
-        auth_without_name = {
-          'provider' => 'github',
-          'uid' => SecureRandom.hex(8),
-          'info' => {
-            'email' => no_name_email
-          }
-        }
-
-        User.where(email: no_name_email).destroy_all
-
-        allow_any_instance_of(ActionDispatch::Request).to receive(:env).and_wrap_original do |m, *args|
-          env = m.call(*args)
-          env['omniauth.auth'] = auth_without_name
-          env
-        end
-
-        expect do
-          get '/api/v1/oauth/github/callback'
-        end.to change(User, :count).by(1)
-
-        new_user = User.last
-        expect(new_user.name).to eq('No Name')
+        expect(json_response).to include('error')
+        expect(json_response['error']).to eq('invalid_payload')
       end
     end
-  end
 
-  describe 'POST /api/v1/oauth/{provider}/callback' do
-    it 'behaves the same as GET request' do
-      # Mise à jour de l'utilisateur pour avoir provider et uid
-      user.update!(provider: 'github', uid: '123456')
-
-      # Test that POST behaves the same as GET
-      post_auth = {
-        'provider' => 'github',
-        'uid' => '123456',
-        'info' => {
-          'email' => user.email,
-          'name' => user.name
+    context 'when OAuth fails (provider returns error)' do
+      let(:invalid_code) do
+        {
+          code: 'invalid_auth_code',
+          redirect_uri: 'https://client.app/callback'
         }
-      }
-
-      allow_any_instance_of(Api::V1::AuthenticationController).to receive(:oauth_callback) do |controller|
-        auth = post_auth
-        user_found = controller.send(:find_or_create_user_from_auth, auth)
-
-        if user_found.persisted?
-          result = AuthenticationService.login(user_found, controller.request.remote_ip,
-                                               controller.request.user_agent)
-          controller.render json: {
-            token: result[:token],
-            refresh_token: result[:refresh_token],
-            user: user_found
-          }, status: :ok
-        else
-          controller.render json: { error: 'Unprocessable entity', message: 'User creation failed' },
-                            status: :unprocessable_entity
-        end
       end
 
-      post '/api/v1/oauth/github/callback'
+      it 'returns 401 with oauth_failed error' do
+        # Mock Google OAuth service to return error
+        allow(GoogleOAuthService).to receive(:fetch_user_info)
+          .with('invalid_auth_code', 'https://client.app/callback')
+          .and_raise(OAuthError.new('Authorization code expired'))
 
-      expect(response).to have_http_status(:ok)
-      json_response = JSON.parse(response.body)
-      expect(json_response['token']).to be_present
-      expect(json_response['user']['email']).to eq('oauth_user@example.com')
+        post '/auth/google_oauth2/callback', params: invalid_code
+
+        expect(response).to have_http_status(:unauthorized)
+        json_response = JSON.parse(response.body)
+
+        expect(json_response).to include('error')
+        expect(json_response['error']).to eq('oauth_failed')
+      end
+    end
+
+    context 'when provider is down' do
+      let(:valid_code) do
+        {
+          code: 'auth_code',
+          redirect_uri: 'https://client.app/callback'
+        }
+      end
+
+      it 'returns 401 with oauth_failed error' do
+        # Mock Google OAuth service to be unavailable
+        allow(GoogleOAuthService).to receive(:fetch_user_info)
+          .and_raise(Net::OpenTimeout.new('Connection timeout'))
+
+        post '/auth/google_oauth2/callback', params: valid_code
+
+        expect(response).to have_http_status(:unauthorized)
+        json_response = JSON.parse(response.body)
+
+        expect(json_response).to include('error')
+        expect(json_response['error']).to eq('oauth_failed')
+      end
+    end
+
+    context 'when user data is incomplete (missing email)' do
+      let(:incomplete_user_data) do
+        {
+          code: 'auth_code',
+          redirect_uri: 'https://client.app/callback'
+        }
+      end
+
+      it 'returns 422 with invalid_payload error' do
+        # Mock Google OAuth service to return data without email
+        allow(GoogleOAuthService).to receive(:fetch_user_info)
+          .with('auth_code', 'https://client.app/callback')
+          .and_return({
+            provider: 'google_oauth2',
+            uid: '123456789',
+            name: 'User Without Email'
+            # Missing email
+          })
+
+        post '/auth/google_oauth2/callback', params: incomplete_user_data
+
+        expect(response).to have_http_status(:unprocessable_entity)
+        json_response = JSON.parse(response.body)
+
+        expect(json_response).to include('error')
+        expect(json_response['error']).to eq('invalid_payload')
+      end
+    end
+
+    context 'when user data is incomplete (missing uid)' do
+      let(:incomplete_uid_data) do
+        {
+          code: 'auth_code',
+          redirect_uri: 'https://client.app/callback'
+        }
+      end
+
+      it 'returns 422 with invalid_payload error' do
+        # Mock Google OAuth service to return data without uid
+        allow(GoogleOAuthService).to receive(:fetch_user_info)
+          .with('auth_code', 'https://client.app/callback')
+          .and_return({
+            provider: 'google_oauth2',
+            email: 'user@google.com',
+            name: 'User Without UID'
+            # Missing uid
+          })
+
+        post '/auth/google_oauth2/callback', params: incomplete_uid_data
+
+        expect(response).to have_http_status(:unprocessable_entity)
+        json_response = JSON.parse(response.body)
+
+        expect(json_response).to include('error')
+        expect(json_response['error']).to eq('invalid_payload')
+      end
+    end
+
+    context 'when creating new user with Google' do
+      let(:new_user_code) do
+        {
+          code: 'new_user_auth_code',
+          redirect_uri: 'https://client.app/callback'
+        }
+      end
+
+      it 'creates new user and returns JWT token' do
+        # Mock Google OAuth response for new user
+        allow(GoogleOAuthService).to receive(:fetch_user_info)
+          .with('new_user_auth_code', 'https://client.app/callback')
+          .and_return({
+            provider: 'google_oauth2',
+            uid: 'new_user_uid_123',
+            email: 'newuser@google.com',
+            name: 'New Google User'
+          })
+
+        # Mock User creation (no existing user found)
+        allow(User).to receive(:find_or_create_by!)
+          .with(provider: 'google_oauth2', provider_uid: 'new_user_uid_123')
+          .and_return(
+            double('User',
+              id: 'new-user-uuid',
+              email: 'newuser@google.com',
+              provider: 'google_oauth2',
+              provider_uid: 'new_user_uid_123'
+            )
+          )
+
+        allow(JWTService).to receive(:encode)
+          .with({
+            user_id: 'new-user-uuid',
+            provider: 'google_oauth2',
+            exp: be_a(Integer)
+          })
+          .and_return('new_user_jwt_token')
+
+        # Mock User.count to verify creation
+        allow(User).to receive(:count).and_return(1)
+
+        post '/auth/google_oauth2/callback', params: new_user_code
+
+        expect(response).to have_http_status(:ok)
+        json_response = JSON.parse(response.body)
+
+        expect(json_response).to include('token', 'user')
+        expect(json_response['token']).to eq('new_user_jwt_token')
+        expect(json_response['user']['email']).to eq('newuser@google.com')
+
+        # Verify User was created with correct attributes
+        expect(User).to have_received(:find_or_create_by!)
+          .with(provider: 'google_oauth2', provider_uid: 'new_user_uid_123')
+      end
+    end
+
+    context 'when logging in existing user' do
+      let(:existing_user_code) do
+        {
+          code: 'existing_user_auth_code',
+          redirect_uri: 'https://client.app/callback'
+        }
+      end
+
+      it 'finds existing user and returns JWT token' do
+        existing_user = double('User',
+          id: 'existing-user-uuid',
+          email: 'existing@google.com',
+          provider: 'google_oauth2',
+          provider_uid: 'existing_user_uid_456'
+        )
+
+        # Mock Google OAuth response for existing user
+        allow(GoogleOAuthService).to receive(:fetch_user_info)
+          .with('existing_user_auth_code', 'https://client.app/callback')
+          .and_return({
+            provider: 'google_oauth2',
+            uid: 'existing_user_uid_456',
+            email: 'existing@google.com',
+            name: 'Existing Google User'
+          })
+
+        # Mock User find (existing user found)
+        allow(User).to receive(:find_or_create_by!)
+          .with(provider: 'google_oauth2', provider_uid: 'existing_user_uid_456')
+          .and_return(existing_user)
+
+        allow(JWTService).to receive(:encode)
+          .with({
+            user_id: 'existing-user-uuid',
+            provider: 'google_oauth2',
+            exp: be_a(Integer)
+          })
+          .and_return('existing_user_jwt_token')
+
+        # Mock User.count to verify no new creation
+        allow(User).to receive(:count).and_return(1)
+
+        post '/auth/google_oauth2/callback', params: existing_user_code
+
+        expect(response).to have_http_status(:ok)
+        json_response = JSON.parse(response.body)
+
+        expect(json_response).to include('token', 'user')
+        expect(json_response['token']).to eq('existing_user_jwt_token')
+        expect(json_response['user']['email']).to eq('existing@google.com')
+
+        # Verify existing user was found
+        expect(User).to have_received(:find_or_create_by!)
+          .with(provider: 'google_oauth2', provider_uid: 'existing_user_uid_456')
+      end
+    end
+
+    context 'when JWT encoding fails' do
+      let(:valid_code) do
+        {
+          code: 'auth_code',
+          redirect_uri: 'https://client.app/callback'
+        }
+      end
+
+      it 'returns 500 with internal_error' do
+        # Mock Google OAuth service success
+        allow(GoogleOAuthService).to receive(:fetch_user_info)
+          .and_return({
+            provider: 'google_oauth2',
+            uid: '123456789',
+            email: 'user@google.com',
+            name: 'Google User'
+          })
+
+        # Mock User creation success
+        allow(User).to receive(:find_or_create_by!)
+          .and_return(
+            double('User',
+              id: 'user-uuid',
+              email: 'user@google.com',
+              provider: 'google_oauth2',
+              provider_uid: '123456789'
+            )
+          )
+
+        # Mock JWT encoding to fail
+        allow(JWTService).to receive(:encode)
+          .and_raise(JWT::EncodeError.new('Invalid secret key'))
+
+        post '/auth/google_oauth2/callback', params: valid_code
+
+        expect(response).to have_http_status(:internal_server_error)
+        json_response = JSON.parse(response.body)
+
+        expect(json_response).to include('error')
+        expect(json_response['error']).to eq('internal_error')
+      end
+    end
+
+    context 'with invalid JSON payload' do
+      it 'returns 422 with invalid_payload error' do
+        post '/auth/google_oauth2/callback',
+          params: '{ invalid json }',
+          headers: { 'Content-Type' => 'application/json' }
+
+        expect(response).to have_http_status(:unprocessable_entity)
+        json_response = JSON.parse(response.body)
+
+        expect(json_response).to include('error')
+        expect(json_response['error']).to eq('invalid_payload')
+      end
+    end
+
+    context 'with empty request body' do
+      it 'returns 422 with invalid_payload error' do
+        post '/auth/google_oauth2/callback', params: {}
+
+        expect(response).to have_http_status(:unprocessable_entity)
+        json_response = JSON.parse(response.body)
+
+        expect(json_response).to include('error')
+        expect(json_response['error']).to eq('invalid_payload')
+      end
+    end
+
+    context 'with malformed request (non-JSON content type)' do
+      let(:form_data) do
+        {
+          code: 'auth_code',
+          redirect_uri: 'https://client.app/callback'
+        }
+      end
+
+      it 'returns 422 with invalid_payload error' do
+        post '/auth/google_oauth2/callback',
+          params: form_data,
+          headers: { 'Content-Type' => 'application/x-www-form-urlencoded' }
+
+        expect(response).to have_http_status(:unprocessable_entity)
+        json_response = JSON.parse(response.body)
+
+        expect(json_response).to include('error')
+        expect(json_response['error']).to eq('invalid_payload')
+      end
     end
   end
 end

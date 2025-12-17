@@ -9,6 +9,7 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
     resource '*',
              headers: :any,
              credentials: true,
-             methods: %i[get post options delete put patch]
+             methods: %i[get post options delete put patch],
+             expose: ['Authorization']
   end
 end

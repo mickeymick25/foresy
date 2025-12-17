@@ -12,6 +12,7 @@ module ErrorRenderable
   included do
     rescue_from ActiveRecord::RecordNotFound, with: :render_not_found
     rescue_from ActionController::ParameterMissing, with: ->(e) { render_bad_request(e.message) }
+
     rescue_from StandardError, with: :render_conditional_server_error
     rescue_from ApplicationError, with: :render_internal_server_error
   end

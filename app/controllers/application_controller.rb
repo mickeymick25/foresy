@@ -17,11 +17,10 @@ class ApplicationController < ActionController::API
     return render_unauthorized('Missing token') unless token
 
     payload = decode_token(token)
-    return render_unauthorized('Invalid token') unless payload_valid?(payload)
+    return handle_invalid_payload(payload) unless valid_payload?(payload)
 
     assign_current_user_and_session(payload)
-    return render_unauthorized('Invalid token') unless current_user && current_session
-    return render_unauthorized('Session already expired') unless current_session.active?
+    return handle_invalid_session unless valid_session?
 
     current_session.refresh!
   end
@@ -35,14 +34,53 @@ class ApplicationController < ActionController::API
 
   def decode_token(token)
     JsonWebToken.decode(token)
-  rescue JWT::DecodeError, JWT::ExpiredSignature
-    nil
+  rescue JWT::ExpiredSignature
+    :expired_token
+  rescue JWT::DecodeError
+    :invalid_token
   end
 
   def payload_valid?(payload)
     return false if payload.nil?
 
     user_id_from(payload).present? && session_id_from(payload).present?
+  end
+
+  def handle_invalid_payload(payload)
+    if payload == :expired_token
+      render_unauthorized('Token has expired')
+    elsif payload == :invalid_token
+      render_unauthorized('Invalid token')
+    else
+      render_unauthorized('Invalid token')
+    end
+  end
+
+  def handle_expired_session
+    render_unauthorized('Session already expired')
+  end
+
+  def valid_payload?(payload)
+    return false if payload == :expired_token
+    return false if payload == :invalid_token
+    return false if payload.nil?
+
+    payload_valid?(payload)
+  end
+
+  def valid_session?
+    return false unless current_user && current_session
+    return false unless current_session.active?
+
+    true
+  end
+
+  def handle_invalid_session
+    if current_user && current_session
+      handle_expired_session
+    else
+      render_unauthorized('Invalid token')
+    end
   end
 
   def assign_current_user_and_session(payload)

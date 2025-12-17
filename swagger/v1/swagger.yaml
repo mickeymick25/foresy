@@ -1,160 +1,103 @@
+---
 openapi: 3.0.1
 info:
   title: API Foresy
   version: v1
-  description: |
-    Documentation de l'API Foresy - Application Rails pour la gestion des utilisateurs avec authentification JWT.
-
-    ## Fonctionnalités
-    - Authentification JWT avec refresh tokens
-    - OAuth avec GitHub et Google OAuth2
-    - Gestion des sessions utilisateur
-    - API RESTful complète
-
-    ## Qualité du Code
-    - ✅ 0 offense RuboCop (code 100% conforme aux standards)
-    - ✅ 94 tests RSpec qui passent (0 échec)
-    - ✅ Architecture refactorisée et optimisée
-
-servers:
-  - url: http://{defaultHost}
-    description: Serveur local de développement
-    variables:
-      defaultHost:
-        default: localhost:3000
-
+  description: Documentation de l'API Foresy
 paths:
-  /api/v1/auth/login:
+  "/api/v1/auth/login":
     post:
-      summary: Authentifie un utilisateur
+      summary: Authenticates a user
       tags:
-        - Authentication
+      - Authentication
       parameters: []
+      responses:
+        '200':
+          description: user authenticated
+        '401':
+          description: missing email
+        '403':
+          description: inactive user
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/LoginRequest"
-        required: true
-      responses:
-        "200":
-          description: Utilisateur authentifié avec succès
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AuthSuccessResponse"
-              examples:
-                successful_login:
-                  summary: Connexion réussie
-                  value:
-                    token: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOjEsImlhdCI6MTY5NzQwMDAwMCwiZXhwIjoxNjk3NDAzNjAwfQ.example"
-                    refresh_token: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOjEsImlhdCI6MTY5NzQwMDAwMCwiZXhwIjoxNjk3NDAzNjAwfQ.refresh"
-                    email: "user@example.com"
-        "400":
-          description: Requête invalide - Email ou mot de passe manquant
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              examples:
-                missing_email:
-                  summary: Email manquant
-                  value:
-                    error: "Unauthorized"
-                    message: "Email is required"
-                missing_password:
-                  summary: Mot de passe manquant
-                  value:
-                    error: "Unauthorized"
-                    message: "Password is required"
-        "401":
-          description: Identifiants invalides
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              examples:
-                invalid_credentials:
-                  summary: Identifiants incorrects
-                  value:
-                    error: "Unauthorized"
-                    message: "Invalid credentials"
-        "403":
-          description: Compte inactif ou session bloquée
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              examples:
-                inactive_account:
-                  summary: Compte inactif
-                  value:
-                    error: "Forbidden"
-                    message: "Account is inactive"
-                blocked_session:
-                  summary: Session bloquée
-                  value:
-                    error: "Forbidden"
-                    message: "Session blocked"
-
-  /api/v1/auth/logout:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+              required:
+              - email
+              - password
+  "/api/v1/auth/logout":
     delete:
-      summary: Déconnecte l'utilisateur
+      summary: Logs out
       tags:
-        - Authentication
+      - Authentication Logout
       parameters:
-        - name: Authorization
-          in: header
-          required: true
-          description: Bearer token JWT
-          schema:
-            type: string
-            example: "Bearer eyJhbGciOiJIUzI1NiJ9..."
+      - name: Authorization
+        in: header
+        required: false
+        schema:
+          type: string
       responses:
-        "200":
-          description: Déconnexion réussie
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Logged out successfully"
-              examples:
-                successful_logout:
-                  summary: Déconnexion réussie
-                  value:
-                    message: "Logged out successfully"
-        "401":
-          description: Aucune session active ou session expirée
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              examples:
-                no_active_session:
-                  summary: Aucune session active
-                  value:
-                    error: "Unauthorized"
-                    message: "No active session"
-                session_expired:
-                  summary: Session expirée
-                  value:
-                    error: "Unauthorized"
-                    message: "Session already expired"
-                invalid_token:
-                  summary: Token invalide
-                  value:
-                    error: "Unauthorized"
-                    message: "Invalid token"
-
-  /api/v1/auth/refresh:
-    post:
-      summary: Rafraîchit le token d'authentification
+        '200':
+          description: Logout successful
+        '401':
+          description: logout fails with expired token
+        '500':
+          description: internal server error
+  "/api/v1/oauth/google_oauth2/callback":
+    get:
+      summary: OAuth callback for google_oauth2
       tags:
-        - Authentication
+      - OAuth
+      responses:
+        '200':
+          description: successful OAuth login
+        '401':
+          description: missing OAuth data
+        '422':
+          description: user creation failed
+    post:
+      summary: Logs in via google_oauth2
+      tags:
+      - Authentication via Google Oauth2
+      responses:
+        '200':
+          description: OAuth login successful
+  "/api/v1/oauth/github/callback":
+    get:
+      summary: OAuth callback for github
+      tags:
+      - OAuth
+      responses:
+        '200':
+          description: successful OAuth login
+        '401':
+          description: missing OAuth data
+        '422':
+          description: user creation failed
+    post:
+      summary: Logs in via github
+      tags:
+      - Authentication via Github
+      responses:
+        '200':
+          description: OAuth login successful
+  "/api/v1/auth/refresh":
+    post:
+      summary: Refreshes authentication token
+      tags:
+      - Authentication
       parameters: []
+      responses:
+        '200':
+          description: token refreshed
+        '401':
+          description: refresh token expired
       requestBody:
         content:
           application/json:
@@ -163,75 +106,27 @@ paths:
               properties:
                 refresh_token:
                   type: string
-                  format: jwt
-                  description: JWT refresh token
               required:
-                - refresh_token
-          examples:
-            refresh_request:
-              summary: Demande de rafraîchissement
-              value:
-                refresh_token: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOjEsImlhdCI6MTY5NzQwMDAwMCwiZXhwIjoxNjk3NDAzNjAwfQ.refresh"
-        required: true
-      responses:
-        "200":
-          description: Token rafraîchi avec succès
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AuthSuccessResponse"
-              examples:
-                successful_refresh:
-                  summary: Rafraîchissement réussi
-                  value:
-                    token: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOjEsImlhdCI6MTY5NzQwMDAwMCwiZXhwIjoxNjk3NDAzNjAwfQ.new"
-                    refresh_token: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOjEsImlhdCI6MTY5NzQwMDAwMCwiZXhwIjoxNjk3NDAzNjAwfQ.new_refresh"
-                    email: "user@example.com"
-        "400":
-          description: Requête invalide - Refresh token manquant
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              examples:
-                missing_token:
-                  summary: Refresh token manquant
-                  value:
-                    error: "Unauthorized"
-                    message: "Refresh token is missing"
-        "401":
-          description: Impossible de rafraîchir - Token invalide ou expiré
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              examples:
-                invalid_token:
-                  summary: Token invalide
-                  value:
-                    error: "Unauthorized"
-                    message: "Unable to refresh session"
-                expired_token:
-                  summary: Token expiré
-                  value:
-                    error: "Unauthorized"
-                    message: "Unable to refresh session"
-
-  /api/v1/signup:
+              - refresh_token
+  "/api/v1/auth/{provider}/callback":
     post:
-      summary: Crée un nouvel utilisateur
+      summary: OAuth callback for provider authentication
       tags:
-        - Users
-      parameters: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/SignupRequest"
+      - OAuth
+      parameters:
+      - name: provider
+        in: path
+        type: string
         required: true
+        description: OAuth provider
+        schema:
+          type: string
+          enum:
+          - google_oauth2
+          - github
       responses:
-        "201":
-          description: Utilisateur créé avec succès
+        '200':
+          description: successful OAuth authentication
           content:
             application/json:
               schema:
@@ -239,19 +134,34 @@ paths:
                 properties:
                   token:
                     type: string
-                    description: JWT access token pour le nouvel utilisateur
-                  email:
-                    type: string
-                    format: email
-                    description: Adresse email de l'utilisateur
-              examples:
-                successful_signup:
-                  summary: Inscription réussie
-                  value:
-                    token: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOjEsImlhdCI6MTY5NzQwMDAwMCwiZXhwIjoxNjk3NDAzNjAwfQ.new_user"
-                    email: "newuser@example.com"
-        "422":
-          description: Échec de validation - Données utilisateur invalides
+                    description: JWT authentication token
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: User unique identifier
+                      email:
+                        type: string
+                        format: email
+                        description: User email address
+                      provider:
+                        type: string
+                        description: OAuth provider used
+                      provider_uid:
+                        type: string
+                        description: User unique identifier from OAuth provider
+                    required:
+                    - id
+                    - email
+                    - provider
+                    - provider_uid
+                required:
+                - token
+                - user
+        '400':
+          description: invalid provider
           content:
             application/json:
               schema:
@@ -259,330 +169,148 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Unprocessable Entity"
-                  message:
-                    type: array
-                    items:
-                      type: string
-                    example: ["Email has already been taken"]
-              examples:
-                email_taken:
-                  summary: Email déjà utilisé
-                  value:
-                    error: "Unprocessable Entity"
-                    message: ["Email has already been taken"]
-                password_invalid:
-                  summary: Mot de passe invalide
-                  value:
-                    error: "Unprocessable Entity"
-                    message: ["Password is too short (minimum is 6 characters)"]
-                email_invalid:
-                  summary: Format email invalide
-                  value:
-                    error: "Unprocessable Entity"
-                    message: ["Email is invalid"]
-
-  /api/v1/oauth/{provider}/callback:
+                    example: invalid_provider
+                    description: Error code
+                required:
+                - error
+        '401':
+          description: OAuth authentication failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: oauth_failed
+                    description: Error code
+                required:
+                - error
+        '422':
+          description: invalid payload
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: invalid_payload
+                    description: Error code
+                required:
+                - error
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: internal_error
+                    description: Error code
+                required:
+                - error
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  description: OAuth authorization code
+                redirect_uri:
+                  type: string
+                  format: uri
+                  description: Redirect URI used in OAuth flow
+              required:
+              - code
+              - redirect_uri
+        required: true
+        description: OAuth authorization code received from provider
+  "/api/v1/auth/failure":
     get:
-      summary: Callback OAuth pour l'authentification (GET)
+      summary: OAuth failure endpoint
       tags:
-        - Authentication
-      parameters:
-        - name: provider
-          in: path
-          required: true
-          description: Fournisseur OAuth
-          schema:
-            type: string
-            enum: [github, google_oauth2]
-          example: github
+      - OAuth
       responses:
-        "200":
-          description: Authentification OAuth réussie
+        '401':
+          description: OAuth authentication failed
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  token:
+                  error:
                     type: string
-                    description: JWT access token
-                  refresh_token:
+                    example: oauth_failed
+                    description: Error code
+                  message:
                     type: string
-                    description: JWT refresh token
-                  user:
-                    $ref: "#/components/schemas/OAuthUserResponse"
-              examples:
-                github_oauth_success:
-                  summary: OAuth GitHub réussi
-                  value:
-                    token: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOjEsImlhdCI6MTY5NzQwMDAwMCwiZXhwIjoxNjk3NDAzNjAwfQ.github"
-                    refresh_token: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOjEsImlhdCI6MTY5NzQwMDAwMCwiZXhwIjoxNjk3NDAzNjAwfQ.github_refresh"
-                    user:
-                      id: 1
-                      email: "user@github.com"
-                      name: "GitHub User"
-                      provider: "github"
-                      uid: "123456"
-                      active: true
-        "401":
-          description: Données OAuth manquantes ou invalides
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              examples:
-                missing_oauth_data:
-                  summary: Données OAuth manquantes
-                  value:
-                    error: "Unauthorized"
-                    message: "OAuth data missing"
-        "422":
-          description: Échec de création d'utilisateur
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              examples:
-                user_creation_failed:
-                  summary: Échec de création utilisateur
-                  value:
-                    error: "Unprocessable Entity"
-                    message: "User creation failed"
-
+                    example: OAuth authentication failed
+                    description: Error message
+                required:
+                - error
+                - message
+  "/api/v1/signup":
     post:
-      summary: Callback OAuth pour l'authentification (POST)
+      summary: Crée un nouvel utilisateur
       tags:
-        - Authentication
-      parameters:
-        - name: provider
-          in: path
-          required: true
-          description: Fournisseur OAuth
-          schema:
-            type: string
-            enum: [github, google_oauth2]
-          example: google_oauth2
+      - Users
+      parameters: []
       responses:
-        "200":
-          description: Authentification OAuth réussie
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  token:
-                    type: string
-                    description: JWT access token
-                  refresh_token:
-                    type: string
-                    description: JWT refresh token
-                  user:
-                    $ref: "#/components/schemas/OAuthUserResponse"
-              examples:
-                google_oauth_success:
-                  summary: OAuth Google réussi
-                  value:
-                    token: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOjEsImlhdCI6MTY5NzQwMDAwMCwiZXhwIjoxNjk3NDAzNjAwfQ.google"
-                    refresh_token: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOjEsImlhdCI6MTY5NzQwMDAwMCwiZXhwIjoxNjk3NDAzNjAwfQ.google_refresh"
-                    user:
-                      id: 2
-                      email: "user@gmail.com"
-                      name: "Google User"
-                      provider: "google_oauth2"
-                      uid: "789012"
-                      active: true
-        "401":
-          description: Données OAuth manquantes ou invalides
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              examples:
-                missing_oauth_data:
-                  summary: Données OAuth manquantes
-                  value:
-                    error: "Unauthorized"
-                    message: "OAuth data missing"
-        "422":
-          description: Échec de création d'utilisateur
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-              examples:
-                user_creation_failed:
-                  summary: Échec de création utilisateur
-                  value:
-                    error: "Unprocessable Entity"
-                    message: "User creation failed"
-
+        '201':
+          description: Utilisateur créé
+        '422':
+          description: Création échouée
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/user"
+        required: true
+servers:
+- url: http://{defaultHost}
+  description: Serveur local de développement
+  variables:
+    defaultHost:
+      default: localhost:3000
 components:
   securitySchemes:
     bearer_auth:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: JWT Bearer token pour l'authentification
-
   schemas:
-    LoginRequest:
+    user:
       type: object
       properties:
         email:
           type: string
           format: email
-          description: Adresse email de l'utilisateur
-          example: "user@example.com"
         password:
           type: string
           format: password
-          description: Mot de passe de l'utilisateur
-          example: "password123"
-      required:
-        - email
-        - password
-      additionalProperties: false
-
-    SignupRequest:
-      type: object
-      properties:
-        email:
-          type: string
-          format: email
-          description: Adresse email de l'utilisateur
-          example: "newuser@example.com"
-        password:
-          type: string
-          format: password
-          minimumLength: 6
-          description: Mot de passe (minimum 6 caractères)
-          example: "password123"
         password_confirmation:
           type: string
           format: password
-          description: Confirmation du mot de passe
-          example: "password123"
       required:
-        - email
-        - password
-        - password_confirmation
-      additionalProperties: false
-
-    User:
+      - email
+      - password
+      - password_confirmation
+    login:
       type: object
       properties:
-        id:
-          type: integer
-          description: Identifiant unique de l'utilisateur
-          example: 1
         email:
           type: string
           format: email
-          description: Adresse email de l'utilisateur
-          example: "user@example.com"
-        name:
+        password:
           type: string
-          description: Nom complet de l'utilisateur
-          example: "John Doe"
-        provider:
-          type: string
-          nullable: true
-          description: Fournisseur OAuth (si applicable)
-          example: "github"
-        uid:
-          type: string
-          nullable: true
-          description: Identifiant unique du fournisseur OAuth
-          example: "123456"
-        active:
-          type: boolean
-          description: Statut actif de l'utilisateur
-          example: true
-        created_at:
-          type: string
-          format: date-time
-          description: Date de création
-          example: "2024-01-01T00:00:00.000Z"
-        updated_at:
-          type: string
-          format: date-time
-          description: Date de dernière modification
-          example: "2024-01-01T00:00:00.000Z"
+          format: password
       required:
-        - id
-        - email
-        - active
-        - created_at
-        - updated_at
-      additionalProperties: false
-
-    OAuthUserResponse:
-      allOf:
-        - $ref: "#/components/schemas/User"
-        - type: object
-          properties:
-            provider:
-              type: string
-              description: Fournisseur OAuth (toujours présent)
-              example: "github"
-            uid:
-              type: string
-              description: Identifiant unique du fournisseur OAuth
-              example: "123456"
-          required:
-            - provider
-            - uid
-
-    AuthSuccessResponse:
-      type: object
-      properties:
-        token:
-          type: string
-          description: JWT access token (valide 15 minutes)
-          example: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOjEsImlhdCI6MTY5NzQwMDAwMCwiZXhwIjoxNjk3NDAzNjAwfQ.example"
-        refresh_token:
-          type: string
-          description: JWT refresh token (valide 30 jours)
-          example: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOjEsImlhdCI6MTY5NzQwMDAwMCwiZXhwIjoxNjk3NDAzNjAwfQ.refresh"
-        email:
-          type: string
-          format: email
-          description: Adresse email de l'utilisateur
-          example: "user@example.com"
-      required:
-        - token
-        - refresh_token
-        - email
-      additionalProperties: false
-
-    ErrorResponse:
-      type: object
-      properties:
-        error:
-          type: string
-          description: Type d'erreur
-          example: "Unauthorized"
-        message:
-          oneOf:
-            - type: string
-              description: Message d'erreur simple
-              example: "Invalid credentials"
-            - type: array
-              items:
-                type: string
-              description: Liste des erreurs de validation
-              example: ["Email has already been taken", "Password is too short"]
-      required:
-        - error
-        - message
-      additionalProperties: false
-
+      - email
+      - password
 security:
-  - bearer_auth: []
-
-tags:
-  - name: Authentication
-    description: Endpoints d'authentification et de gestion des sessions
-  - name: Users
-    description: Gestion des utilisateurs
+- bearer_auth: []

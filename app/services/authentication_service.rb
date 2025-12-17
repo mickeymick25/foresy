@@ -30,13 +30,15 @@ class AuthenticationService
     decoded = JsonWebToken.decode(token)
 
     # Vérifie que c'est bien un refresh token (doit avoir refresh_exp)
-    return nil unless decoded['refresh_exp'].present?
+    refresh_exp = decoded['refresh_exp'] || decoded[:refresh_exp]
+    return nil unless refresh_exp.present?
 
     # Vérifie que le refresh token n'a pas expiré
-    return nil if Time.at(decoded['refresh_exp']) < Time.current
+    return nil if Time.at(refresh_exp) < Time.current
 
     # Vérifie que le user_id est présent et valide
-    return nil if decoded['user_id'].blank?
+    user_id = decoded['user_id'] || decoded[:user_id]
+    return nil if user_id.blank?
 
     decoded
   rescue JWT::DecodeError, JWT::ExpiredSignature, JWT::InvalidIatError

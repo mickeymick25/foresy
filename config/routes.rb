@@ -19,11 +19,16 @@ Rails.application.routes.draw do
       post 'auth/refresh', to: 'authentication#refresh'
       delete 'auth/logout', to: 'authentication#logout'
 
-      # OAuth callbacks
-      post 'oauth/:provider/callback', to: 'authentication#oauth_callback'
-      get 'oauth/:provider/callback', to: 'authentication#oauth_callback'
-
+      # OAuth callbacks moved to root level as per Feature Contract
       post 'signup', to: 'users#create'
+    end
+  end
+
+  # OAuth endpoints in api/v1 namespace for consistency
+  namespace :api do
+    namespace :v1 do
+      post 'auth/:provider/callback', to: 'oauth#callback'
+      get 'auth/failure', to: 'oauth#failure'
     end
   end
 
