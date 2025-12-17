@@ -8,8 +8,13 @@
 # - POST /auth/:provider/callback - OAuth callback for authentication
 # - GET /auth/failure - OAuth failure endpoint
 #
-# Load OAuthConcern explicitly to avoid autoloading issues
-require_relative '../../concerns/oauth_concern'
+# Refactored to use specialized services and reduce complexity
+
+# Require OAuth services to ensure they are loaded
+require_relative '../../../services/oauth_validation_service'
+require_relative '../../../services/oauth_user_service'
+require_relative '../../../services/oauth_token_service'
+require_relative '../../../services/google_oauth_service'
 
 module Api
   module V1
@@ -17,168 +22,113 @@ module Api
     # Handles OAuth authentication for Google & GitHub providers
     # Implements stateless JWT authentication without server-side sessions
     class OauthController < ApplicationController
-      include ::OAuthConcern
+      include ErrorRenderable
 
-  # POST /auth/:provider/callback
-  # OAuth callback endpoint for Google & GitHub authentication
-  def callback
-    return render_bad_request('invalid_provider') unless valid_provider?(params[:provider])
+      # POST /auth/:provider/callback
+      # OAuth callback endpoint for Google & GitHub authentication
+      def callback
+        execute_oauth_flow
+      rescue StandardError => e
+        Rails.logger.error "OAuth callback error: #{e.class.name} - #{e.message}"
+        Rails.logger.error "Backtrace: #{e.backtrace.join("\n")}"
+        render json: { error: 'internal_error', message: e.message }, status: :internal_server_error
+      end
 
-    payload_validation = validate_callback_payload
-    return render_unprocessable_entity('invalid_payload') if payload_validation[:error]
+      # Execute the complete OAuth authentication flow
+      def execute_oauth_flow
+        Rails.logger.info "Starting OAuth flow for provider: #{params[:provider]}"
 
-    auth_data = extract_oauth_data
-    return render_unauthorized('oauth_failed') if auth_data.nil?
+        return render_bad_request('invalid_provider') unless valid_provider?
 
-    auth_validation = validate_oauth_data(auth_data)
-    return render_unprocessable_entity('invalid_payload') if auth_validation[:error]
+        validation_result = process_oauth_validation
+        return handle_validation_error(validation_result) if validation_result.is_a?(Symbol)
 
-    user = find_or_create_user_from_oauth(auth_validation[:data])
-    return render_unprocessable_entity('invalid_payload') unless user.persisted?
+        user = find_or_create_user(validation_result[:data])
+        return handle_user_error(user) unless user.persisted?
 
-    token = generate_stateless_jwt(user)
-    render_success_response(token, user)
-  rescue StandardError => e
-    Rails.logger.error "OAuth callback error: #{e.message}"
-    render json: { error: 'internal_error' }, status: :internal_server_error
-  end
+        token = generate_oauth_token(user)
+        render_success_response(token, user)
+      end
 
-  # GET /auth/failure
-  # Optional OAuth failure endpoint (recommended by Feature Contract)
-  def failure
-    render json: { error: 'oauth_failed', message: 'OAuth authentication failed' }, status: :unauthorized
-  end
+      # Handle validation results that return symbols
+      def handle_validation_error(result)
+        case result
+        when :oauth_failed
+          render_unauthorized('oauth_failed')
+        when :invalid_payload
+          render_unprocessable_entity('invalid_payload')
+        else
+          Rails.logger.error "Unknown validation result: #{result}"
+          render json: { error: 'internal_error' }, status: :internal_server_error
+        end
+      end
 
-  private
+      # Process OAuth validation and data extraction
+      def process_oauth_validation
+        payload_validation = validate_callback_payload
+        return :invalid_payload if payload_validation[:error]
 
-  # Validate that the provider is supported according to Feature Contract
-  def valid_provider?(provider)
-    %w[google_oauth2 github].include?(provider)
-  end
+        auth_data = extract_oauth_data
+        return :oauth_failed if auth_data.nil?
 
-  # Validate the callback payload according to Feature Contract
-  def validate_callback_payload
-    code = params[:code]
-    redirect_uri = params[:redirect_uri]
+        auth_validation = validate_oauth_data(auth_data)
+        return :invalid_payload if auth_validation[:error]
 
-    if code.blank?
-      return { error: 'missing_code' }
-    elsif redirect_uri.blank?
-      return { error: 'missing_redirect_uri' }
-    end
+        auth_validation
+      end
 
-    { valid: true, code: code, redirect_uri: redirect_uri }
-  end
+      # GET /auth/failure
+      # Optional OAuth failure endpoint (recommended by Feature Contract)
+      def failure
+        render json: { error: 'oauth_failed', message: 'OAuth authentication failed' }, status: :unauthorized
+      end
 
-  # Validate OAuth data completeness according to Feature Contract
-  def validate_oauth_data(auth)
-    return { error: 'missing_auth_data' } if auth.blank?
+      private
 
-    provider = auth.respond_to?(:provider) ? auth.provider : (auth[:provider] || auth['provider'])
-    uid = auth.respond_to?(:uid) ? auth.uid : (auth[:uid] || auth['uid'])
-    info = auth.respond_to?(:info) ? auth.info : (auth[:info] || auth['info'])
-    email = extract_info_field(info, :email)
+      def valid_provider?
+        OAuthValidationService.valid_provider?(params[:provider])
+      end
 
-    return { error: 'missing_provider' } if provider.blank?
-    return { error: 'missing_uid' } if uid.blank?
-    return { error: 'missing_email' } if email.blank?
+      def validate_callback_payload
+        OAuthValidationService.validate_callback_payload(
+          code: params[:code],
+          redirect_uri: params[:redirect_uri]
+        )
+      end
 
-    {
-      valid: true,
-      data: {
-        provider: provider,
-        uid: uid,
-        email: email,
-        name: extract_info_field(info, :name),
-        nickname: extract_info_field(info, :nickname)
-      }
-    }
-  end
+      def extract_oauth_data
+        OAuthValidationService.extract_oauth_data(request)
+      end
 
-  # Extract info field from OAuth info hash
-  def extract_info_field(info, field)
-    return nil if info.blank?
+      def validate_oauth_data(auth_data)
+        OAuthValidationService.validate_oauth_data(auth_data)
+      end
 
-    if info.respond_to?(field)
-      info.send(field)
-    else
-      info[field] || info[field.to_s]
-    end
-  end
+      def find_or_create_user_from_oauth(oauth_data)
+        OAuthUserService.find_or_create_user_from_oauth(oauth_data)
+      end
 
-  # Find or create user from OAuth data using existing User model
-  def find_or_create_user_from_oauth(oauth_data)
-    # Use existing User.find_or_initialize_by with provider and uid
-    user = User.find_or_initialize_by(provider: oauth_data[:provider], uid: oauth_data[:uid])
+      def generate_oauth_token(user)
+        OAuthTokenService.generate_stateless_jwt(user)
+      end
 
-    if user.persisted?
-      # Update existing user
-      update_existing_oauth_user!(user, oauth_data)
-    else
-      # Create new user
-      create_oauth_user!(user, oauth_data)
-    end
+      def render_success_response(token, user)
+        response_data = OAuthTokenService.format_success_response(token, user)
+        render json: response_data, status: :ok
+      end
 
-    user
-  end
+      # Render helpers for standardized error responses
+      def render_bad_request(error_code)
+        render json: { error: error_code }, status: :bad_request
+      end
 
-  # Update existing OAuth user with latest data
-  def update_existing_oauth_user!(user, oauth_data)
-    user.email = oauth_data[:email] if oauth_data[:email].present?
-    user.name = oauth_data[:name] || oauth_data[:nickname] || 'No Name'
-    user.active = true
-    user.save!
-  rescue ActiveRecord::RecordInvalid => e
-    Rails.logger.error "Failed to update OAuth user: #{e.message}"
-    raise
-  end
+      def render_unauthorized(error_code)
+        render json: { error: error_code }, status: :unauthorized
+      end
 
-  # Create new OAuth user
-  def create_oauth_user!(user, oauth_data)
-    user.email = oauth_data[:email]
-    user.name = oauth_data[:name] || oauth_data[:nickname] || 'No Name'
-    user.active = true
-    user.save!
-  rescue ActiveRecord::RecordInvalid => e
-    Rails.logger.error "Failed to create OAuth user: #{e.message}"
-    raise
-  end
-
-  # Generate stateless JWT token according to Feature Contract
-  # Must include: user_id, provider, exp
-  def generate_stateless_jwt(user)
-    JsonWebToken.encode(
-      user_id: user.id,
-      provider: user.provider,
-      exp: 15.minutes.from_now.to_i
-    )
-  end
-
-  # Render success response with token and user data
-  def render_success_response(token, user)
-    render json: {
-      token: token,
-      user: {
-        id: user.id,
-        email: user.email,
-        provider: user.provider,
-        provider_uid: user.uid
-      }
-    }, status: :ok
-  end
-
-  # Render helpers for standardized error responses
-  def render_bad_request(error_code)
-    render json: { error: error_code }, status: :bad_request
-  end
-
-  def render_unauthorized(error_code)
-    render json: { error: error_code }, status: :unauthorized
-  end
-
-  def render_unprocessable_entity(error_code)
-    render json: { error: error_code }, status: :unprocessable_entity
-  end
+      def render_unprocessable_entity(error_code)
+        render json: { error: error_code }, status: :unprocessable_entity
+      end
     end
   end
 end

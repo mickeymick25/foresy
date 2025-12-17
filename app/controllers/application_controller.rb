@@ -49,8 +49,6 @@ class ApplicationController < ActionController::API
   def handle_invalid_payload(payload)
     if payload == :expired_token
       render_unauthorized('Token has expired')
-    elsif payload == :invalid_token
-      render_unauthorized('Invalid token')
     else
       render_unauthorized('Invalid token')
     end
