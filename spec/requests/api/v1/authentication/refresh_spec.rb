@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# rubocop:disable Metrics/BlockLength
 require 'swagger_helper'
 
 RSpec.describe 'Authentication - Token Refresh', type: :request do
@@ -75,4 +74,3 @@ RSpec.describe 'Authentication - Token Refresh', type: :request do
     end
   end
 end
-# rubocop:enable Metrics/BlockLength

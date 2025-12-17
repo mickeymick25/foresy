@@ -32,7 +32,8 @@ class User < ApplicationRecord
   # Email validation is conditional for OAuth support
   # For traditional users (no provider): global email uniqueness (case-insensitive)
   # For OAuth users (with provider): email uniqueness per provider (handled by OAuth validation below)
-  validates :email, presence: true, uniqueness: { case_sensitive: false }, format: { with: URI::MailTo::EMAIL_REGEXP }, unless: :provider_present?
+  validates :email, presence: true, uniqueness: { case_sensitive: false }, format: { with: URI::MailTo::EMAIL_REGEXP },
+                    unless: :provider_present?
   validates :password, presence: true, length: { minimum: 6 }, if: :password_required?
   validates :active, inclusion: { in: [true, false] }
 
@@ -42,7 +43,8 @@ class User < ApplicationRecord
   validates :provider, inclusion: { in: %w[google_oauth2 github] }, if: :provider_present?
   validates :uid, presence: true, if: :oauth_user?
   validates :provider, uniqueness: { scope: :uid, message: 'and uid combination must be unique' }, if: :oauth_user?
-  validates :email, uniqueness: { scope: :provider, case_sensitive: false, message: 'must be unique per provider' }, if: :provider_present?
+  validates :email, uniqueness: { scope: :provider, case_sensitive: false, message: 'must be unique per provider' },
+                    if: :provider_present?
 
   # OAuth helper methods
   def oauth_user?
