@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-puts "Loading config/environment.rb for #{ENV['RAILS_ENV']}"
+puts "Loading config/environment.rb for #{ENV.fetch('RAILS_ENV', nil)}"
 require 'bundler/setup'
 begin
   # Load the Rails application.
@@ -8,7 +8,7 @@ begin
 
   # Initialize the Rails application.
   Rails.application.initialize!
-rescue => e
+rescue StandardError => e
   puts "Initialization failed: #{e.message}"
   puts e.backtrace
   exit 1
