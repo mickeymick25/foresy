@@ -20,10 +20,11 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U postgres"
+          --health-cmd "pg_isready -U postgres -h localhost"
           --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          --health-timeout 10s
+          --health-retries 10
+          --start-period 30s
 
     steps:
       - uses: actions/checkout@v3
@@ -34,18 +35,41 @@ jobs:
           ruby-version: 3.3.0
           bundler-cache: true
 
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          echo "Waiting for PostgreSQL to be ready..."
+          for i in {1..30}; do
+            if pg_isready -h localhost -p 5432 -U postgres; then
+              echo "PostgreSQL is ready!"
+              break
+            fi
+            echo "Waiting for PostgreSQL... attempt $i/30"
+            sleep 2
+          done
+          pg_isready -h localhost -p 5432 -U postgres
+
       - name: Set up database
         env:
           RAILS_ENV: test
           DATABASE_URL: postgres://postgres:password@localhost:5432/foresy_test
         run: |
+          echo "Setting up test database..."
+          echo "RAILS_ENV: $RAILS_ENV"
+          echo "DATABASE_URL: $DATABASE_URL"
+          bundle check || bundle install
           bundle exec rails db:drop db:create db:schema:load
+          echo "Database setup completed successfully"
 
       - name: Run tests
         env:
           RAILS_ENV: test
           DATABASE_URL: postgres://postgres:password@localhost:5432/foresy_test
-        run: bundle exec rspec
+        run: |
+          echo "Starting test suite..."
+          echo "Ruby version: $(ruby --version)"
+          echo "Bundler version: $(bundle --version)"
+          echo "Rails version: $(bundle exec rails --version)"
+          bundle exec rspec --format documentation
 
   lint:
     runs-on: ubuntu-latest
