@@ -15,8 +15,6 @@ Cette documentation centralisée regroupe toutes les informations techniques, hi
 ```
 docs/
 ├── index.md                     # Index principal (ce fichier)
-├── project/                     # Documentation générale du projet
-│   └── README.md               # Documentation principale du projet
 └── technical/                   # Documentation technique centralisée
     ├── changes/                # Journal chronologique des modifications
     │   ├── README.md           # Guide du journal des changements
@@ -33,8 +31,8 @@ docs/
 ## 📋 Navigation Rapide
 
 ### 🎯 Pour Commencer
-1. **[Documentation Projet](./project/README.md)** - Vue d'ensemble du projet, installation, utilisation
-2. **[Index des Changements](./technical/changes/README.md)** - Journal chronologique de toutes les modifications
+1. **[README.md](../README.md)** - Vue d'ensemble du projet, installation, utilisation
+2. **[Correction CI 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)** - Dernière intervention majeure et journal chronologique
 
 ### 🔧 Pour le Développement
 1. **[Analyse Technique](./technical/audits/ANALYSE_TECHNIQUE_FORESY.md)** - Architecture et analyse technique complète
@@ -50,19 +48,18 @@ docs/
 
 ## 📖 Guide par Catégorie
 
-### 📖 **Documentation Projet** (`docs/project/`)
-Informations générales et d'utilisation du projet.
+### 📖 **Documentation Projet** (`README.md racine`)
+Informations générales et d'utilisation du projet (compatible GitHub).
 
 | Fichier | Description |
 |---------|-------------|
-| [README.md](./project/README.md) | Documentation principale, installation, utilisation, architecture |
+| [README.md](../README.md) | Documentation principale, installation, utilisation, architecture |
 
 ### 🔧 **Journal des Changements** (`docs/technical/changes/`)
 Documentation chronologique de toutes les modifications significatives du projet.
 
 | Fichier | Date | Description | Impact |
 |---------|------|-------------|--------|
-| [README.md](./technical/changes/README.md) | - | Guide du journal chronologique | Navigation |
 | [2025-12-18-CI_Fix_Resolution.md](./technical/changes/2025-12-18-CI_Fix_Resolution.md) | 18/12/2025 | Résolution problèmes CI GitHub | **CRITIQUE** - CI fonctionnelle |
 
 ### 🔍 **Rapports d'Audit** (`docs/technical/audits/`)
@@ -109,8 +106,8 @@ audit_report/CHANGELOG_REFACTORISATION.md → docs/technical/audits/
 # Journal chronologique
 docs/changes/ → docs/technical/changes/
 
-# Documentation projet
-README.md → docs/project/README.md
+# Documentation GitHub
+README.md reste à la racine pour compatibilité GitHub
 ```
 
 ---
@@ -118,12 +115,12 @@ README.md → docs/project/README.md
 ## 🎯 Utilisation de la Documentation
 
 ### 👨‍💻 **Pour les Développeurs**
-1. **Commencer par** : [Documentation Projet](./project/README.md)
+1. **Commencer par** : [README.md racine](../README.md)
 2. **Pour l'état actuel** : [Corrections 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)
 3. **Pour l'architecture** : [Analyse Technique](./technical/audits/ANALYSE_TECHNIQUE_FORESY.md)
 
 ### 🔧 **Pour les Corrections**
-1. **Journal chronologique** : [Index des Changements](./technical/changes/README.md)
+1. **Journal chronologique** : [Correction CI 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)
 2. **Problèmes précédents** : [Corrections Janvier 2025](./technical/corrections/CORRECTIONS_JANVIER_2025.md)
 3. **Continuer le travail** : Ajouter un nouveau fichier daté dans `technical/changes/`
 
