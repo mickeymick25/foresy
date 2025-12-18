@@ -4,8 +4,4 @@ ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../Gemfile', __dir__)
 
 require 'bundler/setup' # Set up gems listed in the Gemfile.
 
-# Load environment variables before Rails initialization
-require 'dotenv'
-Dotenv.load('.env.test') if File.exist?('.env.test')
-
 # require 'bootsnap/setup' # Speed up boot time by caching expensive operations.
