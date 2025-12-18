@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Load OAuthConcern explicitly to avoid autoloading issues
+# Load OauthConcern explicitly to avoid autoloading issues
 require_relative '../../../concerns/oauth_concern'
 
 module Api
@@ -8,7 +8,7 @@ module Api
     # Controller for authentication API endpoints
     # Handles user login, logout, token refresh, and OAuth authentication
     class AuthenticationController < ApplicationController
-      include ::OAuthConcern
+      include ::OauthConcern
       before_action :authenticate_access_token!, only: [:logout]
 
       # === POST /api/v1/auth/login ===
