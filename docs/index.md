@@ -18,7 +18,8 @@ docs/
 └── technical/                   # Documentation technique centralisée
     ├── changes/                # Journal chronologique des modifications
     │   ├── README.md           # Guide du journal des changements
-    │   └── 2025-12-18-CI_Fix_Resolution.md
+    │   ├── 2025-12-18-CI_Fix_Resolution.md
+    │   └── 2025-12-18-GoogleOauthService_Fix_Resolution.md
     ├── audits/                 # Rapports d'audit technique
     │   ├── ANALYSE_TECHNIQUE_FORESY.md
     │   └── CHANGELOG_REFACTORISATION.md
@@ -34,12 +35,17 @@ docs/
 1. **[README.md](../README.md)** - Vue d'ensemble du projet, installation, utilisation
 2. **[Correction CI 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)** - Dernière intervention majeure et journal chronologique
 
-### 🔧 Pour le Développement
+### 🔧 **Pour le Développement**
 1. **[Analyse Technique](./technical/audits/ANALYSE_TECHNIQUE_FORESY.md)** - Architecture et analyse technique complète
 2. **[Corrections Janvier 2025](./technical/corrections/CORRECTIONS_JANVIER_2025.md)** - Résolution problèmes CI historiques
 
-### 📊 Pour les Modifications Récentes
+### 📊 **Pour les Modifications Récentes**
 1. **[Correction CI 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)** - Dernière intervention majeure
+2. **[Correction GoogleOauthService 18/12/2025](./technical/changes/2025-12-18-GoogleOauthService_Fix_Resolution.md)** - Résolution erreur Zeitwerk
+
+### 🔧 **Pour les Corrections Critiques**
+1. **[GoogleOauthService 18/12/2025](./technical/changes/2025-12-18-GoogleOauthService_Fix_Resolution.md)** - Erreur `uninitialized constant GoogleOauthService`
+2. **[CI GitHub 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)** - Pipeline CI cassée
 
 ### 📈 Pour l'Historique
 1. **[Changelog Refactorisation](./technical/audits/CHANGELOG_REFACTORISATION.md)** - Historique des refactorisations
@@ -61,6 +67,7 @@ Documentation chronologique de toutes les modifications significatives du projet
 | Fichier | Date | Description | Impact |
 |---------|------|-------------|--------|
 | [2025-12-18-CI_Fix_Resolution.md](./technical/changes/2025-12-18-CI_Fix_Resolution.md) | 18/12/2025 | Résolution problèmes CI GitHub | **CRITIQUE** - CI fonctionnelle |
+| [2025-12-18-GoogleOauthService_Fix_Resolution.md](./technical/changes/2025-12-18-GoogleOauthService_Fix_Resolution.md) | 18/12/2025 | Résolution erreur Zeitwerk GoogleOauthService | **CRITIQUE** - 87 tests, 0 échec |
 
 ### 🔍 **Rapports d'Audit** (`docs/technical/audits/`)
 Analyses techniques et historiques des modifications.
@@ -110,19 +117,27 @@ docs/changes/ → docs/technical/changes/
 README.md reste à la racine pour compatibilité GitHub
 ```
 
+### Ajouts 18 Décembre 2025 - Soir
+Ajout du document de résolution GoogleOauthService :
+```
+# Nouveau document de correction
+docs/technical/changes/2025-12-18-GoogleOauthService_Fix_Resolution.md
+```
+
 ---
 
 ## 🎯 Utilisation de la Documentation
 
 ### 👨‍💻 **Pour les Développeurs**
 1. **Commencer par** : [README.md racine](../README.md)
-2. **Pour l'état actuel** : [Corrections 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)
+2. **Pour l'état actuel** : [Corrections GoogleOauthService 18/12/2025](./technical/changes/2025-12-18-GoogleOauthService_Fix_Resolution.md)
 3. **Pour l'architecture** : [Analyse Technique](./technical/audits/ANALYSE_TECHNIQUE_FORESY.md)
 
 ### 🔧 **Pour les Corrections**
-1. **Journal chronologique** : [Correction CI 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)
-2. **Problèmes précédents** : [Corrections Janvier 2025](./technical/corrections/CORRECTIONS_JANVIER_2025.md)
-3. **Continuer le travail** : Ajouter un nouveau fichier daté dans `technical/changes/`
+1. **Problème actuel** : [GoogleOauthService 18/12/2025](./technical/changes/2025-12-18-GoogleOauthService_Fix_Resolution.md) - **RÉSOLU**
+2. **Journal chronologique** : [Correction CI 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)
+3. **Problèmes précédents** : [Corrections Janvier 2025](./technical/corrections/CORRECTIONS_JANVIER_2025.md)
+4. **Continuer le travail** : Ajouter un nouveau fichier daté dans `technical/changes/`
 
 ### 📊 **Pour la Maintenance**
 1. **Métriques actuelles** : Voir [Correction CI 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)

@@ -10,7 +10,9 @@
 #
 # Refactored to use specialized services and reduce complexity
 
-# Require OAuth services to ensure they are loaded
+# Require OAuth services to ensure they are loaded properly
+# Note: These require_relative statements are necessary to avoid autoloading issues
+# in production environments while maintaining compatibility with Zeitwerk eager loading
 require_relative '../../../services/oauth_validation_service'
 require_relative '../../../services/oauth_user_service'
 require_relative '../../../services/oauth_token_service'
@@ -31,6 +33,8 @@ module Api
       rescue StandardError => e
         Rails.logger.error "OAuth callback error: #{e.class.name} - #{e.message}"
         Rails.logger.error "Backtrace: #{e.backtrace.join("\n")}"
+        Rails.logger.error "Request params at error: #{params.inspect}"
+        Rails.logger.error "Request env at error: #{request.env.keys.select { |k| k.include?('omniauth') }.inspect}"
         render json: { error: 'internal_error', message: e.message }, status: :internal_server_error
       end
 

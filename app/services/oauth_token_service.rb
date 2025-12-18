@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# OAuthTokenService
+# OauthTokenService
 #
 # Service responsible for OAuth token generation and response formatting.
 # Handles stateless JWT token creation and standardized success responses

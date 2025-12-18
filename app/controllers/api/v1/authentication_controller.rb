@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-# Load OauthConcern explicitly to avoid autoloading issues
+# Load OauthConcern explicitly to avoid autoloading timing issues
+# Note: This require_relative is necessary to ensure proper loading timing
 require_relative '../../../concerns/oauth_concern'
 
 module Api
