@@ -217,10 +217,25 @@ Les variables d'environnement suivantes doivent être configurées :
 ```bash
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
-GITHUB_CLIENT_ID=your_github_client_id
-GITHUB_CLIENT_SECRET=your_github_client_secret
+LOCAL_GITHUB_CLIENT_ID=your_github_client_id      # Note: LOCAL_ prefix requis
+LOCAL_GITHUB_CLIENT_SECRET=your_github_client_secret
 JWT_SECRET=your_jwt_secret_key
 ```
+
+### 🔒 Configuration GitHub Secrets (CI/CD)
+
+Pour que la CI/CD fonctionne correctement, les secrets suivants doivent être configurés dans **GitHub Repository Settings > Secrets and variables > Actions** :
+
+| Secret | Description | Génération |
+|--------|-------------|------------|
+| `SECRET_KEY_BASE` | Clé secrète Rails | `rails secret` |
+| `JWT_SECRET` | Clé de signature JWT | `openssl rand -hex 64` |
+| `GOOGLE_CLIENT_ID` | Client ID Google OAuth | Google Cloud Console |
+| `GOOGLE_CLIENT_SECRET` | Client Secret Google OAuth | Google Cloud Console |
+| `LOCAL_GITHUB_CLIENT_ID` | Client ID GitHub OAuth | GitHub Developer Settings |
+| `LOCAL_GITHUB_CLIENT_SECRET` | Client Secret GitHub OAuth | GitHub Developer Settings |
+
+> ⚠️ **SÉCURITÉ** : Ne jamais committer de secrets en clair dans le repository. Utiliser GitHub Secrets pour la CI/CD.
 
 ## 📊 Monitoring & Observabilité
 
@@ -282,7 +297,13 @@ spec/
 
 ## 📝 Changelog
 
-### Version 1.2.0 (Décembre 2025)
+### Version 1.2.1 (19 Décembre 2025)
+- 🔒 **Security Fix** : Suppression secrets exposés dans le repository
+- ✅ **GitHub Secrets** : Configuration sécurisée des variables CI/CD
+- ✅ **OAuth Variables** : Alignement avec restrictions GitHub (`LOCAL_GITHUB_*`)
+- ✅ **Documentation** : Guide complet de configuration des secrets
+
+### Version 1.2.0 (18 Décembre 2025)
 - ✅ **Feature OAuth** : Implémentation complète Google & GitHub
 - ✅ **Tests Quality** : 87 tests RSpec, 0 violation RuboCop
 - ✅ **Regression Fix** : Correction problème tests d'acceptation OAuth

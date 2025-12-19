@@ -1,7 +1,7 @@
 # 📚 Documentation Centrale - Projet Foresy
 
-**Version :** 1.0  
-**Dernière mise à jour :** 18 décembre 2025  
+**Version :** 1.1  
+**Dernière mise à jour :** 19 décembre 2025  
 **Objectif :** Point d'entrée centralisé pour toute la documentation du projet Foresy API
 
 ---
@@ -15,11 +15,13 @@ Cette documentation centralisée regroupe toutes les informations techniques, hi
 ```
 docs/
 ├── index.md                     # Index principal (ce fichier)
+├── BRIEFING.md                  # Contexte projet pour IA
 └── technical/                   # Documentation technique centralisée
     ├── changes/                # Journal chronologique des modifications
-    │   ├── README.md           # Guide du journal des changements
     │   ├── 2025-12-18-CI_Fix_Resolution.md
-    │   └── 2025-12-18-GoogleOauthService_Fix_Resolution.md
+    │   ├── 2025-12-18-GoogleOauthService_Fix_Resolution.md
+    │   ├── 2025-12-18-OAuthTokenService_Comment_Fix.md
+    │   └── 2025-12-19-Security_CI_Complete_Fix.md  # 🔒 SÉCURITÉ SECRETS
     ├── audits/                 # Rapports d'audit technique
     │   ├── ANALYSE_TECHNIQUE_FORESY.md
     │   └── CHANGELOG_REFACTORISATION.md
@@ -33,19 +35,21 @@ docs/
 
 ### 🎯 Pour Commencer
 1. **[README.md](../README.md)** - Vue d'ensemble du projet, installation, utilisation
-2. **[Correction CI 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)** - Dernière intervention majeure et journal chronologique
+2. **[Sécurité & CI 19/12/2025](./technical/changes/2025-12-19-Security_CI_Complete_Fix.md)** - 🔒 **DERNIÈRE INTERVENTION** - Sécurisation secrets GitHub
 
 ### 🔧 **Pour le Développement**
 1. **[Analyse Technique](./technical/audits/ANALYSE_TECHNIQUE_FORESY.md)** - Architecture et analyse technique complète
 2. **[Corrections Janvier 2025](./technical/corrections/CORRECTIONS_JANVIER_2025.md)** - Résolution problèmes CI historiques
 
 ### 📊 **Pour les Modifications Récentes**
-1. **[Correction CI 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)** - Dernière intervention majeure
-2. **[Correction GoogleOauthService 18/12/2025](./technical/changes/2025-12-18-GoogleOauthService_Fix_Resolution.md)** - Résolution erreur Zeitwerk
+1. **[🔒 Sécurité & Secrets 19/12/2025](./technical/changes/2025-12-19-Security_CI_Complete_Fix.md)** - **CRITIQUE** - Sécurisation secrets CI/CD
+2. **[Correction CI 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)** - Intervention majeure CI
+3. **[Correction GoogleOauthService 18/12/2025](./technical/changes/2025-12-18-GoogleOauthService_Fix_Resolution.md)** - Résolution erreur Zeitwerk
 
 ### 🔧 **Pour les Corrections Critiques**
-1. **[GoogleOauthService 18/12/2025](./technical/changes/2025-12-18-GoogleOauthService_Fix_Resolution.md)** - Erreur `uninitialized constant GoogleOauthService`
-2. **[CI GitHub 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)** - Pipeline CI cassée
+1. **[🔒 Sécurité Secrets 19/12/2025](./technical/changes/2025-12-19-Security_CI_Complete_Fix.md)** - Secrets exposés → GitHub Secrets
+2. **[GoogleOauthService 18/12/2025](./technical/changes/2025-12-18-GoogleOauthService_Fix_Resolution.md)** - Erreur `uninitialized constant GoogleOauthService`
+3. **[CI GitHub 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)** - Pipeline CI cassée
 
 ### 📈 Pour l'Historique
 1. **[Changelog Refactorisation](./technical/audits/CHANGELOG_REFACTORISATION.md)** - Historique des refactorisations
@@ -66,6 +70,8 @@ Documentation chronologique de toutes les modifications significatives du projet
 
 | Fichier | Date | Description | Impact |
 |---------|------|-------------|--------|
+| [🔒 2025-12-19-Security_CI_Complete_Fix.md](./technical/changes/2025-12-19-Security_CI_Complete_Fix.md) | 19/12/2025 | Sécurisation secrets + Configuration GitHub Secrets | **CRITIQUE** - Sécurité renforcée |
+| [2025-12-18-OAuthTokenService_Comment_Fix.md](./technical/changes/2025-12-18-OAuthTokenService_Comment_Fix.md) | 18/12/2025 | Correction commentaires OAuthTokenService | **MINEUR** - Qualité code |
 | [2025-12-18-CI_Fix_Resolution.md](./technical/changes/2025-12-18-CI_Fix_Resolution.md) | 18/12/2025 | Résolution problèmes CI GitHub | **CRITIQUE** - CI fonctionnelle |
 | [2025-12-18-GoogleOauthService_Fix_Resolution.md](./technical/changes/2025-12-18-GoogleOauthService_Fix_Resolution.md) | 18/12/2025 | Résolution erreur Zeitwerk GoogleOauthService | **CRITIQUE** - 87 tests, 0 échec |
 
@@ -213,7 +219,25 @@ Pour toute question sur la documentation :
 
 ---
 
+## 🔒 Sécurité des Secrets (19 Décembre 2025)
+
+### Configuration GitHub Secrets Requise
+Pour que la CI fonctionne, les secrets suivants doivent être configurés dans **GitHub Repository Settings > Secrets and variables > Actions** :
+
+| Secret | Description | Génération |
+|--------|-------------|------------|
+| `SECRET_KEY_BASE` | Clé Rails pour environnement test | `rails secret` |
+| `JWT_SECRET` | Clé JWT pour authentification | `openssl rand -hex 64` |
+| `GOOGLE_CLIENT_ID` | Client ID Google OAuth | Google Cloud Console |
+| `GOOGLE_CLIENT_SECRET` | Client Secret Google OAuth | Google Cloud Console |
+| `LOCAL_GITHUB_CLIENT_ID` | Client ID GitHub OAuth | GitHub Developer Settings |
+| `LOCAL_GITHUB_CLIENT_SECRET` | Client Secret GitHub OAuth | GitHub Developer Settings |
+
+> ⚠️ **IMPORTANT** : Ne jamais committer de secrets en clair dans le repository. Voir [2025-12-19-Security_CI_Complete_Fix.md](./technical/changes/2025-12-19-Security_CI_Complete_Fix.md) pour les détails.
+
+---
+
 **Index maintenu par :** Équipe Foresy  
-**Dernière révision :** 18 décembre 2025  
-**Version :** 1.0  
+**Dernière révision :** 19 décembre 2025  
+**Version :** 1.1  
 **Statut :** ✅ Actif et maintenu

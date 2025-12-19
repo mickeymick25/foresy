@@ -1,6 +1,7 @@
 # BRIEFING.md - Foresy API Project
 
-**For AI Context Understanding - Optimized for Fast Project Comprehension**
+**For AI Context Understanding - Optimized for Fast Project Comprehension**  
+**Last Updated:** 19 décembre 2025
 
 ---
 
@@ -30,6 +31,19 @@
 ---
 
 ## 📅 RECENT CHANGES TIMELINE
+
+### Dec 19, 2025 - 🔒 Security & Secrets Configuration (CRITICAL)
+- **Problem**: Secrets exposed in code + CI failing due to missing environment variables
+- **Action**: Complete security overhaul of secrets management
+- **Changes Made**:
+  - Removed hardcoded secrets from `.github/workflows/ci.yml`
+  - Configured GitHub Secrets for `SECRET_KEY_BASE` and `JWT_SECRET`
+  - Aligned OAuth variables (`LOCAL_GITHUB_CLIENT_ID` instead of `GITHUB_CLIENT_ID`)
+  - Cleaned `.env` and `.env.test` files with secure placeholders
+  - Added `spec/examples.txt` to `.gitignore`
+- **Result**: CI 100% functional with secure secrets configuration
+- **Impact**: Security reinforced, no secrets exposed in repository
+- **Documentation**: `docs/technical/changes/2025-12-19-Security_CI_Complete_Fix.md`
 
 ### Dec 18, 2025 - Documentation Centralization
 - **Action**: Complete documentation reorganization under `docs/`
@@ -64,6 +78,11 @@
 ### Known Limitations
 2. **shoulda-matchers Warning**: Boolean column validation warnings (cosmetic only)
 3. **Documentation Fragmentation**: Some info in README.md AND docs/ (partially resolved)
+
+### ✅ Recently Resolved (Dec 19, 2025)
+4. **Secrets Security**: Hardcoded secrets removed, GitHub Secrets configured
+5. **CI Environment Variables**: `SECRET_KEY_BASE` and `JWT_SECRET` now properly injected
+6. **OAuth Variables Naming**: Aligned with GitHub restrictions (`LOCAL_GITHUB_*`)
 
 ### Maintained Standards
 4. **Code Quality**: 0 Rubocop violations (strict standard maintained)
@@ -186,8 +205,8 @@ Create `.env` file at project root:
 # OAuth Configuration (Required)
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
-GITHUB_CLIENT_ID=your_github_client_id
-GITHUB_CLIENT_SECRET=your_github_client_secret
+LOCAL_GITHUB_CLIENT_ID=your_github_client_id    # Note: LOCAL_ prefix required
+LOCAL_GITHUB_CLIENT_SECRET=your_github_client_secret
 
 # JWT Configuration (Required)
 JWT_SECRET=your_jwt_secret_key
@@ -196,6 +215,20 @@ JWT_SECRET=your_jwt_secret_key
 POSTGRES_PASSWORD=your_db_password
 REDIS_PASSWORD=your_redis_password
 ```
+
+### 🔒 GitHub Secrets Configuration (for CI/CD)
+Configure these secrets in **GitHub Repository Settings > Secrets and variables > Actions**:
+
+| Secret | Description | Generation Command |
+|--------|-------------|-------------------|
+| `SECRET_KEY_BASE` | Rails secret key | `rails secret` |
+| `JWT_SECRET` | JWT signing key | `openssl rand -hex 64` |
+| `GOOGLE_CLIENT_ID` | Google OAuth | Google Cloud Console |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth | Google Cloud Console |
+| `LOCAL_GITHUB_CLIENT_ID` | GitHub OAuth | GitHub Developer Settings |
+| `LOCAL_GITHUB_CLIENT_SECRET` | GitHub OAuth | GitHub Developer Settings |
+
+> ⚠️ **SECURITY**: Never commit real secrets to the repository. Use GitHub Secrets for CI/CD.
 
 ### Docker Compose Management
 ```bash
@@ -260,6 +293,5 @@ docker-compose run --rm web bash
 
 ---
 
-**Last Updated**: December 18, 2025  
-**Status**: ✅ Stable, Production Ready, AI-Optimized Documentation
-```
+**Last Updated**: December 19, 2025  
+**Status**: ✅ Stable, Production Ready, Secrets Secured, AI-Optimized Documentation
