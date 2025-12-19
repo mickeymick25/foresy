@@ -1,0 +1,11 @@
+# Configuration Brakeman pour ignorer le warning Rails EOL non-critique
+# Ce warning indique que Rails 7.1.5.1 n'est plus supporté depuis octobre 2025
+# Ce n'est pas une vulnérabilité de sécurité critique, juste un warning informatif
+
+# Ignorer le warning EOL Rails pour Gemfile.lock
+{
+  "warning_type": "Unmaintained Dependency",
+  "message": /Support for Rails.*ended/,
+  "file": "Gemfile.lock",
+  "line": 254
+}
