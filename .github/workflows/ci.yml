@@ -51,10 +51,14 @@ jobs:
         env:
           RAILS_ENV: test
           DATABASE_URL: postgres://postgres:password@localhost:5432/foresy_test
+          SECRET_KEY_BASE: 89828da9a1949235f208a9594526fba37d3a8fac1dedd94da5ad6a841b3cb34d8acb5bb2b4fa143a08433ee7d6c8f5b6401edd8416ab6841518d898eef13c95a
+          JWT_SECRET: 580999392b976eb2733afde4d899c28179033cdec5eaa7827bdf313b4f1e186aaf546893479cf5d6848070d90ce612eac7de45beac1a4351ddd2eebb62a5c37a
         run: |
           echo "Setting up test database..."
           echo "RAILS_ENV: $RAILS_ENV"
           echo "DATABASE_URL: $DATABASE_URL"
+          echo "SECRET_KEY_BASE: ${SECRET_KEY_BASE:0:20}..."  # Log partial key for debugging
+          echo "JWT_SECRET: ${JWT_SECRET:0:20}..."           # Log partial key for debugging
           bundle check || bundle install
           bundle exec rails db:drop db:create db:schema:load
           echo "Database setup completed successfully"
@@ -63,11 +67,17 @@ jobs:
         env:
           RAILS_ENV: test
           DATABASE_URL: postgres://postgres:password@localhost:5432/foresy_test
+          SECRET_KEY_BASE: 89828da9a1949235f208a9594526fba37d3a8fac1dedd94da5ad6a841b3cb34d8acb5bb2b4fa143a08433ee7d6c8f5b6401edd8416ab6841518d898eef13c95a
+          JWT_SECRET: 580999392b976eb2733afde4d899c28179033cdec5eaa7827bdf313b4f1e186aaf546893479cf5d6848070d90ce612eac7de45beac1a4351ddd2eebb62a5c37a
         run: |
           echo "Starting test suite..."
           echo "Ruby version: $(ruby --version)"
           echo "Bundler version: $(bundle --version)"
           echo "Rails version: $(bundle exec rails --version)"
+          echo "Environment variables loaded:"
+          echo "  RAILS_ENV: $RAILS_ENV"
+          echo "  SECRET_KEY_BASE: ${SECRET_KEY_BASE:0:20}..."  # Log partial key for debugging
+          echo "  JWT_SECRET: ${JWT_SECRET:0:20}..."           # Log partial key for debugging
           bundle exec rspec --format documentation
 
   lint:
