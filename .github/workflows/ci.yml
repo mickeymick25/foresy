@@ -56,9 +56,8 @@ jobs:
         run: |
           echo "Setting up test database..."
           echo "RAILS_ENV: $RAILS_ENV"
-          echo "DATABASE_URL: $DATABASE_URL"
-          echo "SECRET_KEY_BASE: ${SECRET_KEY_BASE:0:20}..."  # Log partial key for debugging
-          echo "JWT_SECRET: ${JWT_SECRET:0:20}..."           # Log partial key for debugging
+          echo "SECRET_KEY_BASE: [CONFIGURED]"
+          echo "JWT_SECRET: [CONFIGURED]"
           bundle check || bundle install
           bundle exec rails db:drop db:create db:schema:load
           echo "Database setup completed successfully"
@@ -74,10 +73,7 @@ jobs:
           echo "Ruby version: $(ruby --version)"
           echo "Bundler version: $(bundle --version)"
           echo "Rails version: $(bundle exec rails --version)"
-          echo "Environment variables loaded:"
-          echo "  RAILS_ENV: $RAILS_ENV"
-          echo "  SECRET_KEY_BASE: ${SECRET_KEY_BASE:0:20}..."  # Log partial key for debugging
-          echo "  JWT_SECRET: ${JWT_SECRET:0:20}..."           # Log partial key for debugging
+          echo "Environment variables configured: RAILS_ENV, SECRET_KEY_BASE, JWT_SECRET"
           bundle exec rspec --format documentation
 
   lint:
