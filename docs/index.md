@@ -1,7 +1,7 @@
 # 📚 Documentation Centrale - Projet Foresy
 
-**Version :** 1.4  
-**Dernière mise à jour :** 19 décembre 2025  
+**Version :** 1.5  
+**Dernière mise à jour :** 20 décembre 2025  
 **Objectif :** Point d'entrée centralisé pour toute la documentation du projet Foresy API
 
 ---
@@ -42,7 +42,7 @@ docs/
 
 ### 🎯 Pour Commencer
 1. **[README.md](../README.md)** - Vue d'ensemble du projet, installation, utilisation
-2. **[Corrections CI Sécurité 19/12/2025](./technical/changes/2025-12-19-CI_Security_Fixes_Secrets_PostgreSQL.md)** - 🔒 **DERNIÈRE INTERVENTION** - Sécurité CI
+2. **[🔒 Sécurité Gems 20/12/2025](./technical/changes/2025-12-20-Security_Gems_Update.md)** - 🔒 **DERNIÈRE INTERVENTION** - 20+ vulnérabilités corrigées
 
 ### 🔧 **Pour le Développement**
 1. **[Analyse Technique](./technical/audits/ANALYSE_TECHNIQUE_FORESY.md)** - Architecture et analyse technique complète
@@ -55,12 +55,18 @@ docs/
 4. **[🛡️ CSRF Security Analysis](./technical/analysis/csrf_security_analysis_same_site_none.md)** - **CRITIQUE** - Analyse risque CSRF et sécurisation
 
 ### 📊 **Pour les Modifications Récentes**
-1. **[🏗️ Corrections Architecture OAuth 19/12/2025](./technical/changes/2025-12-19-OAuth_Architecture_Fix.md)** - **CRITIQUE** - Nommage OAuth + RequireRelative
-2. **[🔒 Corrections CI Sécurité 19/12/2025](./technical/changes/2025-12-19-CI_Security_Fixes_Secrets_PostgreSQL.md)** - **CRITIQUE** - Sécurité CI + Compatibilité runners
-3. **[🔧 Zeitwerk OAuth 19/12/2025](./technical/changes/2025-12-19-Zeitwerk_OAuth_Services_Rename.md)** - **CRITIQUE** - Renommage services OAuth pour Zeitwerk
-4. **[🔒 Sécurité & Secrets 19/12/2025](./technical/changes/2025-12-19-Security_CI_Complete_Fix.md)** - **CRITIQUE** - Sécurisation secrets CI/CD
-5. **[Correction CI 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)** - Intervention majeure CI
-6. **[Correction GoogleOauthService 18/12/2025](./technical/changes/2025-12-18-GoogleOauthService_Fix_Resolution.md)** - Résolution erreur Zeitwerk
+1. **[🔧 Refactoring Authenticatable 20/12/2025](./technical/changes/2025-12-20-Authenticatable_Concern_Refactoring.md)** - **MAJEUR** - Séparation responsabilités auth
+2. **[🔑 Migration UUID 20/12/2025](./technical/changes/2025-12-20-UUID_Migration.md)** - **MAJEUR** - Migration identifiants sécurisés
+3. **[🔒 Sécurité Gems 20/12/2025](./technical/changes/2025-12-20-Security_Gems_Update.md)** - **CRITIQUE** - 20+ vulnérabilités corrigées
+4. **[⚡ Réactivation Bootsnap 20/12/2025](./technical/changes/2025-12-20-Bootsnap_Reactivation.md)** - **MAJEUR** - Performance boot Rails
+5. **[🏗️ Consolidations Migrations 20/12/2025](./technical/changes/2025-12-20-Migrations_Consolidation.md)** - **MAJEUR** - Nettoyage migrations UUID
+6. **[JWT Robustesse 19/12/2025](./technical/changes/2025-12-19-JWT_Robustness_Improvements_Complete.md)** - **MAJEUR** - Amélioration robustesse JWT
+7. **[🏗️ Corrections Architecture OAuth 19/12/2025](./technical/changes/2025-12-19-OAuth_Architecture_Fix.md)** - **CRITIQUE** - Nommage OAuth + RequireRelative
+8. **[🔒 Corrections CI Sécurité 19/12/2025](./technical/changes/2025-12-19-CI_Security_Fixes_Secrets_PostgreSQL.md)** - **CRITIQUE** - Sécurité CI + Compatibilité runners
+9. **[🔧 Zeitwerk OAuth 19/12/2025](./technical/changes/2025-12-19-Zeitwerk_OAuth_Services_Rename.md)** - **CRITIQUE** - Renommage services OAuth pour Zeitwerk
+10. **[🔒 Sécurité & Secrets 19/12/2025](./technical/changes/2025-12-19-Security_CI_Complete_Fix.md)** - **CRITIQUE** - Sécurisation secrets CI/CD
+11. **[Correction CI 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)** - Intervention majeure CI
+12. **[Correction GoogleOauthService 18/12/2025](./technical/changes/2025-12-18-GoogleOauthService_Fix_Resolution.md)** - Résolution erreur Zeitwerk
 
 ### 🔍 **Analyses Techniques Problèmes PR (Décembre 2025)**
 1. **[🔧 pgcrypto UUID Alternatives](./technical/analysis/pgcrypto_alternatives_analysis.md)** - Problème pgcrypto en production
@@ -93,6 +99,16 @@ Documentation chronologique de toutes les modifications significatives du projet
 
 | Fichier | Date | Description | Impact |
 |---------|------|-------------|--------|
+| [🔧 2025-12-19-Authentication_Concerns_Fix.md](./technical/changes/2025-12-19-Authentication_Concerns_Fix.md) | 19/12/2025 | Correction concerns authentification (class_methods + Zeitwerk) | **CRITIQUE** - 120 tests OK |
+| [🔧 2025-12-20-Authenticatable_Concern_Refactoring.md](./technical/changes/2025-12-20-Authenticatable_Concern_Refactoring.md) | 20/12/2025 | Refactoring concern Authenticatable (séparation responsabilités) | **MAJEUR** - Architecture clean |
+| [🔧 2025-12-20-Autoload_Cleanup.md](./technical/changes/2025-12-20-Autoload_Cleanup.md) | 20/12/2025 | Nettoyage require_relative et optimisation autoload | **MINEUR** - Performance |
+| [⚡ 2025-12-20-Bootsnap_Reactivation.md](./technical/changes/2025-12-20-Bootsnap_Reactivation.md) | 20/12/2025 | Réactivation Bootsnap pour optimisation boot Rails | **MAJEUR** - Performance |
+| [🛡️ 2025-12-20-Brakeman_Ignore_Config_Fix.md](./technical/changes/2025-12-20-Brakeman_Ignore_Config_Fix.md) | 20/12/2025 | Configuration patterns ignore Brakeman | **MINEUR** - Configuration |
+| [🧹 2025-12-20-Debug_Logging_Cleanup.md](./technical/changes/2025-12-20-Debug_Logging_Cleanup.md) | 20/12/2025 | Suppression logs debug Rails.logger | **MINEUR** - Propreté code |
+| [🏗️ 2025-12-20-Migrations_Consolidation.md](./technical/changes/2025-12-20-Migrations_Consolidation.md) | 20/12/2025 | Consolidation migrations users/sessions UUID | **MAJEUR** - Schema clean |
+| [🔒 2025-12-20-Security_Gems_Update.md](./technical/changes/2025-12-20-Security_Gems_Update.md) | 20/12/2025 | Mise à jour sécurité gems (20+ vulnérabilités) | **CRITIQUE** - Sécurité |
+| [🔑 2025-12-20-UUID_Migration.md](./technical/changes/2025-12-20-UUID_Migration.md) | 20/12/2025 | Migration identifiants users/sessions vers UUID | **MAJEUR** - Sécurité |
+| [🔑 2025-12-19-JWT_Robustness_Improvements_Complete.md](./technical/changes/2025-12-19-JWT_Robustness_Improvements_Complete.md) | 19/12/2025 | Amélioration robustesse validation JWT | **MAJEUR** - Authentification |
 | [🏗️ 2025-12-19-OAuth_Architecture_Fix.md](./technical/changes/2025-12-19-OAuth_Architecture_Fix.md) | 19/12/2025 | Corrections architecturales (nommage OAuth + require_relative) | **CRITIQUE** - Architecture robuste |
 | [🔒 2025-12-19-CI_Security_Fixes_Secrets_PostgreSQL.md](./technical/changes/2025-12-19-CI_Security_Fixes_Secrets_PostgreSQL.md) | 19/12/2025 | Corrections sécurité CI (fuite secrets + pg_isready) | **CRITIQUE** - CI sécurisée |
 | [📋 2025-12-19-Rswag_OAuth_Specs_Feature_Contract.md](./technical/changes/2025-12-19-Rswag_OAuth_Specs_Feature_Contract.md) | 19/12/2025 | Specs rswag OAuth conformes au Feature Contract | **MAJEUR** - Swagger auto-généré |
@@ -285,6 +301,6 @@ Pour que la CI fonctionne, les secrets suivants doivent être configurés dans *
 ---
 
 **Index maintenu par :** Équipe Foresy  
-**Dernière révision :** 19 décembre 2025  
-**Version :** 1.3  
+**Dernière révision :** 20 décembre 2025  
+**Version :** 1.5
 **Statut :** ✅ Actif et maintenu

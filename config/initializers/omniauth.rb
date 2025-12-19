@@ -2,11 +2,11 @@
 
 # Helper pour gérer les variables d'environnement OAuth avec robustesse
 def require_oauth_env(var_name, provider_name)
-  value = ENV[var_name]
+  value = ENV.fetch(var_name, nil)
   if value.nil? || value.empty?
-    Rails.logger.warn "⚠️  OAuth Environment Variable Missing"
+    Rails.logger.warn '⚠️  OAuth Environment Variable Missing'
     Rails.logger.warn "Variable: #{var_name} for provider: #{provider_name}"
-    Rails.logger.warn "This provider will be disabled until configured."
+    Rails.logger.warn 'This provider will be disabled until configured.'
     return nil
   end
   value
@@ -27,7 +27,7 @@ Rails.application.config.middleware.use OmniAuth::Builder do
                prompt: 'select_account'
              }
   else
-    Rails.logger.warn "🚫 Google OAuth2 disabled - Missing credentials"
+    Rails.logger.warn '🚫 Google OAuth2 disabled - Missing credentials'
   end
 
   # Configuration GitHub OAuth
@@ -42,7 +42,7 @@ Rails.application.config.middleware.use OmniAuth::Builder do
                scope: 'user:email'
              }
   else
-    Rails.logger.warn "🚫 GitHub OAuth disabled - Missing credentials"
+    Rails.logger.warn '🚫 GitHub OAuth disabled - Missing credentials'
   end
 end
 
@@ -51,11 +51,11 @@ OmniAuth.config.allowed_request_methods = %i[post get]
 OmniAuth.config.silence_get_warning = true
 
 # Logging informatif au démarrage
-Rails.logger.info "🔐 OmniAuth initialized successfully"
+Rails.logger.info '🔐 OmniAuth initialized successfully'
 
 # Validation de configuration au démarrage (environnements dev/test)
 if Rails.env.development? || Rails.env.test?
-  Rails.logger.info "🔑 OAuth Configuration Check:"
+  Rails.logger.info '🔑 OAuth Configuration Check:'
   Rails.logger.info "  Google OAuth: #{ENV['GOOGLE_CLIENT_ID'].present? ? '✅ Configured' : '❌ Missing'}"
   Rails.logger.info "  GitHub OAuth: #{ENV['LOCAL_GITHUB_CLIENT_ID'].present? ? '✅ Configured' : '❌ Missing'}"
 end

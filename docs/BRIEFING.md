@@ -1,7 +1,7 @@
 # BRIEFING.md - Foresy API Project
 
 **For AI Context Understanding - Optimized for Fast Project Comprehension**  
-**Last Updated:** 19 décembre 2025
+**Last Updated:** 19 décembre 2025 (soir)
 
 ---
 
@@ -14,9 +14,9 @@
 - **Status**: Production Ready - All tests passing, excellent code quality
 
 ### Quality Metrics (Dec 2025)
-- **RSpec Tests**: 87 examples, 0 failures (4.18s execution)
+- **RSpec Tests**: 120 examples, 0 failures (4.13s execution)
 - **OAuth Tests**: 9/9 acceptance + 10/10 integration = 100% success
-- **Code Quality**: Rubocop 69 files, 0 offenses detected
+- **Code Quality**: Rubocop 75 files, 0 offenses detected
 - **Security**: Brakeman 0 critical vulnerabilities (1 minor Rails EOL warning)
 - **CI/CD**: GitHub Actions pipeline fully functional
 
@@ -31,6 +31,36 @@
 ---
 
 ## 📅 RECENT CHANGES TIMELINE
+
+### Dec 19, 2025 (soir) - 🔧 Authentication Concerns Fix (CRITICAL)
+- **Objective**: Fix 20+ test failures related to authentication concerns
+- **Problems Identified**:
+  - Zeitwerk naming issue: `authentication_metrics_concern_new.rb` should be `authentication_metrics_concern.rb`
+  - Concerns using instance methods (`private`) but `AuthenticationService` calling them as class methods
+  - `validate_user_and_session` requiring `session_id` but refresh tokens don't contain one
+  - JsonWebToken tests with incorrect logging expectations
+- **Changes Made**:
+  - Renamed `authentication_metrics_concern_new.rb` → `authentication_metrics_concern.rb`
+  - Converted all 3 concerns to use `class_methods do` instead of `private`
+  - Made `session_id` optional in `validate_user_and_session` (uses latest active session if absent)
+  - Fixed JsonWebToken spec logging expectations
+- **Result**: 120 tests pass, 0 Rubocop violations
+- **Impact**: Full test suite restored, authentication flow working correctly
+- **Documentation**: `docs/technical/changes/2025-12-19-Authentication_Concerns_Fix.md`
+
+### Dec 20, 2025 - 🔧 Major Code Quality & Security Improvements (CRITICAL)
+- **Objective**: Complete codebase quality improvement and security hardening session
+- **Action**: Comprehensive refactoring and security updates across multiple areas
+- **Changes Made**:
+  - **Refactoring**: Separated authentication logic into Authenticatable concern (96 → 12 lines in ApplicationController)
+  - **Security**: Updated gems to fix 20+ vulnerabilities (Rack, Rails, Nokogiri, etc.)
+  - **Performance**: Reactivated Bootsnap for Rails boot optimization
+  - **Architecture**: Migrated to UUID identifiers for users/sessions tables
+  - **Cleanup**: Consolidated migrations, cleaned debug logs, optimized autoload
+  - **Configuration**: Fixed Brakeman ignore patterns and require_relative issues
+- **Result**: 97 tests pass, 0 Rubocop violations, 0 Brakeman critical vulnerabilities
+- **Impact**: Production-ready code with enhanced security and maintainability
+- **Documentation**: Multiple files in `docs/technical/changes/2025-12-20-*.md`
 
 ### Dec 19, 2025 - 📋 Rswag OAuth Specs Feature Contract (MAJOR)
 - **Objective**: Create rswag specs for OAuth endpoints to auto-generate Swagger
@@ -104,12 +134,23 @@
 2. **shoulda-matchers Warning**: Boolean column validation warnings (cosmetic only)
 3. **Documentation Fragmentation**: Some info in README.md AND docs/ (partially resolved)
 
-### ✅ Recently Resolved (Dec 19, 2025)
-4. **Rswag OAuth Specs**: Complete specs conforming to Feature Contract, Swagger auto-generated
-5. **Zeitwerk Naming**: OAuth service files renamed (`o_auth_*_service.rb`) for correct autoloading
-6. **Secrets Security**: Hardcoded secrets removed, GitHub Secrets configured
-7. **CI Environment Variables**: `SECRET_KEY_BASE` and `JWT_SECRET` now properly injected
-8. **OAuth Variables Naming**: Aligned with GitHub restrictions (`LOCAL_GITHUB_*`)
+### ✅ Recently Resolved (Dec 19, 2025 soir)
+1. **Authentication Concerns Fix**: Converted concerns to class_methods for AuthenticationService compatibility
+2. **Zeitwerk Naming (Concerns)**: Renamed `authentication_metrics_concern_new.rb` to correct name
+3. **Refresh Token Validation**: Made session_id optional in validate_user_and_session
+4. **JsonWebToken Tests**: Fixed logging expectations to match actual implementation
+
+### ✅ Previously Resolved (Dec 20, 2025)
+5. **Authenticatable Refactoring**: Separated authentication logic into concern (96 → 12 lines in ApplicationController)
+6. **UUID Migration**: Migrated users/sessions tables to UUID identifiers for enhanced security
+7. **Security Gems Update**: Updated gems to fix 20+ vulnerabilities (Rack, Rails, Nokogiri, etc.)
+8. **Bootsnap Reactivation**: Reactivated Bootsnap for Rails boot performance optimization
+9. **Migrations Consolidation**: Consolidated and cleaned up users/sessions migrations
+10. **Rswag OAuth Specs**: Complete specs conforming to Feature Contract, Swagger auto-generated
+11. **Zeitwerk Naming**: OAuth service files renamed (`o_auth_*_service.rb`) for correct autoloading
+12. **Secrets Security**: Hardcoded secrets removed, GitHub Secrets configured
+13. **CI Environment Variables**: `SECRET_KEY_BASE` and `JWT_SECRET` now properly injected
+14. **OAuth Variables Naming**: Aligned with GitHub restrictions (`LOCAL_GITHUB_*`)
 
 ### Maintained Standards
 4. **Code Quality**: 0 Rubocop violations (strict standard maintained)
@@ -320,5 +361,5 @@ docker-compose run --rm web bash
 
 ---
 
-**Last Updated**: December 19, 2025  
-**Status**: ✅ Stable, Production Ready, Secrets Secured, Swagger Auto-Generated, AI-Optimized Documentation
+**Last Updated**: December 19, 2025 (soir)  
+**Status**: ✅ Stable, Production Ready, 120 tests passing, 0 Rubocop violations, AI-Optimized Documentation
