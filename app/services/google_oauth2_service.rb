@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# GoogleOauthService
+# GoogleOauth2Service
 #
 # Service responsible for handling Google OAuth2 integration.
 # Provides methods to fetch user information from Google OAuth2 API.
@@ -8,7 +8,7 @@
 #
 # This service simulates Google OAuth2 responses for test scenarios
 # where actual Google API calls are not desirable or possible.
-class GoogleOauthService
+class GoogleOauth2Service
   # Fetch user information from Google OAuth2 API
   # In a real implementation, this would exchange the authorization code
   # for an access token and fetch user data from Google's API

@@ -3,11 +3,6 @@
 require 'rails_helper'
 
 # Load OAuth services to ensure they are available for stubbing
-require_relative '../../app/services/o_auth_validation_service'
-require_relative '../../app/services/o_auth_user_service'
-require_relative '../../app/services/o_auth_token_service'
-require_relative '../../app/services/google_oauth_service'
-require_relative '../../app/services/json_web_token'
 
 RSpec.describe 'OAuth Feature Contract', type: :request do
   describe 'POST /api/v1/auth/:provider/callback' do

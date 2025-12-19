@@ -2,14 +2,14 @@
 
 # Load OauthConcern explicitly to avoid autoloading timing issues
 # Note: This require_relative is necessary to ensure proper loading timing
-require_relative '../../../concerns/oauth_concern'
+require_relative '../../../concerns/o_auth_concern'
 
 module Api
   module V1
     # Controller for authentication API endpoints
     # Handles user login, logout, token refresh, and OAuth authentication
     class AuthenticationController < ApplicationController
-      include ::OauthConcern
+      include ::OAuthConcern
       before_action :authenticate_access_token!, only: [:logout]
 
       # === POST /api/v1/auth/login ===

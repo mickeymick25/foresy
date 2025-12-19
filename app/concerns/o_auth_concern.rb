@@ -5,7 +5,7 @@
 # Concern that provides OAuth authentication functionality.
 # Handles OAuth callbacks, user creation/updates, and data extraction
 # for external providers like GitHub and Google.
-module OauthConcern
+module OAuthConcern
   extend ActiveSupport::Concern
   included do
     def oauth_callback
