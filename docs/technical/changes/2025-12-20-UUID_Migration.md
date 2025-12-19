@@ -13,95 +13,119 @@
 
 > Swagger / schema : ID type mismatch
 >
-> Rswag docs notent que Feature Contract attend UUIDs pour user.id mais DB uses integer bigints. C'est documenté dans PR. Si le contract exige UUID, prévoir migration et attention à compatibilité.
+> Rswag docs notent que Feature Contract attend UUIDs pour user.id mais DB uses integer bigints.
 
-### État Avant
+### Décision
 
-- **Type d'ID** : `bigint` (integer auto-incrémenté)
-- **Problème** : IDs prévisibles, non conformes au Feature Contract
-- **Swagger** : Documentait `type: integer` au lieu de `type: string, format: uuid`
+Migrer vers UUID dès le départ pour :
+- Conformité avec le Feature Contract
+- Identifiants non prévisibles (sécurité)
+- Standards modernes pour APIs REST
 
 ---
 
 ## ✅ Solution Appliquée
 
-### 1. Extension PostgreSQL
+### Migrations consolidées et propres
 
-Activation de `pgcrypto` pour la fonction `gen_random_uuid()`.
+Plutôt que d'avoir des migrations incrémentales et une migration de conversion, nous avons consolidé tout en **2 migrations propres** avec UUID dès le départ.
 
-### 2. Migration des tables
-
-Création de la migration `20251219160648_enable_pgcrypto_and_migrate_to_uuid.rb` :
-
-- Suppression des tables existantes (sessions puis users)
-- Recréation avec `id: :uuid, default: -> { 'gen_random_uuid()' }`
-- Mise à jour des foreign keys pour utiliser UUID
-
-### 3. Mise à jour des specs Swagger
-
-Modification de `spec/requests/api/v1/oauth_spec.rb` :
+### Migration 1 : CreateUsers (20250425142809)
 
 ```ruby
-# Avant
-id: { type: :integer, description: 'User unique identifier' }
+class CreateUsers < ActiveRecord::Migration[7.1]
+  def change
+    enable_extension 'pgcrypto' unless extension_enabled?('pgcrypto')
 
-# Après
-id: { type: :string, format: :uuid, description: 'User unique identifier' }
+    create_table :users, id: :uuid, default: -> { 'gen_random_uuid()' } do |t|
+      t.string :email
+      t.string :password_digest
+      t.string :provider
+      t.string :uid
+      t.string :name
+      t.boolean :active, default: true, null: false
+
+      t.timestamps
+    end
+
+    add_index :users, :email, unique: true
+    add_index :users, %i[provider uid], unique: true, where: 'provider IS NOT NULL'
+  end
+end
 ```
 
-### 4. Régénération du Swagger
+### Migration 2 : CreateSessions (20250425142901)
 
-```bash
-bundle exec rails rswag:specs:swaggerize
+```ruby
+class CreateSessions < ActiveRecord::Migration[7.1]
+  def change
+    create_table :sessions, id: :uuid, default: -> { 'gen_random_uuid()' } do |t|
+      t.references :user, type: :uuid, null: false, foreign_key: true
+      t.string :token, null: false
+      t.datetime :expires_at, null: false
+      t.datetime :last_activity_at, null: false
+      t.string :ip_address
+      t.string :user_agent
+      t.boolean :active, default: true, null: false
+
+      t.timestamps
+    end
+
+    add_index :sessions, :token, unique: true
+    add_index :sessions, :expires_at
+    add_index :sessions, :active
+  end
+end
 ```
 
 ---
 
-## 📊 Schéma Après Migration
+## 📊 Schéma Final
 
 ### Table `users`
 
-```ruby
-create_table :users, id: :uuid, default: -> { 'gen_random_uuid()' } do |t|
-  t.string :email
-  t.string :password_digest
-  t.string :provider
-  t.string :uid
-  t.string :name
-  t.boolean :active, default: true, null: false
-  t.timestamps
-end
-```
+| Colonne | Type | Contraintes |
+|---------|------|-------------|
+| id | uuid | PK, gen_random_uuid() |
+| email | string | unique index |
+| password_digest | string | - |
+| provider | string | - |
+| uid | string | unique avec provider |
+| name | string | - |
+| active | boolean | default: true, NOT NULL |
+| created_at | datetime | NOT NULL |
+| updated_at | datetime | NOT NULL |
 
 ### Table `sessions`
 
-```ruby
-create_table :sessions, id: :uuid, default: -> { 'gen_random_uuid()' } do |t|
-  t.references :user, type: :uuid, null: false, foreign_key: true
-  t.string :token, null: false
-  t.datetime :expires_at, null: false
-  t.datetime :last_activity_at, null: false
-  t.string :ip_address
-  t.string :user_agent
-  t.boolean :active, default: true, null: false
-  t.timestamps
-end
-```
-
----
-
-## 📋 Swagger Généré
-
-```yaml
-id:
-  type: string
-  format: uuid
-  description: User unique identifier
-```
+| Colonne | Type | Contraintes |
+|---------|------|-------------|
+| id | uuid | PK, gen_random_uuid() |
+| user_id | uuid | FK → users, NOT NULL |
+| token | string | unique, NOT NULL |
+| expires_at | datetime | NOT NULL |
+| last_activity_at | datetime | NOT NULL |
+| ip_address | string | - |
+| user_agent | string | - |
+| active | boolean | default: true, NOT NULL |
+| created_at | datetime | NOT NULL |
+| updated_at | datetime | NOT NULL |
 
 ---
 
 ## 🧪 Validation
+
+### Migrations Up/Down
+
+```bash
+$ rails db:rollback STEP=2
+== 20250425142901 CreateSessions: reverted
+== 20250425142809 CreateUsers: reverted
+
+$ rails db:migrate
+== 20250425142809 CreateUsers: migrated
+== 20250425142901 CreateSessions: migrated
+```
 
 ### Tests RSpec
 
@@ -115,48 +139,25 @@ id:
 70 files inspected, no offenses detected
 ```
 
-### Swagger
-
-```
-48 examples, 0 failures
-Swagger doc generated at /app/swagger/v1/swagger.yaml
-```
-
 ---
 
 ## 📋 Bénéfices
 
-1. **Sécurité** - IDs non prévisibles, impossible d'énumérer les ressources
-2. **Conformité** - Alignement avec le Feature Contract
-3. **Standards** - Format UUID standard pour les APIs REST modernes
-4. **Décentralisation** - Possibilité de générer des IDs côté client si nécessaire
-
----
-
-## ⚠️ Notes Importantes
-
-### Perte de données
-
-Cette migration **supprime et recrée** les tables. Elle ne doit être exécutée que sur :
-- Environnements de développement
-- Environnements de staging
-- Production **avec backup préalable**
-
-### Compatibilité
-
-- Les modèles Rails n'ont pas besoin de modification
-- Les foreign keys sont automatiquement gérées avec `type: :uuid`
-- Les factories et specs fonctionnent sans changement
+1. **Propreté** - 2 migrations simples au lieu de 6 incrémentales
+2. **UUID natif** - Pas de conversion, UUID dès le départ
+3. **Réversible** - Rollback/migrate fonctionnels
+4. **Maintenable** - Code clair et documenté
 
 ---
 
 ## 🏷️ Tags
 
 - **🔑 SECURITY** : Identifiants non prévisibles
-- **📐 ARCHITECTURE** : Changement de schéma
-- **MAJEUR** : Modification structurelle de la base de données
+- **📐 ARCHITECTURE** : Schéma consolidé
+- **MAJEUR** : Refonte des migrations
 
 ---
 
 **Document créé le :** 20 décembre 2025  
+**Dernière mise à jour :** 20 décembre 2025  
 **Responsable technique :** Équipe Foresy
