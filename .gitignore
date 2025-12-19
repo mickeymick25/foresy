@@ -57,3 +57,6 @@ yarn-debug.log*
 .vscode/
 *.swp
 *.swo
+
+# Ignore RSpec example reports and logs
+spec/examples.txt
