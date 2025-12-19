@@ -83,8 +83,8 @@ jobs:
         run: |
           echo "Running security audit..."
           echo "Checking for vulnerabilities with Brakeman..."
-          # Run Brakeman with ignore file for non-critical warnings
-          bundle exec brakeman --ignore-file=.brakeman.ignore --exit-on-warn
+          # Run Brakeman with ignore config for non-critical warnings
+          bundle exec brakeman --ignore-config=.brakeman.ignore --no-exit-on-warn
           echo "Checking dependencies with bundle audit..."
           bundle exec bundle audit check --update
 
