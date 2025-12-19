@@ -34,9 +34,6 @@ jobs:
           ruby-version: 3.3.0
           bundler-cache: true
 
-      # PostgreSQL healthcheck is managed by GitHub Actions service
-      # No additional wait step needed - service will be ready before next steps
-
       - name: Set up database
         env:
           RAILS_ENV: test
@@ -44,22 +41,11 @@ jobs:
           SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: |
-          echo "Setting up test database..."
-          echo "Environment: $RAILS_ENV"
-
-          # Validation sécurisée des secrets - AUCUN affichage des secrets
           if [[ -z "$SECRET_KEY_BASE" || -z "$JWT_SECRET" ]]; then
             echo "❌ Error: Required secrets are not configured"
-            echo "Please ensure SECRET_KEY_BASE and JWT_SECRET are set in GitHub Secrets"
             exit 1
-          else
-            echo "✅ Required secrets are configured"
           fi
-
-          echo "Database configuration: ready"
-          bundle check || bundle install
           bundle exec rails db:drop db:create db:schema:load
-          echo "Database setup completed successfully"
 
       - name: Run tests
         env:
@@ -67,32 +53,18 @@ jobs:
           DATABASE_URL: postgres://postgres:password@localhost:5432/foresy_test
           SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
-        run: |
-          echo "Starting test suite..."
-          echo "Ruby version: $(ruby --version)"
-          echo "Bundler version: $(bundle --version)"
-          echo "Rails version: $(bundle exec rails --version)"
-          echo "Environment: $RAILS_ENV"
-          echo "Configuration: ready for testing"
-          bundle exec rspec --format documentation
+        run: bundle exec rspec
 
       - name: Security audit
         env:
           SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: |
-          echo "Running security audit..."
-          echo "Checking for vulnerabilities with Brakeman..."
-          # Run Brakeman with ignore config for non-critical warnings
           bundle exec brakeman --ignore-config=.brakeman.ignore --no-exit-on-warn
-          echo "Checking dependencies with bundle audit..."
           bundle exec bundle audit check --update
 
       - name: Code quality
-        run: |
-          echo "Running code quality checks..."
-          echo "Analyzing code with RuboCop..."
-          bundle exec rubocop
+        run: bundle exec rubocop
 
   lint:
     runs-on: ubuntu-latest
