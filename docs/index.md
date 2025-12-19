@@ -37,21 +37,21 @@ docs/
 
 ### 🎯 Pour Commencer
 1. **[README.md](../README.md)** - Vue d'ensemble du projet, installation, utilisation
-2. **[Rswag OAuth Specs 19/12/2025](./technical/changes/2025-12-19-Rswag_OAuth_Specs_Feature_Contract.md)** - 📋 **DERNIÈRE INTERVENTION** - Swagger auto-généré
+2. **[Corrections CI Sécurité 19/12/2025](./technical/changes/2025-12-19-CI_Security_Fixes_Secrets_PostgreSQL.md)** - 🔒 **DERNIÈRE INTERVENTION** - Sécurité CI
 
 ### 🔧 **Pour le Développement**
 1. **[Analyse Technique](./technical/audits/ANALYSE_TECHNIQUE_FORESY.md)** - Architecture et analyse technique complète
 2. **[Corrections Janvier 2025](./technical/corrections/CORRECTIONS_JANVIER_2025.md)** - Résolution problèmes CI historiques
 
 ### 📊 **Pour les Modifications Récentes**
-1. **[📋 Rswag OAuth Specs 19/12/2025](./technical/changes/2025-12-19-Rswag_OAuth_Specs_Feature_Contract.md)** - **MAJEUR** - Specs rswag + Swagger auto-généré
+1. **[🔒 Corrections CI Sécurité 19/12/2025](./technical/changes/2025-12-19-CI_Security_Fixes_Secrets_PostgreSQL.md)** - **CRITIQUE** - Sécurité CI + Compatibilité runners
 2. **[🔧 Zeitwerk OAuth 19/12/2025](./technical/changes/2025-12-19-Zeitwerk_OAuth_Services_Rename.md)** - **CRITIQUE** - Renommage services OAuth pour Zeitwerk
 3. **[🔒 Sécurité & Secrets 19/12/2025](./technical/changes/2025-12-19-Security_CI_Complete_Fix.md)** - **CRITIQUE** - Sécurisation secrets CI/CD
 4. **[Correction CI 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)** - Intervention majeure CI
 5. **[Correction GoogleOauthService 18/12/2025](./technical/changes/2025-12-18-GoogleOauthService_Fix_Resolution.md)** - Résolution erreur Zeitwerk
 
 ### 🔧 **Pour les Corrections Critiques**
-1. **[🔧 Zeitwerk OAuth 19/12/2025](./technical/changes/2025-12-19-Zeitwerk_OAuth_Services_Rename.md)** - Erreur `uninitialized constant OauthTokenService`
+1. **[🔒 Corrections CI Sécurité 19/12/2025](./technical/changes/2025-12-19-CI_Security_Fixes_Secrets_PostgreSQL.md)** - Fuite secrets + Dépendance pg_isready
 2. **[🔒 Sécurité Secrets 19/12/2025](./technical/changes/2025-12-19-Security_CI_Complete_Fix.md)** - Secrets exposés → GitHub Secrets
 3. **[GoogleOauthService 18/12/2025](./technical/changes/2025-12-18-GoogleOauthService_Fix_Resolution.md)** - Erreur `uninitialized constant GoogleOauthService`
 4. **[CI GitHub 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)** - Pipeline CI cassée
@@ -75,6 +75,7 @@ Documentation chronologique de toutes les modifications significatives du projet
 
 | Fichier | Date | Description | Impact |
 |---------|------|-------------|--------|
+| [🔒 2025-12-19-CI_Security_Fixes_Secrets_PostgreSQL.md](./technical/changes/2025-12-19-CI_Security_Fixes_Secrets_PostgreSQL.md) | 19/12/2025 | Corrections sécurité CI (fuite secrets + pg_isready) | **CRITIQUE** - CI sécurisée |
 | [📋 2025-12-19-Rswag_OAuth_Specs_Feature_Contract.md](./technical/changes/2025-12-19-Rswag_OAuth_Specs_Feature_Contract.md) | 19/12/2025 | Specs rswag OAuth conformes au Feature Contract | **MAJEUR** - Swagger auto-généré |
 | [🔧 2025-12-19-Zeitwerk_OAuth_Services_Rename.md](./technical/changes/2025-12-19-Zeitwerk_OAuth_Services_Rename.md) | 19/12/2025 | Renommage fichiers OAuth pour Zeitwerk | **CRITIQUE** - CI fonctionnelle |
 | [🔒 2025-12-19-Security_CI_Complete_Fix.md](./technical/changes/2025-12-19-Security_CI_Complete_Fix.md) | 19/12/2025 | Sécurisation secrets + Configuration GitHub Secrets | **CRITIQUE** - Sécurité renforcée |
