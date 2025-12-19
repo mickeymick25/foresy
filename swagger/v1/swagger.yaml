@@ -33,60 +33,21 @@ paths:
               - password
   "/api/v1/auth/logout":
     delete:
-      summary: Logs out
+      summary: Logs out the user
       tags:
-      - Authentication Logout
+      - Authentication
       parameters:
       - name: Authorization
         in: header
-        required: false
+        required: true
+        description: Bearer token
         schema:
           type: string
       responses:
         '200':
-          description: Logout successful
+          description: user logged out
         '401':
-          description: logout fails with expired token
-        '500':
-          description: internal server error
-  "/api/v1/oauth/google_oauth2/callback":
-    get:
-      summary: OAuth callback for google_oauth2
-      tags:
-      - OAuth
-      responses:
-        '200':
-          description: successful OAuth login
-        '401':
-          description: missing OAuth data
-        '422':
-          description: user creation failed
-    post:
-      summary: Logs in via google_oauth2
-      tags:
-      - Authentication via Google Oauth2
-      responses:
-        '200':
-          description: OAuth login successful
-  "/api/v1/oauth/github/callback":
-    get:
-      summary: OAuth callback for github
-      tags:
-      - OAuth
-      responses:
-        '200':
-          description: successful OAuth login
-        '401':
-          description: missing OAuth data
-        '422':
-          description: user creation failed
-    post:
-      summary: Logs in via github
-      tags:
-      - Authentication via Github
-      responses:
-        '200':
-          description: OAuth login successful
+          description: unauthorized - second logout (session already expired)
   "/api/v1/auth/refresh":
     post:
       summary: Refreshes authentication token
@@ -113,12 +74,14 @@ paths:
       summary: OAuth callback for provider authentication
       tags:
       - OAuth
+      description: Authenticates a user via OAuth provider (Google or GitHub). Returns
+        a JWT token on success.
       parameters:
       - name: provider
         in: path
         type: string
         required: true
-        description: OAuth provider
+        description: OAuth provider (google_oauth2 or github)
         schema:
           type: string
           enum:
@@ -126,7 +89,7 @@ paths:
           - github
       responses:
         '200':
-          description: successful OAuth authentication
+          description: successful OAuth authentication with GitHub
           content:
             application/json:
               schema:
@@ -139,8 +102,7 @@ paths:
                     type: object
                     properties:
                       id:
-                        type: string
-                        format: uuid
+                        type: integer
                         description: User unique identifier
                       email:
                         type: string
@@ -161,7 +123,7 @@ paths:
                 - token
                 - user
         '400':
-          description: invalid provider
+          description: invalid provider - provider not supported
           content:
             application/json:
               schema:
@@ -174,7 +136,7 @@ paths:
                 required:
                 - error
         '401':
-          description: OAuth authentication failed
+          description: OAuth authentication failed - provider returns error
           content:
             application/json:
               schema:
@@ -187,7 +149,7 @@ paths:
                 required:
                 - error
         '422':
-          description: invalid payload
+          description: invalid payload - missing UID from provider
           content:
             application/json:
               schema:
@@ -200,7 +162,7 @@ paths:
                 required:
                 - error
         '500':
-          description: internal server error
+          description: internal server error - token generation failed
           content:
             application/json:
               schema:
@@ -220,7 +182,7 @@ paths:
               properties:
                 code:
                   type: string
-                  description: OAuth authorization code
+                  description: OAuth authorization code from provider
                 redirect_uri:
                   type: string
                   format: uri
@@ -229,12 +191,14 @@ paths:
               - code
               - redirect_uri
         required: true
-        description: OAuth authorization code received from provider
+        description: OAuth authorization code and redirect URI
   "/api/v1/auth/failure":
     get:
       summary: OAuth failure endpoint
       tags:
       - OAuth
+      description: Endpoint called when OAuth authentication fails at the provider
+        level
       responses:
         '401':
           description: OAuth authentication failed

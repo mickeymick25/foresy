@@ -50,9 +50,10 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 ## 🧪 Tests & Qualité
 
 ### Statistiques Actuelles (Décembre 2025)
-- **Tests RSpec** : ✅ 87 tests qui passent (0 échec)
+- **Tests RSpec** : ✅ 97 tests qui passent (0 échec)
 - **Tests d'acceptation OAuth** : ✅ 9/9 passent
-- Tests d'intégration OAuth : ✅ 10/10 passent (100% succès)
+- **Tests d'intégration OAuth** : ✅ 10/10 passent (100% succès)
+- **Tests Rswag OAuth** : ✅ 10/10 passent (Swagger auto-généré)
 - **RuboCop** : ✅ 0 violation détectée (70 fichiers)
 - **Brakeman** : ✅ 0 vulnérabilité critique (1 alerte mineure)
 
@@ -296,6 +297,12 @@ spec/
 - **Memory Usage** : Monitoring et optimisation continue
 
 ## 📝 Changelog
+
+### Version 1.2.3 (19 Décembre 2025)
+- 📋 **Rswag OAuth Specs** : Specs rswag conformes au Feature Contract
+- ✅ **Swagger auto-généré** : Documentation générée automatiquement depuis les tests
+- ✅ **Couverture complète** : Google, GitHub, tous codes d'erreur (400, 401, 422, 500)
+- ✅ **97 tests passent** : +4 tests rswag OAuth
 
 ### Version 1.2.2 (19 Décembre 2025)
 - 🔧 **Zeitwerk Fix** : Renommage fichiers services OAuth pour compatibilité autoloading

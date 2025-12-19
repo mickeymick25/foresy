@@ -1,6 +1,6 @@
 # 📚 Documentation Centrale - Projet Foresy
 
-**Version :** 1.2  
+**Version :** 1.3  
 **Dernière mise à jour :** 19 décembre 2025
 **Objectif :** Point d'entrée centralisé pour toute la documentation du projet Foresy API
 
@@ -22,7 +22,8 @@ docs/
     │   ├── 2025-12-18-GoogleOauthService_Fix_Resolution.md
     │   ├── 2025-12-18-OAuthTokenService_Comment_Fix.md
     │   ├── 2025-12-19-Security_CI_Complete_Fix.md
-    │   └── 2025-12-19-Zeitwerk_OAuth_Services_Rename.md  # 🔧 ZEITWERK FIX
+    │   ├── 2025-12-19-Zeitwerk_OAuth_Services_Rename.md
+    │   └── 2025-12-19-Rswag_OAuth_Specs_Feature_Contract.md  # 📋 SWAGGER AUTO
     ├── audits/                 # Rapports d'audit technique
     │   ├── ANALYSE_TECHNIQUE_FORESY.md
     │   └── CHANGELOG_REFACTORISATION.md
@@ -36,17 +37,18 @@ docs/
 
 ### 🎯 Pour Commencer
 1. **[README.md](../README.md)** - Vue d'ensemble du projet, installation, utilisation
-2. **[Zeitwerk OAuth Fix 19/12/2025](./technical/changes/2025-12-19-Zeitwerk_OAuth_Services_Rename.md)** - 🔧 **DERNIÈRE INTERVENTION** - Renommage services OAuth
+2. **[Rswag OAuth Specs 19/12/2025](./technical/changes/2025-12-19-Rswag_OAuth_Specs_Feature_Contract.md)** - 📋 **DERNIÈRE INTERVENTION** - Swagger auto-généré
 
 ### 🔧 **Pour le Développement**
 1. **[Analyse Technique](./technical/audits/ANALYSE_TECHNIQUE_FORESY.md)** - Architecture et analyse technique complète
 2. **[Corrections Janvier 2025](./technical/corrections/CORRECTIONS_JANVIER_2025.md)** - Résolution problèmes CI historiques
 
 ### 📊 **Pour les Modifications Récentes**
-1. **[🔧 Zeitwerk OAuth 19/12/2025](./technical/changes/2025-12-19-Zeitwerk_OAuth_Services_Rename.md)** - **CRITIQUE** - Renommage services OAuth pour Zeitwerk
-2. **[🔒 Sécurité & Secrets 19/12/2025](./technical/changes/2025-12-19-Security_CI_Complete_Fix.md)** - **CRITIQUE** - Sécurisation secrets CI/CD
-3. **[Correction CI 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)** - Intervention majeure CI
-4. **[Correction GoogleOauthService 18/12/2025](./technical/changes/2025-12-18-GoogleOauthService_Fix_Resolution.md)** - Résolution erreur Zeitwerk
+1. **[📋 Rswag OAuth Specs 19/12/2025](./technical/changes/2025-12-19-Rswag_OAuth_Specs_Feature_Contract.md)** - **MAJEUR** - Specs rswag + Swagger auto-généré
+2. **[🔧 Zeitwerk OAuth 19/12/2025](./technical/changes/2025-12-19-Zeitwerk_OAuth_Services_Rename.md)** - **CRITIQUE** - Renommage services OAuth pour Zeitwerk
+3. **[🔒 Sécurité & Secrets 19/12/2025](./technical/changes/2025-12-19-Security_CI_Complete_Fix.md)** - **CRITIQUE** - Sécurisation secrets CI/CD
+4. **[Correction CI 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)** - Intervention majeure CI
+5. **[Correction GoogleOauthService 18/12/2025](./technical/changes/2025-12-18-GoogleOauthService_Fix_Resolution.md)** - Résolution erreur Zeitwerk
 
 ### 🔧 **Pour les Corrections Critiques**
 1. **[🔧 Zeitwerk OAuth 19/12/2025](./technical/changes/2025-12-19-Zeitwerk_OAuth_Services_Rename.md)** - Erreur `uninitialized constant OauthTokenService`
@@ -73,6 +75,7 @@ Documentation chronologique de toutes les modifications significatives du projet
 
 | Fichier | Date | Description | Impact |
 |---------|------|-------------|--------|
+| [📋 2025-12-19-Rswag_OAuth_Specs_Feature_Contract.md](./technical/changes/2025-12-19-Rswag_OAuth_Specs_Feature_Contract.md) | 19/12/2025 | Specs rswag OAuth conformes au Feature Contract | **MAJEUR** - Swagger auto-généré |
 | [🔧 2025-12-19-Zeitwerk_OAuth_Services_Rename.md](./technical/changes/2025-12-19-Zeitwerk_OAuth_Services_Rename.md) | 19/12/2025 | Renommage fichiers OAuth pour Zeitwerk | **CRITIQUE** - CI fonctionnelle |
 | [🔒 2025-12-19-Security_CI_Complete_Fix.md](./technical/changes/2025-12-19-Security_CI_Complete_Fix.md) | 19/12/2025 | Sécurisation secrets + Configuration GitHub Secrets | **CRITIQUE** - Sécurité renforcée |
 | [2025-12-18-OAuthTokenService_Comment_Fix.md](./technical/changes/2025-12-18-OAuthTokenService_Comment_Fix.md) | 18/12/2025 | Correction commentaires OAuthTokenService | **MINEUR** - Qualité code |
@@ -243,5 +246,5 @@ Pour que la CI fonctionne, les secrets suivants doivent être configurés dans *
 
 **Index maintenu par :** Équipe Foresy  
 **Dernière révision :** 19 décembre 2025  
-**Version :** 1.2  
+**Version :** 1.3  
 **Statut :** ✅ Actif et maintenu

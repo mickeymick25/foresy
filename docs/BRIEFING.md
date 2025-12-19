@@ -32,6 +32,19 @@
 
 ## 📅 RECENT CHANGES TIMELINE
 
+### Dec 19, 2025 - 📋 Rswag OAuth Specs Feature Contract (MAJOR)
+- **Objective**: Create rswag specs for OAuth endpoints to auto-generate Swagger
+- **Action**: Created comprehensive rswag specs conforming to Feature Contract
+- **Changes Made**:
+  - Created `spec/requests/api/v1/oauth_spec.rb` with 10 test cases
+  - Covered both Google and GitHub providers
+  - Covered all error codes (400, 401, 422, 500)
+  - Covered all edge cases (missing code, redirect_uri, email, UID)
+  - Regenerated Swagger documentation automatically
+- **Result**: 97 tests pass, Swagger auto-generated with 48 examples
+- **Impact**: Full Feature Contract compliance, auto-synchronized documentation
+- **Documentation**: `docs/technical/changes/2025-12-19-Rswag_OAuth_Specs_Feature_Contract.md`
+
 ### Dec 19, 2025 - 🔧 Zeitwerk OAuth Services Rename (CRITICAL)
 - **Problem**: CI failing with `uninitialized constant OauthTokenService` due to Zeitwerk naming convention
 - **Action**: Renamed OAuth service files to match Zeitwerk convention
@@ -92,10 +105,11 @@
 3. **Documentation Fragmentation**: Some info in README.md AND docs/ (partially resolved)
 
 ### ✅ Recently Resolved (Dec 19, 2025)
-4. **Zeitwerk Naming**: OAuth service files renamed (`o_auth_*_service.rb`) for correct autoloading
-5. **Secrets Security**: Hardcoded secrets removed, GitHub Secrets configured
-6. **CI Environment Variables**: `SECRET_KEY_BASE` and `JWT_SECRET` now properly injected
-7. **OAuth Variables Naming**: Aligned with GitHub restrictions (`LOCAL_GITHUB_*`)
+4. **Rswag OAuth Specs**: Complete specs conforming to Feature Contract, Swagger auto-generated
+5. **Zeitwerk Naming**: OAuth service files renamed (`o_auth_*_service.rb`) for correct autoloading
+6. **Secrets Security**: Hardcoded secrets removed, GitHub Secrets configured
+7. **CI Environment Variables**: `SECRET_KEY_BASE` and `JWT_SECRET` now properly injected
+8. **OAuth Variables Naming**: Aligned with GitHub restrictions (`LOCAL_GITHUB_*`)
 
 ### Maintained Standards
 4. **Code Quality**: 0 Rubocop violations (strict standard maintained)
@@ -307,4 +321,4 @@ docker-compose run --rm web bash
 ---
 
 **Last Updated**: December 19, 2025  
-**Status**: ✅ Stable, Production Ready, Secrets Secured, AI-Optimized Documentation
+**Status**: ✅ Stable, Production Ready, Secrets Secured, Swagger Auto-Generated, AI-Optimized Documentation
