@@ -99,6 +99,7 @@ Documentation chronologique de toutes les modifications significatives du projet
 
 | Fichier | Date | Description | Impact |
 |---------|------|-------------|--------|
+| [🧹 2025-12-19-Authenticatable_Cleanup.md](./technical/changes/2025-12-19-Authenticatable_Cleanup.md) | 19/12/2025 | Unification payload_valid?/valid_payload? + tests unitaires | **MOYEN** - 149 tests OK |
 | [🔧 2025-12-19-Authentication_Concerns_Fix.md](./technical/changes/2025-12-19-Authentication_Concerns_Fix.md) | 19/12/2025 | Correction concerns authentification (class_methods + Zeitwerk) | **CRITIQUE** - 120 tests OK |
 | [🔧 2025-12-20-Authenticatable_Concern_Refactoring.md](./technical/changes/2025-12-20-Authenticatable_Concern_Refactoring.md) | 20/12/2025 | Refactoring concern Authenticatable (séparation responsabilités) | **MAJEUR** - Architecture clean |
 | [🔧 2025-12-20-Autoload_Cleanup.md](./technical/changes/2025-12-20-Autoload_Cleanup.md) | 20/12/2025 | Nettoyage require_relative et optimisation autoload | **MINEUR** - Performance |
