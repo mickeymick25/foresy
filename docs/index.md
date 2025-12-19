@@ -1,7 +1,7 @@
 # 📚 Documentation Centrale - Projet Foresy
 
-**Version :** 1.3  
-**Dernière mise à jour :** 19 décembre 2025
+**Version :** 1.4  
+**Dernière mise à jour :** 19 décembre 2025  
 **Objectif :** Point d'entrée centralisé pour toute la documentation du projet Foresy API
 
 ---
@@ -17,6 +17,11 @@ docs/
 ├── index.md                     # Index principal (ce fichier)
 ├── BRIEFING.md                  # Contexte projet pour IA
 └── technical/                   # Documentation technique centralisée
+    ├── analysis/                # Analyses techniques approfondies (Déc 2025)
+    │   ├── pgcrypto_alternatives_analysis.md
+    │   ├── google_oauth_service_mock_solution.md
+    │   ├── omniauth_oauth_configuration_solution.md
+    │   └── csrf_security_analysis_same_site_none.md
     ├── changes/                # Journal chronologique des modifications
     │   ├── 2025-12-18-CI_Fix_Resolution.md
     │   ├── 2025-12-18-GoogleOauthService_Fix_Resolution.md
@@ -43,13 +48,25 @@ docs/
 1. **[Analyse Technique](./technical/audits/ANALYSE_TECHNIQUE_FORESY.md)** - Architecture et analyse technique complète
 2. **[Corrections Janvier 2025](./technical/corrections/CORRECTIONS_JANVIER_2025.md)** - Résolution problèmes CI historiques
 
+### 🔍 **Analyses Techniques Récentes (Décembre 2025)**
+1. **[🔧 pgcrypto UUID Alternatives](./technical/analysis/pgcrypto_alternatives_analysis.md)** - **CRITIQUE** - Migration UUID sans pgcrypto
+2. **[🚫 GoogleOAuth2Service Mock Removal](./technical/analysis/google_oauth_service_mock_solution.md)** - **CRITIQUE** - Suppression service mock mal placé
+3. **[🔐 OmniAuth OAuth Configuration](./technical/analysis/omniauth_oauth_configuration_solution.md)** - **CRITIQUE** - Configuration robuste secrets OAuth
+4. **[🛡️ CSRF Security Analysis](./technical/analysis/csrf_security_analysis_same_site_none.md)** - **CRITIQUE** - Analyse risque CSRF et sécurisation
+
 ### 📊 **Pour les Modifications Récentes**
 1. **[🏗️ Corrections Architecture OAuth 19/12/2025](./technical/changes/2025-12-19-OAuth_Architecture_Fix.md)** - **CRITIQUE** - Nommage OAuth + RequireRelative
 2. **[🔒 Corrections CI Sécurité 19/12/2025](./technical/changes/2025-12-19-CI_Security_Fixes_Secrets_PostgreSQL.md)** - **CRITIQUE** - Sécurité CI + Compatibilité runners
-2. **[🔧 Zeitwerk OAuth 19/12/2025](./technical/changes/2025-12-19-Zeitwerk_OAuth_Services_Rename.md)** - **CRITIQUE** - Renommage services OAuth pour Zeitwerk
-3. **[🔒 Sécurité & Secrets 19/12/2025](./technical/changes/2025-12-19-Security_CI_Complete_Fix.md)** - **CRITIQUE** - Sécurisation secrets CI/CD
-4. **[Correction CI 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)** - Intervention majeure CI
-5. **[Correction GoogleOauthService 18/12/2025](./technical/changes/2025-12-18-GoogleOauthService_Fix_Resolution.md)** - Résolution erreur Zeitwerk
+3. **[🔧 Zeitwerk OAuth 19/12/2025](./technical/changes/2025-12-19-Zeitwerk_OAuth_Services_Rename.md)** - **CRITIQUE** - Renommage services OAuth pour Zeitwerk
+4. **[🔒 Sécurité & Secrets 19/12/2025](./technical/changes/2025-12-19-Security_CI_Complete_Fix.md)** - **CRITIQUE** - Sécurisation secrets CI/CD
+5. **[Correction CI 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)** - Intervention majeure CI
+6. **[Correction GoogleOauthService 18/12/2025](./technical/changes/2025-12-18-GoogleOauthService_Fix_Resolution.md)** - Résolution erreur Zeitwerk
+
+### 🔍 **Analyses Techniques Problèmes PR (Décembre 2025)**
+1. **[🔧 pgcrypto UUID Alternatives](./technical/analysis/pgcrypto_alternatives_analysis.md)** - Problème pgcrypto en production
+2. **[🚫 GoogleOAuth2Service Mock Removal](./technical/analysis/google_oauth_service_mock_solution.md)** - Service mock dans zone production
+3. **[🔐 OmniAuth OAuth Configuration](./technical/analysis/omniauth_oauth_configuration_solution.md)** - Configuration secrets fragile
+4. **[🛡️ CSRF Security Analysis](./technical/analysis/csrf_security_analysis_same_site_none.md)** - Risque CSRF avec same_site: :none
 
 ### 🔧 **Pour les Corrections Critiques**
 1. **[🏗️ Corrections Architecture OAuth 19/12/2025](./technical/changes/2025-12-19-OAuth_Architecture_Fix.md)** - Fuite secrets + Dépendance pg_isready + Incohérences nommage OAuth
@@ -85,7 +102,17 @@ Documentation chronologique de toutes les modifications significatives du projet
 | [2025-12-18-CI_Fix_Resolution.md](./technical/changes/2025-12-18-CI_Fix_Resolution.md) | 18/12/2025 | Résolution problèmes CI GitHub | **CRITIQUE** - CI fonctionnelle |
 | [2025-12-18-GoogleOauthService_Fix_Resolution.md](./technical/changes/2025-12-18-GoogleOauthService_Fix_Resolution.md) | 18/12/2025 | Résolution erreur Zeitwerk GoogleOauthService | **CRITIQUE** - 87 tests, 0 échec |
 
-### 🔍 **Rapports d'Audit** (`docs/technical/audits/`)
+### 🔍 **Analyses Techniques** (`docs/technical/analysis/`)
+Analyses approfondies des problèmes techniques identifiés et solutions proposées.
+
+| Fichier | Date | Problème | Impact | Solution |
+|---------|------|----------|--------|----------|
+| [pgcrypto_alternatives_analysis.md](./technical/analysis/pgcrypto_alternatives_analysis.md) | 19/12/2025 | pgcrypto échoue en production | **CRITIQUE** | UUID Ruby |
+| [google_oauth_service_mock_solution.md](./technical/analysis/google_oauth_service_mock_solution.md) | 19/12/2025 | Service mock en production | **CRITIQUE** | Suppression |
+| [omniauth_oauth_configuration_solution.md](./technical/analysis/omniauth_oauth_configuration_solution.md) | 19/12/2025 | Configuration secrets fragile | **CRITIQUE** | Templates + robustesse |
+| [csrf_security_analysis_same_site_none.md](./technical/analysis/csrf_security_analysis_same_site_none.md) | 19/12/2025 | Risque CSRF cookies | **CRITIQUE** | Session store désactivé |
+
+### 📊 **Rapports d'Audit** (`docs/technical/audits/`)
 Analyses techniques et historiques des modifications.
 
 | Fichier | Type | Description |
@@ -98,6 +125,16 @@ Résolutions de problèmes critiques et interventions majeures.
 
 | Fichier | Date | Problème Résolu | Impact |
 |---------|------|-----------------|--------|
+| [CORRECTIONS_JANVIER_2025.md](./technical/corrections/CORRECTIONS_JANVIER_2025.md) | 01/2025 | CI complètement cassée (0 tests) | **MAJEUR** - Pipeline fonctionnel |
+
+### 📋 **Templates de Configuration** (Racine)
+Nouveaux templates de configuration OAuth ajoutés en décembre 2025.
+
+| Fichier | Description | Environnement |
+|---------|-------------|---------------|
+| [.env.example](./.env.example) | Template configuration développement | **Développement** |
+| [.env.test.example](./.env.test.example) | Template configuration tests | **Tests** |
+| [.env.production.example](./.env.production.example) | Template configuration production | **Production** |
 | [CORRECTIONS_JANVIER_2025.md](./technical/corrections/CORRECTIONS_JANVIER_2025.md) | 01/2025 | CI complètement cassée (0 tests) | **MAJEUR** - Pipeline fonctionnel |
 
 ---
