@@ -29,8 +29,8 @@ RSpec.describe 'API V1 OAuth', type: :request do
       # SUCCESS CASES - 200 OK
       # ============================================================
 
-      # NOTE: Feature Contract specifies UUID for id, but current implementation uses integer.
-      # TODO: Consider migrating to UUID in future version.
+      # UUIDs implemented as per Feature Contract specification.
+
       response '200', 'successful OAuth authentication with Google' do
         schema type: :object,
                properties: {
@@ -38,7 +38,7 @@ RSpec.describe 'API V1 OAuth', type: :request do
                  user: {
                    type: :object,
                    properties: {
-                     id: { type: :integer, description: 'User unique identifier' },
+                     id: { type: :string, format: :uuid, description: 'User unique identifier' },
                      email: { type: :string, format: :email, description: 'User email address' },
                      provider: { type: :string, description: 'OAuth provider used' },
                      provider_uid: { type: :string, description: 'User unique identifier from OAuth provider' }
@@ -112,7 +112,7 @@ RSpec.describe 'API V1 OAuth', type: :request do
                  user: {
                    type: :object,
                    properties: {
-                     id: { type: :integer, description: 'User unique identifier' },
+                     id: { type: :string, format: :uuid, description: 'User unique identifier' },
                      email: { type: :string, format: :email, description: 'User email address' },
                      provider: { type: :string, description: 'OAuth provider used' },
                      provider_uid: { type: :string, description: 'User unique identifier from OAuth provider' }
