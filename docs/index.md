@@ -1,7 +1,7 @@
 # 📚 Documentation Centrale - Projet Foresy
 
-**Version :** 1.1  
-**Dernière mise à jour :** 19 décembre 2025  
+**Version :** 1.2  
+**Dernière mise à jour :** 19 décembre 2025
 **Objectif :** Point d'entrée centralisé pour toute la documentation du projet Foresy API
 
 ---
@@ -21,7 +21,8 @@ docs/
     │   ├── 2025-12-18-CI_Fix_Resolution.md
     │   ├── 2025-12-18-GoogleOauthService_Fix_Resolution.md
     │   ├── 2025-12-18-OAuthTokenService_Comment_Fix.md
-    │   └── 2025-12-19-Security_CI_Complete_Fix.md  # 🔒 SÉCURITÉ SECRETS
+    │   ├── 2025-12-19-Security_CI_Complete_Fix.md
+    │   └── 2025-12-19-Zeitwerk_OAuth_Services_Rename.md  # 🔧 ZEITWERK FIX
     ├── audits/                 # Rapports d'audit technique
     │   ├── ANALYSE_TECHNIQUE_FORESY.md
     │   └── CHANGELOG_REFACTORISATION.md
@@ -35,21 +36,23 @@ docs/
 
 ### 🎯 Pour Commencer
 1. **[README.md](../README.md)** - Vue d'ensemble du projet, installation, utilisation
-2. **[Sécurité & CI 19/12/2025](./technical/changes/2025-12-19-Security_CI_Complete_Fix.md)** - 🔒 **DERNIÈRE INTERVENTION** - Sécurisation secrets GitHub
+2. **[Zeitwerk OAuth Fix 19/12/2025](./technical/changes/2025-12-19-Zeitwerk_OAuth_Services_Rename.md)** - 🔧 **DERNIÈRE INTERVENTION** - Renommage services OAuth
 
 ### 🔧 **Pour le Développement**
 1. **[Analyse Technique](./technical/audits/ANALYSE_TECHNIQUE_FORESY.md)** - Architecture et analyse technique complète
 2. **[Corrections Janvier 2025](./technical/corrections/CORRECTIONS_JANVIER_2025.md)** - Résolution problèmes CI historiques
 
 ### 📊 **Pour les Modifications Récentes**
-1. **[🔒 Sécurité & Secrets 19/12/2025](./technical/changes/2025-12-19-Security_CI_Complete_Fix.md)** - **CRITIQUE** - Sécurisation secrets CI/CD
-2. **[Correction CI 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)** - Intervention majeure CI
-3. **[Correction GoogleOauthService 18/12/2025](./technical/changes/2025-12-18-GoogleOauthService_Fix_Resolution.md)** - Résolution erreur Zeitwerk
+1. **[🔧 Zeitwerk OAuth 19/12/2025](./technical/changes/2025-12-19-Zeitwerk_OAuth_Services_Rename.md)** - **CRITIQUE** - Renommage services OAuth pour Zeitwerk
+2. **[🔒 Sécurité & Secrets 19/12/2025](./technical/changes/2025-12-19-Security_CI_Complete_Fix.md)** - **CRITIQUE** - Sécurisation secrets CI/CD
+3. **[Correction CI 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)** - Intervention majeure CI
+4. **[Correction GoogleOauthService 18/12/2025](./technical/changes/2025-12-18-GoogleOauthService_Fix_Resolution.md)** - Résolution erreur Zeitwerk
 
 ### 🔧 **Pour les Corrections Critiques**
-1. **[🔒 Sécurité Secrets 19/12/2025](./technical/changes/2025-12-19-Security_CI_Complete_Fix.md)** - Secrets exposés → GitHub Secrets
-2. **[GoogleOauthService 18/12/2025](./technical/changes/2025-12-18-GoogleOauthService_Fix_Resolution.md)** - Erreur `uninitialized constant GoogleOauthService`
-3. **[CI GitHub 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)** - Pipeline CI cassée
+1. **[🔧 Zeitwerk OAuth 19/12/2025](./technical/changes/2025-12-19-Zeitwerk_OAuth_Services_Rename.md)** - Erreur `uninitialized constant OauthTokenService`
+2. **[🔒 Sécurité Secrets 19/12/2025](./technical/changes/2025-12-19-Security_CI_Complete_Fix.md)** - Secrets exposés → GitHub Secrets
+3. **[GoogleOauthService 18/12/2025](./technical/changes/2025-12-18-GoogleOauthService_Fix_Resolution.md)** - Erreur `uninitialized constant GoogleOauthService`
+4. **[CI GitHub 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)** - Pipeline CI cassée
 
 ### 📈 Pour l'Historique
 1. **[Changelog Refactorisation](./technical/audits/CHANGELOG_REFACTORISATION.md)** - Historique des refactorisations
@@ -70,6 +73,7 @@ Documentation chronologique de toutes les modifications significatives du projet
 
 | Fichier | Date | Description | Impact |
 |---------|------|-------------|--------|
+| [🔧 2025-12-19-Zeitwerk_OAuth_Services_Rename.md](./technical/changes/2025-12-19-Zeitwerk_OAuth_Services_Rename.md) | 19/12/2025 | Renommage fichiers OAuth pour Zeitwerk | **CRITIQUE** - CI fonctionnelle |
 | [🔒 2025-12-19-Security_CI_Complete_Fix.md](./technical/changes/2025-12-19-Security_CI_Complete_Fix.md) | 19/12/2025 | Sécurisation secrets + Configuration GitHub Secrets | **CRITIQUE** - Sécurité renforcée |
 | [2025-12-18-OAuthTokenService_Comment_Fix.md](./technical/changes/2025-12-18-OAuthTokenService_Comment_Fix.md) | 18/12/2025 | Correction commentaires OAuthTokenService | **MINEUR** - Qualité code |
 | [2025-12-18-CI_Fix_Resolution.md](./technical/changes/2025-12-18-CI_Fix_Resolution.md) | 18/12/2025 | Résolution problèmes CI GitHub | **CRITIQUE** - CI fonctionnelle |
@@ -239,5 +243,5 @@ Pour que la CI fonctionne, les secrets suivants doivent être configurés dans *
 
 **Index maintenu par :** Équipe Foresy  
 **Dernière révision :** 19 décembre 2025  
-**Version :** 1.1  
+**Version :** 1.2  
 **Statut :** ✅ Actif et maintenu

@@ -32,6 +32,18 @@
 
 ## 📅 RECENT CHANGES TIMELINE
 
+### Dec 19, 2025 - 🔧 Zeitwerk OAuth Services Rename (CRITICAL)
+- **Problem**: CI failing with `uninitialized constant OauthTokenService` due to Zeitwerk naming convention
+- **Action**: Renamed OAuth service files to match Zeitwerk convention
+- **Changes Made**:
+  - Renamed `oauth_token_service.rb` → `o_auth_token_service.rb`
+  - Renamed `oauth_user_service.rb` → `o_auth_user_service.rb`
+  - Renamed `oauth_validation_service.rb` → `o_auth_validation_service.rb`
+  - Updated `require_relative` paths in controller and specs
+- **Result**: CI 100% functional, 87 tests pass
+- **Impact**: Zeitwerk autoloading now works correctly
+- **Documentation**: `docs/technical/changes/2025-12-19-Zeitwerk_OAuth_Services_Rename.md`
+
 ### Dec 19, 2025 - 🔒 Security & Secrets Configuration (CRITICAL)
 - **Problem**: Secrets exposed in code + CI failing due to missing environment variables
 - **Action**: Complete security overhaul of secrets management
@@ -80,9 +92,10 @@
 3. **Documentation Fragmentation**: Some info in README.md AND docs/ (partially resolved)
 
 ### ✅ Recently Resolved (Dec 19, 2025)
-4. **Secrets Security**: Hardcoded secrets removed, GitHub Secrets configured
-5. **CI Environment Variables**: `SECRET_KEY_BASE` and `JWT_SECRET` now properly injected
-6. **OAuth Variables Naming**: Aligned with GitHub restrictions (`LOCAL_GITHUB_*`)
+4. **Zeitwerk Naming**: OAuth service files renamed (`o_auth_*_service.rb`) for correct autoloading
+5. **Secrets Security**: Hardcoded secrets removed, GitHub Secrets configured
+6. **CI Environment Variables**: `SECRET_KEY_BASE` and `JWT_SECRET` now properly injected
+7. **OAuth Variables Naming**: Aligned with GitHub restrictions (`LOCAL_GITHUB_*`)
 
 ### Maintained Standards
 4. **Code Quality**: 0 Rubocop violations (strict standard maintained)

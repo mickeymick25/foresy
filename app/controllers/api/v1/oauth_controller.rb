@@ -13,9 +13,9 @@
 # Require OAuth services to ensure they are loaded properly
 # Note: These require_relative statements are necessary to avoid autoloading issues
 # in production environments while maintaining compatibility with Zeitwerk eager loading
-require_relative '../../../services/oauth_validation_service'
-require_relative '../../../services/oauth_user_service'
-require_relative '../../../services/oauth_token_service'
+require_relative '../../../services/o_auth_validation_service'
+require_relative '../../../services/o_auth_user_service'
+require_relative '../../../services/o_auth_token_service'
 require_relative '../../../services/google_oauth_service'
 
 module Api

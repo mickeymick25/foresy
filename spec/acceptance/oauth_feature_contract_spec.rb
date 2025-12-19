@@ -3,9 +3,9 @@
 require 'rails_helper'
 
 # Load OAuth services to ensure they are available for stubbing
-require_relative '../../app/services/oauth_validation_service'
-require_relative '../../app/services/oauth_user_service'
-require_relative '../../app/services/oauth_token_service'
+require_relative '../../app/services/o_auth_validation_service'
+require_relative '../../app/services/o_auth_user_service'
+require_relative '../../app/services/o_auth_token_service'
 require_relative '../../app/services/google_oauth_service'
 require_relative '../../app/services/json_web_token'
 

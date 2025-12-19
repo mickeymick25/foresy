@@ -297,6 +297,12 @@ spec/
 
 ## 📝 Changelog
 
+### Version 1.2.2 (19 Décembre 2025)
+- 🔧 **Zeitwerk Fix** : Renommage fichiers services OAuth pour compatibilité autoloading
+- ✅ **Fichiers renommés** : `oauth_*_service.rb` → `o_auth_*_service.rb`
+- ✅ **Convention Rails** : Alignement avec convention Zeitwerk pour acronymes
+- ✅ **CI fonctionnelle** : 87 tests passent, 0 échec
+
 ### Version 1.2.1 (19 Décembre 2025)
 - 🔒 **Security Fix** : Suppression secrets exposés dans le repository
 - ✅ **GitHub Secrets** : Configuration sécurisée des variables CI/CD
