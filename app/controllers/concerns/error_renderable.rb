@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require_relative '../../exceptions/application_error'
-
 # ErrorRenderable
 #
 # Concern that provides error handling methods for controllers.
