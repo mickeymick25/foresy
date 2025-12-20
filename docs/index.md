@@ -1,6 +1,6 @@
 # 📚 Documentation Centrale - Projet Foresy
 
-**Version :** 1.5  
+**Version :** 1.6  
 **Dernière mise à jour :** 20 décembre 2025  
 **Objectif :** Point d'entrée centralisé pour toute la documentation du projet Foresy API
 
@@ -33,6 +33,7 @@ docs/
     │   ├── ANALYSE_TECHNIQUE_FORESY.md
     │   └── CHANGELOG_REFACTORISATION.md
     └── corrections/            # Corrections techniques historiques
+        ├── 2025-12-19-pgcrypto_elimination_solution.md  # ✅ CRITIQUE - pgcrypto éliminé
         └── CORRECTIONS_JANVIER_2025.md
 ```
 
@@ -147,6 +148,7 @@ Résolutions de problèmes critiques et interventions majeures.
 
 | Fichier | Date | Problème Résolu | Impact |
 |---------|------|-----------------|--------|
+| [2025-12-19-pgcrypto_elimination_solution.md](./technical/corrections/2025-12-19-pgcrypto_elimination_solution.md) | 19/12/2025 | **CRITIQUE** - Dépendance pgcrypto bloquant déploiement production | **CRITIQUE** - Compatibilité totale environnements managés |
 | [CORRECTIONS_JANVIER_2025.md](./technical/corrections/CORRECTIONS_JANVIER_2025.md) | 01/2025 | CI complètement cassée (0 tests) | **MAJEUR** - Pipeline fonctionnel |
 
 ### 📋 **Templates de Configuration** (Racine)

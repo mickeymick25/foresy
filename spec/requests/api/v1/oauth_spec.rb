@@ -38,7 +38,7 @@ RSpec.describe 'API V1 OAuth', type: :request do
                  user: {
                    type: :object,
                    properties: {
-                     id: { type: :string, format: :uuid, description: 'User unique identifier' },
+                     id: { type: :integer, description: 'User unique identifier' },
                      email: { type: :string, format: :email, description: 'User email address' },
                      provider: { type: :string, description: 'OAuth provider used' },
                      provider_uid: { type: :string, description: 'User unique identifier from OAuth provider' }
@@ -112,7 +112,7 @@ RSpec.describe 'API V1 OAuth', type: :request do
                  user: {
                    type: :object,
                    properties: {
-                     id: { type: :string, format: :uuid, description: 'User unique identifier' },
+                     id: { type: :integer, description: 'User unique identifier' },
                      email: { type: :string, format: :email, description: 'User email address' },
                      provider: { type: :string, description: 'OAuth provider used' },
                      provider_uid: { type: :string, description: 'User unique identifier from OAuth provider' }

@@ -1,7 +1,7 @@
 # BRIEFING.md - Foresy API Project
 
 **For AI Context Understanding - Optimized for Fast Project Comprehension**  
-**Last Updated:** 19 décembre 2025 (soir)
+**Last Updated:** 20 décembre 2025
 
 ---
 
@@ -31,6 +31,22 @@
 ---
 
 ## 📅 RECENT CHANGES TIMELINE
+
+### Dec 20, 2025 - 🔧 pgcrypto Complete Elimination (CRITICAL) ✅ RESOLVED
+- **Objective**: Completely eliminate pgcrypto dependency for managed PostgreSQL compatibility
+- **Problems Identified**:
+  - Previous migration still attempted conditional pgcrypto activation
+  - Schema.rb still contained `enable_extension "pgcrypto"` and `id: :uuid`
+  - Rswag OAuth specs expected string UUIDs but got integer IDs
+- **Changes Made**:
+  - Rewrote single migration `20251220_create_pgcrypto_compatible_tables.rb` without ANY pgcrypto reference
+  - Tables use standard bigint IDs (auto-increment)
+  - Added `uuid` string column (36 chars) for public identifiers via SecureRandom.uuid
+  - Regenerated clean schema.rb with only `enable_extension "plpgsql"`
+  - Fixed rswag OAuth specs to expect integer IDs (`type: :integer`)
+- **Result**: 149 tests pass, 0 Rubocop offenses, Swagger regenerated
+- **Impact**: 100% compatibility with all managed PostgreSQL environments (RDS, CloudSQL, Heroku, Azure)
+- **Documentation**: `docs/technical/corrections/2025-12-19-pgcrypto_elimination_solution.md`
 
 ### Dec 19, 2025 (soir) - 🧹 Authenticatable Cleanup (MEDIUM)
 - **Objective**: Unify ambiguous methods and add unit tests
@@ -149,16 +165,17 @@
 2. **shoulda-matchers Warning**: Boolean column validation warnings (cosmetic only)
 3. **Documentation Fragmentation**: Some info in README.md AND docs/ (partially resolved)
 
-### ✅ Recently Resolved (Dec 19, 2025 soir)
+### ✅ Recently Resolved (Dec 20, 2025)
+1. **pgcrypto Complete Elimination**: Rewrote migration to use bigint IDs + uuid string column, regenerated clean schema.rb without pgcrypto
+2. **Rswag Specs Fix**: Updated OAuth specs to expect integer IDs instead of UUID strings
+
+### ✅ Previously Resolved (Dec 19-20, 2025)
 1. **Authenticatable Cleanup**: Unified `payload_valid?`/`valid_payload?` methods, added 29 unit tests
 2. **Authentication Concerns Fix**: Converted concerns to class_methods for AuthenticationService compatibility
 3. **Zeitwerk Naming (Concerns)**: Renamed `authentication_metrics_concern_new.rb` to correct name
 4. **Refresh Token Validation**: Made session_id optional in validate_user_and_session
 5. **JsonWebToken Tests**: Fixed logging expectations to match actual implementation
-
-### ✅ Previously Resolved (Dec 20, 2025)
-5. **Authenticatable Refactoring**: Separated authentication logic into concern (96 → 12 lines in ApplicationController)
-6. **UUID Migration**: Migrated users/sessions tables to UUID identifiers for enhanced security
+6. **Authenticatable Refactoring**: Separated authentication logic into concern (96 → 12 lines in ApplicationController)
 7. **Security Gems Update**: Updated gems to fix 20+ vulnerabilities (Rack, Rails, Nokogiri, etc.)
 8. **Bootsnap Reactivation**: Reactivated Bootsnap for Rails boot performance optimization
 9. **Migrations Consolidation**: Consolidated and cleaned up users/sessions migrations
@@ -377,5 +394,5 @@ docker-compose run --rm web bash
 
 ---
 
-**Last Updated**: December 19, 2025 (soir)  
-**Status**: ✅ Stable, Production Ready, 149 tests passing, 0 Rubocop violations, AI-Optimized Documentation
+**Last Updated**: December 20, 2025  
+**Status**: ✅ Stable, Production Ready, 149 tests passing, 0 Rubocop violations, pgcrypto eliminated, AI-Optimized Documentation

@@ -2,7 +2,12 @@
 
 **Date :** 19 décembre 2025  
 **Contexte :** Analyse PR - Compatibilité infrastructure production  
-**Impact :** CRITIQUE - Déploiement production possiblement bloqué
+**Impact :** CRITIQUE - Déploiement production possiblement bloqué  
+**Statut :** ✅ **RÉSOLU** - Voir `docs/technical/corrections/2025-12-19-pgcrypto_elimination_solution.md`
+
+> **⚠️ NOTE (20 décembre 2025):** Cette analyse a conduit à l'implémentation de l'Option 1 (UUID Ruby).
+> La migration `20251220_create_pgcrypto_compatible_tables.rb` élimine complètement pgcrypto.
+> Schema.rb ne contient plus que `enable_extension "plpgsql"`.
 
 ---
 
@@ -223,5 +228,21 @@ bundle exec rails runner "puts User.first.uuid"
 
 ---
 
+## ✅ Résolution Implémentée (20 décembre 2025)
+
+L'Option 1 (UUID Ruby) a été implémentée avec succès :
+
+- **Migration unique** : `20251220_create_pgcrypto_compatible_tables.rb`
+- **IDs** : bigint standards (auto-increment)
+- **UUID publics** : colonne `uuid` string (36 chars) via `SecureRandom.uuid`
+- **Schema.rb** : uniquement `enable_extension "plpgsql"`
+- **Tests** : 149 examples, 0 failures
+- **Rubocop** : 0 offenses
+- **Rswag** : Swagger regenerated
+
+**Documentation complète** : `docs/technical/corrections/2025-12-19-pgcrypto_elimination_solution.md`
+
+---
+
 *Analyse réalisée le 19 décembre 2025 par l'équipe technique Foresy*  
-*Priorité : CRITIQUE - À implémenter avant tout déploiement production*
+*Priorité : CRITIQUE - ✅ IMPLÉMENTÉ le 20 décembre 2025*
