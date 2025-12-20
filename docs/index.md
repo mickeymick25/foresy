@@ -41,8 +41,9 @@ docs/
 ## 📋 Navigation Rapide
 
 ### 🎯 Pour Commencer
-1. **[README.md](../README.md)** - Vue d'ensemble du projet, installation, utilisation
-2. **[🔒 Sécurité Gems 20/12/2025](./technical/changes/2025-12-20-Security_Gems_Update.md)** - 🔒 **DERNIÈRE INTERVENTION** - 20+ vulnérabilités corrigées
+1. **[🚨 Migration Rails Planifiée 20/12/2025](./technical/changes/2025-12-20-Rails_Migration_Task_Planning.md)** - 🚨 **PRIORITÉ CRITIQUE** - Migration Rails 7.1.5.1 → 7.2+ (EOL octobre 2025)
+2. **[README.md](../README.md)** - Vue d'ensemble du projet, installation, utilisation
+3. **[🔒 Sécurité Gems 20/12/2025](./technical/changes/2025-12-20-Security_Gems_Update.md)** - 🔒 **DERNIÈRE INTERVENTION** - 20+ vulnérabilités corrigées
 
 ### 🔧 **Pour le Développement**
 1. **[Analyse Technique](./technical/audits/ANALYSE_TECHNIQUE_FORESY.md)** - Architecture et analyse technique complète
@@ -55,18 +56,19 @@ docs/
 4. **[🛡️ CSRF Security Analysis](./technical/analysis/csrf_security_analysis_same_site_none.md)** - **CRITIQUE** - Analyse risque CSRF et sécurisation
 
 ### 📊 **Pour les Modifications Récentes**
-1. **[🔧 Refactoring Authenticatable 20/12/2025](./technical/changes/2025-12-20-Authenticatable_Concern_Refactoring.md)** - **MAJEUR** - Séparation responsabilités auth
-2. **[🔑 Migration UUID 20/12/2025](./technical/changes/2025-12-20-UUID_Migration.md)** - **MAJEUR** - Migration identifiants sécurisés
-3. **[🔒 Sécurité Gems 20/12/2025](./technical/changes/2025-12-20-Security_Gems_Update.md)** - **CRITIQUE** - 20+ vulnérabilités corrigées
-4. **[⚡ Réactivation Bootsnap 20/12/2025](./technical/changes/2025-12-20-Bootsnap_Reactivation.md)** - **MAJEUR** - Performance boot Rails
-5. **[🏗️ Consolidations Migrations 20/12/2025](./technical/changes/2025-12-20-Migrations_Consolidation.md)** - **MAJEUR** - Nettoyage migrations UUID
-6. **[JWT Robustesse 19/12/2025](./technical/changes/2025-12-19-JWT_Robustness_Improvements_Complete.md)** - **MAJEUR** - Amélioration robustesse JWT
-7. **[🏗️ Corrections Architecture OAuth 19/12/2025](./technical/changes/2025-12-19-OAuth_Architecture_Fix.md)** - **CRITIQUE** - Nommage OAuth + RequireRelative
-8. **[🔒 Corrections CI Sécurité 19/12/2025](./technical/changes/2025-12-19-CI_Security_Fixes_Secrets_PostgreSQL.md)** - **CRITIQUE** - Sécurité CI + Compatibilité runners
-9. **[🔧 Zeitwerk OAuth 19/12/2025](./technical/changes/2025-12-19-Zeitwerk_OAuth_Services_Rename.md)** - **CRITIQUE** - Renommage services OAuth pour Zeitwerk
-10. **[🔒 Sécurité & Secrets 19/12/2025](./technical/changes/2025-12-19-Security_CI_Complete_Fix.md)** - **CRITIQUE** - Sécurisation secrets CI/CD
-11. **[Correction CI 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)** - Intervention majeure CI
-12. **[Correction GoogleOauthService 18/12/2025](./technical/changes/2025-12-18-GoogleOauthService_Fix_Resolution.md)** - Résolution erreur Zeitwerk
+1. **[🚨 Migration Rails Planifiée 20/12/2025](./technical/changes/2025-12-20-Rails_Migration_Task_Planning.md)** - **CRITIQUE** - Planification migration Rails 7.1.5.1 → 7.2+ (EOL)
+2. **[🔧 Refactoring Authenticatable 20/12/2025](./technical/changes/2025-12-20-Authenticatable_Concern_Refactoring.md)** - **MAJEUR** - Séparation responsabilités auth
+3. **[🔑 Migration UUID 20/12/2025](./technical/changes/2025-12-20-UUID_Migration.md)** - **MAJEUR** - Migration identifiants sécurisés
+4. **[🔒 Sécurité Gems 20/12/2025](./technical/changes/2025-12-20-Security_Gems_Update.md)** - **CRITIQUE** - 20+ vulnérabilités corrigées
+5. **[⚡ Réactivation Bootsnap 20/12/2025](./technical/changes/2025-12-20-Bootsnap_Reactivation.md)** - **MAJEUR** - Performance boot Rails
+6. **[🏗️ Consolidations Migrations 20/12/2025](./technical/changes/2025-12-20-Migrations_Consolidation.md)** - **MAJEUR** - Nettoyage migrations UUID
+7. **[JWT Robustesse 19/12/2025](./technical/changes/2025-12-19-JWT_Robustness_Improvements_Complete.md)** - **MAJEUR** - Amélioration robustesse JWT
+8. **[🏗️ Corrections Architecture OAuth 19/12/2025](./technical/changes/2025-12-19-OAuth_Architecture_Fix.md)** - **CRITIQUE** - Nommage OAuth + RequireRelative
+9. **[🔒 Corrections CI Sécurité 19/12/2025](./technical/changes/2025-12-19-CI_Security_Fixes_Secrets_PostgreSQL.md)** - **CRITIQUE** - Sécurité CI + Compatibilité runners
+10. **[🔧 Zeitwerk OAuth 19/12/2025](./technical/changes/2025-12-19-Zeitwerk_OAuth_Services_Rename.md)** - **CRITIQUE** - Renommage services OAuth pour Zeitwerk
+11. **[🔒 Sécurité & Secrets 19/12/2025](./technical/changes/2025-12-19-Security_CI_Complete_Fix.md)** - **CRITIQUE** - Sécurisation secrets CI/CD
+12. **[Correction CI 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)** - Intervention majeure CI
+13. **[Correction GoogleOauthService 18/12/2025](./technical/changes/2025-12-18-GoogleOauthService_Fix_Resolution.md)** - Résolution erreur Zeitwerk
 
 ### 🔍 **Analyses Techniques Problèmes PR (Décembre 2025)**
 1. **[🔧 pgcrypto UUID Alternatives](./technical/analysis/pgcrypto_alternatives_analysis.md)** - Problème pgcrypto en production
