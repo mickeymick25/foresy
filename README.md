@@ -110,6 +110,11 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 - **CI/CD :** GitHub Actions (CI) + Render (CD)
 - **URL :** https://foresy-api.onrender.com
 
+### ✅ Fix Signup Session (20 Décembre 2025 - soir)
+- **Problème** : Le signup retournait un token simple sans créer de session, le logout échouait après signup
+- **Solution** : Signup utilise maintenant `AuthenticationService.login` comme le login
+- **Résultat** : Signup retourne `token` + `refresh_token`, logout fonctionne immédiatement
+
 ### ✅ Analyses Techniques & Sécurité (19-20 Décembre 2025)
 **Analyses et corrections techniques :**
 
@@ -369,6 +374,10 @@ spec/
 
 ## 📝 Changelog
 ### Changelog
+
+### Version 1.4.1 (20 Décembre 2025 - soir) - Fix Signup Session
+- 🔧 **Signup Session** : Signup crée maintenant une session comme login
+- ✅ **Logout après Signup** : Fonctionne immédiatement après inscription
 
 ### Version 1.4.0 (20 Décembre 2025) - Déploiement Production
 - 🚀 **Render Deployment** : API live sur https://foresy-api.onrender.com

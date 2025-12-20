@@ -33,6 +33,16 @@
 
 ## 📅 RECENT CHANGES TIMELINE
 
+### Dec 20, 2025 (soir) - 🔧 Signup Session Fix
+- **Objective**: Align signup behavior with login
+- **Problem**: Signup returned a simple JWT token without creating a session, causing logout to fail
+- **Changes Made**:
+  - Modified `UsersController#create` to use `AuthenticationService.login`
+  - Signup now returns `token` + `refresh_token` like login
+  - User is fully logged in after signup
+- **Result**: 149 tests pass, logout works immediately after signup
+- **Impact**: Consistent authentication flow across signup and login
+
 ### Dec 20, 2025 (soir) - 🚀 Render Deployment (CD) ✅ LIVE
 - **Objective**: Deploy Foresy API to production with Continuous Deployment
 - **Platform**: Render.com (Frankfurt region)
@@ -179,9 +189,10 @@
 3. **Documentation Fragmentation**: Some info in README.md AND docs/ (partially resolved)
 
 ### ✅ Recently Resolved (Dec 20, 2025)
-1. **Render Deployment**: API deployed to production with CD pipeline
-2. **pgcrypto Complete Elimination**: Rewrote migration to use bigint IDs + uuid string column, regenerated clean schema.rb without pgcrypto
-3. **Rswag Specs Fix**: Updated OAuth specs to expect integer IDs instead of UUID strings
+1. **Signup Session Fix**: Signup now creates session like login, logout works after signup
+2. **Render Deployment**: API deployed to production with CD pipeline
+3. **pgcrypto Complete Elimination**: Rewrote migration to use bigint IDs + uuid string column, regenerated clean schema.rb without pgcrypto
+4. **Rswag Specs Fix**: Updated OAuth specs to expect integer IDs instead of UUID strings
 
 ### ✅ Previously Resolved (Dec 19-20, 2025)
 1. **Authenticatable Cleanup**: Unified `payload_valid?`/`valid_payload?` methods, added 29 unit tests

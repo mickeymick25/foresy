@@ -10,10 +10,13 @@ module Api
         user = User.new(user_params)
 
         if user.save
-          token = JsonWebToken.encode(user_id: user.id)
+          # Create session like login does
+          result = AuthenticationService.login(user, request.remote_ip, request.user_agent)
+
           render json: {
-            token: token,
-            email: user.email
+            token: result[:token],
+            refresh_token: result[:refresh_token],
+            email: result[:email]
           }, status: :created
         else
           render json: { error: 'Validation Failed', message: user.errors.full_messages }, status: :unprocessable_entity
