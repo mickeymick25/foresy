@@ -1,5 +1,7 @@
 # Foresy API
 
+🚀 **Production Live:** https://foresy-api.onrender.com
+
 Foresy est une application Ruby on Rails API-only qui fournit une API RESTful robuste pour la gestion des utilisateurs avec authentification JWT et support OAuth (Google & GitHub).
 
 ## 🚀 Fonctionnalités
@@ -99,6 +101,14 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 - 16 violations corrigées automatiquement avec `rubocop -A`
 - 2 violations manuelles corrigées (DuplicateBranch, EmptyBlock)
 - Code 100% conforme aux standards Ruby/Rails
+
+### ✅ Déploiement Production (20 Décembre 2025 - soir)
+**API déployée sur Render avec CD :**
+
+- **Plateforme :** Render.com (région Frankfurt)
+- **Services :** PostgreSQL 16 + Redis + Web Service (Docker)
+- **CI/CD :** GitHub Actions (CI) + Render (CD)
+- **URL :** https://foresy-api.onrender.com
 
 ### ✅ Analyses Techniques & Sécurité (19-20 Décembre 2025)
 **Analyses et corrections techniques :**
@@ -359,6 +369,12 @@ spec/
 
 ## 📝 Changelog
 ### Changelog
+
+### Version 1.4.0 (20 Décembre 2025) - Déploiement Production
+- 🚀 **Render Deployment** : API live sur https://foresy-api.onrender.com
+- 🐳 **Dockerfile optimisé** : Multi-stage build pour production
+- ✅ **pgcrypto éliminé** : Migration complète vers IDs bigint + UUID Ruby
+- 🔧 **CI/CD complet** : GitHub Actions (CI) + Render (CD)
 
 ### Version 1.3.0 (19 Décembre 2025) - Analyses Techniques & Sécurité
 - ✅ **pgcrypto Elimination** : Migration complète vers IDs bigint + UUID Ruby (pgcrypto totalement éliminé)

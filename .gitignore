@@ -60,3 +60,4 @@ yarn-debug.log*
 
 # Ignore RSpec example reports and logs
 spec/examples.txt
+docs/postman/

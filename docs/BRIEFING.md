@@ -1,7 +1,7 @@
 # BRIEFING.md - Foresy API Project
 
 **For AI Context Understanding - Optimized for Fast Project Comprehension**  
-**Last Updated:** 20 décembre 2025
+**Last Updated:** 20 décembre 2025 (soir)
 
 ---
 
@@ -18,7 +18,8 @@
 - **OAuth Tests**: 9/9 acceptance + 10/10 integration = 100% success
 - **Code Quality**: Rubocop 76 files, 0 offenses detected
 - **Security**: Brakeman 0 critical vulnerabilities (1 minor Rails EOL warning)
-- **CI/CD**: GitHub Actions pipeline fully functional
+- **CI/CD**: GitHub Actions CI + Render CD fully functional
+- **Production**: Deployed on Render (https://foresy-api.onrender.com)
 
 ### Technical Stack
 - **Framework**: Rails 7.1.5.1 (API-only)
@@ -31,6 +32,18 @@
 ---
 
 ## 📅 RECENT CHANGES TIMELINE
+
+### Dec 20, 2025 (soir) - 🚀 Render Deployment (CD) ✅ LIVE
+- **Objective**: Deploy Foresy API to production with Continuous Deployment
+- **Platform**: Render.com (Frankfurt region)
+- **Changes Made**:
+  - Created `render.yaml` blueprint (PostgreSQL + Redis + Web Service)
+  - Optimized Dockerfile with multi-stage build
+  - Simplified `entrypoint.sh` for Render compatibility
+  - Added `/health` endpoint for Render health checks
+  - Enabled SSL for production database connection
+- **Result**: API live at https://foresy-api.onrender.com
+- **Impact**: Full CI/CD pipeline operational (GitHub Actions CI + Render CD)
 
 ### Dec 20, 2025 - 🔧 pgcrypto Complete Elimination (CRITICAL) ✅ RESOLVED
 - **Objective**: Completely eliminate pgcrypto dependency for managed PostgreSQL compatibility
@@ -166,8 +179,9 @@
 3. **Documentation Fragmentation**: Some info in README.md AND docs/ (partially resolved)
 
 ### ✅ Recently Resolved (Dec 20, 2025)
-1. **pgcrypto Complete Elimination**: Rewrote migration to use bigint IDs + uuid string column, regenerated clean schema.rb without pgcrypto
-2. **Rswag Specs Fix**: Updated OAuth specs to expect integer IDs instead of UUID strings
+1. **Render Deployment**: API deployed to production with CD pipeline
+2. **pgcrypto Complete Elimination**: Rewrote migration to use bigint IDs + uuid string column, regenerated clean schema.rb without pgcrypto
+3. **Rswag Specs Fix**: Updated OAuth specs to expect integer IDs instead of UUID strings
 
 ### ✅ Previously Resolved (Dec 19-20, 2025)
 1. **Authenticatable Cleanup**: Unified `payload_valid?`/`valid_payload?` methods, added 29 unit tests
@@ -208,17 +222,27 @@
 └── health             # Health check endpoint
 ```
 
-### Docker Compose Services
+### Docker Compose Services (Development)
 ```yaml
 web:     # Rails API (port 3000)
 db:      # PostgreSQL 15+ (port 5432)  
 redis:   # Redis cache (port 6379)
 ```
 
+### Render Services (Production)
+```yaml
+foresy-api:   # Rails API (Docker)
+foresy-db:    # PostgreSQL 16 (managed)
+foresy-redis: # Redis (managed)
+```
+
 ### Key Files Structure
 ```
 Foresy/
 ├── README.md                    # Main project documentation (GitHub compatible)
+├── render.yaml                  # Render deployment blueprint
+├── Dockerfile                   # Multi-stage Docker build
+├── entrypoint.sh               # Container entrypoint script
 ├── docs/
 │   ├── BRIEFING.md             # This file - AI project understanding
 │   ├── index.md                # Central documentation navigation
@@ -227,9 +251,9 @@ Foresy/
 │       ├── audits/             # Technical analysis reports
 │       └── corrections/        # Problem resolution history
 ├── app/                        # Rails application code
-├── spec/                       # RSpec tests (87 examples)
+├── spec/                       # RSpec tests (149 examples)
 ├── config/                     # Rails configuration
-├── docker-compose.yml          # Docker Compose configuration
+├── docker-compose.yml          # Docker Compose configuration (dev)
 └── .env                        # Environment variables (to be created)
 ```
 
@@ -267,7 +291,7 @@ Foresy/
 
 ## 🚀 DEVELOPMENT SETUP (FOR AI UNDERSTANDING)
 
-### Quick Start Commands
+### Quick Start Commands (Development)
 ```bash
 # Clone and launch with Docker Compose
 git clone <repo-url> && cd Foresy
@@ -282,6 +306,25 @@ docker-compose logs -f web
 # Access application
 open http://localhost:3000  # macOS
 xdg-open http://localhost:3000  # Linux
+```
+
+### Production URLs (Render)
+```bash
+# API Status
+curl https://foresy-api.onrender.com/
+
+# Health Check
+curl https://foresy-api.onrender.com/health
+
+# Signup
+curl -X POST https://foresy-api.onrender.com/api/v1/signup \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@example.com","password":"password123"}'
+
+# Login
+curl -X POST https://foresy-api.onrender.com/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@example.com","password":"password123"}'
 ```
 
 ### Essential Testing Commands
@@ -317,7 +360,7 @@ POSTGRES_PASSWORD=your_db_password
 REDIS_PASSWORD=your_redis_password
 ```
 
-### 🔒 GitHub Secrets Configuration (for CI/CD)
+### 🔒 GitHub Secrets Configuration (for CI)
 Configure these secrets in **GitHub Repository Settings > Secrets and variables > Actions**:
 
 | Secret | Description | Generation Command |
@@ -329,7 +372,21 @@ Configure these secrets in **GitHub Repository Settings > Secrets and variables 
 | `LOCAL_GITHUB_CLIENT_ID` | GitHub OAuth | GitHub Developer Settings |
 | `LOCAL_GITHUB_CLIENT_SECRET` | GitHub OAuth | GitHub Developer Settings |
 
-> ⚠️ **SECURITY**: Never commit real secrets to the repository. Use GitHub Secrets for CI/CD.
+### 🚀 Render Environment Variables (for CD)
+Configure in **Render Dashboard > foresy-api > Environment**:
+
+| Variable | Source |
+|----------|--------|
+| `DATABASE_URL` | Internal URL from foresy-db |
+| `RAILS_ENV` | `production` |
+| `SECRET_KEY_BASE` | Generate |
+| `JWT_SECRET` | Generate |
+| `GOOGLE_CLIENT_ID` | Manual |
+| `GOOGLE_CLIENT_SECRET` | Manual |
+| `LOCAL_GITHUB_CLIENT_ID` | Manual |
+| `LOCAL_GITHUB_CLIENT_SECRET` | Manual |
+
+> ⚠️ **SECURITY**: Never commit real secrets to the repository.
 
 ### Docker Compose Management
 ```bash
@@ -394,5 +451,5 @@ docker-compose run --rm web bash
 
 ---
 
-**Last Updated**: December 20, 2025  
-**Status**: ✅ Stable, Production Ready, 149 tests passing, 0 Rubocop violations, pgcrypto eliminated, AI-Optimized Documentation
+**Last Updated**: December 20, 2025 (soir)  
+**Status**: ✅ LIVE on Render, 149 tests passing, 0 Rubocop violations, CI/CD operational, pgcrypto eliminated

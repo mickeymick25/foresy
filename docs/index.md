@@ -1,8 +1,9 @@
 # 📚 Documentation Centrale - Projet Foresy
 
-**Version :** 1.6  
-**Dernière mise à jour :** 20 décembre 2025  
-**Objectif :** Point d'entrée centralisé pour toute la documentation du projet Foresy API
+**Version :** 1.7  
+**Dernière mise à jour :** 20 décembre 2025 (soir)  
+**Objectif :** Point d'entrée centralisé pour toute la documentation du projet Foresy API  
+**Production :** https://foresy-api.onrender.com
 
 ---
 
@@ -13,28 +14,32 @@ Cette documentation centralisée regroupe toutes les informations techniques, hi
 ### 📁 Structure de la Documentation
 
 ```
-docs/
-├── index.md                     # Index principal (ce fichier)
-├── BRIEFING.md                  # Contexte projet pour IA
-└── technical/                   # Documentation technique centralisée
-    ├── analysis/                # Analyses techniques approfondies (Déc 2025)
-    │   ├── pgcrypto_alternatives_analysis.md
-    │   ├── google_oauth_service_mock_solution.md
-    │   ├── omniauth_oauth_configuration_solution.md
-    │   └── csrf_security_analysis_same_site_none.md
-    ├── changes/                # Journal chronologique des modifications
-    │   ├── 2025-12-18-CI_Fix_Resolution.md
-    │   ├── 2025-12-18-GoogleOauthService_Fix_Resolution.md
-    │   ├── 2025-12-18-OAuthTokenService_Comment_Fix.md
-    │   ├── 2025-12-19-Security_CI_Complete_Fix.md
-    │   ├── 2025-12-19-Zeitwerk_OAuth_Services_Rename.md
-    │   └── 2025-12-19-Rswag_OAuth_Specs_Feature_Contract.md  # 📋 SWAGGER AUTO
-    ├── audits/                 # Rapports d'audit technique
-    │   ├── ANALYSE_TECHNIQUE_FORESY.md
-    │   └── CHANGELOG_REFACTORISATION.md
-    └── corrections/            # Corrections techniques historiques
-        ├── 2025-12-19-pgcrypto_elimination_solution.md  # ✅ CRITIQUE - pgcrypto éliminé
-        └── CORRECTIONS_JANVIER_2025.md
+Foresy/
+├── render.yaml                  # 🚀 Render deployment blueprint
+├── Dockerfile                   # Multi-stage Docker build
+├── entrypoint.sh               # Container entrypoint script
+└── docs/
+    ├── index.md                 # Index principal (ce fichier)
+    ├── BRIEFING.md              # Contexte projet pour IA
+    └── technical/               # Documentation technique centralisée
+        ├── analysis/            # Analyses techniques approfondies (Déc 2025)
+        │   ├── pgcrypto_alternatives_analysis.md
+        │   ├── google_oauth_service_mock_solution.md
+        │   ├── omniauth_oauth_configuration_solution.md
+        │   └── csrf_security_analysis_same_site_none.md
+        ├── changes/             # Journal chronologique des modifications
+        │   ├── 2025-12-18-CI_Fix_Resolution.md
+        │   ├── 2025-12-18-GoogleOauthService_Fix_Resolution.md
+        │   ├── 2025-12-18-OAuthTokenService_Comment_Fix.md
+        │   ├── 2025-12-19-Security_CI_Complete_Fix.md
+        │   ├── 2025-12-19-Zeitwerk_OAuth_Services_Rename.md
+        │   └── 2025-12-19-Rswag_OAuth_Specs_Feature_Contract.md
+        ├── audits/              # Rapports d'audit technique
+        │   ├── ANALYSE_TECHNIQUE_FORESY.md
+        │   └── CHANGELOG_REFACTORISATION.md
+        └── corrections/         # Corrections techniques historiques
+            ├── 2025-12-19-pgcrypto_elimination_solution.md  # ✅ pgcrypto éliminé
+            └── CORRECTIONS_JANVIER_2025.md
 ```
 
 ---
@@ -42,9 +47,9 @@ docs/
 ## 📋 Navigation Rapide
 
 ### 🎯 Pour Commencer
-1. **[🚨 Migration Rails Planifiée 20/12/2025](./technical/changes/2025-12-20-Rails_Migration_Task_Planning.md)** - 🚨 **PRIORITÉ CRITIQUE** - Migration Rails 7.1.5.1 → 7.2+ (EOL octobre 2025)
+1. **[🚀 Production Live](https://foresy-api.onrender.com)** - API déployée sur Render
 2. **[README.md](../README.md)** - Vue d'ensemble du projet, installation, utilisation
-3. **[🔒 Sécurité Gems 20/12/2025](./technical/changes/2025-12-20-Security_Gems_Update.md)** - 🔒 **DERNIÈRE INTERVENTION** - 20+ vulnérabilités corrigées
+3. **[🚨 Migration Rails Planifiée](./technical/changes/2025-12-20-Rails_Migration_Task_Planning.md)** - Migration Rails 7.1.5.1 → 7.2+ (EOL octobre 2025)
 
 ### 🔧 **Pour le Développement**
 1. **[Analyse Technique](./technical/audits/ANALYSE_TECHNIQUE_FORESY.md)** - Architecture et analyse technique complète
