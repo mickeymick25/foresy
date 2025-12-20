@@ -60,20 +60,21 @@ docs/
 2. **[🔧 Refactoring Authenticatable 20/12/2025](./technical/changes/2025-12-20-Authenticatable_Concern_Refactoring.md)** - **MAJEUR** - Séparation responsabilités auth
 3. **[🔑 Migration UUID 20/12/2025](./technical/changes/2025-12-20-UUID_Migration.md)** - **MAJEUR** - Migration identifiants sécurisés
 4. **[🔧 PGCrypto Compatibility Fix 21/12/2025](./technical/changes/2025-12-21-PGCrypto_Compatibility_Fix.md)** - **CRITIQUE** - Résolution compatibilité environnements managés
-5. **[🔒 Sécurité Gems 20/12/2025](./technical/changes/2025-12-20-Security_Gems_Update.md)** - **CRITIQUE** - 20+ vulnérabilités corrigées
-6. **[⚡ Réactivation Bootsnap 20/12/2025](./technical/changes/2025-12-20-Bootsnap_Reactivation.md)** - **MAJEUR** - Performance boot Rails
-7. **[🏗️ Consolidations Migrations 20/12/2025](./technical/changes/2025-12-20-Migrations_Consolidation.md)** - **MAJEUR** - Nettoyage migrations UUID
-8. **[JWT Robustesse 19/12/2025](./technical/changes/2025-12-19-JWT_Robustness_Improvements_Complete.md)** - **MAJEUR** - Amélioration robustesse JWT
-9. **[🏗️ Corrections Architecture OAuth 19/12/2025](./technical/changes/2025-12-19-OAuth_Architecture_Fix.md)** - **CRITIQUE** - Nommage OAuth + RequireRelative
-10. **[🔒 Corrections CI Sécurité 19/12/2025](./technical/changes/2025-12-19-CI_Security_Fixes_Secrets_PostgreSQL.md)** - **CRITIQUE** - Sécurité CI + Compatibilité runners
-11. **[🔧 Zeitwerk OAuth 19/12/2025](./technical/changes/2025-12-19-Zeitwerk_OAuth_Services_Rename.md)** - **CRITIQUE** - Renommage services OAuth pour Zeitwerk
-12. **[🔒 Sécurité &amp; Secrets 19/12/2025](./technical/changes/2025-12-19-Security_CI_Complete_Fix.md)** - **CRITIQUE** - Sécurisation secrets CI/CD
-13. **[Correction CI 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)** - Intervention majeure CI
-14. **[Correction GoogleOauthService 18/12/2025](./technical/changes/2025-12-18-GoogleOauthService_Fix_Resolution.md)** - Résolution erreur Zeitwerk
+5. **[✅ GoogleOAuth2Service Removal 21/12/2025](./technical/changes/2025-12-21-GoogleOAuth2Service_Removal_Resolution.md)** - **RÉSOLU** - Point 2 PR fermé (suppression service mock)
+6. **[🔒 Sécurité Gems 20/12/2025](./technical/changes/2025-12-20-Security_Gems_Update.md)** - **CRITIQUE** - 20+ vulnérabilités corrigées
+7. **[⚡ Réactivation Bootsnap 20/12/2025](./technical/changes/2025-12-20-Bootsnap_Reactivation.md)** - **MAJEUR** - Performance boot Rails
+8. **[🏗️ Consolidations Migrations 20/12/2025](./technical/changes/2025-12-20-Migrations_Consolidation.md)** - **MAJEUR** - Nettoyage migrations UUID
+9. **[JWT Robustesse 19/12/2025](./technical/changes/2025-12-19-JWT_Robustness_Improvements_Complete.md)** - **MAJEUR** - Amélioration robustesse JWT
+10. **[🏗️ Corrections Architecture OAuth 19/12/2025](./technical/changes/2025-12-19-OAuth_Architecture_Fix.md)** - **CRITIQUE** - Nommage OAuth + RequireRelative
+11. **[🔒 Corrections CI Sécurité 19/12/2025](./technical/changes/2025-12-19-CI_Security_Fixes_Secrets_PostgreSQL.md)** - **CRITIQUE** - Sécurité CI + Compatibilité runners
+12. **[🔧 Zeitwerk OAuth 19/12/2025](./technical/changes/2025-12-19-Zeitwerk_OAuth_Services_Rename.md)** - **CRITIQUE** - Renommage services OAuth pour Zeitwerk
+13. **[🔒 Sécurité & Secrets 19/12/2025](./technical/changes/2025-12-19-Security_CI_Complete_Fix.md)** - **CRITIQUE** - Sécurisation secrets CI/CD
+14. **[Correction CI 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)** - Intervention majeure CI
+15. **[Correction GoogleOauthService 18/12/2025](./technical/changes/2025-12-18-GoogleOauthService_Fix_Resolution.md)** - Résolution erreur Zeitwerk
 
 ### 🔍 **Analyses Techniques Problèmes PR (Décembre 2025)**
 1. **[🔧 pgcrypto UUID Alternatives](./technical/analysis/pgcrypto_alternatives_analysis.md)** - ✅ **RÉSOLU** - Compatibilité environnements managés (21/12/2025)
-2. **[🚫 GoogleOAuth2Service Mock Removal](./technical/analysis/google_oauth_service_mock_solution.md)** - Service mock dans zone production
+2. **[🚫 GoogleOAuth2Service Mock Removal](./technical/analysis/google_oauth_service_mock_solution.md)** - ✅ **RÉSOLU** - Service mock supprimé (21/12/2025)
 3. **[🔐 OmniAuth OAuth Configuration](./technical/analysis/omniauth_oauth_configuration_solution.md)** - Configuration secrets fragile
 4. **[🛡️ CSRF Security Analysis](./technical/analysis/csrf_security_analysis_same_site_none.md)** - Risque CSRF avec same_site: :none
 
@@ -81,7 +82,8 @@ docs/
 1. **[🏗️ Corrections Architecture OAuth 19/12/2025](./technical/changes/2025-12-19-OAuth_Architecture_Fix.md)** - Fuite secrets + Dépendance pg_isready + Incohérences nommage OAuth
 2. **[🔒 Sécurité Secrets 19/12/2025](./technical/changes/2025-12-19-Security_CI_Complete_Fix.md)** - Secrets exposés → GitHub Secrets
 3. **[GoogleOauthService 18/12/2025](./technical/changes/2025-12-18-GoogleOauthService_Fix_Resolution.md)** - Erreur `uninitialized constant GoogleOauthService`
-4. **[CI GitHub 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)** - Pipeline CI cassée
+4. **[✅ GoogleOAuth2Service Resolution 21/12/2025](./technical/changes/2025-12-21-GoogleOAuth2Service_Removal_Resolution.md)** - ✅ **RÉSOLU** - Point 2 PR fermé (suppression service mock)
+5. **[CI GitHub 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)** - Pipeline CI cassée
 
 ### 📈 Pour l'Historique
 1. **[Changelog Refactorisation](./technical/audits/CHANGELOG_REFACTORISATION.md)** - Historique des refactorisations
