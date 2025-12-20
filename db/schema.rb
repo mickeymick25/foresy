@@ -25,10 +25,12 @@ ActiveRecord::Schema[7.1].define(version: 2025_04_25_142901) do
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "uuid", limit: 36, null: false
     t.index ["active"], name: "index_sessions_on_active"
     t.index ["expires_at"], name: "index_sessions_on_expires_at"
     t.index ["token"], name: "index_sessions_on_token", unique: true
     t.index ["user_id"], name: "index_sessions_on_user_id"
+    t.index ["uuid"], name: "index_sessions_on_uuid", unique: true
   end
 
   create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -40,8 +42,10 @@ ActiveRecord::Schema[7.1].define(version: 2025_04_25_142901) do
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "uuid", limit: 36, null: false
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true, where: "(provider IS NOT NULL)"
+    t.index ["uuid"], name: "index_users_on_uuid", unique: true
   end
 
   add_foreign_key "sessions", "users"

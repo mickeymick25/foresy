@@ -46,6 +46,14 @@ class User < ApplicationRecord
   validates :email, uniqueness: { scope: :provider, case_sensitive: false, message: 'must be unique per provider' },
                     if: :provider_present?
 
+  # UUID validation for pgcrypto compatibility fix
+  # Ensures UUID format and uniqueness when uuid column is present
+  validates :uuid,
+            uniqueness: true,
+            presence: true,
+            format: /\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i,
+            if: :uuid_column_present?
+
   # OAuth helper methods
   def oauth_user?
     # An OAuth user is one without a password (provider is present but password is blank/empty)
@@ -56,7 +64,13 @@ class User < ApplicationRecord
     provider.present?
   end
 
+  def uuid_column_present?
+    # Check if uuid column exists in the table
+    self.class.column_names.include?('uuid')
+  end
+
   before_save :downcase_email
+  before_validation :generate_uuid, on: :create
   after_initialize :set_default_active, if: :new_record?
 
   scope :active, -> { where(active: true) }
@@ -93,5 +107,10 @@ class User < ApplicationRecord
 
   def set_default_active
     self.active = true if active.nil?
+  end
+
+  def generate_uuid
+    # Generate UUID only if uuid column exists and uuid is not already set
+    self.uuid ||= SecureRandom.uuid if uuid_column_present?
   end
 end
