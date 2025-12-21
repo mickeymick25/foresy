@@ -33,6 +33,16 @@
 
 ## 📅 RECENT CHANGES TIMELINE
 
+### Dec 20, 2025 (soir) - 🔧 OAuth Code Exchange Service
+- **Objective**: Enable frontend apps to authenticate via OAuth using authorization codes
+- **Problem**: Direct API calls with OAuth code failed because OmniAuth only works with browser redirects
+- **Changes Made**:
+  - Created `OAuthCodeExchangeService` to exchange codes with Google/GitHub APIs
+  - Modified `OAuthValidationService.extract_oauth_data` to support both flows
+  - Updated `OauthController` to pass code parameters to validation service
+- **Result**: 149 tests pass, 0 Rubocop offenses
+- **Impact**: Frontend apps can now send OAuth codes to API for authentication
+
 ### Dec 20, 2025 (soir) - 🔧 Signup Session Fix
 - **Objective**: Align signup behavior with login
 - **Problem**: Signup returned a simple JWT token without creating a session, causing logout to fail
@@ -189,10 +199,11 @@
 3. **Documentation Fragmentation**: Some info in README.md AND docs/ (partially resolved)
 
 ### ✅ Recently Resolved (Dec 20, 2025)
-1. **Signup Session Fix**: Signup now creates session like login, logout works after signup
-2. **Render Deployment**: API deployed to production with CD pipeline
-3. **pgcrypto Complete Elimination**: Rewrote migration to use bigint IDs + uuid string column, regenerated clean schema.rb without pgcrypto
-4. **Rswag Specs Fix**: Updated OAuth specs to expect integer IDs instead of UUID strings
+1. **OAuth Code Exchange**: API can now exchange OAuth codes with Google/GitHub for frontend apps
+2. **Signup Session Fix**: Signup now creates session like login, logout works after signup
+3. **Render Deployment**: API deployed to production with CD pipeline
+4. **pgcrypto Complete Elimination**: Rewrote migration to use bigint IDs + uuid string column, regenerated clean schema.rb without pgcrypto
+5. **Rswag Specs Fix**: Updated OAuth specs to expect integer IDs instead of UUID strings
 
 ### ✅ Previously Resolved (Dec 19-20, 2025)
 1. **Authenticatable Cleanup**: Unified `payload_valid?`/`valid_payload?` methods, added 29 unit tests

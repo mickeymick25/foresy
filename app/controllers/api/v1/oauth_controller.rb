@@ -77,6 +77,16 @@ module Api
         auth_validation
       end
 
+      # Extract OAuth data - supports both OmniAuth flow and API code exchange
+      def extract_oauth_data
+        OAuthValidationService.extract_oauth_data(
+          request,
+          provider: params[:provider],
+          code: params[:code],
+          redirect_uri: params[:redirect_uri]
+        )
+      end
+
       # GET /auth/failure
       # Optional OAuth failure endpoint (recommended by Feature Contract)
       def failure
@@ -94,10 +104,6 @@ module Api
           code: params[:code],
           redirect_uri: params[:redirect_uri]
         )
-      end
-
-      def extract_oauth_data
-        OAuthValidationService.extract_oauth_data(request)
       end
 
       def validate_oauth_data(auth_data)

@@ -8,6 +8,10 @@
 #
 # This service extracts validation logic from OauthController to reduce
 # complexity and improve maintainability.
+#
+# Supports two OAuth flows:
+# 1. Traditional OmniAuth flow (browser redirect) - uses request.env['omniauth.auth']
+# 2. API flow (frontend sends code) - exchanges code via OAuthCodeExchangeService
 class OAuthValidationService
   SUPPORTED_PROVIDERS = %w[google_oauth2 github].freeze
 
@@ -56,9 +60,26 @@ class OAuthValidationService
     }
   end
 
-  # Extract OAuth data from request environment
-  def self.extract_oauth_data(request)
-    request.env['omniauth.auth'] || Rails.application.env_config['omniauth.auth']
+  # Extract OAuth data from request environment or exchange code
+  # Supports both OmniAuth flow and direct API code exchange
+  def self.extract_oauth_data(request, provider: nil, code: nil, redirect_uri: nil)
+    # First, try OmniAuth flow (browser redirect)
+    omniauth_data = request.env['omniauth.auth'] || Rails.application.env_config['omniauth.auth']
+    return omniauth_data if omniauth_data.present?
+
+    # If no OmniAuth data, try API code exchange flow
+    return nil if code.blank? || provider.blank? || redirect_uri.blank?
+
+    begin
+      OAuthCodeExchangeService.exchange(
+        provider: provider,
+        code: code,
+        redirect_uri: redirect_uri
+      )
+    rescue OAuthCodeExchangeService::ExchangeError => e
+      Rails.logger.error "OAuth code exchange failed: #{e.message}"
+      nil
+    end
   end
 
   # Extract info field from OAuth info hash
