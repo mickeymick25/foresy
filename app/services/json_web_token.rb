@@ -97,16 +97,42 @@ class JsonWebToken
     Rails.logger.warn "#{message}: #{error.class.name}"
 
     # Add APM metrics if available (no sensitive data)
-    if defined?(NewRelic)
-      NewRelic::Agent.add_custom_attributes({
-                                              jwt_error_type: error.class.name,
-                                              jwt_operation: 'decode'
-                                            })
-    end
+    add_datadog_tags({
+      jwt_error_type: error.class.name,
+      jwt_operation: 'decode'
+    })
+  end
 
-    if defined?(Datadog)
-      Datadog::Tracer.active_span&.set_tag('jwt.error_type', error.class.name)
-      Datadog::Tracer.active_span&.set_tag('jwt.operation', 'decode')
+  # Helper method to standardize Datadog APM usage across different API versions
+  # Handles both active_span (modern) and active.span (legacy) APIs
+  def self.add_datadog_tags(tags)
+    return unless defined?(Datadog)
+
+    begin
+      # Try modern API first: Datadog::Tracer.active_span
+      if Datadog::Tracer.respond_to?(:active_span)
+        span = Datadog::Tracer.active_span
+        if span
+          tags.each do |key, value|
+            span.set_tag(key, value)
+          end
+          return
+        end
+      end
+
+      # Fallback to legacy API: Datadog::Tracer.active.span
+      if Datadog::Tracer.respond_to?(:active) &&
+         Datadog::Tracer.active.respond_to?(:span)
+        span = Datadog::Tracer.active.span
+        if span
+          tags.each do |key, value|
+            span.set_tag(key, value)
+          end
+        end
+      end
+    rescue StandardError => e
+      Rails.logger.debug "Datadog APM error: #{e.message}" if defined?(Rails)
+      # Graceful handling - don't crash the application
     end
   end
 

@@ -31,17 +31,10 @@ module AuthenticationLoggingConcern
       Rails.logger.debug "Token present: #{token.present?}, length: #{token&.length}" if Rails.env.development?
 
       # Add APM metrics if available (no token data)
-      if defined?(NewRelic)
-        NewRelic::Agent.add_custom_attributes({
-                                                jwt_error_type: error.class.name,
-                                                jwt_operation: 'decode'
-                                              })
-      end
-
-      if defined?(Datadog)
-        Datadog::Tracer.active_span&.set_tag('jwt.error_type', error.class.name)
-        Datadog::Tracer.active_span&.set_tag('jwt.operation', 'decode')
-      end
+      JsonWebToken.add_datadog_tags({
+        jwt_error_type: error.class.name,
+        jwt_operation: 'decode'
+      })
     end
 
     def log_refresh_validation_error(error, _token)
