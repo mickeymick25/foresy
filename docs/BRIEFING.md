@@ -33,6 +33,16 @@
 
 ## 📅 RECENT CHANGES TIMELINE
 
+### Dec 22, 2025 - 🔒 Remove Cookie/Session Middlewares (Security)
+- **Objective**: Address PR security concern about CSRF risk
+- **Problem**: CookieStore middleware was added for OmniAuth but contradicted stateless JWT design
+- **Changes Made**:
+  - Removed `ActionDispatch::Cookies` middleware from application.rb
+  - Removed `ActionDispatch::Session::CookieStore` middleware
+  - OAuth now uses direct code exchange (OAuthCodeExchangeService) - no cookies needed
+- **Result**: 149 tests pass, fully stateless architecture confirmed
+- **Impact**: Eliminates CSRF risk, aligns with JWT stateless design
+
 ### Dec 20, 2025 (soir) - 🔧 OAuth Code Exchange Service
 - **Objective**: Enable frontend apps to authenticate via OAuth using authorization codes
 - **Problem**: Direct API calls with OAuth code failed because OmniAuth only works with browser redirects
@@ -198,8 +208,9 @@
 2. **shoulda-matchers Warning**: Boolean column validation warnings (cosmetic only)
 3. **Documentation Fragmentation**: Some info in README.md AND docs/ (partially resolved)
 
-### ✅ Recently Resolved (Dec 20, 2025)
-1. **OAuth Code Exchange**: API can now exchange OAuth codes with Google/GitHub for frontend apps
+### ✅ Recently Resolved (Dec 20-22, 2025)
+1. **Cookie/Session Middlewares Removed**: Eliminated CSRF risk by removing unnecessary CookieStore
+2. **OAuth Code Exchange**: API can now exchange OAuth codes with Google/GitHub for frontend apps
 2. **Signup Session Fix**: Signup now creates session like login, logout works after signup
 3. **Render Deployment**: API deployed to production with CD pipeline
 4. **pgcrypto Complete Elimination**: Rewrote migration to use bigint IDs + uuid string column, regenerated clean schema.rb without pgcrypto
