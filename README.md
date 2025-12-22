@@ -1,6 +1,7 @@
 # Foresy API
 
-🚀 **Production Live:** https://foresy-api.onrender.com
+🚀 **Production Live:** https://foresy-api.onrender.com  
+🔒 **Security:** Stateless JWT, no token logging, no cookies
 
 Foresy est une application Ruby on Rails API-only qui fournit une API RESTful robuste pour la gestion des utilisateurs avec authentification JWT et support OAuth (Google & GitHub).
 
@@ -101,6 +102,14 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 - 16 violations corrigées automatiquement avec `rubocop -A`
 - 2 violations manuelles corrigées (DuplicateBranch, EmptyBlock)
 - Code 100% conforme aux standards Ruby/Rails
+
+### ✅ Corrections Sécurité PR (22 Décembre 2025)
+**Points de sécurité adressés :**
+
+- **Point 1 - CSRF** : Suppression des middlewares Cookie/Session (architecture 100% stateless)
+- **Point 2 - Logs** : Suppression de tout logging de tokens (même tronqués)
+- **Masquage IP** : Seuls les 2 premiers octets sont loggés
+- **Privacy** : User IDs utilisés au lieu des emails dans les logs
 
 ### ✅ Déploiement Production (20 Décembre 2025 - soir)
 **API déployée sur Render avec CD :**
@@ -374,6 +383,12 @@ spec/
 
 ## 📝 Changelog
 ### Changelog
+
+### Version 1.5.0 (22 Décembre 2025) - Corrections Sécurité PR
+- 🔒 **Token Logging** : Suppression de tout logging de tokens (PR Point 2)
+- 🔒 **CSRF Protection** : Suppression Cookie/Session middlewares (PR Point 1)
+- 🔒 **Privacy** : Masquage IP et utilisation user IDs dans logs
+- 📦 **Postman Collection** : Ajout collection avec URLs OAuth
 
 ### Version 1.4.1 (20 Décembre 2025 - soir) - Fix Signup Session
 - 🔧 **Signup Session** : Signup crée maintenant une session comme login

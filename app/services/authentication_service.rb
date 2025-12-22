@@ -2,16 +2,16 @@
 
 # AuthenticationService - Service d'authentification avec logging et métriques
 #
-# Améliorations (Déc 2025):
-# - Logging structuré et gestion d'erreurs robuste
-# - Métriques de performance pour monitoring
+# SECURITY NOTE: Tokens are NEVER logged to prevent secret leakage in logs.
+# Only operation success/failure and timing metrics are logged.
 #
 class AuthenticationService
   include AuthenticationLoggingConcern
   include AuthenticationMetricsConcern
   include AuthenticationValidationConcern
+
   def self.login(user, remote_ip, user_agent)
-    Rails.logger.info "User #{user.email} login attempt from IP: #{remote_ip}"
+    Rails.logger.info "User #{user.id} login attempt"
 
     start_time = Time.current
 
@@ -32,13 +32,13 @@ class AuthenticationService
   end
 
   def self.refresh(refresh_token, remote_ip, user_agent)
-    Rails.logger.debug "Processing refresh token for IP: #{remote_ip}"
+    Rails.logger.debug 'Processing refresh token request'
 
     start_time = Time.current
 
     # Valide le refresh token avant de l'utiliser
     decoded = decode_and_validate_refresh_token(refresh_token)
-    return log_and_return_nil('Refresh token validation failed', remote_ip) if decoded.nil?
+    return log_and_return_nil('Refresh token validation failed') if decoded.nil?
 
     validation_result = validate_user_and_session(decoded, remote_ip)
     return validation_result unless validation_result.is_a?(Hash)
@@ -63,10 +63,10 @@ class AuthenticationService
   end
 
   def self.decode_and_validate_refresh_token(token)
-    Rails.logger.debug "Validating refresh token: #{token[0..20]}..." if token.present?
+    Rails.logger.debug 'Validating refresh token'
 
     decoded = JsonWebToken.decode(token)
-    return log_and_return_nil('Refresh token decode failed', token) if decoded.nil?
+    return log_and_return_nil('Refresh token decode failed') if decoded.nil?
 
     validation_result = perform_validations(decoded, token)
     return validation_result if validation_result.nil?

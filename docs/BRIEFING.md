@@ -1,7 +1,7 @@
 # BRIEFING.md - Foresy API Project
 
 **For AI Context Understanding - Optimized for Fast Project Comprehension**  
-**Last Updated:** 20 décembre 2025 (soir)
+**Last Updated:** 22 décembre 2025
 
 ---
 
@@ -14,10 +14,10 @@
 - **Status**: Production Ready - All tests passing, excellent code quality
 
 ### Quality Metrics (Dec 2025)
-- **RSpec Tests**: 149 examples, 0 failures (4.21s execution)
+- **RSpec Tests**: 151 examples, 0 failures
 - **OAuth Tests**: 9/9 acceptance + 10/10 integration = 100% success
-- **Code Quality**: Rubocop 76 files, 0 offenses detected
-- **Security**: Brakeman 0 critical vulnerabilities (1 minor Rails EOL warning)
+- **Code Quality**: Rubocop 77 files, 0 offenses detected
+- **Security**: Brakeman 0 critical vulnerabilities, no token logging, stateless JWT
 - **CI/CD**: GitHub Actions CI + Render CD fully functional
 - **Production**: Deployed on Render (https://foresy-api.onrender.com)
 
@@ -33,14 +33,26 @@
 
 ## 📅 RECENT CHANGES TIMELINE
 
-### Dec 22, 2025 - 🔒 Remove Cookie/Session Middlewares (Security)
+### Dec 22, 2025 - 🔒 Remove Token Logging (Security - PR Point 2)
+- **Objective**: Address PR security concern about token leakage in logs
+- **Problem**: Tokens (even truncated) were logged, risking exposure via log retention/APM
+- **Changes Made**:
+  - Removed all token logging from AuthenticationLoggingConcern
+  - Removed token logging from JsonWebToken, AuthenticationService, AuthenticationValidationConcern
+  - Mask IP addresses in logs (show only first 2 octets)
+  - Use user IDs instead of emails in logs for privacy
+  - Fixed JWT rescue order (specific exceptions before generic)
+- **Result**: 151 tests pass, 0 Rubocop offenses
+- **Impact**: Tokens are NEVER logged, enhanced privacy and security
+
+### Dec 22, 2025 - 🔒 Remove Cookie/Session Middlewares (Security - PR Point 1)
 - **Objective**: Address PR security concern about CSRF risk
 - **Problem**: CookieStore middleware was added for OmniAuth but contradicted stateless JWT design
 - **Changes Made**:
   - Removed `ActionDispatch::Cookies` middleware from application.rb
   - Removed `ActionDispatch::Session::CookieStore` middleware
   - OAuth now uses direct code exchange (OAuthCodeExchangeService) - no cookies needed
-- **Result**: 149 tests pass, fully stateless architecture confirmed
+- **Result**: 151 tests pass, fully stateless architecture confirmed
 - **Impact**: Eliminates CSRF risk, aligns with JWT stateless design
 
 ### Dec 20, 2025 (soir) - 🔧 OAuth Code Exchange Service
@@ -209,9 +221,10 @@
 3. **Documentation Fragmentation**: Some info in README.md AND docs/ (partially resolved)
 
 ### ✅ Recently Resolved (Dec 20-22, 2025)
-1. **Cookie/Session Middlewares Removed**: Eliminated CSRF risk by removing unnecessary CookieStore
-2. **OAuth Code Exchange**: API can now exchange OAuth codes with Google/GitHub for frontend apps
-2. **Signup Session Fix**: Signup now creates session like login, logout works after signup
+1. **Token Logging Removed**: Tokens are never logged to prevent secret leakage (PR Point 2)
+2. **Cookie/Session Middlewares Removed**: Eliminated CSRF risk by removing unnecessary CookieStore (PR Point 1)
+3. **OAuth Code Exchange**: API can now exchange OAuth codes with Google/GitHub for frontend apps
+4. **Signup Session Fix**: Signup now creates session like login, logout works after signup
 3. **Render Deployment**: API deployed to production with CD pipeline
 4. **pgcrypto Complete Elimination**: Rewrote migration to use bigint IDs + uuid string column, regenerated clean schema.rb without pgcrypto
 5. **Rswag Specs Fix**: Updated OAuth specs to expect integer IDs instead of UUID strings

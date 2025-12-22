@@ -1,9 +1,10 @@
 # 📚 Documentation Centrale - Projet Foresy
 
-**Version :** 1.7  
-**Dernière mise à jour :** 20 décembre 2025 (soir)  
+**Version :** 1.8  
+**Dernière mise à jour :** 22 décembre 2025  
 **Objectif :** Point d'entrée centralisé pour toute la documentation du projet Foresy API  
-**Production :** https://foresy-api.onrender.com
+**Production :** https://foresy-api.onrender.com  
+**Sécurité :** Stateless JWT, no token logging, no cookies
 
 ---
 
@@ -49,7 +50,8 @@ Foresy/
 ### 🎯 Pour Commencer
 1. **[🚀 Production Live](https://foresy-api.onrender.com)** - API déployée sur Render
 2. **[README.md](../README.md)** - Vue d'ensemble du projet, installation, utilisation
-3. **[🚨 Migration Rails Planifiée](./technical/changes/2025-12-20-Rails_Migration_Task_Planning.md)** - Migration Rails 7.1.5.1 → 7.2+ (EOL octobre 2025)
+3. **[📮 Postman Collection](./postman/Foresy_API.postman_collection.json)** - Collection pour tester les endpoints
+4. **[🚨 Migration Rails Planifiée](./technical/changes/2025-12-20-Rails_Migration_Task_Planning.md)** - Migration Rails 7.1.5.1 → 7.2+ (EOL octobre 2025)
 
 ### 🔧 **Pour le Développement**
 1. **[Analyse Technique](./technical/audits/ANALYSE_TECHNIQUE_FORESY.md)** - Architecture et analyse technique complète

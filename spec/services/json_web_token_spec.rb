@@ -2,8 +2,8 @@
 
 # spec/services/json_web_token_spec.rb
 #
-# Tests pour JsonWebToken avec gestion d'exceptions robuste et logging structuré
-# selon les améliorations implémentées en décembre 2025
+# Tests pour JsonWebToken avec gestion d'exceptions robuste
+# SECURITY: Tests vérifient que les tokens ne sont PAS loggés
 #
 require 'rails_helper'
 
@@ -23,12 +23,10 @@ RSpec.describe JsonWebToken do
     end
 
     context 'when JWT::EncodeError occurs' do
-      it 'logs error and raises exception' do
+      it 'logs error without sensitive data and raises exception' do
         allow(JWT).to receive(:encode).and_raise(JWT::EncodeError, 'Invalid encoding')
 
         expect(Rails.logger).to receive(:error).with(/JWT encode failed: JWT::EncodeError/)
-        expect(Rails.logger).to receive(:error).with(/Payload:/)
-        expect(Rails.logger).to receive(:error).with(/Expiration:/)
 
         expect do
           described_class.encode(payload, expiration)
@@ -37,12 +35,10 @@ RSpec.describe JsonWebToken do
     end
 
     context 'when unexpected error occurs' do
-      it 'logs error and raises exception' do
+      it 'logs error without sensitive data and raises exception' do
         allow(JWT).to receive(:encode).and_raise(StandardError, 'Unexpected error')
 
-        expect(Rails.logger).to receive(:error).with(/Unexpected JWT encode error/)
-        expect(Rails.logger).to receive(:error).with(/Payload:/)
-        expect(Rails.logger).to receive(:error).with(/Expiration:/)
+        expect(Rails.logger).to receive(:error).with(/Unexpected JWT encode error: StandardError/)
 
         expect do
           described_class.encode(payload, expiration)
@@ -64,11 +60,10 @@ RSpec.describe JsonWebToken do
     end
 
     context 'when encoding fails' do
-      it 'logs user context and raises error' do
+      it 'logs error without token and raises error' do
         allow(JWT).to receive(:encode).and_raise(JWT::EncodeError, 'Encoding failed')
 
         expect(Rails.logger).to receive(:error).with(/JWT refresh token encode failed: JWT::EncodeError/)
-        expect(Rails.logger).to receive(:error).with(/User ID: 456/)
 
         expect do
           described_class.refresh_token(user_id)
@@ -82,7 +77,6 @@ RSpec.describe JsonWebToken do
     let(:valid_token) { JWT.encode(valid_payload, Rails.application.secret_key_base) }
 
     it 'decodes token successfully' do
-      expect(Rails.logger).to receive(:debug).with(/Decoding JWT token/)
       expect(Rails.logger).to receive(:debug).with(/JWT decoded successfully/)
 
       decoded = described_class.decode(valid_token)
@@ -92,12 +86,10 @@ RSpec.describe JsonWebToken do
     end
 
     context 'with malformed token' do
-      it 'handles JWT::DecodeError' do
+      it 'handles JWT::DecodeError without logging token' do
         malformed_token = 'invalid.token'
 
-        expect(Rails.logger).to receive(:debug).with(/Decoding JWT token/)
-        expect(Rails.logger).to receive(:warn).with(/JWT decode failed/)
-        expect(Rails.logger).to receive(:warn).with(/Token/)
+        expect(Rails.logger).to receive(:warn).with(/JWT decode failed: JWT::DecodeError/)
 
         expect do
           described_class.decode(malformed_token)
@@ -106,12 +98,11 @@ RSpec.describe JsonWebToken do
     end
 
     context 'with expired token' do
-      it 'handles JWT::ExpiredSignature' do
+      it 'handles JWT::ExpiredSignature without logging token' do
         expired_payload = { user_id: 123, exp: Time.now.to_i - 3600 }
         expired_token = JWT.encode(expired_payload, Rails.application.secret_key_base)
 
-        expect(Rails.logger).to receive(:warn).with(/JWT decode failed: JWT::ExpiredSignature/)
-        expect(Rails.logger).to receive(:warn).with(/Token \(first 50 chars\):/)
+        expect(Rails.logger).to receive(:warn).with(/JWT token expired: JWT::ExpiredSignature/)
 
         expect do
           described_class.decode(expired_token)
@@ -120,12 +111,11 @@ RSpec.describe JsonWebToken do
     end
 
     context 'with invalid signature' do
-      it 'handles JWT::VerificationError' do
+      it 'handles JWT::VerificationError without logging token' do
         wrong_key = 'different_secret_key'
         invalid_signature_token = JWT.encode(valid_payload, wrong_key)
 
-        expect(Rails.logger).to receive(:warn).with(/JWT decode failed: JWT::VerificationError/)
-        expect(Rails.logger).to receive(:warn).with(/Token \(first 50 chars\):/)
+        expect(Rails.logger).to receive(:warn).with(/JWT signature verification failed: JWT::VerificationError/)
 
         expect do
           described_class.decode(invalid_signature_token)
@@ -134,13 +124,10 @@ RSpec.describe JsonWebToken do
     end
 
     context 'with unexpected error' do
-      it 'handles StandardError' do
+      it 'handles StandardError without logging token' do
         allow(JWT).to receive(:decode).and_raise(StandardError, 'Unexpected error')
 
-        expect(Rails.logger).to receive(:debug).with(/Decoding JWT token/)
-        expect(Rails.logger).to receive(:error).with(/Unexpected JWT decode error/)
-        expect(Rails.logger).to receive(:error).with(/Token:/)
-        expect(Rails.logger).to receive(:error).with(/Backtrace:/)
+        expect(Rails.logger).to receive(:error).with(/Unexpected JWT decode error: StandardError/)
 
         expect do
           described_class.decode(valid_token)
@@ -166,18 +153,37 @@ RSpec.describe JsonWebToken do
 
     context 'with APM metrics' do
       it 'handles NewRelic availability gracefully' do
-        # Test that code doesn't crash when NewRelic is not available
         expect do
           described_class.decode('invalid.token')
         end.to raise_error(JWT::DecodeError)
       end
 
       it 'handles Datadog availability gracefully' do
-        # Test that code doesn't crash when Datadog is not available
         expect do
           described_class.decode('invalid.token')
         end.to raise_error(JWT::DecodeError)
       end
+    end
+  end
+
+  describe 'security - no token logging' do
+    it 'does not log tokens on encode' do
+      expect(Rails.logger).not_to receive(:info).with(/eyJ/)
+      expect(Rails.logger).not_to receive(:debug).with(/eyJ/)
+      expect(Rails.logger).not_to receive(:warn).with(/eyJ/)
+      expect(Rails.logger).not_to receive(:error).with(/eyJ/)
+
+      described_class.encode(user_id: 123)
+    end
+
+    it 'does not log tokens on decode errors' do
+      allow(Rails.logger).to receive(:warn)
+
+      expect(Rails.logger).not_to receive(:warn).with(/first 50 chars/)
+      expect(Rails.logger).not_to receive(:warn).with(/Token:/)
+      expect(Rails.logger).not_to receive(:error).with(/Token:/)
+
+      expect { described_class.decode('invalid.token') }.to raise_error(JWT::DecodeError)
     end
   end
 

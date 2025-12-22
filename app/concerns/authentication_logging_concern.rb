@@ -5,60 +5,68 @@
 # Concern providing logging methods for authentication services.
 # Extracted from AuthenticationMetricsConcern to reduce module length.
 #
+# SECURITY NOTE: Tokens are NEVER logged to prevent secret leakage in logs.
+# Only token presence and length are logged for debugging purposes.
+#
 module AuthenticationLoggingConcern
   extend ActiveSupport::Concern
 
   class_methods do
     def log_login_success(user, duration)
-      Rails.logger.info "User #{user.email} login successful in #{duration.round(3)}s"
+      Rails.logger.info "User #{user.id} login successful in #{duration.round(3)}s"
     end
 
-    def log_login_error(user, remote_ip, user_agent, error)
-      Rails.logger.error "Login failed for user #{user.email} from IP: #{remote_ip}"
-      Rails.logger.error "User-Agent: #{user_agent}"
-      Rails.logger.error "Error: #{error.class.name} - #{error.message}"
+    def log_login_error(user, remote_ip, _user_agent, error)
+      Rails.logger.error "Login failed for user #{user.id} from IP: #{mask_ip(remote_ip)}"
+      Rails.logger.error "Error: #{error.class.name}"
     end
 
-    def log_and_return_nil(message, token)
-      Rails.logger.warn "#{message}: #{token[0..20]}..." if token.present?
+    def log_and_return_nil(message, _context = nil)
+      Rails.logger.warn "Auth validation failed: #{message}"
       nil
     end
 
     def log_jwt_decode_error(message, error, token)
-      Rails.logger.warn "#{message}: #{error.class.name} - #{error.message}"
-      Rails.logger.warn "Token (first 50 chars): #{token[0..50]}..." if token.present?
+      Rails.logger.warn "#{message}: #{error.class.name}"
+      Rails.logger.debug "Token present: #{token.present?}, length: #{token&.length}" if Rails.env.development?
 
-      # Add APM metrics if available
+      # Add APM metrics if available (no token data)
       if defined?(NewRelic)
         NewRelic::Agent.add_custom_attributes({
                                                 jwt_error_type: error.class.name,
-                                                jwt_error_message: error.message,
-                                                jwt_operation: 'decode',
-                                                token_length: token&.length
+                                                jwt_operation: 'decode'
                                               })
       end
 
-      # Add metrics for other APMs
       if defined?(Datadog)
-        Datadog::Tracer.active_span.set_tag('jwt.error_type', error.class.name)
-        Datadog::Tracer.active.span.set_tag('jwt.operation', 'decode')
+        Datadog::Tracer.active_span&.set_tag('jwt.error_type', error.class.name)
+        Datadog::Tracer.active_span&.set_tag('jwt.operation', 'decode')
       end
     end
 
-    def log_refresh_validation_error(error, token)
-      Rails.logger.warn "Refresh token validation error: #{error.class.name} - #{error.message}"
-      Rails.logger.warn "Token (first 50 chars): #{token[0..50]}..." if token.present?
+    def log_refresh_validation_error(error, _token)
+      Rails.logger.warn "Refresh token validation error: #{error.class.name}"
     end
 
     def log_refresh_success(user, duration)
-      Rails.logger.info "User #{user.email} refresh successful in #{duration.round(3)}s"
+      Rails.logger.info "User #{user.id} refresh successful in #{duration.round(3)}s"
     end
 
-    def log_refresh_error(error, remote_ip, user_agent, refresh_token)
-      Rails.logger.error "Refresh failed from IP: #{remote_ip}"
-      Rails.logger.error "User-Agent: #{user_agent}"
-      Rails.logger.error "Error: #{error.class.name} - #{error.message}"
-      Rails.logger.error "Token (first 50 chars): #{refresh_token[0..50]}..." if refresh_token.present?
+    def log_refresh_error(error, remote_ip, _user_agent, _refresh_token)
+      Rails.logger.error "Refresh failed from IP: #{mask_ip(remote_ip)}"
+      Rails.logger.error "Error: #{error.class.name}"
+    end
+
+    private
+
+    # Mask IP address for privacy (show only first two octets for IPv4)
+    def mask_ip(ip)
+      return 'unknown' if ip.blank?
+
+      parts = ip.to_s.split('.')
+      return ip if parts.length != 4
+
+      "#{parts[0]}.#{parts[1]}.*.*"
     end
   end
 end
