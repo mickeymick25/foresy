@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# OAuthUserService
+# OauthUserService
 #
 # Service responsible for OAuth user management.
 # Handles user creation, updates, and validation for OAuth providers

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# OAuthValidationService
+# OauthValidationService
 #
 # Service responsible for OAuth data validation and extraction.
 # Handles provider validation, payload validation, and OAuth data processing

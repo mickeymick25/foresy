@@ -64,8 +64,9 @@ Foresy/
 4. **[🛡️ CSRF Security Analysis](./technical/analysis/csrf_security_analysis_same_site_none.md)** - **CRITIQUE** - Analyse risque CSRF et sécurisation
 
 ### 📊 **Pour les Modifications Récentes**
-1. **[🐳 Docker Build Health Check 23/12/2025](./technical/changes/2025-12-23-Docker_Build_Health_Check_Resolution.md)** - **RÉSOLU** - Conteneurs Docker healthy, health endpoints fonctionnels (23/12/2025)
-2. **[📊 Standardisation APM Datadog 22/12/2025](./technical/changes/2025-12-22-Datadog_APM_Standardization_Resolution.md)** - **RÉSOLU** - Standardisation API Datadog multi-versions (22/12/2025)
+1. **[🔧 OAuth Services Elegant Solution 23/12/2025](./technical/changes/2025-12-23-OAuth_Services_Elegant_Solution.md)** - **MAJEUR** - Solution élégante élimination require_relative, conventions Zeitwerk respectées (23/12/2025)
+2. **[🐳 Docker Build Health Check 23/12/2025](./technical/changes/2025-12-23-Docker_Build_Health_Check_Resolution.md)** - **RÉSOLU** - Conteneurs Docker healthy, health endpoints fonctionnels (23/12/2025)
+3. **[📊 Standardisation APM Datadog 22/12/2025](./technical/changes/2025-12-22-Datadog_APM_Standardization_Resolution.md)** - **RÉSOLU** - Standardisation API Datadog multi-versions (22/12/2025)
 3. **[🚨 Migration Rails Planifiée 20/12/2025](./technical/changes/2025-12-20-Rails_Migration_Task_Planning.md)** - **CRITIQUE** - Planification migration Rails 7.1.5.1 → 7.2+ (EOL)
 4. **[🔧 Refactoring Authenticatable 20/12/2025](./technical/changes/2025-12-20-Authenticatable_Concern_Refactoring.md)** - **MAJEUR** - Séparation responsabilités auth
 5. **[🔑 Migration UUID 20/12/2025](./technical/changes/2025-12-20-UUID_Migration.md)** - **MAJEUR** - Migration identifiants sécurisés
@@ -115,6 +116,7 @@ Documentation chronologique de toutes les modifications significatives du projet
 
 | Fichier | Date | Description | Impact |
 |---------|------|-------------|--------|
+| [✅ 2025-12-23-CI_Rubocop_Standards_Configuration_Fix.md](./technical/changes/2025-12-23-CI_Rubocop_Standards_Configuration_Fix.md) | 23/12/2025 | Corrections CI, standards Rubocop et configuration Rails | **CRITIQUE** - CI débloquée, 0 offense |
 | [🧹 2025-12-19-Authenticatable_Cleanup.md](./technical/changes/2025-12-19-Authenticatable_Cleanup.md) | 19/12/2025 | Unification payload_valid?/valid_payload? + tests unitaires | **MOYEN** - 149 tests OK |
 | [🔧 2025-12-19-Authentication_Concerns_Fix.md](./technical/changes/2025-12-19-Authentication_Concerns_Fix.md) | 19/12/2025 | Correction concerns authentification (class_methods + Zeitwerk) | **CRITIQUE** - 120 tests OK |
 | [🔧 2025-12-20-Authenticatable_Concern_Refactoring.md](./technical/changes/2025-12-20-Authenticatable_Concern_Refactoring.md) | 20/12/2025 | Refactoring concern Authenticatable (séparation responsabilités) | **MAJEUR** - Architecture clean |

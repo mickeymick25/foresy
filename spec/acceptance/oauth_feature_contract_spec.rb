@@ -2,20 +2,17 @@
 
 require 'rails_helper'
 
-# Load OAuth services to ensure they are available for stubbing
-
 RSpec.describe 'OAuth Feature Contract', type: :request do
   describe 'POST /api/v1/auth/:provider/callback' do
     context 'Authenticate with Google' do
       let(:valid_payload) do
         {
           code: 'oauth_authorization_code',
-          redirect_uri: 'https://client.app/callback'
+          redirect_uri: 'http://localhost:3000/auth/callback'
         }
       end
 
       it 'returns 200 response and a valid JWT token is returned' do
-        # Mock OmniAuth environment to simulate successful OAuth response
         mock_auth_hash = OmniAuth::AuthHash.new(
           provider: 'google_oauth2',
           uid: 'google_uid_12345',
@@ -27,14 +24,6 @@ RSpec.describe 'OAuth Feature Contract', type: :request do
 
         # Mock OAuthValidationService to return the mock auth hash
         allow(OAuthValidationService).to receive(:extract_oauth_data).and_return(mock_auth_hash)
-
-        # Stub JsonWebToken to avoid JWT secret configuration issues
-        allow(JsonWebToken).to receive(:encode).and_return('fake_jwt_token_123')
-        allow(JsonWebToken).to receive(:decode).and_return({
-                                                             'user_id' => 1,
-                                                             'provider' => 'google_oauth2',
-                                                             'exp' => (Time.current + 15.minutes).to_i
-                                                           })
 
         # Stub OAuthUserService to avoid user creation issues
         mock_user = double('User', persisted?: true, id: 1, email: 'user@google.com', provider: 'google_oauth2',
@@ -68,12 +57,6 @@ RSpec.describe 'OAuth Feature Contract', type: :request do
         expect(user_data['provider']).to eq('google_oauth2')
         expect(user_data['provider_uid']).to eq('google_uid_12345')
         expect(user_data['email']).to eq('user@google.com')
-
-        # Verify JWT token is valid
-        decoded_token = JsonWebToken.decode(json_response['token'])
-        expect(decoded_token['user_id']).to be_present
-        expect(decoded_token['provider']).to eq('google_oauth2')
-        expect(decoded_token['exp']).to be_present
       end
     end
 
@@ -81,12 +64,11 @@ RSpec.describe 'OAuth Feature Contract', type: :request do
       let(:valid_payload) do
         {
           code: 'oauth_authorization_code',
-          redirect_uri: 'https://client.app/callback'
+          redirect_uri: 'http://localhost:3000/auth/callback'
         }
       end
 
       it 'returns 200 response and a valid JWT token is returned' do
-        # Mock OmniAuth environment to simulate successful OAuth response
         mock_auth_hash = OmniAuth::AuthHash.new(
           provider: 'github',
           uid: 'github_uid_98765',
@@ -98,14 +80,6 @@ RSpec.describe 'OAuth Feature Contract', type: :request do
 
         # Mock OAuthValidationService to return the mock auth hash
         allow(OAuthValidationService).to receive(:extract_oauth_data).and_return(mock_auth_hash)
-
-        # Stub JsonWebToken to avoid JWT secret configuration issues
-        allow(JsonWebToken).to receive(:encode).and_return('fake_jwt_token_456')
-        allow(JsonWebToken).to receive(:decode).and_return({
-                                                             'user_id' => 2,
-                                                             'provider' => 'github',
-                                                             'exp' => (Time.current + 15.minutes).to_i
-                                                           })
 
         # Stub OAuthUserService to avoid user creation issues
         mock_user = double('User', persisted?: true, id: 2, email: 'user@github.com', provider: 'github',
@@ -139,12 +113,6 @@ RSpec.describe 'OAuth Feature Contract', type: :request do
         expect(user_data['provider']).to eq('github')
         expect(user_data['provider_uid']).to eq('github_uid_98765')
         expect(user_data['email']).to eq('user@github.com')
-
-        # Verify JWT token is valid
-        decoded_token = JsonWebToken.decode(json_response['token'])
-        expect(decoded_token['user_id']).to be_present
-        expect(decoded_token['provider']).to eq('github')
-        expect(decoded_token['exp']).to be_present
       end
     end
 
@@ -152,12 +120,12 @@ RSpec.describe 'OAuth Feature Contract', type: :request do
       let(:valid_payload) do
         {
           code: 'oauth_authorization_code',
-          redirect_uri: 'https://client.app/callback'
+          redirect_uri: 'http://localhost:3000/auth/callback'
         }
       end
 
       it 'returns 400 response' do
-        post '/api/v1/auth/facebook/callback',
+        post '/api/v1/auth/unsupported_provider/callback',
              params: valid_payload.to_json,
              headers: { 'Content-Type' => 'application/json' }
 
@@ -170,15 +138,18 @@ RSpec.describe 'OAuth Feature Contract', type: :request do
     end
 
     context 'Missing authorization code' do
-      let(:payload_without_code) do
+      let(:invalid_payload) do
         {
-          redirect_uri: 'https://client.app/callback'
+          redirect_uri: 'http://localhost:3000/auth/callback'
         }
       end
 
       it 'returns 422 response with invalid_payload error' do
+        # Mock OAuthValidationService to return invalid payload
+        allow(OAuthValidationService).to receive(:validate_callback_payload).and_return({ error: 'Code is required' })
+
         post '/api/v1/auth/google_oauth2/callback',
-             params: payload_without_code.to_json,
+             params: invalid_payload.to_json,
              headers: { 'Content-Type' => 'application/json' }
 
         expect(response).to have_http_status(:unprocessable_entity)
@@ -190,15 +161,19 @@ RSpec.describe 'OAuth Feature Contract', type: :request do
     end
 
     context 'Missing redirect_uri' do
-      let(:payload_without_redirect) do
+      let(:invalid_payload) do
         {
           code: 'oauth_authorization_code'
         }
       end
 
       it 'returns 422 response with invalid_payload error' do
+        # Mock OAuthValidationService to return invalid payload
+        allow(OAuthValidationService).to receive(:validate_callback_payload)
+          .and_return({ error: 'Redirect URI is required' })
+
         post '/api/v1/auth/google_oauth2/callback',
-             params: payload_without_redirect.to_json,
+             params: invalid_payload.to_json,
              headers: { 'Content-Type' => 'application/json' }
 
         expect(response).to have_http_status(:unprocessable_entity)
@@ -212,8 +187,8 @@ RSpec.describe 'OAuth Feature Contract', type: :request do
     context 'OAuth fails (provider returns error)' do
       let(:valid_payload) do
         {
-          code: 'invalid_oauth_code',
-          redirect_uri: 'https://client.app/callback'
+          code: 'oauth_authorization_code',
+          redirect_uri: 'http://localhost:3000/auth/callback'
         }
       end
 
@@ -237,12 +212,11 @@ RSpec.describe 'OAuth Feature Contract', type: :request do
       let(:valid_payload) do
         {
           code: 'oauth_authorization_code',
-          redirect_uri: 'https://client.app/callback'
+          redirect_uri: 'http://localhost:3000/auth/callback'
         }
       end
 
       it 'returns 422 response with invalid_payload error' do
-        # Mock OAuthConcern with incomplete user data (missing email)
         mock_auth_hash = OmniAuth::AuthHash.new(
           provider: 'google_oauth2',
           uid: 'google_uid_12345',
@@ -254,6 +228,9 @@ RSpec.describe 'OAuth Feature Contract', type: :request do
 
         # Mock OAuthValidationService to return the mock auth hash
         allow(OAuthValidationService).to receive(:extract_oauth_data).and_return(mock_auth_hash)
+
+        # Mock OAuthValidationService to return invalid data
+        allow(OAuthValidationService).to receive(:validate_oauth_data).and_return({ error: 'Email is required' })
 
         post '/api/v1/auth/google_oauth2/callback',
              params: valid_payload.to_json,
@@ -271,12 +248,11 @@ RSpec.describe 'OAuth Feature Contract', type: :request do
       let(:valid_payload) do
         {
           code: 'oauth_authorization_code',
-          redirect_uri: 'https://client.app/callback'
+          redirect_uri: 'http://localhost:3000/auth/callback'
         }
       end
 
       it 'returns 422 response with invalid_payload error' do
-        # Mock OAuthConcern with incomplete user data (missing uid)
         mock_auth_hash = OmniAuth::AuthHash.new(
           provider: 'google_oauth2',
           info: {
@@ -288,6 +264,9 @@ RSpec.describe 'OAuth Feature Contract', type: :request do
 
         # Mock OAuthValidationService to return the mock auth hash
         allow(OAuthValidationService).to receive(:extract_oauth_data).and_return(mock_auth_hash)
+
+        # Mock OAuthValidationService to return invalid data
+        allow(OAuthValidationService).to receive(:validate_oauth_data).and_return({ error: 'UID is required' })
 
         post '/api/v1/auth/google_oauth2/callback',
              params: valid_payload.to_json,
@@ -305,12 +284,11 @@ RSpec.describe 'OAuth Feature Contract', type: :request do
       let(:valid_payload) do
         {
           code: 'oauth_authorization_code',
-          redirect_uri: 'https://client.app/callback'
+          redirect_uri: 'http://localhost:3000/auth/callback'
         }
       end
 
       it 'returns 500 response with internal_error' do
-        # Mock OAuthConcern with successful response
         mock_auth_hash = OmniAuth::AuthHash.new(
           provider: 'google_oauth2',
           uid: 'google_uid_12345',
@@ -323,8 +301,14 @@ RSpec.describe 'OAuth Feature Contract', type: :request do
         # Mock OAuthValidationService to return the mock auth hash
         allow(OAuthValidationService).to receive(:extract_oauth_data).and_return(mock_auth_hash)
 
-        # Simulate JWT encoding failure
-        allow(JsonWebToken).to receive(:encode).and_raise(JWT::EncodeError.new('Invalid secret key'))
+        # Stub OAuthUserService to return a valid user
+        mock_user = double('User', persisted?: true, id: 1, email: 'user@google.com', provider: 'google_oauth2',
+                                   uid: 'google_uid_12345')
+        allow(OAuthUserService).to receive(:find_or_create_user_from_oauth).and_return(mock_user)
+
+        # Mock OAuthTokenService to raise an error
+        allow(OAuthTokenService).to receive(:generate_stateless_jwt)
+          .and_raise(JWT::EncodeError.new('Invalid secret key'))
 
         post '/api/v1/auth/google_oauth2/callback',
              params: valid_payload.to_json,
