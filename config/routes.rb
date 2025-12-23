@@ -8,7 +8,8 @@ Rails.application.routes.draw do
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
-  get 'up' => 'rails/health#show', as: :rails_health_check
+  get 'up' => 'health#up', as: :rails_health_check
+  get 'health' => 'health#show', as: :health_check
 
   # Defines the root path route ("/")
   # root "posts#index"
@@ -18,8 +19,9 @@ Rails.application.routes.draw do
       post 'auth/login', to: 'authentication#login'
       post 'auth/refresh', to: 'authentication#refresh'
       delete 'auth/logout', to: 'authentication#logout'
+      post 'auth/:provider/callback', to: 'oauth#callback'
+      get 'auth/failure', to: 'oauth#failure'
       post 'signup', to: 'users#create'
-      resources :users, only: [:create]
     end
   end
 

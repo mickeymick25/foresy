@@ -27,7 +27,16 @@ class Session < ApplicationRecord
   validates :expires_at, presence: true
   validates :last_activity_at, presence: true
 
+  # UUID validation for pgcrypto compatibility fix
+  # Ensures UUID format and uniqueness when uuid column is present
+  validates :uuid,
+            uniqueness: true,
+            presence: true,
+            format: /\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i,
+            if: :uuid_column_present?
+
   before_validation :set_defaults, on: :create
+  before_validation :generate_uuid, on: :create
 
   scope :active, -> { where('expires_at > ?', Time.current) }
   scope :expired, -> { where('expires_at <= ?', Time.current) }
@@ -49,5 +58,15 @@ class Session < ApplicationRecord
   def set_defaults
     self.token ||= SecureRandom.hex(32)
     self.last_activity_at ||= Time.current
+  end
+
+  def generate_uuid
+    # Generate UUID only if uuid column exists and uuid is not already set
+    self.uuid ||= SecureRandom.uuid if uuid_column_present?
+  end
+
+  def uuid_column_present?
+    # Check if uuid column exists in the table
+    self.class.column_names.include?('uuid')
   end
 end

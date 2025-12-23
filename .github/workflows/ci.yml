@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ "*" ]
+    branches: ["*"]
   pull_request:
-    branches: [ "*" ]
+    branches: ["*"]
 
 jobs:
   test:
@@ -12,7 +12,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:14
+        image: postgres:15
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
@@ -20,9 +20,9 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U postgres"
+          --health-cmd "pg_isready -U postgres -h localhost"
           --health-interval 10s
-          --health-timeout 5s
+          --health-timeout 10s
           --health-retries 5
 
     steps:
@@ -38,15 +38,33 @@ jobs:
         env:
           RAILS_ENV: test
           DATABASE_URL: postgres://postgres:password@localhost:5432/foresy_test
+          SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: |
-          bundle exec rails db:create
-          bundle exec rails db:schema:load
+          if [[ -z "$SECRET_KEY_BASE" || -z "$JWT_SECRET" ]]; then
+            echo "❌ Error: Required secrets are not configured"
+            exit 1
+          fi
+          bundle exec rails db:drop db:create db:schema:load
 
       - name: Run tests
         env:
           RAILS_ENV: test
           DATABASE_URL: postgres://postgres:password@localhost:5432/foresy_test
+          SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: bundle exec rspec
+
+      - name: Security audit
+        env:
+          SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        run: |
+          bundle exec brakeman --ignore-config=.brakeman.ignore --no-exit-on-warn
+          bundle exec bundle audit check --update
+
+      - name: Code quality
+        run: bundle exec rubocop
 
   lint:
     runs-on: ubuntu-latest

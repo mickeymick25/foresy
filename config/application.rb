@@ -35,5 +35,9 @@ module App
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
+
+    # API-only mode: No cookies or sessions needed
+    # Authentication is fully stateless via JWT tokens
+    # OAuth flow uses direct code exchange (OAuthCodeExchangeService)
   end
 end

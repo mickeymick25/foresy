@@ -1,15 +1,23 @@
+---
 openapi: 3.0.1
 info:
   title: API Foresy
   version: v1
   description: Documentation de l'API Foresy
 paths:
-  /api/v1/auth/login:
+  "/api/v1/auth/login":
     post:
       summary: Authenticates a user
       tags:
-        - Authentication
+      - Authentication
       parameters: []
+      responses:
+        '200':
+          description: user authenticated
+        '401':
+          description: missing email
+        '403':
+          description: inactive user
       requestBody:
         content:
           application/json:
@@ -21,38 +29,36 @@ paths:
                 password:
                   type: string
               required:
-                - email
-                - password
-      responses:
-        '200':
-          description: user authenticated
-        '401':
-          description: unauthorized
-
-  /api/v1/auth/logout:
+              - email
+              - password
+  "/api/v1/auth/logout":
     delete:
       summary: Logs out the user
       tags:
-        - Authentication
+      - Authentication
       parameters:
-        - name: Authorization
-          in: header
-          required: true
-          description: Bearer token
-          schema:
-            type: string
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
       responses:
         '200':
           description: user logged out
         '401':
-          description: unauthorized - invalid token
-
-  /api/v1/auth/refresh:
+          description: unauthorized - second logout (session already expired)
+  "/api/v1/auth/refresh":
     post:
       summary: Refreshes authentication token
       tags:
-        - Authentication
+      - Authentication
       parameters: []
+      responses:
+        '200':
+          description: token refreshed
+        '401':
+          description: refresh token expired
       requestBody:
         content:
           application/json:
@@ -62,45 +68,185 @@ paths:
                 refresh_token:
                   type: string
               required:
-                - refresh_token
+              - refresh_token
+  "/api/v1/auth/{provider}/callback":
+    post:
+      summary: OAuth callback for provider authentication
+      tags:
+      - OAuth
+      description: Authenticates a user via OAuth provider (Google or GitHub). Returns
+        a JWT token on success.
+      parameters:
+      - name: provider
+        in: path
+        type: string
+        required: true
+        description: OAuth provider (google_oauth2 or github)
+        schema:
+          type: string
+          enum:
+          - google_oauth2
+          - github
       responses:
         '200':
-          description: token refreshed
+          description: successful OAuth authentication with GitHub
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: JWT authentication token
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        description: User unique identifier
+                      email:
+                        type: string
+                        format: email
+                        description: User email address
+                      provider:
+                        type: string
+                        description: OAuth provider used
+                      provider_uid:
+                        type: string
+                        description: User unique identifier from OAuth provider
+                    required:
+                    - id
+                    - email
+                    - provider
+                    - provider_uid
+                required:
+                - token
+                - user
+        '400':
+          description: invalid provider - provider not supported
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: invalid_provider
+                    description: Error code
+                required:
+                - error
         '401':
-          description: refresh token expired
-
-  /api/v1/signup:
-    post:
-      summary: Crée un nouvel utilisateur
-      tags:
-        - Users
-      parameters: []
+          description: OAuth authentication failed - provider returns error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: oauth_failed
+                    description: Error code
+                required:
+                - error
+        '422':
+          description: invalid payload - missing UID from provider
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: invalid_payload
+                    description: Error code
+                required:
+                - error
+        '500':
+          description: internal server error - token generation failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: internal_error
+                    description: Error code
+                required:
+                - error
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/user"
+              type: object
+              properties:
+                code:
+                  type: string
+                  description: OAuth authorization code from provider
+                redirect_uri:
+                  type: string
+                  format: uri
+                  description: Redirect URI used in OAuth flow
+              required:
+              - code
+              - redirect_uri
         required: true
+        description: OAuth authorization code and redirect URI
+  "/api/v1/auth/failure":
+    get:
+      summary: OAuth failure endpoint
+      tags:
+      - OAuth
+      description: Endpoint called when OAuth authentication fails at the provider
+        level
+      responses:
+        '401':
+          description: OAuth authentication failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: oauth_failed
+                    description: Error code
+                  message:
+                    type: string
+                    example: OAuth authentication failed
+                    description: Error message
+                required:
+                - error
+                - message
+  "/api/v1/signup":
+    post:
+      summary: Crée un nouvel utilisateur
+      tags:
+      - Users
+      parameters: []
       responses:
         '201':
           description: Utilisateur créé
         '422':
           description: Création échouée
-
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/user"
+        required: true
 servers:
-  - url: http://{defaultHost}
-    description: Serveur local de développement
-    variables:
-      defaultHost:
-        default: localhost:3000
-
+- url: http://{defaultHost}
+  description: Serveur local de développement
+  variables:
+    defaultHost:
+      default: localhost:3000
 components:
   securitySchemes:
     bearer_auth:
       type: http
       scheme: bearer
       bearerFormat: JWT
-
   schemas:
     user:
       type: object
@@ -115,10 +261,9 @@ components:
           type: string
           format: password
       required:
-        - email
-        - password
-        - password_confirmation
-
+      - email
+      - password
+      - password_confirmation
     login:
       type: object
       properties:
@@ -129,8 +274,7 @@ components:
           type: string
           format: password
       required:
-        - email
-        - password
-
+      - email
+      - password
 security:
-  - bearer_auth: []
+- bearer_auth: []

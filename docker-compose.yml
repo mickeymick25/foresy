@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_PASSWORD: password
       POSTGRES_USER: postgres
-      POSTGRES_DB: app_development
+      POSTGRES_DB: foresy_development
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -15,7 +15,7 @@ services:
       timeout: 5s
 
   web:
-    build: .
+    image: foresy-web:latest
     command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
     volumes:
       - .:/app
@@ -23,17 +23,34 @@ services:
     ports:
       - "3000:3000"
     environment:
-      DATABASE_URL: postgres://postgres:password@db:5432/app_development
+      RAILS_ENV: development
+      DATABASE_URL: postgres://postgres:password@db:5432/foresy_development
+      DB_HOST: db
+      DB_USERNAME: postgres
+      DB_PASSWORD: password
+      SECRET_KEY_BASE: development_secret_key_base_for_testing_only_32_characters_minimum
+      PORT: 3000
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   test:
-    build: .
-    command: bundle exec rspec
+    image: foresy-web:latest
+    command: bash -c "bundle exec rails db:drop db:create db:schema:load && bundle exec rspec"
+    volumes:
+      - .:/app
+    working_dir: /app
     environment:
-      DATABASE_URL: postgres://postgres:password@db:5432/app_development
+      RAILS_ENV: test
+      DATABASE_URL: postgres://postgres:password@db:5432/foresy_test
+      DB_HOST: db
+      DB_USERNAME: postgres
+      DB_PASSWORD: password
+      SECRET_KEY_BASE: test_secret_key_base_for_rspec_testing_32_characters_minimum
+      RAILS_MAX_THREADS: 5
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
 volumes:
   postgres_data:

@@ -17,6 +17,9 @@ require 'jwt'
 # - .refresh_token(user_id): Creates a refresh token with extended expiration
 # - .decode(token): Decodes a JWT token and returns its payload as a HashWithIndifferentAccess
 #
+# SECURITY NOTE: Tokens are NEVER logged to prevent secret leakage in logs.
+# Only operation success/failure and timing metrics are logged.
+#
 # Example:
 #   token = JsonWebToken.encode(user_id: 123)
 #   payload = JsonWebToken.decode(token)
@@ -28,7 +31,20 @@ class JsonWebToken
 
   def self.encode(payload, exp = ACCESS_TOKEN_EXPIRATION.from_now)
     payload[:exp] = exp.to_i
-    JWT.encode(payload, SECRET_KEY)
+
+    start_time = Time.current
+    token = JWT.encode(payload, SECRET_KEY)
+    duration = Time.current - start_time
+
+    Rails.logger.debug "JWT encoded successfully in #{duration.round(3)}s"
+
+    token
+  rescue JWT::EncodeError => e
+    Rails.logger.error "JWT encode failed: #{e.class.name}"
+    raise "JWT encoding failed: #{e.message}"
+  rescue StandardError => e
+    Rails.logger.error "Unexpected JWT encode error: #{e.class.name}"
+    raise "JWT encoding failed unexpectedly: #{e.message}"
   end
 
   def self.refresh_token(user_id)
@@ -36,11 +52,116 @@ class JsonWebToken
       user_id: user_id,
       refresh_exp: REFRESH_TOKEN_EXPIRATION.from_now.to_i
     }
-    JWT.encode(payload, SECRET_KEY)
+
+    start_time = Time.current
+    token = JWT.encode(payload, SECRET_KEY)
+    duration = Time.current - start_time
+
+    Rails.logger.debug "JWT refresh token encoded in #{duration.round(3)}s for user #{user_id}"
+
+    token
+  rescue JWT::EncodeError => e
+    Rails.logger.error "JWT refresh token encode failed: #{e.class.name}"
+    raise "JWT refresh token encoding failed: #{e.message}"
+  rescue StandardError => e
+    Rails.logger.error "Unexpected JWT refresh token error: #{e.class.name}"
+    raise "JWT refresh token encoding failed unexpectedly: #{e.message}"
   end
 
   def self.decode(token)
+    start_time = Time.current
+
     decoded = JWT.decode(token, SECRET_KEY)[0]
-    HashWithIndifferentAccess.new(decoded)
+    decoded = HashWithIndifferentAccess.new(decoded)
+
+    duration = Time.current - start_time
+    Rails.logger.debug "JWT decoded successfully in #{duration.round(3)}s"
+
+    decoded
+  rescue JWT::ExpiredSignature => e
+    log_jwt_error('JWT token expired', e)
+    raise
+  rescue JWT::VerificationError => e
+    log_jwt_error('JWT signature verification failed', e)
+    raise
+  rescue JWT::DecodeError => e
+    log_jwt_error('JWT decode failed', e)
+    raise
+  rescue StandardError => e
+    Rails.logger.error "Unexpected JWT decode error: #{e.class.name}"
+    raise "JWT decode failed unexpectedly: #{e.message}"
   end
+
+  # Private helper for JWT error logging (no token data logged)
+  def self.log_jwt_error(message, error)
+    Rails.logger.warn "#{message}: #{error.class.name}"
+
+    # Add APM metrics if available (no sensitive data)
+    add_datadog_tags({
+                       jwt_error_type: error.class.name,
+                       jwt_operation: 'decode'
+                     })
+  end
+
+  # Helper method to standardize Datadog APM usage across different API versions
+  # Handles both active_span (modern) and active.span (legacy) APIs
+  def self.add_datadog_tags(tags)
+    return unless defined?(Datadog)
+
+    tracer = Datadog::Tracer
+    return unless tracer_respond_to_methods?(tracer)
+
+    set_tags_with_modern_api(tracer, tags) || set_tags_with_legacy_api(tracer, tags)
+  rescue StandardError => e
+    Rails.logger.debug "Datadog APM error: #{e.message}" if defined?(Rails)
+    # Graceful handling - don't crash the application
+  end
+
+  # Check if tracer responds to required methods
+  # @param tracer [Object] Datadog::Tracer
+  # @return [Boolean]
+  def self.tracer_respond_to_methods?(tracer)
+    tracer.respond_to?(:active_span) || tracer.respond_to?(:active)
+  end
+
+  # Set tags using modern API (active_span)
+  # @param tracer [Object] Datadog::Tracer
+  # @param tags [Hash] Tags to set
+  # @return [Boolean] true if tags were set successfully
+  def self.set_tags_with_modern_api(tracer, tags)
+    return false unless tracer.respond_to?(:active_span)
+
+    span = tracer.active_span
+    return false unless span
+
+    set_tags_on_span(span, tags)
+    true
+  end
+
+  # Set tags using legacy API (active.span)
+  # @param tracer [Object] Datadog::Tracer
+  # @param tags [Hash] Tags to set
+  # @return [Boolean] true if tags were set successfully
+  def self.set_tags_with_legacy_api(tracer, tags)
+    return false unless tracer.respond_to?(:active)
+    return false unless tracer.active.respond_to?(:span)
+
+    span = tracer.active.span
+    return false unless span
+
+    set_tags_on_span(span, tags)
+    true
+  end
+
+  # Apply tags on a span
+  # @param span [Object] Datadog span
+  # @param tags [Hash] Tags to set
+  # @return [void]
+  def self.set_tags_on_span(span, tags)
+    tags.each do |key, value|
+      span.set_tag(key, value)
+    end
+  end
+
+  private_class_method :log_jwt_error
 end

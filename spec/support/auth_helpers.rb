@@ -7,3 +7,7 @@ module AuthHelpers
     JSON.parse(response.body)
   end
 end
+
+RSpec.configure do |_config|
+  include AuthHelpers
+end

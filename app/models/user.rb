@@ -11,22 +11,69 @@
 # Validations:
 # - email must be present, unique, and correctly formatted
 # - password must be present and at least 6 characters long when required
+# - active must be a boolean (true or false)
 #
 # Callbacks:
+# - after_initialize: sets default value for active
 # - before_save: ensures email is downcased
+#
+# Scopes:
+# - .active: returns only active users
 #
 # Instance methods:
 # - #active_sessions: returns currently active sessions
 # - #create_session: creates a new session with optional metadata
 # - #invalidate_all_sessions!: marks all active sessions as expired
 class User < ApplicationRecord
-  has_secure_password
+  has_secure_password validations: false
+
   has_many :sessions, dependent: :destroy
 
-  validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
+  # Email validation is conditional for OAuth support
+  # For traditional users (no provider): global email uniqueness (case-insensitive)
+  # For OAuth users (with provider): email uniqueness per provider (handled by OAuth validation below)
+  validates :email, presence: true, uniqueness: { case_sensitive: false }, format: { with: URI::MailTo::EMAIL_REGEXP },
+                    unless: :provider_present?
   validates :password, presence: true, length: { minimum: 6 }, if: :password_required?
+  validates :active, inclusion: { in: [true, false] }
+
+  # OAuth validations according to Feature Contract
+  # Provider and uid are required for OAuth users (no password), optional for traditional users
+  validates :provider, presence: true, if: :oauth_user?
+  validates :provider, inclusion: { in: %w[google_oauth2 github] }, if: :provider_present?
+  validates :uid, presence: true, if: :oauth_user?
+  validates :provider, uniqueness: { scope: :uid, message: 'and uid combination must be unique' }, if: :oauth_user?
+  validates :email, uniqueness: { scope: :provider, case_sensitive: false, message: 'must be unique per provider' },
+                    if: :provider_present?
+
+  # UUID validation for pgcrypto compatibility fix
+  # Ensures UUID format and uniqueness when uuid column is present
+  validates :uuid,
+            uniqueness: true,
+            presence: true,
+            format: /\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i,
+            if: :uuid_column_present?
+
+  # OAuth helper methods
+  def oauth_user?
+    # An OAuth user is one without a password (provider is present but password is blank/empty)
+    provider.present? && !password_digest.present?
+  end
+
+  def provider_present?
+    provider.present?
+  end
+
+  def uuid_column_present?
+    # Check if uuid column exists in the table
+    self.class.column_names.include?('uuid')
+  end
 
   before_save :downcase_email
+  before_validation :generate_uuid, on: :create
+  after_initialize :set_default_active, if: :new_record?
+
+  scope :active, -> { where(active: true) }
 
   def active_sessions
     sessions.active
@@ -44,6 +91,10 @@ class User < ApplicationRecord
     sessions.active.update_all(expires_at: Time.current)
   end
 
+  def active?
+    active
+  end
+
   private
 
   def downcase_email
@@ -51,6 +102,15 @@ class User < ApplicationRecord
   end
 
   def password_required?
-    new_record? || password.present?
+    (new_record? || password.present?) && provider.blank?
+  end
+
+  def set_default_active
+    self.active = true if active.nil?
+  end
+
+  def generate_uuid
+    # Generate UUID only if uuid column exists and uuid is not already set
+    self.uuid ||= SecureRandom.uuid if uuid_column_present?
   end
 end

@@ -1,0 +1,501 @@
+{
+  "info": {
+    "name": "Foresy API",
+    "description": "Collection Postman pour tester l'API Foresy en production et développement",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://foresy-api.onrender.com",
+      "type": "string"
+    },
+    {
+      "key": "base_url_local",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "google_client_id",
+      "value": "YOUR_GOOGLE_CLIENT_ID",
+      "type": "string"
+    },
+    {
+      "key": "github_client_id",
+      "value": "YOUR_GITHUB_CLIENT_ID",
+      "type": "string"
+    },
+    {
+      "key": "oauth_code",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Status API",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": ["{{base_url}}"],
+              "path": [""]
+            },
+            "description": "Vérifie que l'API est en ligne"
+          },
+          "response": []
+        },
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            },
+            "description": "Endpoint de health check pour Render"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Signup",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.token) {",
+                  "        pm.collectionVariables.set('jwt_token', jsonData.token);",
+                  "    }",
+                  "    if (jsonData.refresh_token) {",
+                  "        pm.collectionVariables.set('refresh_token', jsonData.refresh_token);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"testuser@example.com\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/signup",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "signup"]
+            },
+            "description": "Créer un nouvel utilisateur. Retourne token + refresh_token."
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.token) {",
+                  "        pm.collectionVariables.set('jwt_token', jsonData.token);",
+                  "    }",
+                  "    if (jsonData.refresh_token) {",
+                  "        pm.collectionVariables.set('refresh_token', jsonData.refresh_token);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"testuser@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "login"]
+            },
+            "description": "Connexion utilisateur - retourne un JWT token et refresh_token"
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.token) {",
+                  "        pm.collectionVariables.set('jwt_token', jsonData.token);",
+                  "    }",
+                  "    if (jsonData.refresh_token) {",
+                  "        pm.collectionVariables.set('refresh_token', jsonData.refresh_token);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/refresh",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "refresh"]
+            },
+            "description": "Rafraîchir le JWT token en utilisant le refresh_token"
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "logout"]
+            },
+            "description": "Déconnexion - invalide la session"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "OAuth",
+      "description": "Endpoints OAuth pour Google et GitHub.\n\n## Flow OAuth:\n1. Ouvrir l'URL d'autorisation dans un navigateur\n2. Se connecter et autoriser l'application\n3. Copier le code de l'URL de redirection\n4. Utiliser le code dans la requête callback\n\n⚠️ Les codes OAuth expirent en ~30 secondes!",
+      "item": [
+        {
+          "name": "📋 Google - Get Auth URL (Copy to Browser)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://accounts.google.com/o/oauth2/v2/auth?client_id={{google_client_id}}&redirect_uri={{base_url}}/api/v1/auth/google_oauth2/callback&response_type=code&scope=email%20profile&prompt=select_account",
+              "protocol": "https",
+              "host": ["accounts", "google", "com"],
+              "path": ["o", "oauth2", "v2", "auth"],
+              "query": [
+                { "key": "client_id", "value": "{{google_client_id}}" },
+                {
+                  "key": "redirect_uri",
+                  "value": "{{base_url}}/api/v1/auth/google_oauth2/callback"
+                },
+                { "key": "response_type", "value": "code" },
+                { "key": "scope", "value": "email profile" },
+                { "key": "prompt", "value": "select_account" }
+              ]
+            },
+            "description": "⚠️ NE PAS EXECUTER DANS POSTMAN!\n\nCopiez cette URL et ouvrez-la dans votre navigateur pour obtenir un code OAuth Google.\n\nAprès autorisation, copiez le 'code' de l'URL de redirection."
+          },
+          "response": []
+        },
+        {
+          "name": "📋 Google - Get Auth URL LOCAL (Copy to Browser)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://accounts.google.com/o/oauth2/v2/auth?client_id={{google_client_id}}&redirect_uri={{base_url_local}}/api/v1/auth/google_oauth2/callback&response_type=code&scope=email%20profile&prompt=select_account",
+              "protocol": "https",
+              "host": ["accounts", "google", "com"],
+              "path": ["o", "oauth2", "v2", "auth"],
+              "query": [
+                { "key": "client_id", "value": "{{google_client_id}}" },
+                {
+                  "key": "redirect_uri",
+                  "value": "{{base_url_local}}/api/v1/auth/google_oauth2/callback"
+                },
+                { "key": "response_type", "value": "code" },
+                { "key": "scope", "value": "email profile" },
+                { "key": "prompt", "value": "select_account" }
+              ]
+            },
+            "description": "⚠️ NE PAS EXECUTER DANS POSTMAN!\n\nVersion LOCALHOST - Copiez cette URL et ouvrez-la dans votre navigateur pour obtenir un code OAuth Google.\n\nAprès autorisation, copiez le 'code' de l'URL de redirection."
+          },
+          "response": []
+        },
+        {
+          "name": "Google OAuth Callback (Production)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.token) {",
+                  "        pm.collectionVariables.set('jwt_token', jsonData.token);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{oauth_code}}\",\n  \"redirect_uri\": \"{{base_url}}/api/v1/auth/google_oauth2/callback\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/google_oauth2/callback",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "google_oauth2", "callback"]
+            },
+            "description": "OAuth Google - Envoyer le code d'autorisation reçu de Google.\n\n⚠️ Le code expire en ~30 secondes!\n\nRemplacez {{oauth_code}} par le code obtenu via l'URL d'autorisation."
+          },
+          "response": []
+        },
+        {
+          "name": "Google OAuth Callback (Local)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.token) {",
+                  "        pm.collectionVariables.set('jwt_token', jsonData.token);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{oauth_code}}\",\n  \"redirect_uri\": \"{{base_url_local}}/api/v1/auth/google_oauth2/callback\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url_local}}/api/v1/auth/google_oauth2/callback",
+              "host": ["{{base_url_local}}"],
+              "path": ["api", "v1", "auth", "google_oauth2", "callback"]
+            },
+            "description": "OAuth Google LOCAL - Envoyer le code d'autorisation reçu de Google.\n\n⚠️ Le code expire en ~30 secondes!"
+          },
+          "response": []
+        },
+        {
+          "name": "📋 GitHub - Get Auth URL (Copy to Browser)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://github.com/login/oauth/authorize?client_id={{github_client_id}}&redirect_uri={{base_url}}/api/v1/auth/github/callback&scope=user:email",
+              "protocol": "https",
+              "host": ["github", "com"],
+              "path": ["login", "oauth", "authorize"],
+              "query": [
+                { "key": "client_id", "value": "{{github_client_id}}" },
+                {
+                  "key": "redirect_uri",
+                  "value": "{{base_url}}/api/v1/auth/github/callback"
+                },
+                { "key": "scope", "value": "user:email" }
+              ]
+            },
+            "description": "⚠️ NE PAS EXECUTER DANS POSTMAN!\n\nCopiez cette URL et ouvrez-la dans votre navigateur pour obtenir un code OAuth GitHub.\n\nAprès autorisation, copiez le 'code' de l'URL de redirection."
+          },
+          "response": []
+        },
+        {
+          "name": "📋 GitHub - Get Auth URL LOCAL (Copy to Browser)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://github.com/login/oauth/authorize?client_id={{github_client_id}}&redirect_uri={{base_url_local}}/api/v1/auth/github/callback&scope=user:email",
+              "protocol": "https",
+              "host": ["github", "com"],
+              "path": ["login", "oauth", "authorize"],
+              "query": [
+                { "key": "client_id", "value": "{{github_client_id}}" },
+                {
+                  "key": "redirect_uri",
+                  "value": "{{base_url_local}}/api/v1/auth/github/callback"
+                },
+                { "key": "scope", "value": "user:email" }
+              ]
+            },
+            "description": "⚠️ NE PAS EXECUTER DANS POSTMAN!\n\nVersion LOCALHOST - Copiez cette URL et ouvrez-la dans votre navigateur pour obtenir un code OAuth GitHub.\n\nAprès autorisation, copiez le 'code' de l'URL de redirection."
+          },
+          "response": []
+        },
+        {
+          "name": "GitHub OAuth Callback (Production)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.token) {",
+                  "        pm.collectionVariables.set('jwt_token', jsonData.token);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{oauth_code}}\",\n  \"redirect_uri\": \"{{base_url}}/api/v1/auth/github/callback\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/github/callback",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "github", "callback"]
+            },
+            "description": "OAuth GitHub - Envoyer le code d'autorisation reçu de GitHub.\n\n⚠️ Le code expire rapidement!\n\nRemplacez {{oauth_code}} par le code obtenu via l'URL d'autorisation."
+          },
+          "response": []
+        },
+        {
+          "name": "GitHub OAuth Callback (Local)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.token) {",
+                  "        pm.collectionVariables.set('jwt_token', jsonData.token);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{oauth_code}}\",\n  \"redirect_uri\": \"{{base_url_local}}/api/v1/auth/github/callback\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url_local}}/api/v1/auth/github/callback",
+              "host": ["{{base_url_local}}"],
+              "path": ["api", "v1", "auth", "github", "callback"]
+            },
+            "description": "OAuth GitHub LOCAL - Envoyer le code d'autorisation reçu de GitHub.\n\n⚠️ Le code expire rapidement!"
+          },
+          "response": []
+        },
+        {
+          "name": "OAuth Failure",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/failure",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "failure"]
+            },
+            "description": "Endpoint appelé en cas d'échec OAuth"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

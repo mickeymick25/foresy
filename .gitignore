@@ -7,6 +7,9 @@
 # Ignore bundler config.
 /.bundle
 
+# Ignore Gemfile.lock to avoid platform compatibility issues in Docker builds
+Gemfile.lock
+
 # Ignore all environment files (except templates).
 /.env*
 !/.env*.erb
@@ -57,3 +60,6 @@ yarn-debug.log*
 .vscode/
 *.swp
 *.swo
+
+# Ignore RSpec example reports and logs
+spec/examples.txt

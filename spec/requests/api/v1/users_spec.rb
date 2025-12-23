@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# rubocop:disable Metrics/BlockLength
-
 require 'swagger_helper'
 
 RSpec.describe 'API V1 Users', type: :request do
@@ -16,7 +14,7 @@ RSpec.describe 'API V1 Users', type: :request do
       response '201', 'Utilisateur créé' do
         let(:user_params) do
           {
-            email: 'test@example.com',
+            email: "user_#{SecureRandom.hex(4)}@example.com",
             password: 'password123',
             password_confirmation: 'password123'
           }
@@ -25,7 +23,7 @@ RSpec.describe 'API V1 Users', type: :request do
         run_test! do |response|
           data = JSON.parse(response.body)
           expect(data['token']).to be_present
-          expect(data['email']).to eq('test@example.com')
+          expect(data['email']).to eq(user_params[:email])
         end
       end
 
@@ -40,10 +38,11 @@ RSpec.describe 'API V1 Users', type: :request do
 
         run_test! do |response|
           data = JSON.parse(response.body)
-          expect(data['errors']).to be_present
+          expect(data['error']).to eq('Validation Failed')
+          expect(data['message']).to be_an(Array)
+          expect(data['message']).not_to be_empty
         end
       end
     end
   end
 end
-# rubocop:enable Metrics/BlockLength
