@@ -12,7 +12,7 @@ def require_oauth_env(var_name, provider_name)
   value
 end
 
-# Configuration OmniAuth avec validation robuste
+# Configuration OmniAuth simple et robuste
 Rails.application.config.middleware.use OmniAuth::Builder do
   # Configuration Google OAuth2
   google_client_id = require_oauth_env('GOOGLE_CLIENT_ID', 'Google OAuth2')
@@ -46,7 +46,8 @@ Rails.application.config.middleware.use OmniAuth::Builder do
   end
 end
 
-# Configuration générale OmniAuth
+# Configuration OmniAuth pour éviter les conflits avec les endpoints de santé
+# Configurer OmniAuth pour ne pas exiger de session pour tous les endpoints
 OmniAuth.config.allowed_request_methods = %i[post get]
 OmniAuth.config.silence_get_warning = true
 

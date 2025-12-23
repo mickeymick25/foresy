@@ -98,9 +98,9 @@ class JsonWebToken
 
     # Add APM metrics if available (no sensitive data)
     add_datadog_tags({
-      jwt_error_type: error.class.name,
-      jwt_operation: 'decode'
-    })
+                       jwt_error_type: error.class.name,
+                       jwt_operation: 'decode'
+                     })
   end
 
   # Helper method to standardize Datadog APM usage across different API versions
@@ -108,31 +108,58 @@ class JsonWebToken
   def self.add_datadog_tags(tags)
     return unless defined?(Datadog)
 
-    begin
-      # Try modern API first: Datadog::Tracer.active_span
-      if Datadog::Tracer.respond_to?(:active_span)
-        span = Datadog::Tracer.active_span
-        if span
-          tags.each do |key, value|
-            span.set_tag(key, value)
-          end
-          return
-        end
-      end
+    tracer = Datadog::Tracer
+    return unless tracer_respond_to_methods?(tracer)
 
-      # Fallback to legacy API: Datadog::Tracer.active.span
-      if Datadog::Tracer.respond_to?(:active) &&
-         Datadog::Tracer.active.respond_to?(:span)
-        span = Datadog::Tracer.active.span
-        if span
-          tags.each do |key, value|
-            span.set_tag(key, value)
-          end
-        end
-      end
-    rescue StandardError => e
-      Rails.logger.debug "Datadog APM error: #{e.message}" if defined?(Rails)
-      # Graceful handling - don't crash the application
+    set_tags_with_modern_api(tracer, tags) || set_tags_with_legacy_api(tracer, tags)
+  rescue StandardError => e
+    Rails.logger.debug "Datadog APM error: #{e.message}" if defined?(Rails)
+    # Graceful handling - don't crash the application
+  end
+
+  # Check if tracer responds to required methods
+  # @param tracer [Object] Datadog::Tracer
+  # @return [Boolean]
+  def self.tracer_respond_to_methods?(tracer)
+    tracer.respond_to?(:active_span) || tracer.respond_to?(:active)
+  end
+
+  # Set tags using modern API (active_span)
+  # @param tracer [Object] Datadog::Tracer
+  # @param tags [Hash] Tags to set
+  # @return [Boolean] true if tags were set successfully
+  def self.set_tags_with_modern_api(tracer, tags)
+    return false unless tracer.respond_to?(:active_span)
+
+    span = tracer.active_span
+    return false unless span
+
+    set_tags_on_span(span, tags)
+    true
+  end
+
+  # Set tags using legacy API (active.span)
+  # @param tracer [Object] Datadog::Tracer
+  # @param tags [Hash] Tags to set
+  # @return [Boolean] true if tags were set successfully
+  def self.set_tags_with_legacy_api(tracer, tags)
+    return false unless tracer.respond_to?(:active)
+    return false unless tracer.active.respond_to?(:span)
+
+    span = tracer.active.span
+    return false unless span
+
+    set_tags_on_span(span, tags)
+    true
+  end
+
+  # Apply tags on a span
+  # @param span [Object] Datadog span
+  # @param tags [Hash] Tags to set
+  # @return [void]
+  def self.set_tags_on_span(span, tags)
+    tags.each do |key, value|
+      span.set_tag(key, value)
     end
   end
 

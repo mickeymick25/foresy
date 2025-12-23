@@ -1,7 +1,7 @@
 # 📚 Documentation Centrale - Projet Foresy
 
 **Version :** 1.8  
-**Dernière mise à jour :** 22 décembre 2025  
+**Dernière mise à jour :** 23 décembre 2025  
 **Objectif :** Point d'entrée centralisé pour toute la documentation du projet Foresy API  
 **Production :** https://foresy-api.onrender.com  
 **Sécurité :** Stateless JWT, no token logging, no cookies
@@ -64,22 +64,23 @@ Foresy/
 4. **[🛡️ CSRF Security Analysis](./technical/analysis/csrf_security_analysis_same_site_none.md)** - **CRITIQUE** - Analyse risque CSRF et sécurisation
 
 ### 📊 **Pour les Modifications Récentes**
-1. **[📊 Standardisation APM Datadog 22/12/2025](./technical/changes/2025-12-22-Datadog_APM_Standardization_Resolution.md)** - **RÉSOLU** - Standardisation API Datadog multi-versions (22/12/2025)
-2. **[🚨 Migration Rails Planifiée 20/12/2025](./technical/changes/2025-12-20-Rails_Migration_Task_Planning.md)** - **CRITIQUE** - Planification migration Rails 7.1.5.1 → 7.2+ (EOL)
-3. **[🔧 Refactoring Authenticatable 20/12/2025](./technical/changes/2025-12-20-Authenticatable_Concern_Refactoring.md)** - **MAJEUR** - Séparation responsabilités auth
-4. **[🔑 Migration UUID 20/12/2025](./technical/changes/2025-12-20-UUID_Migration.md)** - **MAJEUR** - Migration identifiants sécurisés
-5. **[🔧 PGCrypto Compatibility Fix 21/12/2025](./technical/changes/2025-12-21-PGCrypto_Compatibility_Fix.md)** - **CRITIQUE** - Résolution compatibilité environnements managés
-6. **[✅ GoogleOAuth2Service Removal 21/12/2025](./technical/changes/2025-12-21-GoogleOAuth2Service_Removal_Resolution.md)** - **RÉSOLU** - Point 2 PR fermé (suppression service mock)
-7. **[🔒 Sécurité Gems 20/12/2025](./technical/changes/2025-12-20-Security_Gems_Update.md)** - **CRITIQUE** - 20+ vulnérabilités corrigées
-8. **[⚡ Réactivation Bootsnap 20/12/2025](./technical/changes/2025-12-20-Bootsnap_Reactivation.md)** - **MAJEUR** - Performance boot Rails
-9. **[🏗️ Consolidations Migrations 20/12/2025](./technical/changes/2025-12-20-Migrations_Consolidation.md)** - **MAJEUR** - Nettoyage migrations UUID
-10. **[JWT Robustesse 19/12/2025](./technical/changes/2025-12-19-JWT_Robustness_Improvements_Complete.md)** - **MAJEUR** - Amélioration robustesse JWT
-11. **[🏗️ Corrections Architecture OAuth 19/12/2025](./technical/changes/2025-12-19-OAuth_Architecture_Fix.md)** - **CRITIQUE** - Nommage OAuth + RequireRelative
-12. **[🔒 Corrections CI Sécurité 19/12/2025](./technical/changes/2025-12-19-CI_Security_Fixes_Secrets_PostgreSQL.md)** - **CRITIQUE** - Sécurité CI + Compatibilité runners
-13. **[🔧 Zeitwerk OAuth 19/12/2025](./technical/changes/2025-12-19-Zeitwerk_OAuth_Services_Rename.md)** - **CRITIQUE** - Renommage services OAuth pour Zeitwerk
-14. **[🔒 Sécurité & Secrets 19/12/2025](./technical/changes/2025-12-19-Security_CI_Complete_Fix.md)** - **CRITIQUE** - Sécurisation secrets CI/CD
-15. **[Correction CI 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)** - Intervention majeure CI
-16. **[Correction GoogleOauthService 18/12/2025](./technical/changes/2025-12-18-GoogleOauthService_Fix_Resolution.md)** - Résolution erreur Zeitwerk
+1. **[🐳 Docker Build Health Check 23/12/2025](./technical/changes/2025-12-23-Docker_Build_Health_Check_Resolution.md)** - **RÉSOLU** - Conteneurs Docker healthy, health endpoints fonctionnels (23/12/2025)
+2. **[📊 Standardisation APM Datadog 22/12/2025](./technical/changes/2025-12-22-Datadog_APM_Standardization_Resolution.md)** - **RÉSOLU** - Standardisation API Datadog multi-versions (22/12/2025)
+3. **[🚨 Migration Rails Planifiée 20/12/2025](./technical/changes/2025-12-20-Rails_Migration_Task_Planning.md)** - **CRITIQUE** - Planification migration Rails 7.1.5.1 → 7.2+ (EOL)
+4. **[🔧 Refactoring Authenticatable 20/12/2025](./technical/changes/2025-12-20-Authenticatable_Concern_Refactoring.md)** - **MAJEUR** - Séparation responsabilités auth
+5. **[🔑 Migration UUID 20/12/2025](./technical/changes/2025-12-20-UUID_Migration.md)** - **MAJEUR** - Migration identifiants sécurisés
+6. **[🔧 PGCrypto Compatibility Fix 21/12/2025](./technical/changes/2025-12-21-PGCrypto_Compatibility_Fix.md)** - **CRITIQUE** - Résolution compatibilité environnements managés
+7. **[✅ GoogleOAuth2Service Removal 21/12/2025](./technical/changes/2025-12-21-GoogleOAuth2Service_Removal_Resolution.md)** - **RÉSOLU** - Point 2 PR fermé (suppression service mock)
+8. **[🔒 Sécurité Gems 20/12/2025](./technical/changes/2025-12-20-Security_Gems_Update.md)** - **CRITIQUE** - 20+ vulnérabilités corrigées
+9. **[⚡ Réactivation Bootsnap 20/12/2025](./technical/changes/2025-12-20-Bootsnap_Reactivation.md)** - **MAJEUR** - Performance boot Rails
+10. **[🏗️ Consolidations Migrations 20/12/2025](./technical/changes/2025-12-20-Migrations_Consolidation.md)** - **MAJEUR** - Nettoyage migrations UUID
+11. **[JWT Robustesse 19/12/2025](./technical/changes/2025-12-19-JWT_Robustness_Improvements_Complete.md)** - **MAJEUR** - Amélioration robustesse JWT
+12. **[🏗️ Corrections Architecture OAuth 19/12/2025](./technical/changes/2025-12-19-OAuth_Architecture_Fix.md)** - **CRITIQUE** - Nommage OAuth + RequireRelative
+13. **[🔒 Corrections CI Sécurité 19/12/2025](./technical/changes/2025-12-19-CI_Security_Fixes_Secrets_PostgreSQL.md)** - **CRITIQUE** - Sécurité CI + Compatibilité runners
+14. **[🔧 Zeitwerk OAuth 19/12/2025](./technical/changes/2025-12-19-Zeitwerk_OAuth_Services_Rename.md)** - **CRITIQUE** - Renommage services OAuth pour Zeitwerk
+15. **[🔒 Sécurité & Secrets 19/12/2025](./technical/changes/2025-12-19-Security_CI_Complete_Fix.md)** - **CRITIQUE** - Sécurisation secrets CI/CD
+16. **[Correction CI 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)** - Intervention majeure CI
+17. **[Correction GoogleOauthService 18/12/2025](./technical/changes/2025-12-18-GoogleOauthService_Fix_Resolution.md)** - Résolution erreur Zeitwerk
 
 ### 🔍 **Analyses Techniques Problèmes PR (Décembre 2025)**
 1. **[🔧 pgcrypto UUID Alternatives](./technical/analysis/pgcrypto_alternatives_analysis.md)** - ✅ **RÉSOLU** - Compatibilité environnements managés (21/12/2025)
@@ -168,7 +169,44 @@ Nouveaux templates de configuration OAuth ajoutés en décembre 2025.
 | [.env.example](./.env.example) | Template configuration développement | **Développement** |
 | [.env.test.example](./.env.test.example) | Template configuration tests | **Tests** |
 | [.env.production.example](./.env.production.example) | Template configuration production | **Production** |
-| [CORRECTIONS_JANVIER_2025.md](./technical/corrections/CORRECTIONS_JANVIER_2025.md) | 01/2025 | CI complètement cassée (0 tests) | **MAJEUR** - Pipeline fonctionnel |
+
+### 🐳 **Docker Operations** (`docs/technical/`)
+Documentation complète pour la maintenance et les opérations Docker du projet Foresy.
+
+| Fichier | Description | Dernière Mise à Jour |
+|---------|-------------|---------------------|
+| [docker_operations_maintenance.md](./technical/docker_operations_maintenance.md) | **GUIDE COMPLET** - Commandes Docker, health checks, troubleshooting, bonnes pratiques | **23/12/2025** - Post-restart web service |
+
+**Services Docker Compose :**
+- **web** : Rails API (port 3000) avec endpoints de santé
+- **db** : PostgreSQL 15+ (port 5432) avec health check pg_isready
+- **test** : Service de tests RSpec automatisés
+
+**Health Endpoints Opérationnels :**
+- **`GET /health`** : Health check de base
+- **`GET /up`** : Service up status  
+- **`GET /health/detailed`** : Informations système complètes
+
+**Commandes Fréquentes :**
+```bash
+# Restart service web (le plus utilisé)
+docker-compose restart web
+
+# Lancer les tests
+docker-compose up test
+
+# Monitoring
+docker-compose ps
+docker-compose logs -f web
+
+# Health check application
+curl -f http://localhost:3000/health
+
+# Health check base de données
+docker-compose exec db pg_isready -U postgres
+```
+
+---
 
 ---
 

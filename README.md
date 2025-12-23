@@ -25,6 +25,7 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 - **Tests complets** : Couverture RSpec exhaustive
 - **Code quality** : Conformité RuboCop 100%
 - **Security audit** : Validation Brakeman sans vulnérabilités critiques
+- **Docker Operations** : Guide complet de maintenance et troubleshooting Docker
 
 ## 🏗️ Architecture Technique
 

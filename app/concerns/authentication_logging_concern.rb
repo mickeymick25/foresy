@@ -32,9 +32,9 @@ module AuthenticationLoggingConcern
 
       # Add APM metrics if available (no token data)
       JsonWebToken.add_datadog_tags({
-        jwt_error_type: error.class.name,
-        jwt_operation: 'decode'
-      })
+                                      jwt_error_type: error.class.name,
+                                      jwt_operation: 'decode'
+                                    })
     end
 
     def log_refresh_validation_error(error, _token)

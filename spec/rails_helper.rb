@@ -11,6 +11,7 @@ abort('The Rails environment is running in production mode!') if Rails.env.produ
 
 require 'spec_helper'
 require 'rspec/rails'
+require 'shoulda/matchers'
 
 # Charger les fichiers de support (helpers, macros, etc.)
 Dir[Rails.root.join('spec/support/**/*.rb')].each { |f| require f }

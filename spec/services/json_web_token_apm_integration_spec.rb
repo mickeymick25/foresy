@@ -9,16 +9,16 @@ RSpec.describe JsonWebToken, '.add_datadog_tags' do
     it 'does not crash when Datadog is not available' do
       expect do
         described_class.add_datadog_tags({
-          'jwt.error_type' => 'JWT::DecodeError',
-          'jwt.operation' => 'decode'
-        })
+                                           'jwt.error_type' => 'JWT::DecodeError',
+                                           'jwt.operation' => 'decode'
+                                         })
       end.not_to raise_error
     end
 
     it 'returns nil gracefully' do
       result = described_class.add_datadog_tags({
-        'test.key' => 'test.value'
-      })
+                                                  'test.key' => 'test.value'
+                                                })
       expect(result).to be_nil
     end
 
@@ -51,10 +51,10 @@ RSpec.describe JsonWebToken, '.add_datadog_tags' do
       expect(span).to receive(:set_tag).with(:user_id, 123)
 
       described_class.add_datadog_tags({
-        jwt_error_type: 'JWT::DecodeError',
-        jwt_operation: 'decode',
-        user_id: 123
-      })
+                                         jwt_error_type: 'JWT::DecodeError',
+                                         jwt_operation: 'decode',
+                                         user_id: 123
+                                       })
     end
 
     it 'handles single tag' do
@@ -64,8 +64,8 @@ RSpec.describe JsonWebToken, '.add_datadog_tags' do
       expect(span).to receive(:set_tag).with(:test_key, 'test.value')
 
       described_class.add_datadog_tags({
-        test_key: 'test.value'
-      })
+                                         test_key: 'test.value'
+                                       })
     end
 
     it 'handles various value types' do
@@ -78,11 +78,11 @@ RSpec.describe JsonWebToken, '.add_datadog_tags' do
       expect(span).to receive(:set_tag).with(:float_value, 1.5)
 
       described_class.add_datadog_tags({
-        string_value: 'test',
-        integer_value: 123,
-        boolean_value: true,
-        float_value: 1.5
-      })
+                                         string_value: 'test',
+                                         integer_value: 123,
+                                         boolean_value: true,
+                                         float_value: 1.5
+                                       })
     end
 
     it 'gracefully handles nil active_span' do
@@ -91,8 +91,8 @@ RSpec.describe JsonWebToken, '.add_datadog_tags' do
 
       expect do
         described_class.add_datadog_tags({
-          test_key: 'test.value'
-        })
+                                           test_key: 'test.value'
+                                         })
       end.not_to raise_error
     end
 
@@ -103,8 +103,8 @@ RSpec.describe JsonWebToken, '.add_datadog_tags' do
 
       expect do
         described_class.add_datadog_tags({
-          test_key: 'test.value'
-        })
+                                           test_key: 'test.value'
+                                         })
       end.not_to raise_error
     end
   end
@@ -136,9 +136,9 @@ RSpec.describe JsonWebToken, '.add_datadog_tags' do
       expect(span).to receive(:set_tag).with(:jwt_operation, 'decode')
 
       described_class.add_datadog_tags({
-        jwt_error_type: 'JWT::DecodeError',
-        jwt_operation: 'decode'
-      })
+                                         jwt_error_type: 'JWT::DecodeError',
+                                         jwt_operation: 'decode'
+                                       })
     end
 
     it 'gracefully handles nil active.span' do
@@ -147,8 +147,8 @@ RSpec.describe JsonWebToken, '.add_datadog_tags' do
 
       expect do
         described_class.add_datadog_tags({
-          test_key: 'test.value'
-        })
+                                           test_key: 'test.value'
+                                         })
       end.not_to raise_error
     end
   end
@@ -186,8 +186,8 @@ RSpec.describe JsonWebToken, '.add_datadog_tags' do
       expect(legacy_span).not_to receive(:set_tag)
 
       described_class.add_datadog_tags({
-        test_key: 'test.value'
-      })
+                                         test_key: 'test.value'
+                                       })
     end
   end
 
@@ -207,8 +207,8 @@ RSpec.describe JsonWebToken, '.add_datadog_tags' do
     it 'does not crash when no valid Datadog API method is available' do
       expect do
         described_class.add_datadog_tags({
-          test_key: 'test.value'
-        })
+                                           test_key: 'test.value'
+                                         })
       end.not_to raise_error
     end
 
@@ -216,8 +216,8 @@ RSpec.describe JsonWebToken, '.add_datadog_tags' do
       # Cette partie serait testable avec un mock de Rails.logger
       expect do
         described_class.add_datadog_tags({
-          test_key: 'test.value'
-        })
+                                           test_key: 'test.value'
+                                         })
       end.not_to raise_error
     end
   end
@@ -226,37 +226,37 @@ RSpec.describe JsonWebToken, '.add_datadog_tags' do
     it 'handles nil values gracefully' do
       expect do
         described_class.add_datadog_tags({
-          nil_value: nil,
-          another_nil: nil
-        })
+                                           nil_value: nil,
+                                           another_nil: nil
+                                         })
       end.not_to raise_error
     end
 
     it 'handles empty string values' do
       expect do
         described_class.add_datadog_tags({
-          empty_string: ''
-        })
+                                           empty_string: ''
+                                         })
       end.not_to raise_error
     end
 
     it 'handles special characters in keys and values' do
       expect do
         described_class.add_datadog_tags({
-          special_key_name: 'value with spaces',
-          unicode_key: 'value with émojis 🚀',
-          symbols_key: 'value.with.dots'
-        })
+                                           special_key_name: 'value with spaces',
+                                           unicode_key: 'value with émojis 🚀',
+                                           symbols_key: 'value.with.dots'
+                                         })
       end.not_to raise_error
     end
 
     it 'handles very large values' do
-      large_string = 'x' * 10000
+      large_string = 'x' * 10_000
 
       expect do
         described_class.add_datadog_tags({
-          large_value: large_string
-        })
+                                           large_value: large_string
+                                         })
       end.not_to raise_error
     end
   end
