@@ -1,10 +1,10 @@
 # 📚 Documentation Centrale - Projet Foresy
 
-**Version :** 1.8  
+**Version :** 1.9  
 **Dernière mise à jour :** 23 décembre 2025  
 **Objectif :** Point d'entrée centralisé pour toute la documentation du projet Foresy API  
 **Production :** https://foresy-api.onrender.com  
-**Sécurité :** Stateless JWT, no token logging, no cookies
+**Sécurité :** Stateless JWT, no token logging, session minimale pour OmniAuth uniquement
 
 ---
 
@@ -64,7 +64,8 @@ Foresy/
 4. **[🛡️ CSRF Security Analysis](./technical/analysis/csrf_security_analysis_same_site_none.md)** - **CRITIQUE** - Analyse risque CSRF et sécurisation
 
 ### 📊 **Pour les Modifications Récentes**
-1. **[🔧 OAuth Services Elegant Solution 23/12/2025](./technical/changes/2025-12-23-OAuth_Services_Elegant_Solution.md)** - **MAJEUR** - Solution élégante élimination require_relative, conventions Zeitwerk respectées (23/12/2025)
+1. **[🔧 OmniAuth Session Middleware Fix 23/12/2025](./technical/changes/2025-12-23-OmniAuth_Session_Middleware_Fix.md)** - **CRITIQUE** - Résolution erreur OmniAuth::NoSessionError bloquant tous les endpoints (23/12/2025)
+2. **[🔧 OAuth Services Elegant Solution 23/12/2025](./technical/changes/2025-12-23-OAuth_Services_Elegant_Solution.md)** - **MAJEUR** - Solution élégante élimination require_relative, conventions Zeitwerk respectées (23/12/2025)
 2. **[🐳 Docker Build Health Check 23/12/2025](./technical/changes/2025-12-23-Docker_Build_Health_Check_Resolution.md)** - **RÉSOLU** - Conteneurs Docker healthy, health endpoints fonctionnels (23/12/2025)
 3. **[📊 Standardisation APM Datadog 22/12/2025](./technical/changes/2025-12-22-Datadog_APM_Standardization_Resolution.md)** - **RÉSOLU** - Standardisation API Datadog multi-versions (22/12/2025)
 3. **[🚨 Migration Rails Planifiée 20/12/2025](./technical/changes/2025-12-20-Rails_Migration_Task_Planning.md)** - **CRITIQUE** - Planification migration Rails 7.1.5.1 → 7.2+ (EOL)

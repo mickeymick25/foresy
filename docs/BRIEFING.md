@@ -1,7 +1,7 @@
 # BRIEFING.md - Foresy API Project
 
 **For AI Context Understanding - Optimized for Fast Project Comprehension**  
-**Last Updated:** 22 décembre 2025
+**Last Updated:** 23 décembre 2025
 
 ---
 
@@ -14,9 +14,9 @@
 - **Status**: Production Ready - All tests passing, excellent code quality
 
 ### Quality Metrics (Dec 2025)
-- **RSpec Tests**: 151 examples, 0 failures
+- **RSpec Tests**: 204 examples, 0 failures
 - **OAuth Tests**: 9/9 acceptance + 10/10 integration = 100% success
-- **Code Quality**: Rubocop 77 files, 0 offenses detected
+- **Code Quality**: Rubocop 81 files, 0 offenses detected
 - **Security**: Brakeman 0 critical vulnerabilities, no token logging, stateless JWT
 - **CI/CD**: GitHub Actions CI + Render CD fully functional
 - **Production**: Deployed on Render (https://foresy-api.onrender.com)
@@ -32,6 +32,16 @@
 ---
 
 ## 📅 RECENT CHANGES TIMELINE
+
+### Dec 23, 2025 - 🔧 OmniAuth Session Middleware Fix (CRITICAL)
+- **Objective**: Fix OmniAuth::NoSessionError blocking all API endpoints
+- **Problem**: OmniAuth middleware requires session but Foresy had sessions disabled for stateless JWT
+- **Changes Made**:
+  - Added Cookies and Session::CookieStore middlewares in `config/application.rb`
+  - Configured minimal cookie session in `config/initializers/session_store.rb`
+  - Added `request_validation_phase = nil` in `config/initializers/omniauth.rb`
+- **Result**: All endpoints functional, 204 tests pass, 0 Rubocop offenses
+- **Impact**: CRITICAL - Unblocks production deployment on Render
 
 ### Dec 23, 2025 - 🔧 CI/Rubocop/Standards/Configuration Fix (CRITICAL)
 - **Objective**: Restore Rails configuration files, align OAuth files with Rails conventions, fix Rubocop violations for CI compliance

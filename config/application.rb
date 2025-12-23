@@ -36,8 +36,10 @@ module App
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
 
-    # API-only mode: No cookies or sessions needed
-    # Authentication is fully stateless via JWT tokens
-    # OAuth flow uses direct code exchange (OAuthCodeExchangeService)
+    # Session middleware configuration for OmniAuth compatibility
+    # OmniAuth requires session support to store CSRF state during OAuth flow
+    # Authentication remains stateless via JWT tokens - session is only for OAuth
+    config.middleware.use ActionDispatch::Cookies
+    config.middleware.use ActionDispatch::Session::CookieStore, key: '_foresy_session'
   end
 end

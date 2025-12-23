@@ -2,19 +2,26 @@
 
 # config/initializers/session_store.rb
 
-# Session store disabled - Foresy uses JWT stateless authentication
+# Session store configuration for Foresy API
 #
-# RATIONALE:
+# CONTEXT:
+# - Foresy uses JWT stateless authentication for API endpoints
+# - OmniAuth middleware requires a session to function (stores CSRF state)
+# - We use a minimal cookie session ONLY for OmniAuth compatibility
+#
+# SECURITY CONSIDERATIONS:
 # - Authentication is handled via JWT tokens in Authorization headers
-# - No cookies are used for user authentication
-# - This eliminates CSRF risk entirely
-# - OAuth callbacks are handled internally by OmniAuth
-# - SameSite: :none was configured for OAuth but not needed for auth
+# - The session is NOT used for user authentication
+# - Session is only used internally by OmniAuth for OAuth flow
+# - CSRF protection for OAuth is handled by OmniAuth's state parameter
 #
-# SECURITY BENEFITS:
-# - Eliminates CSRF attack surface completely
-# - Simplifies authentication architecture
-# - No session management overhead
-# - Clear separation: JWT for auth, OmniAuth for OAuth flow
+# This configuration provides:
+# - Minimal session support for OmniAuth middleware
+# - No impact on JWT-based API authentication
+# - Compatibility with stateless API design
 
-Rails.application.config.session_store :disabled
+Rails.application.config.session_store :cookie_store,
+                                       key: '_foresy_session',
+                                       same_site: :lax,
+                                       secure: Rails.env.production?,
+                                       expire_after: 1.hour
