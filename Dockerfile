@@ -77,8 +77,8 @@ ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 # Expose port (Render uses PORT env variable)
 EXPOSE 3000
 
-# Start Rails server - JSON array format for proper signal handling
-CMD ["bundle", "exec", "rails", "server", "-b", "0.0.0.0", "-p", "${PORT:-3000}"]
+# Start Rails server - Shell command for proper PORT variable expansion
+CMD bundle exec rails server -b 0.0.0.0 -p ${PORT:-3000}
 
 # Add labels for better image management
 LABEL maintainer="Foresy Team" \
