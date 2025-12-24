@@ -360,7 +360,13 @@ Foresy/
 ## ✅ NEXT STEPS & TODO LIST
 
 ### Immediate Actions (High Priority)
-1. **Rails Migration Planning**
+1. **Sprint 3 Completion - E2E Testing Infrastructure ✅ COMPLETED**
+   - **Task**: Finalize E2E staging tests (scripts + documentation)
+   - **Completed**: Smoke tests (15 endpoints) + E2E auth flow (8 tests) in bin/e2e/
+   - **Impact**: Full CI/CD staging test coverage, automated end-to-end validation
+   - **Status**: ✅ All tests passing locally and ready for staging deployment
+
+2. **Rails Migration Planning**
    - **Task**: Plan migration from Rails 7.1.5.1 to 7.2+
    - **Impact**: Remove Brakeman EOL warning, security updates
    - **Timeline**: Next 3-6 months

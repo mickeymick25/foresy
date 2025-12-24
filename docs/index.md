@@ -76,7 +76,8 @@ Foresy/
 
 ### 📊 **Pour les Modifications Récentes**
 1. **[🔒 Token Revocation Endpoints 24/12/2025](./technical/guides/token_revocation_strategy.md)** - **NOUVEAU** - Endpoints DELETE /revoke et /revoke_all pour invalidation des tokens (24/12/2025)
-2. **[🔧 OmniAuth Session Middleware Fix 23/12/2025](./technical/changes/2025-12-23-OmniAuth_Session_Middleware_Fix.md)** - **CRITIQUE** - Résolution erreur OmniAuth::NoSessionError bloquant tous les endpoints (23/12/2025)
+2. **[🧪 Tests E2E Staging Infrastructure 24/12/2025](./technical/testing/e2e_staging_tests_guide.md)** - **NOUVEAU** - Scripts E2E pour staging: smoke_test.sh (15 tests) et e2e_auth_flow.sh (8 tests), analyse cache OAuth (24/12/2025)
+3. **[🔧 OmniAuth Session Middleware Fix 23/12/2025](./technical/changes/2025-12-23-OmniAuth_Session_Middleware_Fix.md)** - **CRITIQUE** - Résolution erreur OmniAuth::NoSessionError bloquant tous les endpoints (23/12/2025)
 3. **[🔧 OAuth Services Elegant Solution 23/12/2025](./technical/changes/2025-12-23-OAuth_Services_Elegant_Solution.md)** - **MAJEUR** - Solution élégante élimination require_relative, conventions Zeitwerk respectées (23/12/2025)
 4. **[🐳 Docker Build Health Check 23/12/2025](./technical/changes/2025-12-23-Docker_Build_Health_Check_Resolution.md)** - **RÉSOLU** - Conteneurs Docker healthy, health endpoints fonctionnels (23/12/2025)
 3. **[📊 Standardisation APM Datadog 22/12/2025](./technical/changes/2025-12-22-Datadog_APM_Standardization_Resolution.md)** - **RÉSOLU** - Standardisation API Datadog multi-versions (22/12/2025)
