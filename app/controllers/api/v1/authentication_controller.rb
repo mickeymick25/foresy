@@ -6,7 +6,7 @@ module Api
     # Handles user login, logout, token refresh, and OAuth authentication
     class AuthenticationController < ApplicationController
       include ::OAuthConcern
-      before_action :authenticate_access_token!, only: [:logout]
+      before_action :authenticate_access_token!, only: %i[logout revoke revoke_all]
 
       # === POST /api/v1/auth/login ===
       def login
@@ -62,6 +62,37 @@ module Api
 
         current_session.update(expires_at: Time.current)
         render json: { message: 'Logged out successfully' }, status: :ok
+      end
+
+      # === DELETE /api/v1/auth/revoke ===
+      # Revokes the current session token
+      def revoke
+        return render_unauthorized('No active session') if current_session.nil?
+
+        current_session.update(expires_at: Time.current)
+        Rails.logger.info "[Auth] Token revoked for user #{current_user.id}"
+
+        render json: {
+          message: 'Token revoked successfully',
+          revoked_at: Time.current.iso8601
+        }, status: :ok
+      end
+
+      # === DELETE /api/v1/auth/revoke_all ===
+      # Revokes all sessions for the current user
+      def revoke_all
+        return render_unauthorized('No active session') if current_user.nil?
+
+        revoked_count = current_user.sessions.active.count
+        current_user.invalidate_all_sessions!
+
+        Rails.logger.info "[Auth] All tokens revoked for user #{current_user.id} (#{revoked_count} sessions)"
+
+        render json: {
+          message: 'All tokens revoked successfully',
+          revoked_count: revoked_count,
+          revoked_at: Time.current.iso8601
+        }, status: :ok
       end
 
       private
