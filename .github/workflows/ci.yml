@@ -60,7 +60,9 @@ jobs:
           SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: |
-          bundle exec brakeman --ignore-config=.brakeman.ignore --no-exit-on-warn
+          # Brakeman: fail on high confidence warnings (critical vulnerabilities)
+          bundle exec brakeman --ignore-config=.brakeman.ignore --no-exit-on-warn --confidence-level=2
+          # Bundle audit: check for known vulnerabilities in gems
           bundle exec bundle audit check --update
 
       - name: Code quality

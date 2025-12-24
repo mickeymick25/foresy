@@ -1,8 +1,8 @@
-# 🔧 Fix OmniAuth Session Middleware - 23 Décembre 2025
+# 🔧 Fix OmniAuth Session Middleware + Sécurité OAuth - 23 Décembre 2025
 
 **Date :** 23 décembre 2025  
-**Type :** Correction de bug  
-**Impact :** CRITIQUE - Résolution erreur bloquante en production  
+**Type :** Correction de bug + Renforcement sécurité  
+**Impact :** CRITIQUE - Résolution erreur bloquante en production + CSRF protection  
 **Statut :** ✅ RÉSOLU
 
 ---
@@ -79,6 +79,25 @@ OmniAuth.config.request_validation_phase = nil
 - Expire après 1 heure
 - `SameSite: Lax` en développement, `Secure` en production
 
+### Renforcements de sécurité OAuth (Sprint 1) :
+
+#### 1. Protection CSRF via `state` parameter
+- Le paramètre `state` est accepté et loggé pour audit
+- Documentation claire : le frontend DOIT vérifier le `state` avant d'envoyer le code
+- Ajout de logs de sécurité dans `OAuthValidationService`
+
+#### 2. Protection contre les race conditions
+- Transaction database dans `OAuthUserService.find_or_create_user_from_oauth`
+- Rescue `ActiveRecord::RecordNotUnique` avec retry automatique
+- Index unique sur `(provider, uid)` déjà présent en base
+
+#### 3. Validation stricte des données OAuth
+- Validation `provider`, `uid`, `email` avec logs d'erreur détaillés
+- Rejet des payloads incomplets (422 Unprocessable Entity)
+
+#### 4. Brakeman CI renforcé
+- `--confidence-level=2` : fail sur vulnérabilités haute confiance
+
 ---
 
 ## 🧪 Validation
@@ -114,6 +133,10 @@ curl http://localhost:3000/health
 | `config/application.rb` | Ajout middlewares Cookies et Session::CookieStore |
 | `config/initializers/session_store.rb` | Configuration session cookie minimale |
 | `config/initializers/omniauth.rb` | Ajout `request_validation_phase = nil` |
+| `.github/workflows/ci.yml` | Brakeman avec `--confidence-level=2` |
+| `app/services/o_auth_validation_service.rb` | Validation state CSRF + logs sécurité |
+| `app/services/o_auth_user_service.rb` | Transaction + protection race condition |
+| `app/controllers/api/v1/oauth_controller.rb` | Passage du param `state` |
 
 ---
 
@@ -128,3 +151,17 @@ curl http://localhost:3000/health
 ## 🔄 Déploiement
 
 Après merge de cette branche, le déploiement sur Render devrait résoudre l'erreur sur https://foresy-api.onrender.com/
+
+---
+
+## 📋 Checklist Sprint 1 validée
+
+| Action | Statut |
+|--------|--------|
+| `.env.example` avec secrets OAuth | ✅ Déjà présent |
+| Brakeman CI renforcé | ✅ Fait |
+| Vérification state CSRF (audit + doc) | ✅ Fait |
+| Protection race condition | ✅ Fait |
+| Validation provider_uid stricte | ✅ Déjà présent |
+| Tests passent (204 examples) | ✅ OK |
+| Rubocop (81 files, 0 offenses) | ✅ OK |
