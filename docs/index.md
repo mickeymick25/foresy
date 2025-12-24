@@ -1,6 +1,6 @@
 # 📚 Documentation Centrale - Projet Foresy
 
-**Version :** 2.0  
+**Version :** 2.1  
 **Dernière mise à jour :** 24 décembre 2025  
 **Objectif :** Point d'entrée centralisé pour toute la documentation du projet Foresy API  
 **Production :** https://foresy-api.onrender.com  
