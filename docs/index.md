@@ -1,10 +1,10 @@
 # 📚 Documentation Centrale - Projet Foresy
 
-**Version :** 1.9  
-**Dernière mise à jour :** 23 décembre 2025  
+**Version :** 2.0  
+**Dernière mise à jour :** 24 décembre 2025  
 **Objectif :** Point d'entrée centralisé pour toute la documentation du projet Foresy API  
 **Production :** https://foresy-api.onrender.com  
-**Sécurité :** Stateless JWT, no token logging, session minimale pour OmniAuth uniquement
+**Sécurité :** Stateless JWT, token revocation, no token logging, session minimale pour OmniAuth uniquement
 
 ---
 
@@ -26,7 +26,8 @@ Foresy/
     │   └── 01_FEATURE OAUTH...  # Feature Contract OAuth
     └── technical/               # Documentation technique centralisée
         ├── guides/              # 📖 Guides d'intégration
-        │   └── oauth_flow_documentation.md  # 🔐 Guide complet OAuth
+        │   ├── oauth_flow_documentation.md      # 🔐 Guide complet OAuth
+        │   └── token_revocation_strategy.md     # 🔒 Stratégie de revocation des tokens
         ├── analysis/            # Analyses techniques approfondies (Déc 2025)
         │   ├── pgcrypto_alternatives_analysis.md
         │   ├── google_oauth_service_mock_solution.md
@@ -55,13 +56,13 @@ Foresy/
 1. **[🚀 Production Live](https://foresy-api.onrender.com)** - API déployée sur Render
 2. **[README.md](../README.md)** - Vue d'ensemble du projet, installation, utilisation
 3. **[🔐 Guide OAuth](./technical/guides/oauth_flow_documentation.md)** - Documentation complète du flux OAuth (state, scopes, JWT, exemples frontend)
-4. **[📮 Postman Collection](./postman/Foresy_API.postman_collection.json)** - Collection pour tester les endpoints
+4. **[🔒 Token Revocation](./technical/guides/token_revocation_strategy.md)** - Stratégie de revocation des tokens (sécurité)
+5. **[📮 Postman Collection](./postman/Foresy_API.postman_collection.json)** - Collection pour tester les endpoints
 
 ### 🔧 **Pour le Développement**
-1. **[🚀 Production Live](https://foresy-api.onrender.com)** - API déployée sur Render
-2. **[README.md](../README.md)** - Vue d'ensemble du projet, installation, utilisation
-3. **[📮 Postman Collection](./postman/Foresy_API.postman_collection.json)** - Collection pour tester les endpoints
-4. **[🚨 Migration Rails Planifiée](./technical/changes/2025-12-20-Rails_Migration_Task_Planning.md)** - Migration Rails 7.1.5.1 → 7.2+ (EOL octobre 2025)
+1. **[Analyse Technique](./technical/audits/ANALYSE_TECHNIQUE_FORESY.md)** - Architecture et analyse technique complète
+2. **[🚨 Migration Rails Planifiée](./technical/changes/2025-12-20-Rails_Migration_Task_Planning.md)** - Migration Rails 7.1.5.1 → 7.2+ (EOL octobre 2025)
+3. **[Corrections Janvier 2025](./technical/corrections/CORRECTIONS_JANVIER_2025.md)** - Résolution problèmes CI historiques
 
 ### 🔧 **Pour le Développement**
 1. **[Analyse Technique](./technical/audits/ANALYSE_TECHNIQUE_FORESY.md)** - Architecture et analyse technique complète
@@ -74,9 +75,10 @@ Foresy/
 4. **[🛡️ CSRF Security Analysis](./technical/analysis/csrf_security_analysis_same_site_none.md)** - **CRITIQUE** - Analyse risque CSRF et sécurisation
 
 ### 📊 **Pour les Modifications Récentes**
-1. **[🔧 OmniAuth Session Middleware Fix 23/12/2025](./technical/changes/2025-12-23-OmniAuth_Session_Middleware_Fix.md)** - **CRITIQUE** - Résolution erreur OmniAuth::NoSessionError bloquant tous les endpoints (23/12/2025)
-2. **[🔧 OAuth Services Elegant Solution 23/12/2025](./technical/changes/2025-12-23-OAuth_Services_Elegant_Solution.md)** - **MAJEUR** - Solution élégante élimination require_relative, conventions Zeitwerk respectées (23/12/2025)
-2. **[🐳 Docker Build Health Check 23/12/2025](./technical/changes/2025-12-23-Docker_Build_Health_Check_Resolution.md)** - **RÉSOLU** - Conteneurs Docker healthy, health endpoints fonctionnels (23/12/2025)
+1. **[🔒 Token Revocation Endpoints 24/12/2025](./technical/guides/token_revocation_strategy.md)** - **NOUVEAU** - Endpoints DELETE /revoke et /revoke_all pour invalidation des tokens (24/12/2025)
+2. **[🔧 OmniAuth Session Middleware Fix 23/12/2025](./technical/changes/2025-12-23-OmniAuth_Session_Middleware_Fix.md)** - **CRITIQUE** - Résolution erreur OmniAuth::NoSessionError bloquant tous les endpoints (23/12/2025)
+3. **[🔧 OAuth Services Elegant Solution 23/12/2025](./technical/changes/2025-12-23-OAuth_Services_Elegant_Solution.md)** - **MAJEUR** - Solution élégante élimination require_relative, conventions Zeitwerk respectées (23/12/2025)
+4. **[🐳 Docker Build Health Check 23/12/2025](./technical/changes/2025-12-23-Docker_Build_Health_Check_Resolution.md)** - **RÉSOLU** - Conteneurs Docker healthy, health endpoints fonctionnels (23/12/2025)
 3. **[📊 Standardisation APM Datadog 22/12/2025](./technical/changes/2025-12-22-Datadog_APM_Standardization_Resolution.md)** - **RÉSOLU** - Standardisation API Datadog multi-versions (22/12/2025)
 3. **[🚨 Migration Rails Planifiée 20/12/2025](./technical/changes/2025-12-20-Rails_Migration_Task_Planning.md)** - **CRITIQUE** - Planification migration Rails 7.1.5.1 → 7.2+ (EOL)
 4. **[🔧 Refactoring Authenticatable 20/12/2025](./technical/changes/2025-12-20-Authenticatable_Concern_Refactoring.md)** - **MAJEUR** - Séparation responsabilités auth

@@ -1,7 +1,7 @@
 # BRIEFING.md - Foresy API Project
 
 **For AI Context Understanding - Optimized for Fast Project Comprehension**  
-**Last Updated:** 23 décembre 2025
+**Last Updated:** 24 décembre 2025
 
 ---
 
@@ -14,10 +14,10 @@
 - **Status**: Production Ready - All tests passing, excellent code quality
 
 ### Quality Metrics (Dec 2025)
-- **RSpec Tests**: 204 examples, 0 failures
-- **OAuth Tests**: 9/9 acceptance + 10/10 integration = 100% success
-- **Code Quality**: Rubocop 81 files, 0 offenses detected
-- **Security**: Brakeman 0 critical vulnerabilities, no token logging, stateless JWT
+- **RSpec Tests**: 221 examples, 0 failures
+- **OAuth Tests**: 15/15 acceptance (Feature Contract compliant)
+- **Code Quality**: Rubocop 82 files, 0 offenses detected
+- **Security**: Brakeman 0 critical vulnerabilities, no token logging, stateless JWT, token revocation
 - **CI/CD**: GitHub Actions CI + Render CD fully functional
 - **Production**: Deployed on Render (https://foresy-api.onrender.com)
 
@@ -32,6 +32,33 @@
 ---
 
 ## 📅 RECENT CHANGES TIMELINE
+
+### Dec 24, 2025 - 🔒 Token Revocation Endpoints (NEW FEATURE)
+- **Objective**: Allow users to invalidate their JWT tokens proactively
+- **New Endpoints**:
+  - `DELETE /api/v1/auth/revoke` - Revoke current session token
+  - `DELETE /api/v1/auth/revoke_all` - Revoke all user sessions
+- **Features**:
+  - Immediate token invalidation
+  - Audit logging for security
+  - Returns revoked_count for revoke_all
+  - Isolated per user
+- **Result**: 221 tests pass, 12 new tests for revocation
+- **Documentation**: `docs/technical/guides/token_revocation_strategy.md`
+
+### Dec 24, 2025 - 📖 OAuth Flow Documentation (DOCS)
+- **Objective**: Complete documentation of OAuth flow for frontend integration
+- **Contents**: State/CSRF protection, scopes, JWT claims, React/Vue examples
+- **Documentation**: `docs/technical/guides/oauth_flow_documentation.md`
+
+### Dec 24, 2025 - 🧪 OAuth Feature Contract Tests (TESTS)
+- **Objective**: Improve OAuth test coverage to match Feature Contract
+- **New Tests**:
+  - Existing user login (no duplicate creation)
+  - New user automatic creation
+  - JWT claims validation (user_id, exp)
+  - Provider uniqueness constraints
+- **Result**: 209 → 221 tests (+12 new)
 
 ### Dec 23, 2025 - 🔧 OmniAuth Session Middleware Fix (CRITICAL)
 - **Objective**: Fix OmniAuth::NoSessionError blocking all API endpoints
