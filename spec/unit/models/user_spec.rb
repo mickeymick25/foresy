@@ -18,7 +18,9 @@ RSpec.describe User, type: :model do
     it { should allow_value('password123').for(:password) }
     it { should_not allow_value('short').for(:password) }
 
-    it { should validate_inclusion_of(:active).in_array([true, false]) }
+    # NOTE: validate_inclusion_of(:active) removed - shoulda-matchers warns that
+    # boolean columns automatically convert non-boolean values, making this test meaningless.
+    # The 'active' column has a default value (true) and null: false constraint in the schema.
 
     describe 'Email uniqueness behavior' do
       # Test email uniqueness for traditional users (no provider)
