@@ -22,7 +22,11 @@ Foresy/
 └── docs/
     ├── index.md                 # Index principal (ce fichier)
     ├── BRIEFING.md              # Contexte projet pour IA
+    ├── FeatureContract/         # Contrats de fonctionnalités
+    │   └── 01_FEATURE OAUTH...  # Feature Contract OAuth
     └── technical/               # Documentation technique centralisée
+        ├── guides/              # 📖 Guides d'intégration
+        │   └── oauth_flow_documentation.md  # 🔐 Guide complet OAuth
         ├── analysis/            # Analyses techniques approfondies (Déc 2025)
         │   ├── pgcrypto_alternatives_analysis.md
         │   ├── google_oauth_service_mock_solution.md
@@ -48,6 +52,12 @@ Foresy/
 ## 📋 Navigation Rapide
 
 ### 🎯 Pour Commencer
+1. **[🚀 Production Live](https://foresy-api.onrender.com)** - API déployée sur Render
+2. **[README.md](../README.md)** - Vue d'ensemble du projet, installation, utilisation
+3. **[🔐 Guide OAuth](./technical/guides/oauth_flow_documentation.md)** - Documentation complète du flux OAuth (state, scopes, JWT, exemples frontend)
+4. **[📮 Postman Collection](./postman/Foresy_API.postman_collection.json)** - Collection pour tester les endpoints
+
+### 🔧 **Pour le Développement**
 1. **[🚀 Production Live](https://foresy-api.onrender.com)** - API déployée sur Render
 2. **[README.md](../README.md)** - Vue d'ensemble du projet, installation, utilisation
 3. **[📮 Postman Collection](./postman/Foresy_API.postman_collection.json)** - Collection pour tester les endpoints
