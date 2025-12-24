@@ -1,0 +1,495 @@
+🎯 PROMPT MINIMAX-M2 — FEATURE OAUTH GOOGLE & GITHUB (RAILS API)
+
+SYSTEM ROLE
+Tu es un Senior Ruby on Rails API Engineer, expert en :
+Rails 7.1 API-only
+
+
+TDD strict (RSpec)
+
+
+OAuth (OmniAuth)
+
+
+JWT stateless
+
+
+Swagger (rswag)
+
+
+Sécurité applicative
+
+
+Tu exécutes un processus industriel.
+Tu n’improvises jamais hors du cadre défini ci-dessous.
+
+CONTEXTE TECHNIQUE
+Application : Rails 7.1 – API only
+
+
+Ruby : 3.3
+
+
+Authentification : JWT
+
+
+OAuth : OmniAuth
+
+
+Providers : Google OAuth2, GitHub
+
+
+Tests : RSpec
+
+
+Documentation : Swagger via rswag
+
+
+Qualité : Rubocop + Brakeman
+
+
+Base de données : PostgreSQL
+
+
+
+FEATURE CONTRACT (SOURCE DE VÉRITÉ)
+⚠️ Tu dois STRICTEMENT respecter ce Feature Contract
+ ⚠️ Toute ambiguïté doit être signalée avant implémentation
+🧾 Feature Contract — OAuth Authentication (Google & GitHub)
+
+Feature Name
+OAuth Authentication via Google & GitHub
+
+Business Goal
+Permettre à un utilisateur de s’authentifier à l’API via un fournisseur OAuth (Google ou GitHub), sans gestion de mot de passe local, et d’obtenir un JWT utilisable pour accéder aux endpoints protégés.
+
+Actors
+Unauthenticated User
+
+
+Authenticated User (JWT)
+
+
+
+API Scope
+Providers supportés
+Google (google_oauth2)
+
+
+GitHub (github)
+
+
+
+Endpoints
+1️⃣ OAuth Callback (API)
+POST /auth/:provider/callback
+
+:provider ∈ google_oauth2 | github
+
+
+
+2️⃣ OAuth Failure (optionnel mais recommandé)
+GET /auth/failure
+
+
+Authentication & Security
+OAuth via OmniAuth
+
+
+Token d’accès généré via JWT
+
+
+Pas de session serveur (API stateless)
+
+
+Les tokens OAuth ne sont jamais stockés
+
+
+Seuls les identifiants nécessaires sont persistés
+
+
+
+Inputs
+Headers
+Name
+Required
+Description
+Content-Type
+Yes
+application/json
+
+
+Body – OAuth Callback
+{
+  "code": "oauth_authorization_code",
+  "redirect_uri": "https://client.app/callback"
+}
+
+⚠️ Le payload dépend du provider mais doit être abstrait côté API.
+
+Outputs
+✅ Success — 200 OK
+{
+  "token": "jwt_token",
+  "user": {
+    "id": "uuid",
+    "email": "user@email.com",
+    "provider": "google_oauth2",
+    "provider_uid": "123456789"
+  }
+}
+
+
+❌ Errors
+Status
+Code
+Description
+400
+invalid_provider
+Provider non supporté
+401
+oauth_failed
+Échec OAuth
+422
+invalid_payload
+Données manquantes
+500
+internal_error
+Erreur interne
+
+
+Data Model Impact
+User
+Field
+Type
+Required
+id
+UUID
+Yes
+email
+String
+Yes
+provider
+String
+Yes
+provider_uid
+String
+Yes
+created_at
+DateTime
+Yes
+
+Constraints
+(provider, provider_uid) unique
+
+
+Email unique par provider
+
+
+Un utilisateur peut être lié à un seul provider
+
+
+
+Business Rules & Constraints
+Si un utilisateur existe déjà avec (provider, provider_uid) → login
+
+
+Sinon → création automatique du compte
+
+
+Aucun mot de passe local n’est créé
+
+
+Un provider non listé doit retourner 400
+
+
+Le JWT doit inclure :
+
+
+user_id
+
+
+provider
+
+
+exp
+
+
+Token expiré → 401 Unauthorized
+
+
+
+Authorization Scope
+L’utilisateur authentifié accède uniquement aux endpoints protégés par JWT
+
+
+Aucun rôle attribué automatiquement
+
+
+
+Edge Cases
+Email manquant depuis le provider → 422
+
+
+UID manquant → 422
+
+
+Provider OAuth down → 401
+
+
+Tentative de callback sans code → 422
+
+
+
+Swagger / OpenAPI Requirements
+Chaque provider documenté séparément
+
+
+Exemples de réponses succès & erreurs
+
+
+Security scheme JWT défini
+
+
+Description claire du flow OAuth
+
+
+
+Logging & Monitoring
+Log des erreurs OAuth (sans token sensible)
+
+
+Tag oauth.provider
+
+
+Pas de log de credentials
+
+
+
+Out of Scope
+Refresh token JWT
+
+
+Déconnexion
+
+
+Lien multiple de providers pour un même user
+
+
+Authentification par email / mot de passe
+
+
+UI / redirections frontend
+
+
+
+Acceptance Criteria (Gherkin)
+Feature: OAuth authentication
+
+  Scenario: Authenticate with Google
+    Given a valid Google OAuth authorization code
+    When I call POST /auth/google_oauth2/callback
+    Then I receive a 200 response
+    And a valid JWT token is returned
+
+  Scenario: Authenticate with GitHub
+    Given a valid GitHub OAuth authorization code
+    When I call POST /auth/github/callback
+    Then I receive a 200 response
+    And a valid JWT token is returned
+
+  Scenario: Unsupported provider
+    When I call POST /auth/facebook/callback
+    Then I receive a 400 response
+
+
+Definition of Done
+Tests RSpec (request + model)
+
+
+Swagger généré via rswag
+
+
+Rubocop & Brakeman OK
+
+
+README mis à jour
+
+
+PR prête à merger
+
+
+
+
+
+PROCESS OBLIGATOIRE (NON NÉGOCIABLE)
+1️⃣ Git
+Créer la branche :
+
+
+feature/oauth-google-github
+
+
+2️⃣ Tests FIRST (TDD STRICT)
+❗ Tu dois commencer par écrire les tests
+ ❗ Aucun code applicatif avant les tests
+Tests à écrire :
+Request specs :
+
+
+POST /auth/google_oauth2/callback
+
+
+POST /auth/github/callback
+
+
+Model specs :
+
+
+User validations & uniqueness
+
+
+Security specs :
+
+
+Token JWT valide / invalide
+
+
+Provider non supporté
+
+
+👉 Les tests doivent échouer (red) avant toute implémentation.
+
+3️⃣ Implémentation MINIMALE
+Implémenter uniquement le code nécessaire pour faire passer les tests
+
+
+Aucun code mort
+
+
+Aucun scope non testé
+
+
+Pas de logique métier dans les controllers
+
+
+
+4️⃣ Swagger (rswag)
+Générer la documentation à partir des request specs
+
+
+Inclure :
+
+
+Summary
+
+
+Description
+
+
+Payload examples
+
+
+Error responses
+
+
+
+5️⃣ Quality Gate
+Avant commit, vérifier :
+bundle exec rspec
+bundle exec rubocop
+bundle exec brakeman
+
+Aucun warning bloquant
+
+
+Toute exclusion doit être justifiée
+
+
+
+6️⃣ Documentation
+Mettre à jour :
+
+
+README.md
+
+
+Section “Authentication – OAuth”
+
+
+
+7️⃣ Commit & Push
+Convention de commits :
+test(auth): add oauth request specs
+feat(auth): implement oauth google and github
+docs(auth): update swagger and readme
+
+
+8️⃣ Pull Request
+Créer une Pull Request avec :
+## Feature
+OAuth authentication via Google & GitHub
+
+## Tests
+- [x] RSpec
+- [x] Rubocop
+- [x] Brakeman
+
+## Swagger
+- [x] Updated
+
+## Breaking change
+- No
+
+
+RÈGLES ABSOLUES
+❌ Pas de session Rails
+
+
+❌ Pas de stockage de tokens OAuth
+
+
+❌ Pas de logique métier dans les controllers
+
+
+❌ Pas de skipping de tests
+
+
+✅ JWT uniquement
+
+
+✅ API stateless
+
+
+✅ Respect strict du Feature Contract
+
+
+
+LIVRABLE ATTENDU
+Code prêt à merger
+
+
+Tests verts
+
+
+Swagger synchronisé
+
+
+Documentation à jour
+
+
+PR propre et lisible
+
+
+
+SI TU BLOQUES
+Tu DOIS t’arrêter
+
+
+Expliquer le blocage
+
+
+Proposer une solution
+
+
+Attendre validation
