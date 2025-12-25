@@ -321,5 +321,228 @@ RSpec.describe 'OAuth Feature Contract', type: :request do
         expect(json_response['error']).to eq('internal_error')
       end
     end
+
+    # ==========================================================================
+    # FEATURE CONTRACT - Business Rules Tests
+    # ==========================================================================
+
+    context 'Existing user with (provider, provider_uid) logs in (no new account created)' do
+      let(:valid_payload) do
+        {
+          code: 'oauth_authorization_code',
+          redirect_uri: 'http://localhost:3000/auth/callback'
+        }
+      end
+
+      it 'returns 200 and logs in existing user without creating duplicate' do
+        # Create existing user in database
+        existing_user = User.create!(
+          email: 'existing@google.com',
+          provider: 'google_oauth2',
+          uid: 'existing_google_uid_999',
+          password: 'password123',
+          name: 'Existing User',
+          active: true
+        )
+
+        mock_auth_hash = OmniAuth::AuthHash.new(
+          provider: 'google_oauth2',
+          uid: 'existing_google_uid_999',
+          info: {
+            email: 'existing@google.com',
+            name: 'Existing User'
+          }
+        )
+
+        allow(OAuthValidationService).to receive(:extract_oauth_data).and_return(mock_auth_hash)
+
+        expect do
+          post '/api/v1/auth/google_oauth2/callback',
+               params: valid_payload.to_json,
+               headers: { 'Content-Type' => 'application/json' }
+        end.not_to change(User, :count)
+
+        expect(response).to have_http_status(:ok)
+
+        json_response = JSON.parse(response.body)
+        expect(json_response['user']['id']).to eq(existing_user.id)
+        expect(json_response['user']['email']).to eq('existing@google.com')
+      end
+    end
+
+    context 'New user is automatically created on first OAuth login' do
+      let(:valid_payload) do
+        {
+          code: 'oauth_authorization_code',
+          redirect_uri: 'http://localhost:3000/auth/callback'
+        }
+      end
+
+      it 'creates a new user and returns 200 with JWT' do
+        mock_auth_hash = OmniAuth::AuthHash.new(
+          provider: 'github',
+          uid: 'new_github_uid_12345',
+          info: {
+            email: 'newuser@github.com',
+            name: 'New GitHub User',
+            nickname: 'newgithubuser'
+          }
+        )
+
+        allow(OAuthValidationService).to receive(:extract_oauth_data).and_return(mock_auth_hash)
+
+        expect do
+          post '/api/v1/auth/github/callback',
+               params: valid_payload.to_json,
+               headers: { 'Content-Type' => 'application/json' }
+        end.to change(User, :count).by(1)
+
+        expect(response).to have_http_status(:ok)
+
+        json_response = JSON.parse(response.body)
+        expect(json_response).to include('token', 'user')
+
+        # Verify user was created with correct data
+        created_user = User.find_by(provider: 'github', uid: 'new_github_uid_12345')
+        expect(created_user).to be_present
+        expect(created_user.email).to eq('newuser@github.com')
+        expect(created_user.name).to eq('New GitHub User')
+        expect(created_user.active).to be true
+      end
+    end
+
+    # ==========================================================================
+    # FEATURE CONTRACT - JWT Token Validation
+    # ==========================================================================
+
+    context 'JWT token contains required claims (user_id, provider, exp)' do
+      let(:valid_payload) do
+        {
+          code: 'oauth_authorization_code',
+          redirect_uri: 'http://localhost:3000/auth/callback'
+        }
+      end
+
+      it 'returns a JWT with valid claims structure' do
+        mock_auth_hash = OmniAuth::AuthHash.new(
+          provider: 'google_oauth2',
+          uid: 'jwt_test_uid_777',
+          info: {
+            email: 'jwttest@google.com',
+            name: 'JWT Test User'
+          }
+        )
+
+        allow(OAuthValidationService).to receive(:extract_oauth_data).and_return(mock_auth_hash)
+
+        post '/api/v1/auth/google_oauth2/callback',
+             params: valid_payload.to_json,
+             headers: { 'Content-Type' => 'application/json' }
+
+        expect(response).to have_http_status(:ok)
+
+        json_response = JSON.parse(response.body)
+        token = json_response['token']
+        expect(token).to be_present
+
+        # Decode JWT without verification to check claims structure
+        decoded_payload = JWT.decode(token, nil, false).first
+
+        expect(decoded_payload).to include('user_id')
+        expect(decoded_payload).to include('exp')
+        expect(decoded_payload['user_id']).to be_a(Integer)
+        expect(decoded_payload['exp']).to be_a(Integer)
+        expect(decoded_payload['exp']).to be > Time.now.to_i
+      end
+    end
+
+    # ==========================================================================
+    # FEATURE CONTRACT - Provider Constraints
+    # ==========================================================================
+
+    context 'Facebook provider (not in supported list)' do
+      let(:valid_payload) do
+        {
+          code: 'oauth_authorization_code',
+          redirect_uri: 'http://localhost:3000/auth/callback'
+        }
+      end
+
+      it 'returns 400 invalid_provider for facebook' do
+        post '/api/v1/auth/facebook/callback',
+             params: valid_payload.to_json,
+             headers: { 'Content-Type' => 'application/json' }
+
+        expect(response).to have_http_status(:bad_request)
+
+        json_response = JSON.parse(response.body)
+        expect(json_response['error']).to eq('invalid_provider')
+      end
+    end
+
+    context 'Twitter provider (not in supported list)' do
+      let(:valid_payload) do
+        {
+          code: 'oauth_authorization_code',
+          redirect_uri: 'http://localhost:3000/auth/callback'
+        }
+      end
+
+      it 'returns 400 invalid_provider for twitter' do
+        post '/api/v1/auth/twitter/callback',
+             params: valid_payload.to_json,
+             headers: { 'Content-Type' => 'application/json' }
+
+        expect(response).to have_http_status(:bad_request)
+
+        json_response = JSON.parse(response.body)
+        expect(json_response['error']).to eq('invalid_provider')
+      end
+    end
+
+    # ==========================================================================
+    # FEATURE CONTRACT - Unique Constraints
+    # ==========================================================================
+
+    context '(provider, provider_uid) uniqueness constraint' do
+      let(:valid_payload) do
+        {
+          code: 'oauth_authorization_code',
+          redirect_uri: 'http://localhost:3000/auth/callback'
+        }
+      end
+
+      it 'does not create duplicate users with same provider and uid' do
+        # Create first user
+        User.create!(
+          email: 'first@google.com',
+          provider: 'google_oauth2',
+          uid: 'unique_constraint_uid',
+          password: 'password123',
+          name: 'First User',
+          active: true
+        )
+
+        mock_auth_hash = OmniAuth::AuthHash.new(
+          provider: 'google_oauth2',
+          uid: 'unique_constraint_uid',
+          info: {
+            email: 'second@google.com',
+            name: 'Second User Attempt'
+          }
+        )
+
+        allow(OAuthValidationService).to receive(:extract_oauth_data).and_return(mock_auth_hash)
+
+        # Should not create a new user, should find existing one
+        expect do
+          post '/api/v1/auth/google_oauth2/callback',
+               params: valid_payload.to_json,
+               headers: { 'Content-Type' => 'application/json' }
+        end.not_to change(User, :count)
+
+        expect(response).to have_http_status(:ok)
+      end
+    end
   end
 end

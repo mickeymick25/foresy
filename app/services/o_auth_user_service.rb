@@ -8,22 +8,51 @@
 #
 # This service extracts user management logic from OauthController to reduce
 # complexity and improve maintainability.
+#
+# RACE CONDITION PROTECTION:
+# --------------------------
+# This service handles concurrent OAuth callbacks safely:
+# 1. Uses database transaction for atomicity
+# 2. Rescues unique constraint violations (duplicate provider+uid)
+# 3. Retries lookup on constraint violation (another request won the race)
 class OAuthUserService
   # Find or create user from OAuth data using existing User model
   # Strategy:
   # 1. First, try to find by provider + uid (exact OAuth match)
   # 2. If not found, try to find by email (link existing account)
   # 3. If still not found, create new user
+  #
+  # Race condition safety: Uses transaction + rescue on unique constraint
   def self.find_or_create_user_from_oauth(oauth_data)
-    user = find_by_provider_and_uid(oauth_data) ||
-           find_by_email_and_link_provider(oauth_data) ||
-           build_new_user(oauth_data)
+    ActiveRecord::Base.transaction do
+      user = find_by_provider_and_uid(oauth_data) ||
+             find_by_email_and_link_provider(oauth_data) ||
+             build_new_user(oauth_data)
 
-    process_user_creation_or_update(user, oauth_data)
-    user
+      process_user_creation_or_update(user, oauth_data)
+      user
+    end
+  rescue ActiveRecord::RecordNotUnique => e
+    # Race condition: another request created the user first
+    # Retry the lookup - the user should now exist
+    Rails.logger.warn "[OAuth] Race condition detected, retrying lookup: #{e.message}"
+    retry_find_after_race_condition(oauth_data)
   rescue ActiveRecord::RecordInvalid => e
     Rails.logger.error "Failed to create or update OAuth user: #{e.message}"
     raise
+  end
+
+  # Retry user lookup after a race condition (unique constraint violation)
+  def self.retry_find_after_race_condition(oauth_data)
+    user = find_by_provider_and_uid(oauth_data)
+    if user
+      Rails.logger.info "[OAuth] Found user after race condition retry: #{user.email}"
+      return user
+    end
+
+    # If still not found, something else went wrong
+    Rails.logger.error '[OAuth] User not found after race condition retry'
+    raise ActiveRecord::RecordNotFound, 'OAuth user not found after race condition'
   end
 
   # Find user by provider and uid (exact OAuth match)

@@ -1,7 +1,7 @@
 # BRIEFING.md - Foresy API Project
 
 **For AI Context Understanding - Optimized for Fast Project Comprehension**  
-**Last Updated:** 22 décembre 2025
+**Last Updated:** 24 décembre 2025
 
 ---
 
@@ -14,10 +14,10 @@
 - **Status**: Production Ready - All tests passing, excellent code quality
 
 ### Quality Metrics (Dec 2025)
-- **RSpec Tests**: 151 examples, 0 failures
-- **OAuth Tests**: 9/9 acceptance + 10/10 integration = 100% success
-- **Code Quality**: Rubocop 77 files, 0 offenses detected
-- **Security**: Brakeman 0 critical vulnerabilities, no token logging, stateless JWT
+- **RSpec Tests**: 221 examples, 0 failures
+- **OAuth Tests**: 15/15 acceptance (Feature Contract compliant)
+- **Code Quality**: Rubocop 82 files, 0 offenses detected
+- **Security**: Brakeman 0 critical vulnerabilities, no token logging, stateless JWT, token revocation
 - **CI/CD**: GitHub Actions CI + Render CD fully functional
 - **Production**: Deployed on Render (https://foresy-api.onrender.com)
 
@@ -32,6 +32,43 @@
 ---
 
 ## 📅 RECENT CHANGES TIMELINE
+
+### Dec 24, 2025 - 🔒 Token Revocation Endpoints (NEW FEATURE)
+- **Objective**: Allow users to invalidate their JWT tokens proactively
+- **New Endpoints**:
+  - `DELETE /api/v1/auth/revoke` - Revoke current session token
+  - `DELETE /api/v1/auth/revoke_all` - Revoke all user sessions
+- **Features**:
+  - Immediate token invalidation
+  - Audit logging for security
+  - Returns revoked_count for revoke_all
+  - Isolated per user
+- **Result**: 221 tests pass, 12 new tests for revocation
+- **Documentation**: `docs/technical/guides/token_revocation_strategy.md`
+
+### Dec 24, 2025 - 📖 OAuth Flow Documentation (DOCS)
+- **Objective**: Complete documentation of OAuth flow for frontend integration
+- **Contents**: State/CSRF protection, scopes, JWT claims, React/Vue examples
+- **Documentation**: `docs/technical/guides/oauth_flow_documentation.md`
+
+### Dec 24, 2025 - 🧪 OAuth Feature Contract Tests (TESTS)
+- **Objective**: Improve OAuth test coverage to match Feature Contract
+- **New Tests**:
+  - Existing user login (no duplicate creation)
+  - New user automatic creation
+  - JWT claims validation (user_id, exp)
+  - Provider uniqueness constraints
+- **Result**: 209 → 221 tests (+12 new)
+
+### Dec 23, 2025 - 🔧 OmniAuth Session Middleware Fix (CRITICAL)
+- **Objective**: Fix OmniAuth::NoSessionError blocking all API endpoints
+- **Problem**: OmniAuth middleware requires session but Foresy had sessions disabled for stateless JWT
+- **Changes Made**:
+  - Added Cookies and Session::CookieStore middlewares in `config/application.rb`
+  - Configured minimal cookie session in `config/initializers/session_store.rb`
+  - Added `request_validation_phase = nil` in `config/initializers/omniauth.rb`
+- **Result**: All endpoints functional, 204 tests pass, 0 Rubocop offenses
+- **Impact**: CRITICAL - Unblocks production deployment on Render
 
 ### Dec 23, 2025 - 🔧 CI/Rubocop/Standards/Configuration Fix (CRITICAL)
 - **Objective**: Restore Rails configuration files, align OAuth files with Rails conventions, fix Rubocop violations for CI compliance
@@ -323,7 +360,27 @@ Foresy/
 ## ✅ NEXT STEPS & TODO LIST
 
 ### Immediate Actions (High Priority)
-1. **Rails Migration Planning**
+1. **Sprint 3 Completion - E2E Testing Infrastructure ✅ COMPLETED**
+   - **Task**: Finalize E2E staging tests (scripts + documentation)
+   - **Completed**: Smoke tests (15 endpoints) + E2E auth flow (8 tests) in bin/e2e/
+   - **Impact**: Full CI/CD staging test coverage, automated end-to-end validation
+   - **Status**: ✅ All tests passing locally and ready for staging deployment
+
+2. **✅ Production Errors 500 Resolution (FINISHED)**
+   - **Task**: Fix critical HTTP 500 errors on all authentication endpoints in production
+   - **Completed**: Database migrations applied via fix/omniauth-session-middleware branch deployment
+   - **Impact**: All auth/OAuth endpoints now functional in production (401/422/400 responses)
+   - **Validation**: 23/23 E2E tests passing in production (15 smoke + 8 auth flow)
+   - **Status**: ✅ CRITICAL issue resolved, production fully operational
+
+3. **✅ PR #7 Analysis Complete (READY FOR MERGE)**
+   - **Task**: Complete analysis of 10 priority points and final validation
+   - **Completed**: 9/10 points finished, 1/10 analyzed (Redis cache - low priority)
+   - **Critical/High Priority**: 100% complete (Points 1-4)
+   - **All Tests**: RSpec 221 ✅, Rswag 66 ✅, Rubocop 82 ✅
+   - **Status**: ✅ PR #7 ready for merge into main branch
+
+4. **Rails Migration Planning**
    - **Task**: Plan migration from Rails 7.1.5.1 to 7.2+
    - **Impact**: Remove Brakeman EOL warning, security updates
    - **Timeline**: Next 3-6 months

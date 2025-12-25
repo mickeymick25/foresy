@@ -102,7 +102,8 @@ module Api
       def validate_callback_payload
         OAuthValidationService.validate_callback_payload(
           code: params[:code],
-          redirect_uri: params[:redirect_uri]
+          redirect_uri: params[:redirect_uri],
+          state: params[:state]
         )
       end
 

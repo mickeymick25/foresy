@@ -51,6 +51,10 @@ end
 OmniAuth.config.allowed_request_methods = %i[post get]
 OmniAuth.config.silence_get_warning = true
 
+# IMPORTANT: Pour une API stateless, on désactive la vérification de session d'OmniAuth
+# OmniAuth n'interceptera que les routes /auth/:provider
+OmniAuth.config.request_validation_phase = nil
+
 # Logging informatif au démarrage
 Rails.logger.info '🔐 OmniAuth initialized successfully'
 

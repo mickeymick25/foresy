@@ -19,6 +19,8 @@ Rails.application.routes.draw do
       post 'auth/login', to: 'authentication#login'
       post 'auth/refresh', to: 'authentication#refresh'
       delete 'auth/logout', to: 'authentication#logout'
+      delete 'auth/revoke', to: 'authentication#revoke'
+      delete 'auth/revoke_all', to: 'authentication#revoke_all'
       post 'auth/:provider/callback', to: 'oauth#callback'
       get 'auth/failure', to: 'oauth#failure'
       post 'signup', to: 'users#create'
