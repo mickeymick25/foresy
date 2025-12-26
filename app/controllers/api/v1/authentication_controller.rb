@@ -6,6 +6,7 @@ module Api
     # Handles user login, logout, token refresh, and OAuth authentication
     class AuthenticationController < ApplicationController
       include ::OAuthConcern
+
       before_action :authenticate_access_token!, only: %i[logout revoke revoke_all]
 
       # === POST /api/v1/auth/login ===

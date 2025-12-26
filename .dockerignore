@@ -1,37 +1,151 @@
-# See https://docs.docker.com/engine/reference/builder/#dockerignore-file for more about ignoring files.
+# ============================================
+# Foresy API - Gold Level .dockerignore
+# Optimized for minimal image size and security
+# ============================================
 
-# Ignore git directory.
-/.git/
+# ============================================
+# Git
+# ============================================
+.git/
+.gitignore
+.gitattributes
 
-# Ignore bundler config.
-/.bundle
+# ============================================
+# Documentation
+# ============================================
+docs/
+*.md
+!README.md
+LICENSE
+CHANGELOG*
 
-# Ignore all environment files (except templates).
-/.env*
-!/.env*.erb
+# ============================================
+# IDE & Editor
+# ============================================
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
 
-# Ignore all default key files.
-/config/master.key
-/config/credentials/*.key
+# ============================================
+# Ruby/Rails Development
+# ============================================
+.bundle/
+vendor/bundle/
+.ruby-version
+.ruby-gemset
+.rvmrc
+.rbenv-vars
 
-# Ignore all logfiles and tempfiles.
-/log/*
-/tmp/*
-!/log/.keep
-!/tmp/.keep
+# ============================================
+# Environment & Secrets
+# ============================================
+.env
+.env.*
+!.env.example
+*.key
+config/master.key
+config/credentials/*.key
 
-# Ignore pidfiles, but keep the directory.
-/tmp/pids/*
-!/tmp/pids/.keep
+# ============================================
+# Logs & Temp Files
+# ============================================
+log/
+logs/
+*.log
+tmp/
+temp/
+*.tmp
+*.temp
+*.pid
 
-# Ignore storage (uploaded files in development and any SQLite databases).
-/storage/*
-!/storage/.keep
-/tmp/storage/*
-!/tmp/storage/.keep
+# ============================================
+# Test & Coverage (keep spec/ for test builds)
+# ============================================
+coverage/
+.simplecov
+spec/examples.txt
 
-# Ignore assets.
-/node_modules/
-/app/assets/builds/*
-!/app/assets/builds/.keep
-/public/assets
+# ============================================
+# CI/CD Configuration
+# ============================================
+.github/
+.gitlab-ci.yml
+.travis.yml
+.circleci/
+Jenkinsfile
+azure-pipelines.yml
+bitbucket-pipelines.yml
+
+# ============================================
+# Docker (avoid recursive copy)
+# ============================================
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+docker/
+
+# ============================================
+# Build Artifacts
+# ============================================
+*.gem
+*.rbc
+/.config
+/InstalledFiles
+/pkg/
+/spec/reports/
+/spec/examples.txt
+
+# ============================================
+# Node.js (if using for assets)
+# ============================================
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn.lock
+package-lock.json
+.npm/
+.yarn/
+
+# ============================================
+# Storage & Uploads
+# ============================================
+storage/
+public/uploads/
+public/assets/
+public/packs/
+public/packs-test/
+
+# ============================================
+# Database
+# ============================================
+*.sqlite3
+*.sqlite3-journal
+db/*.sqlite3
+db/*.sqlite3-*
+
+# ============================================
+# Render & Deployment
+# ============================================
+render.yaml
+fly.toml
+Procfile
+app.json
+heroku.yml
+
+# ============================================
+# Misc
+# ============================================
+*.bak
+*.backup
+*.old
+*.orig
+.byebug_history
+.irb_history
+.pry_history
+.bash_history
+Makefile
+Rakefile.bak

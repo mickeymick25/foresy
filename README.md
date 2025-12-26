@@ -1,7 +1,8 @@
 # Foresy API
 
 🚀 **Production Live:** https://foresy-api.onrender.com  
-🔒 **Security:** Stateless JWT, no token logging, no cookies
+🔒 **Security:** Stateless JWT, no token logging, no cookies  
+⚡ **Stack:** Ruby 3.4.8 + Rails 8.1.1
 
 Foresy est une application Ruby on Rails API-only qui fournit une API RESTful robuste pour la gestion des utilisateurs avec authentification JWT et support OAuth (Google & GitHub).
 
@@ -30,12 +31,14 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 ## 🏗️ Architecture Technique
 
 ### Stack Technology
-- **Ruby on Rails** : 7.1.5.1 (API-only)
+- **Ruby** : 3.4.8
+- **Ruby on Rails** : 8.1.1 (API-only)
 - **Base de données** : PostgreSQL
 - **Cache** : Redis pour les sessions et performances
 - **Authentification** : JWT avec tokens stateless
 - **OAuth** : OmniAuth pour Google et GitHub
 - **Documentation** : Swagger via rswag
+- **Bundler** : 4.0.3
 
 ### Structure API
 ```
@@ -54,12 +57,12 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 ## 🧪 Tests & Qualité
 
 ### Statistiques Actuelles (Décembre 2025)
-- **Tests RSpec** : ✅ 97 tests qui passent (0 échec)
-- **Tests d'acceptation OAuth** : ✅ 9/9 passent
+- **Tests RSpec** : ✅ 221 tests qui passent (0 échec)
+- **Tests d'acceptation OAuth** : ✅ 15/15 passent
 - **Tests d'intégration OAuth** : ✅ 10/10 passent (100% succès)
 - **Tests Rswag OAuth** : ✅ 10/10 passent (Swagger auto-généré)
-- **RuboCop** : ✅ 0 violation détectée (70 fichiers)
-- **Brakeman** : ✅ 0 vulnérabilité critique (1 alerte mineure)
+- **RuboCop** : ✅ 0 violation détectée (82 fichiers)
+- **Brakeman** : ✅ 0 vulnérabilité critique
 
 ### Couverture de Tests
 - **Authentication** : Login, logout, token refresh ✅
@@ -230,7 +233,7 @@ Endpoint d'échec OAuth (optionnel)
 
 ### Prérequis
 - Docker & Docker Compose
-- Ruby 3.3.0
+- Ruby 3.4.8
 - PostgreSQL 15+
 - Redis 7+
 
@@ -384,6 +387,16 @@ spec/
 
 ## 📝 Changelog
 ### Changelog
+
+### Version 2.0.0 (26 Décembre 2025) - Rails 8.1.1 Migration
+- 🚀 **Rails Upgrade** : Migration majeure de Rails 7.1.5.1 → 8.1.1
+- 💎 **Ruby Upgrade** : Migration de Ruby 3.3.0 → 3.4.8
+- 📦 **Bundler Upgrade** : Migration vers Bundler 4.0.3
+- 🐳 **Docker Optimisé** : Multi-stage build avec bundle_cache volume
+- ✅ **221 Tests** : Tous les tests passent sans régression
+- ✅ **Rubocop** : 82 fichiers, 0 offense
+- ✅ **Brakeman** : 0 vulnérabilité critique
+- ✅ **Zeitwerk** : Autoloading validé
 
 ### Version 1.5.0 (22 Décembre 2025) - Corrections Sécurité PR
 - 🔒 **Token Logging** : Suppression de tout logging de tokens (PR Point 2)

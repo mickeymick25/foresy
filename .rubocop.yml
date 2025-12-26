@@ -2,7 +2,7 @@
 # Compatible avec rubocop de base (sans extensions externes)
 
 AllCops:
-  TargetRubyVersion: 3.3
+  TargetRubyVersion: 3.4
   NewCops: enable
   SuggestExtensions: false
 
@@ -121,3 +121,11 @@ Style/HashSyntax:
 # Style/RedundantReturn - permettre les returns redondants pour la lisibilité
 Style/RedundantReturn:
   Enabled: false
+
+# Naming/PredicateMethod - désactiver les faux positifs pour les méthodes setter/helper
+Naming/PredicateMethod:
+  Enabled: true
+  AllowedMethods:
+    - set_tags_with_modern_api
+    - set_tags_with_legacy_api
+    - add_attributes_datadog_modern_api
