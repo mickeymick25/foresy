@@ -1,56 +1,189 @@
+# ============================================
+# Foresy API - Gold Level Docker Compose
+# Development & Test Configuration
+# ============================================
+
 services:
+  # ============================================
+  # PostgreSQL Database
+  # ============================================
   db:
-    image: postgres:15
+    image: postgres:16-alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      POSTGRES_PASSWORD: password
       POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
       POSTGRES_DB: foresy_development
+      # Performance tuning for development
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U postgres -d foresy_development"]
+      interval: 5s
+      timeout: 5s
       retries: 5
       start_period: 10s
-      timeout: 5s
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
 
-  web:
-    image: foresy-web:latest
-    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
+  # ============================================
+  # Redis Cache (optional but recommended)
+  # ============================================
+  redis:
+    image: redis:7-alpine
     volumes:
-      - .:/app
-    working_dir: /app
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  # ============================================
+  # Web Application (Development)
+  # ============================================
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+      args:
+        RUBY_VERSION: "3.4.8"
+        BUNDLER_VERSION: "2.6.2"
+    command: >
+      bash -c "
+        rm -f tmp/pids/server.pid &&
+        bundle install --quiet &&
+        bundle exec rails db:prepare &&
+        bundle exec rails s -p 3000 -b '0.0.0.0'
+      "
+    volumes:
+      - .:/app:cached
+      - bundle_cache:/app/vendor/bundle
+      - node_modules:/app/node_modules
+      # Exclude directories that should not be synced
+      - /app/tmp
+      - /app/log
     ports:
       - "3000:3000"
     environment:
       RAILS_ENV: development
       DATABASE_URL: postgres://postgres:password@db:5432/foresy_development
-      DB_HOST: db
-      DB_USERNAME: postgres
-      DB_PASSWORD: password
-      SECRET_KEY_BASE: development_secret_key_base_for_testing_only_32_characters_minimum
-      PORT: 3000
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY_BASE: development_secret_key_base_minimum_32_characters_required_here
+      # Performance
+      RAILS_LOG_TO_STDOUT: "true"
+      RAILS_MAX_THREADS: 5
+      WEB_CONCURRENCY: 2
+      # Ruby optimizations
+      RUBY_YJIT_ENABLE: 1
+      MALLOC_ARENA_MAX: 2
+      # Bundle config
+      BUNDLE_PATH: /app/vendor/bundle
+      BUNDLE_WITHOUT: ""
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
 
+  # ============================================
+  # Test Runner
+  # ============================================
   test:
-    image: foresy-web:latest
-    command: bash -c "bundle exec rails db:drop db:create db:schema:load && bundle exec rspec"
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+      args:
+        RUBY_VERSION: "3.4.8"
+        BUNDLER_VERSION: "2.6.2"
+    command: >
+      bash -c "
+        bundle install --quiet &&
+        bundle exec rails db:test:prepare &&
+        bundle exec rspec --format progress
+      "
     volumes:
-      - .:/app
-    working_dir: /app
+      - .:/app:cached
+      - bundle_cache:/app/vendor/bundle
+      - /app/tmp
+      - /app/log
     environment:
       RAILS_ENV: test
       DATABASE_URL: postgres://postgres:password@db:5432/foresy_test
-      DB_HOST: db
-      DB_USERNAME: postgres
-      DB_PASSWORD: password
-      SECRET_KEY_BASE: test_secret_key_base_for_rspec_testing_32_characters_minimum
-      RAILS_MAX_THREADS: 5
+      REDIS_URL: redis://redis:6379/1
+      SECRET_KEY_BASE: test_secret_key_base_minimum_32_characters_required_here
+      # Parallel tests
+      PARALLEL_WORKERS: 2
+      # Ruby optimizations
+      RUBY_YJIT_ENABLE: 1
+      MALLOC_ARENA_MAX: 2
+      # Bundle config
+      BUNDLE_PATH: /app/vendor/bundle
+      BUNDLE_WITHOUT: ""
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+    profiles:
+      - test
 
+  # ============================================
+  # Console (Rails console access)
+  # ============================================
+  console:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+      args:
+        RUBY_VERSION: "3.4.8"
+        BUNDLER_VERSION: "2.6.2"
+    command: bundle exec rails console
+    volumes:
+      - .:/app:cached
+      - bundle_cache:/app/vendor/bundle
+    environment:
+      RAILS_ENV: development
+      DATABASE_URL: postgres://postgres:password@db:5432/foresy_development
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY_BASE: development_secret_key_base_minimum_32_characters_required_here
+      BUNDLE_PATH: /app/vendor/bundle
+    depends_on:
+      db:
+        condition: service_healthy
+    stdin_open: true
+    tty: true
+    profiles:
+      - tools
+
+# ============================================
+# Persistent Volumes
+# ============================================
 volumes:
   postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  bundle_cache:
+    driver: local
+  node_modules:
+    driver: local
+
+# ============================================
+# Networks (optional, Docker creates default)
+# ============================================
+networks:
+  default:
+    name: foresy_network
+    driver: bridge

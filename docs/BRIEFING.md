@@ -1,15 +1,16 @@
 # BRIEFING.md - Foresy API Project
 
 **For AI Context Understanding - Optimized for Fast Project Comprehension**  
-**Last Updated:** 24 décembre 2025
+**Last Updated:** 26 décembre 2025
 
 ---
 
 ## 🎯 PROJECT CURRENT STATE
 
 ### Basic Info
-- **Project Type**: Ruby on Rails 7.1.5.1 API-only application
+- **Project Type**: Ruby on Rails 8.1.1 API-only application
 - **Primary Function**: User management with JWT + OAuth (Google/GitHub)
+- **Ruby Version**: 3.4.8
 - **Environment**: Docker Compose (non-optional, mandatory)
 - **Status**: Production Ready - All tests passing, excellent code quality
 
@@ -20,18 +21,44 @@
 - **Security**: Brakeman 0 critical vulnerabilities, no token logging, stateless JWT, token revocation
 - **CI/CD**: GitHub Actions CI + Render CD fully functional
 - **Production**: Deployed on Render (https://foresy-api.onrender.com)
+- **Rails Upgrade**: ✅ Successfully migrated from 7.1.5.1 to 8.1.1 (Dec 26, 2025)
 
 ### Technical Stack
-- **Framework**: Rails 7.1.5.1 (API-only)
-- **Language**: Ruby 3.3.0
+- **Framework**: Rails 8.1.1 (API-only)
+- **Language**: Ruby 3.4.8
 - **Database**: PostgreSQL + Redis (cache/sessions)
 - **Authentication**: JWT stateless + OAuth 2.0
 - **Containerization**: Docker Compose (web, db, redis services)
 - **Testing**: RSpec + Rubocop + Brakeman
+- **Bundler**: 4.0.3
 
 ---
 
 ## 📅 RECENT CHANGES TIMELINE
+
+### Dec 26, 2025 - 🚀 Rails 8.1.1 Migration (MAJOR UPGRADE)
+- **Objective**: Upgrade from Rails 7.1.5.1 (EOL) to Rails 8.1.1
+- **Changes Made**:
+  - Ruby upgraded: 3.3.0 → 3.4.8
+  - Rails upgraded: 7.1.5.1 → 8.1.1
+  - Bundler upgraded: 2.x → 4.0.3
+  - Dockerfile updated for multi-stage Gold Level (5 stages)
+  - docker-compose.yml updated with bundle_cache, Redis, profiles
+  - .ruby-version removed (Docker is source of truth)
+  - .rubocop.yml updated with TargetRubyVersion 3.4
+  - .dockerignore updated with complete exclusions
+  - entrypoint.sh simplified and robustified
+- **Validation**:
+  - RSpec: 221 tests, 0 failures ✅
+  - Rubocop: 82 files, 0 offenses ✅
+  - Brakeman: 0 vulnerabilities ✅
+  - Zeitwerk: All autoloading OK ✅
+  - Health check: OK ✅
+- **Known Warnings** (non-blocking):
+  - `ostruct` will be removed from default gems in Ruby 4.0 (rswag-ui)
+  - `:unprocessable_entity` deprecated in Rack (use `:unprocessable_content`)
+- **Result**: Full compatibility maintained, no breaking changes
+- **Documentation**: `docs/technical/changes/2025-12-26-Rails_8_1_1_Migration_Complete.md`
 
 ### Dec 24, 2025 - 🔒 Token Revocation Endpoints (NEW FEATURE)
 - **Objective**: Allow users to invalidate their JWT tokens proactively
@@ -262,15 +289,15 @@
 ## ⚠️ ACTIVE ISSUES & ATTENTION POINTS
 
 ### High Priority Issues
-1. **Rails EOL Warning**: Version 7.1.5.1 EOL since Oct 2025
-   - **Impact**: No more security updates (non-critical but important)
-   - **Action Required**: Plan migration to Rails 7.2+
-   - **Timeline**: Recommended within 3-6 months
-   - **Effort**: Medium (version migration)
+1. ~~**Rails EOL Warning**: Version 7.1.5.1 EOL since Oct 2025~~ ✅ **RESOLVED Dec 26, 2025**
+   - **Status**: Migrated to Rails 8.1.1 + Ruby 3.4.8
+   - **Impact**: Full security support restored
 
 ### Known Limitations
 2. **shoulda-matchers Warning**: Boolean column validation warnings (cosmetic only)
 3. **Documentation Fragmentation**: Some info in README.md AND docs/ (partially resolved)
+4. **Ruby 4.0 Deprecation Warnings**: `ostruct` gem will be removed from default gems (rswag-ui dependency)
+5. **Rack Deprecation**: `:unprocessable_entity` status code deprecated, use `:unprocessable_content`
 
 ### ✅ Recently Resolved (Dec 20-22, 2025)
 1. **Token Logging Removed**: Tokens are never logged to prevent secret leakage (PR Point 2)
@@ -380,11 +407,11 @@ Foresy/
    - **All Tests**: RSpec 221 ✅, Rswag 66 ✅, Rubocop 82 ✅
    - **Status**: ✅ PR #7 ready for merge into main branch
 
-4. **Rails Migration Planning**
-   - **Task**: Plan migration from Rails 7.1.5.1 to 7.2+
-   - **Impact**: Remove Brakeman EOL warning, security updates
-   - **Timeline**: Next 3-6 months
-   - **Owner**: Development team
+4. ~~**Rails Migration Planning**~~ ✅ **COMPLETED Dec 26, 2025**
+   - **Task**: ~~Plan migration from Rails 7.1.5.1 to 7.2+~~ Migrated to Rails 8.1.1
+   - **Impact**: Brakeman EOL warning removed, security restored
+   - **Result**: Ruby 3.4.8 + Rails 8.1.1 + YJIT enabled
+   - **Documentation**: `docs/technical/changes/2025-12-26-Rails_8_1_1_Migration_Complete.md`
 
 ### Medium Priority (Maintenance)
 2. **Documentation Maintenance**

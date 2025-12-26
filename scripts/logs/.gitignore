@@ -1,0 +1,4 @@
+# Ignore validation logs
+*.log
+*.json
+

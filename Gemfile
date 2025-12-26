@@ -2,7 +2,7 @@
 
 source 'https://rubygems.org'
 
-ruby '3.3.0'
+ruby '3.4.8'
 
 # Core Rails gems
 gem 'bcrypt', '~> 3.1.18'
@@ -16,7 +16,7 @@ gem 'omniauth-google-oauth2'
 gem 'pg', '~> 1.1'
 gem 'puma', '>= 5.0'
 gem 'rack-cors'
-gem 'rails', '~> 7.1.5', '>= 7.1.5.1'
+gem 'rails', '~> 8.1.1'
 gem 'sprockets-rails'
 gem 'stimulus-rails'
 gem 'turbo-rails'

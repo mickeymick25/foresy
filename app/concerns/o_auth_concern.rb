@@ -7,6 +7,7 @@
 # for external providers like GitHub and Google.
 module OAuthConcern
   extend ActiveSupport::Concern
+
   included do
     def oauth_callback
       auth = extract_oauth_data

@@ -3,20 +3,22 @@
 ## 📊 Informations générales
 
 - **Projet** : Foresy API
-- **Date d'audit** : 16 décembre 2025
+- **Date d'audit** : 16 décembre 2025 (mis à jour 26 décembre 2025)
 - **Auditeur** : Directeur Technique
-- **Version analysée** : Version actuelle (Rails 7.1.5)
+- **Version analysée** : Rails 8.1.1 (migré depuis 7.1.5.1)
 - **Type d'application** : API REST Ruby on Rails pour l'authentification
 
 ---
 
 ## 🎯 Vue d'ensemble du projet
 
-**Foresy** est une API REST Ruby on Rails 7.1.5 moderne spécialisée dans l'authentification avec support OAuth. L'application implémente une architecture stateless avec JWT et propose une double authentification (traditionnelle + OAuth).
+**Foresy** est une API REST Ruby on Rails 8.1.1 moderne spécialisée dans l'authentification avec support OAuth. L'application implémente une architecture stateless avec JWT et propose une double authentification (traditionnelle + OAuth).
+
+> **Note** : Migration majeure effectuée le 26 décembre 2025 - Rails 7.1.5.1 → 8.1.1, Ruby 3.3.0 → 3.4.8
 
 ### Stack technique identifié
-- **Framework** : Ruby on Rails 7.1.5
-- **Ruby** : Version 3.3.0
+- **Framework** : Ruby on Rails 8.1.1
+- **Ruby** : Version 3.4.8 (YJIT activé)
 - **Base de données** : PostgreSQL 15
 - **Authentification** : JWT (double token system)
 - **OAuth Providers** : Google OAuth2, GitHub
