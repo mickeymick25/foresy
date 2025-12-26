@@ -36,6 +36,14 @@
 
 ## 📅 RECENT CHANGES TIMELINE
 
+### Dec 26, 2025 - 🧪 E2E Token Revocation Script (FEATURE)
+- **Feature Contract**: `04_Feature Contract — E2E Revocation`
+- **Script**: `bin/e2e/e2e_revocation.sh`
+- **Purpose**: Validate JWT token revocation flow end-to-end
+- **Tests**: 5/5 passed (authentication, access, revocation, rejection)
+- **Compatibility**: macOS/Linux, CI-safe
+- **Documentation**: `docs/technical/changes/2025-12-26-E2E_Revocation_Script.md`
+
 ### Dec 26, 2025 - 🚀 Rails 8.1.1 Migration (MAJOR UPGRADE)
 - **Objective**: Upgrade from Rails 7.1.5.1 (EOL) to Rails 8.1.1
 - **Changes Made**:
@@ -389,9 +397,9 @@ Foresy/
 ### Immediate Actions (High Priority)
 1. **Sprint 3 Completion - E2E Testing Infrastructure ✅ COMPLETED**
    - **Task**: Finalize E2E staging tests (scripts + documentation)
-   - **Completed**: Smoke tests (15 endpoints) + E2E auth flow (8 tests) in bin/e2e/
+   - **Completed**: Smoke tests (15 endpoints) + E2E auth flow (8 tests) + E2E revocation (5 tests) in bin/e2e/
    - **Impact**: Full CI/CD staging test coverage, automated end-to-end validation
-   - **Status**: ✅ All tests passing locally and ready for staging deployment
+   - **Status**: ✅ All tests passing locally and on production (Render)
 
 2. **✅ Production Errors 500 Resolution (FINISHED)**
    - **Task**: Fix critical HTTP 500 errors on all authentication endpoints in production

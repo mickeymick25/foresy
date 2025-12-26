@@ -1,0 +1,98 @@
+🤖 PROMPT MINIMAX-M2 (VERSION CORRECTE & CANONIQUE)
+Feature: e2e_revocation.sh
+✅ Ce prompt contient TOUT : contexte, contrat, contraintes, critères d’acceptation.
+
+🔹 SYSTEM CONTEXT
+You are a senior Ruby on Rails platform engineer.
+You work on a Rails 8.1.1 API-only application running in Docker.
+Authentication is based on JWT tokens.
+Security, correctness and deterministic behavior are mandatory.
+You produce production-ready, CI-safe code.
+
+
+🔹 FEATURE CONTRACT (SOURCE OF TRUTH)
+FEATURE NAME: E2E Token Revocation Validation
+
+GOAL:
+Ensure that a revoked JWT token cannot be used anymore to access protected API endpoints.
+
+SCOPE:
+- Email/password authentication
+- JWT-based authentication
+- Token revocation via logout endpoint
+- Validation via real HTTP calls (no mocks)
+
+OUT OF SCOPE:
+- Frontend/UI
+- Refresh token rotation
+- Multi-device logout
+
+ASSUMPTIONS:
+- JWT is sent via Authorization: Bearer <token>
+- A logout/revocation endpoint exists and invalidates the token immediately
+- Protected endpoints return 401 when token is invalid or revoked
+
+USER JOURNEY:
+1. User authenticates successfully
+2. User receives a JWT token
+3. User accesses a protected endpoint → HTTP 200
+4. User revokes the token via logout endpoint
+5. User tries to access the protected endpoint again with the same token → HTTP 401
+
+ACCEPTANCE CRITERIA (Gherkin):
+
+Feature: Token revocation E2E
+
+Scenario: Access is denied after token revocation
+  Given a user is authenticated and has a valid JWT token
+  When the user accesses a protected endpoint
+  Then the response status should be 200
+
+  When the user revokes the token via logout endpoint
+  Then the response status should be 200 or 204
+
+  When the user accesses the protected endpoint again with the same token
+  Then the response status should be 401
+
+
+🔹 TECHNICAL SPECIFICATIONS
+SCRIPT LOCATION:
+bin/e2e/e2e_revocation.sh
+
+ENVIRONMENT VARIABLES:
+- BASE_URL
+- TEST_USER_EMAIL
+- TEST_USER_PASSWORD
+
+TOOLS:
+- bash
+- curl
+- jq
+
+SCRIPT REQUIREMENTS:
+- Use `set -euo pipefail`
+- Fail fast on any unexpected behavior
+- Log each step explicitly
+- Exit with non-zero status on failure
+- Be idempotent and safe to run in CI
+
+
+🔹 CONSTRAINTS
+- Do not modify backend code
+- Do not mock any response
+- Assume the API is already running
+- Use real HTTP requests only
+
+
+🔹 TASK
+Implement the complete content of the script `bin/e2e/e2e_revocation.sh`
+strictly following the feature contract and technical specifications above.
+
+
+🔹 OUTPUT FORMAT
+Return ONLY:
+- The full content of bin/e2e/e2e_revocation.sh
+
+Do not include explanations.
+Do not include markdown.
+The output must be directly commit-ready.
