@@ -1,8 +1,8 @@
 # 🧪 Guide Tests E2E Staging - Foresy API
 
-**Version :** 1.0  
-**Date :** 24 décembre 2025  
-**Statut :** Production Ready
+**Version :** 1.3  
+**Date :** 26 décembre 2025  
+**Statut :** Production Ready (Platinum Level)
 
 ---
 
@@ -30,6 +30,23 @@ Les tests E2E (End-to-End) staging vérifient le fonctionnement complet de l'API
 | **Sanity checks** | Valider les endpoints critiques |
 | **Regression tests** | Détecter les régressions avant production |
 | **OAuth flow** | Tester le flux OAuth complet (si possible) |
+| **Token revocation** | Valider la révocation des tokens JWT |
+
+### Scripts Disponibles
+
+| Script | Description | Tests | Level |
+|--------|-------------|-------|-------|
+| `bin/e2e/smoke_test.sh` | Tests de base API | 15 tests | ✅ |
+| `bin/e2e/e2e_auth_flow.sh` | Flux authentification complet | 8 tests | ✅ |
+| `bin/e2e/e2e_revocation.sh` | Révocation tokens JWT + refresh | 5 tests | 🏆 Platinum |
+
+### Modèle de Sécurité Documenté
+
+| Aspect | Comportement |
+|--------|--------------|
+| Access Token | Invalidé après logout (session-scoped) |
+| Refresh Token | Persiste après logout (user-bound) |
+| `revoke_all` | Invalide tous les tokens |
 
 ---
 
