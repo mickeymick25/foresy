@@ -36,12 +36,13 @@
 
 ## 📅 RECENT CHANGES TIMELINE
 
-### Dec 26, 2025 - 🧪 E2E Token Revocation Script (FEATURE - GOLD LEVEL)
+### Dec 26, 2025 - 🧪 E2E Token Revocation Script (FEATURE - PLATINUM LEVEL)
 - **Feature Contract**: `04_Feature Contract — E2E Revocation`
 - **Script**: `bin/e2e/e2e_revocation.sh`
 - **Purpose**: Validate JWT token revocation flow end-to-end
-- **Level**: ✅ Gold Level (CTO approved)
-- **Tests**: 4/4 steps passed (same token before/after revocation)
+- **Level**: ✅ Platinum Level (CTO approved)
+- **Tests**: 5/5 steps passed (access token + refresh token behavior)
+- **Security Model Documented**: Model A (logout = session-scoped, refresh = user-bound)
 - **Contract Compliance**: Strict Gherkin criteria verified
 - **Compatibility**: macOS/Linux, CI-safe
 - **Documentation**: `docs/technical/changes/2025-12-26-E2E_Revocation_Script.md`
@@ -399,8 +400,9 @@ Foresy/
 ### Immediate Actions (High Priority)
 1. **Sprint 3 Completion - E2E Testing Infrastructure ✅ COMPLETED**
    - **Task**: Finalize E2E staging tests (scripts + documentation)
-   - **Completed**: Smoke tests (15 endpoints) + E2E auth flow (8 tests) + E2E revocation (4 tests - Gold Level) in bin/e2e/
+   - **Completed**: Smoke tests (15 endpoints) + E2E auth flow (8 tests) + E2E revocation (5 tests - Platinum Level) in bin/e2e/
    - **Impact**: Full CI/CD staging test coverage, automated end-to-end validation
+   - **Security Model**: Documented (access tokens session-scoped, refresh tokens user-bound)
    - **Status**: ✅ All tests passing locally and on production (Render)
 
 2. **✅ Production Errors 500 Resolution (FINISHED)**
