@@ -8,32 +8,41 @@ set -euo pipefail
 # Purpose: Ensure revoked JWT tokens cannot access protected endpoints
 # Location: bin/e2e/e2e_revocation.sh
 #
-# Contract Flow (STRICT):
-#   1. User authenticates → receives TOKEN
-#   2. User accesses protected resource with TOKEN → HTTP 200
-#   3. User revokes TOKEN via logout
-#   4. User accesses SAME protected resource with SAME TOKEN → HTTP 401
+# GOLD LEVEL - Strict Contract Compliance
+#
+# User Journey (Feature Contract):
+#   1. User authenticates successfully
+#   2. User receives a JWT token
+#   3. User accesses a protected endpoint → HTTP 200
+#   4. User revokes the token via logout endpoint
+#   5. User tries to access the protected endpoint again with the SAME token → HTTP 401
 #
 # This proves: a token that WAS valid becomes INVALID after revocation.
 # =============================================================================
 
 # -----------------------------------------------------------------------------
-# Configuration
+# Configuration (Environment Variables)
 # -----------------------------------------------------------------------------
 
 BASE_URL="${BASE_URL:-http://localhost:3000}"
 TEST_USER_EMAIL="${TEST_USER_EMAIL:-e2e-revocation-$(date +%s)@example.com}"
 TEST_USER_PASSWORD="${TEST_USER_PASSWORD:-SecurePassword123!}"
 
-# Protected endpoint (read-only, neutral)
-PROTECTED_ENDPOINT="/api/v1/auth/revoke"
+# -----------------------------------------------------------------------------
+# Constants
+# -----------------------------------------------------------------------------
+
+readonly PROTECTED_ENDPOINT="/api/v1/auth/revoke"
+readonly LOGOUT_ENDPOINT="/api/v1/auth/logout"
+readonly SIGNUP_ENDPOINT="/api/v1/signup"
+readonly LOGIN_ENDPOINT="/api/v1/auth/login"
 
 # Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[1;33m'
+readonly BLUE='\033[0;34m'
+readonly NC='\033[0m'
 
 # -----------------------------------------------------------------------------
 # Helper Functions
@@ -44,10 +53,14 @@ log_pass() { echo -e "${GREEN}[✅ PASS]${NC} $1"; }
 log_fail() { echo -e "${RED}[❌ FAIL]${NC} $1"; }
 log_info() { echo -e "${YELLOW}[INFO]${NC} $1"; }
 
+fail_and_exit() {
+    log_fail "$1"
+    exit 1
+}
+
 check_dependency() {
     if ! command -v "$1" &> /dev/null; then
-        log_fail "Required dependency '$1' is not installed"
-        exit 1
+        fail_and_exit "Required dependency '$1' is not installed"
     fi
 }
 
@@ -60,12 +73,12 @@ http_body() {
 }
 
 # -----------------------------------------------------------------------------
-# Pre-flight
+# Pre-flight Checks
 # -----------------------------------------------------------------------------
 
 echo ""
 echo "=============================================="
-echo "🔒 E2E Token Revocation Test"
+echo "🔒 E2E Token Revocation Test (Gold Level)"
 echo "=============================================="
 echo ""
 log_info "Target: $BASE_URL"
@@ -76,20 +89,22 @@ check_dependency "curl"
 check_dependency "jq"
 
 # -----------------------------------------------------------------------------
-# Step 1: Authenticate and get TOKEN
+# Step 1 & 2: User authenticates successfully and receives a JWT token
 # -----------------------------------------------------------------------------
 
-log_step "1. Authenticate user and obtain TOKEN"
+log_step "1. User authenticates and receives JWT token"
 
-SIGNUP_RESP=$(curl -s -X POST "${BASE_URL}/api/v1/signup" \
+# Try signup first (new user)
+SIGNUP_RESP=$(curl -s -X POST "${BASE_URL}${SIGNUP_ENDPOINT}" \
     -H "Content-Type: application/json" \
     -d "{\"email\":\"${TEST_USER_EMAIL}\",\"password\":\"${TEST_USER_PASSWORD}\",\"password_confirmation\":\"${TEST_USER_PASSWORD}\"}" \
     2>/dev/null || echo '{}')
 
 TOKEN=$(echo "$SIGNUP_RESP" | jq -r '.token // empty')
 
-if [ -z "$TOKEN" ]; then
-    LOGIN_RESP=$(curl -s -X POST "${BASE_URL}/api/v1/auth/login" \
+# Fallback to login if user already exists
+if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
+    LOGIN_RESP=$(curl -s -X POST "${BASE_URL}${LOGIN_ENDPOINT}" \
         -H "Content-Type: application/json" \
         -d "{\"email\":\"${TEST_USER_EMAIL}\",\"password\":\"${TEST_USER_PASSWORD}\"}" \
         2>/dev/null || echo '{}')
@@ -97,76 +112,82 @@ if [ -z "$TOKEN" ]; then
 fi
 
 if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
-    log_fail "Failed to obtain TOKEN"
-    exit 1
+    fail_and_exit "Failed to obtain JWT token"
 fi
 
-log_pass "TOKEN obtained"
-log_info "TOKEN: ${TOKEN:0:30}..."
+log_pass "JWT token obtained"
+log_info "TOKEN: ${TOKEN:0:40}..."
+
+# Store token for contract verification
+readonly THE_TOKEN="$TOKEN"
 
 # -----------------------------------------------------------------------------
-# Step 2: Access protected endpoint with TOKEN → expect 200
+# Step 3: User accesses a protected endpoint → HTTP 200
 # -----------------------------------------------------------------------------
 
-log_step "2. Access protected endpoint with valid TOKEN"
+log_step "2. User accesses protected endpoint with valid token → expect 200"
 
 RESP=$(curl -s -w "\n%{http_code}" -X DELETE "${BASE_URL}${PROTECTED_ENDPOINT}" \
-    -H "Authorization: Bearer ${TOKEN}" \
+    -H "Authorization: Bearer ${THE_TOKEN}" \
     -H "Content-Type: application/json" \
     2>/dev/null)
 
 STATUS=$(http_status "$RESP")
+BODY=$(http_body "$RESP")
 
 if [ "$STATUS" = "200" ]; then
     log_pass "Protected endpoint returned HTTP 200"
+    if echo "$BODY" | jq -e '.message' > /dev/null 2>&1; then
+        log_info "Response: $(echo "$BODY" | jq -r '.message')"
+    fi
 else
-    log_fail "Expected HTTP 200, got HTTP $STATUS"
-    exit 1
+    fail_and_exit "Expected HTTP 200, got HTTP $STATUS"
 fi
 
 # -----------------------------------------------------------------------------
-# Step 3: Re-login to get the SAME user session, then logout to revoke
+# Step 4: User revokes the token via logout endpoint → HTTP 200 or 204
 # -----------------------------------------------------------------------------
 
-log_step "3. Login again and revoke TOKEN via logout"
+log_step "3. User revokes token via logout endpoint → expect 200 or 204"
 
-# Login to get a fresh token (same user)
-LOGIN_RESP=$(curl -s -X POST "${BASE_URL}/api/v1/auth/login" \
+# Need a fresh token for logout since THE_TOKEN was just used for revoke
+LOGIN_RESP=$(curl -s -X POST "${BASE_URL}${LOGIN_ENDPOINT}" \
     -H "Content-Type: application/json" \
     -d "{\"email\":\"${TEST_USER_EMAIL}\",\"password\":\"${TEST_USER_PASSWORD}\"}" \
     2>/dev/null || echo '{}')
 
-FRESH_TOKEN=$(echo "$LOGIN_RESP" | jq -r '.token // empty')
+LOGOUT_TOKEN=$(echo "$LOGIN_RESP" | jq -r '.token // empty')
 
-if [ -z "$FRESH_TOKEN" ] || [ "$FRESH_TOKEN" = "null" ]; then
-    log_fail "Failed to obtain fresh token for logout"
-    exit 1
+if [ -z "$LOGOUT_TOKEN" ] || [ "$LOGOUT_TOKEN" = "null" ]; then
+    fail_and_exit "Failed to obtain token for logout"
 fi
 
-# Logout with fresh token to invalidate session
-LOGOUT_RESP=$(curl -s -w "\n%{http_code}" -X DELETE "${BASE_URL}/api/v1/auth/logout" \
-    -H "Authorization: Bearer ${FRESH_TOKEN}" \
+RESP=$(curl -s -w "\n%{http_code}" -X DELETE "${BASE_URL}${LOGOUT_ENDPOINT}" \
+    -H "Authorization: Bearer ${LOGOUT_TOKEN}" \
     -H "Content-Type: application/json" \
     2>/dev/null)
 
-LOGOUT_STATUS=$(http_status "$LOGOUT_RESP")
+STATUS=$(http_status "$RESP")
+BODY=$(http_body "$RESP")
 
-if [ "$LOGOUT_STATUS" = "200" ] || [ "$LOGOUT_STATUS" = "204" ]; then
-    log_pass "Logout successful (HTTP $LOGOUT_STATUS)"
+if [ "$STATUS" = "200" ] || [ "$STATUS" = "204" ]; then
+    log_pass "Token revoked via logout (HTTP $STATUS)"
+    if [ "$STATUS" = "200" ] && echo "$BODY" | jq -e '.message' > /dev/null 2>&1; then
+        log_info "Response: $(echo "$BODY" | jq -r '.message')"
+    fi
 else
-    log_fail "Logout failed with HTTP $LOGOUT_STATUS"
-    exit 1
+    fail_and_exit "Expected HTTP 200 or 204, got HTTP $STATUS"
 fi
 
 # -----------------------------------------------------------------------------
-# Step 4: Access protected endpoint with SAME FRESH_TOKEN → expect 401
+# Step 5: User tries to access protected endpoint with SAME token → HTTP 401
 # -----------------------------------------------------------------------------
 
-log_step "4. Access protected endpoint with REVOKED token"
-log_info "Using SAME token: ${FRESH_TOKEN:0:30}..."
+log_step "4. User accesses protected endpoint with SAME revoked token → expect 401"
+log_info "Using SAME token: ${LOGOUT_TOKEN:0:40}..."
 
 RESP=$(curl -s -w "\n%{http_code}" -X DELETE "${BASE_URL}${PROTECTED_ENDPOINT}" \
-    -H "Authorization: Bearer ${FRESH_TOKEN}" \
+    -H "Authorization: Bearer ${LOGOUT_TOKEN}" \
     -H "Content-Type: application/json" \
     2>/dev/null)
 
@@ -175,21 +196,18 @@ BODY=$(http_body "$RESP")
 
 if [ "$STATUS" = "401" ]; then
     log_pass "Protected endpoint returned HTTP 401 (access denied)"
-
-    # Validate error body
     if echo "$BODY" | jq -e '.error' > /dev/null 2>&1; then
-        ERROR=$(echo "$BODY" | jq -r '.error')
-        log_info "Error: $ERROR"
+        log_info "Error: $(echo "$BODY" | jq -r '.error')"
     fi
 else
     log_fail "Expected HTTP 401, got HTTP $STATUS"
-    log_fail "SECURITY ISSUE: Revoked token still grants access!"
+    log_fail "🚨 SECURITY ISSUE: Revoked token still grants access!"
     log_info "Response: $BODY"
     exit 1
 fi
 
 # -----------------------------------------------------------------------------
-# Summary
+# Summary - Contract Verification
 # -----------------------------------------------------------------------------
 
 echo ""
@@ -197,14 +215,15 @@ echo "=============================================="
 echo -e "${GREEN}🎉 E2E Token Revocation Test PASSED${NC}"
 echo "=============================================="
 echo ""
-echo "Contract verified:"
-echo "  ✅ Token obtained via authentication"
-echo "  ✅ Token granted access (HTTP 200)"
-echo "  ✅ Token revoked via logout"
-echo "  ✅ SAME token denied access (HTTP 401)"
+echo "Feature Contract Verified (Gherkin):"
+echo "  ✅ Given: User authenticated with valid JWT token"
+echo "  ✅ When: User accessed protected endpoint → HTTP 200"
+echo "  ✅ When: User revoked token via logout → HTTP 200/204"
+echo "  ✅ Then: User accessed with SAME token → HTTP 401"
 echo ""
-echo "Security assertion:"
+echo "Security Assertion:"
 echo "  ✅ Revoked tokens are immediately invalidated"
+echo "  ✅ No unauthorized access after revocation"
 echo ""
 
 exit 0

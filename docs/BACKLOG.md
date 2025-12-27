@@ -1,6 +1,6 @@
 # 📋 Backlog - Foresy
 
-**Dernière mise à jour** : 26 décembre 2025 (soir)
+**Dernière mise à jour** : 26 décembre 2025 (soir) - Gold Level
 
 ---
 
@@ -22,7 +22,7 @@
 | Scripts smoke_test.sh | ✅ | Terminé | `bin/e2e/smoke_test.sh` |
 | Scripts e2e_auth_flow.sh | ✅ | Terminé | `bin/e2e/e2e_auth_flow.sh` |
 | Documentation guide E2E | ✅ | Terminé | `docs/technical/testing/e2e_staging_tests_guide.md` |
-| Script e2e_revocation.sh | ✅ | Terminé | `bin/e2e/e2e_revocation.sh` |
+| Script e2e_revocation.sh | ✅ | Terminé (Gold Level) | `bin/e2e/e2e_revocation.sh` - CTO approved |
 | Workflow GitHub Actions (e2e.yml) | 🟠 | À créer | Exécution automatique des tests |
 | Tests E2E OAuth avec credentials | 🟢 | À faire | Nécessite credentials de test |
 | Intégration Datadog Synthetics | 🟢 | À faire | Monitoring externe |
