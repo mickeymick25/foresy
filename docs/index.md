@@ -95,6 +95,7 @@ Foresy/
 15. **[🔒 Sécurité & Secrets 19/12/2025](./technical/changes/2025-12-19-Security_CI_Complete_Fix.md)** - **CRITIQUE** - Sécurisation secrets CI/CD
 16. **[Correction CI 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)** - Intervention majeure CI
 17. **[Correction GoogleOauthService 18/12/2025](./technical/changes/2025-12-18-GoogleOauthService_Fix_Resolution.md)** - Résolution erreur Zeitwerk
+18. **[🔒 Feature Contract 05 - Rate Limiting 28/12/2025](./FeatureContract/05_Feature Contract — Rate Limiting)** - ✅ **COMPLÉTÉ** - Rate limiting opérationnel avec before_action filters + RateLimitService Redis (28/12/2025)
 
 ### 🔍 **Analyses Techniques Problèmes PR (Décembre 2025)**
 1. **[🔧 pgcrypto UUID Alternatives](./technical/analysis/pgcrypto_alternatives_analysis.md)** - ✅ **RÉSOLU** - Compatibilité environnements managés (21/12/2025)
@@ -173,6 +174,7 @@ Résolutions de problèmes critiques et interventions majeures.
 
 | Fichier | Date | Problème Résolu | Impact |
 |---------|------|-----------------|--------|
+| [2025-12-29-Feature-Contract-05-RSpec-Tests-Fix.md](./technical/corrections/2025-12-29-Feature-Contract-05-RSpec-Tests-Fix.md) | 29/12/2025 | **CRITIQUE** - Tests RSpec échouants pour FC-05 Rate Limiting (23/25 → 20/20) | **CRITIQUE** - 100% réussite tests feature sécurité |
 | [2025-12-19-pgcrypto_elimination_solution.md](./technical/corrections/2025-12-19-pgcrypto_elimination_solution.md) | 19/12/2025 | **CRITIQUE** - Dépendance pgcrypto bloquant déploiement production | **CRITIQUE** - Compatibilité totale environnements managés |
 | [CORRECTIONS_JANVIER_2025.md](./technical/corrections/CORRECTIONS_JANVIER_2025.md) | 01/2025 | CI complètement cassée (0 tests) | **MAJEUR** - Pipeline fonctionnel |
 

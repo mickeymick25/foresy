@@ -35,6 +35,7 @@ class OAuthTokenService
       user: {
         id: user.id,
         email: user.email,
+        name: user.name,
         provider: user.provider,
         provider_uid: user.uid
       }

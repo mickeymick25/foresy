@@ -75,6 +75,10 @@ module Api
         return :invalid_payload if auth_validation[:error]
 
         auth_validation
+      rescue StandardError => e
+        Rails.logger.error "OAuth validation error: #{e.class.name} - #{e.message}"
+        Rails.logger.error "Backtrace: #{e.backtrace.join("\n")}"
+        :oauth_failed
       end
 
       # Extract OAuth data - supports both OmniAuth flow and API code exchange

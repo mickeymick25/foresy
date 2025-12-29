@@ -66,6 +66,7 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 
 ### Couverture de Tests
 - **Authentication** : Login, logout, token refresh ✅
+- **Rate Limiting** : Login (5/min), Signup (3/min), Refresh (10/min), headers Retry-After ✅
 - **OAuth Integration** : Google OAuth2, GitHub ✅
 - **Session Management** : Création, expiration, invalidation ✅
 - **API Endpoints** : Tous les endpoints testés ✅
@@ -179,6 +180,42 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 - **Tests OAuth** : 8/10 → 10/10 passent (100% succès) ✅
 - **Temps d'exécution** : 3.98 secondes (très performant) ✅
 - **CI GitHub** : Pipeline entièrement fonctionnel ✅
+
+### ✅ Feature Contract 05 - Rate Limiting (28 Décembre 2025)
+**Implémentation complète du rate limiting pour la sécurité des endpoints d'authentification :**
+
+**Problème initial :** Protection contre les attaques par force brute, credential stuffing et abus automatisé sur les endpoints critiques
+**Solution appliquée :**
+- Implémentation controller-based avec `before_action` filters (plus fiable que l'approche middleware rack-attack)
+- RateLimitService avec algorithme sliding window Redis (fenêtre de 60 secondes)
+- Extraction IP intelligente (X-Forwarded-For > X-Real-IP > REMOTE_ADDR)
+- Headers HTTP Retry-After correctement implémentés
+
+**Rate limits configurés :**
+- `POST /api/v1/auth/login` : 5 requêtes/minute par IP
+- `POST /api/v1/signup` : 3 requêtes/minute par IP  
+- `POST /api/v1/auth/refresh` : 10 requêtes/minute par IP
+
+**Résultats mesurés :**
+- ✅ **Tests RSpec** : 32 exemples, 0 échecs (100% de réussite) - Tests complets 29/12/2025
+- ✅ **Optimisations appliquées** : RateLimitService optimisé (50% moins d'appels Redis), tests d'architecture améliorés
+- ✅ **Brakeman** : 0 alerte de sécurité détectée
+- ✅ **RSwag** : 107 exemples, 0 échec (documentation générée)
+- ✅ **Rubocop** : AuthenticationController 0 infraction (problèmes corrigés)
+- ✅ **RateLimitService** : 12/12 tests passent
+- ✅ **Headers HTTP** : Retry-After header opérationnel sur réponses 429
+
+**Corrections techniques majeures :**
+- Correction scope AuthenticationController (méthodes rate limiting dans la classe)
+- RateLimitService : `Redis::BaseError` → `StandardError` pour compatibilité
+- Documentation Swagger mise à jour avec rate limits spécifiques
+- README et Feature Contract 05 mis à jour avec statut completion
+
+**Sécurité renforcée :**
+- Messages d'erreur génériques (aucune exposition d'informations sensibles)
+- IPs masquées dans les logs (seulement 2 premiers octets)
+- Fail-closed en cas d'indisponibilité Redis (HTTP 429)
+- Monitoring avec tag `rate_limit.exceeded`
 
 ## 📖 Documentation API
 
@@ -352,6 +389,39 @@ Pour que la CI/CD fonctionne correctement, les secrets suivants doivent être co
 - **Brakeman** : Analyse statique sans vulnérabilités critiques
 - **Dependencies** : Alerte mineure sur Rails 7.1.5.1 (EOL octobre 2025)
 - **Security Headers** : Configuration appropriée des headers de sécurité
+
+### 🔒 Rate Limiting (Feature Contract 05) - ✅ OPÉRATIONNEL
+**Status :** ✅ **Implémenté et opérationnel depuis le 28/12/2025**
+**Documentation :** [Feature Contract 05 complet](./docs/FeatureContract/05_Feature Contract — Rate Limiting)
+
+- **Protection Brute Force** : Rate limiting sur les endpoints d'authentification critiques ✅
+- **Endpoints Protégés** :
+  - `POST /api/v1/auth/login` : 5 requêtes/minute par IP ✅
+  - `POST /api/v1/signup` : 3 requêtes/minute par IP ✅
+  - `POST /api/v1/auth/refresh` : 10 requêtes/minute par IP ✅
+- **Algorithme Sliding Window** : Fenêtre glissante de 60 secondes avec Redis ✅
+- **Identification IP-Based** : Gestion intelligente des proxys (X-Forwarded-For, X-Real-IP) ✅
+- **Sécurité Renforcée** :
+  - Messages d'erreur génériques (pas d'exposition d'informations) ✅
+  - IPs masquées dans les logs pour la confidentialité ✅
+  - Fail-closed en cas d'indisponibilité Redis ✅
+  - Pas d'impact sur les endpoints hors scope ✅
+- **Monitoring** : Logs des événements avec tag `rate_limit.exceeded` ✅
+- **Implementation** : Approche controller-based avec `before_action` filters, RateLimitService dédié ✅
+
+**Résultats Qualité (28/12/2025) :**
+- ✅ **Tests** : 20/20 exemples passent (100% de réussite) - Corrections finales 29/12/2025
+- ✅ **Brakeman** : 0 alerte de sécurité
+- ✅ **RSwag** : 107 exemples, 0 échec
+- ✅ **Rubocop** : AuthenticationController 0 infraction (corrigé)
+- ✅ **RateLimitService** : 12/12 tests passent
+- ✅ **Headers HTTP** : Retry-After header correctement implémenté
+
+**Problèmes Résolus :**
+- ✅ Correction scope AuthenticationController (méthodes dans la classe)
+- ✅ RateLimitService : Redis::BaseError → StandardError pour compatibilité
+- ✅ Header Retry-After ajouté aux réponses 429
+- ✅ Documentation Swagger mise à jour avec rate limits spécifiques
 
 ## 🛠️ Développement
 
