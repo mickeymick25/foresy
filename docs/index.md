@@ -21,7 +21,7 @@ Foresy/
 ├── Dockerfile                   # Multi-stage Docker build
 ├── entrypoint.sh               # Container entrypoint script
 └── docs/
-    ├── index.md                 # Index principal (ce fichier)
+    ├── Documentation_Centrale.md                 # Documentation centrale (ce fichier)
     ├── BRIEFING.md              # Contexte projet pour IA
     ├── FeatureContract/         # Contrats de fonctionnalités
     │   └── 01_FEATURE OAUTH...  # Feature Contract OAuth
@@ -46,7 +46,7 @@ Foresy/
         │   └── CHANGELOG_REFACTORISATION.md
         └── corrections/         # Corrections techniques historiques
             ├── 2025-12-19-pgcrypto_elimination_solution.md  # ✅ pgcrypto éliminé
-            └── CORRECTIONS_JANVIER_2025.md
+            └── 2025-12-19-CI_Configuration_Fix_Resolution.md
 ```
 
 ---
@@ -63,7 +63,8 @@ Foresy/
 ### 🔧 **Pour le Développement**
 1. **[Analyse Technique](./technical/audits/ANALYSE_TECHNIQUE_FORESY.md)** - Architecture et analyse technique complète
 2. **[✅ Migration Rails 8.1.1 Complétée](./technical/changes/2025-12-26-Rails_8_1_1_Migration_Complete.md)** - Migration Rails 7.1.5.1 → 8.1.1 + Ruby 3.4.8 (26/12/2025)
-3. **[Corrections Janvier 2025](./technical/corrections/CORRECTIONS_JANVIER_2025.md)** - Résolution problèmes CI historiques
+3. **[🧪 Organisation des Tests](./technical/tests_organization.md)** - Guide complet de l'organisation des tests RSpec (Acceptance, Integration, Unit, API)
+4. **[Corrections 19 Décembre 2025](./technical/corrections/2025-12-19-CI_Configuration_Fix_Resolution.md)** - Résolution problèmes CI historiques
 
 ### 🔍 **Analyses Techniques Récentes (Décembre 2025)**
 1. **[🔧 pgcrypto UUID Alternatives](./technical/analysis/pgcrypto_alternatives_analysis.md)** - **CRITIQUE** - Migration UUID sans pgcrypto
@@ -176,7 +177,7 @@ Résolutions de problèmes critiques et interventions majeures.
 |---------|------|-----------------|--------|
 | [2025-12-29-Feature-Contract-05-RSpec-Tests-Fix.md](./technical/corrections/2025-12-29-Feature-Contract-05-RSpec-Tests-Fix.md) | 29/12/2025 | **CRITIQUE** - Tests RSpec échouants pour FC-05 Rate Limiting (23/25 → 20/20) | **CRITIQUE** - 100% réussite tests feature sécurité |
 | [2025-12-19-pgcrypto_elimination_solution.md](./technical/corrections/2025-12-19-pgcrypto_elimination_solution.md) | 19/12/2025 | **CRITIQUE** - Dépendance pgcrypto bloquant déploiement production | **CRITIQUE** - Compatibilité totale environnements managés |
-| [CORRECTIONS_JANVIER_2025.md](./technical/corrections/CORRECTIONS_JANVIER_2025.md) | 01/2025 | CI complètement cassée (0 tests) | **MAJEUR** - Pipeline fonctionnel |
+| [2025-12-19-CI_Configuration_Fix_Resolution.md](./technical/corrections/2025-12-19-CI_Configuration_Fix_Resolution.md) | 19/12/2025 | CI complètement cassée (0 tests) | **MAJEUR** - Pipeline fonctionnel |
 
 ### 📋 **Templates de Configuration** (Racine)
 Nouveaux templates de configuration OAuth ajoutés en décembre 2025.
@@ -231,7 +232,7 @@ docker-compose exec db pg_isready -U postgres
 
 ### Problème Initial
 La documentation était dispersée dans plusieurs endroits :
-- `CORRECTIONS_JANVIER_2025.md` (racine du projet)
+- `2025-12-19-CI_Configuration_Fix_Resolution.md` (anciennement à la racine du projet)
 - `audit_report/` (dossier séparé)
 - `docs/changes/` (nouveau journal chronologique)
 
@@ -245,7 +246,7 @@ Création d'une structure centralisée et logique sous `docs/` :
 ### Fichiers Déplacés
 ```
 # Corrections techniques
-CORRECTIONS_JANVIER_2025.md → docs/technical/corrections/
+2025-12-19-CI_Configuration_Fix_Resolution.md → docs/technical/corrections/
 
 # Rapports d'audit
 audit_report/ANALYSE_TECHNIQUE_FORESY.md → docs/technical/audits/
@@ -277,7 +278,7 @@ docs/technical/changes/2025-12-18-GoogleOauthService_Fix_Resolution.md
 ### 🔧 **Pour les Corrections**
 1. **Problème actuel** : [GoogleOauthService 18/12/2025](./technical/changes/2025-12-18-GoogleOauthService_Fix_Resolution.md) - **RÉSOLU**
 2. **Journal chronologique** : [Correction CI 18/12/2025](./technical/changes/2025-12-18-CI_Fix_Resolution.md)
-3. **Problèmes précédents** : [Corrections Janvier 2025](./technical/corrections/CORRECTIONS_JANVIER_2025.md)
+3. **Problèmes précédents** : [Corrections 19 Décembre 2025](./technical/corrections/2025-12-19-CI_Configuration_Fix_Resolution.md)
 4. **Continuer le travail** : Ajouter un nouveau fichier daté dans `technical/changes/`
 
 ### 📊 **Pour la Maintenance**
