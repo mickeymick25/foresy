@@ -9,6 +9,13 @@ RSpec.describe 'Authentication - Login', type: :request do
     create(:user, email: "inactive_#{SecureRandom.hex(4)}@example.com", password: 'password123', active: false)
   end
 
+  before do
+    # Clear rate limiting state before each test to avoid interference
+    RateLimitService.clear_rate_limit('auth/login', '127.0.0.1')
+    RateLimitService.clear_rate_limit('auth/signup', '127.0.0.1')
+    RateLimitService.clear_rate_limit('auth/refresh', '127.0.0.1')
+  end
+
   path '/api/v1/auth/login' do
     post 'Authenticates a user' do
       tags 'Authentication'

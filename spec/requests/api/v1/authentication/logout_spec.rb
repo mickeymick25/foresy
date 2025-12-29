@@ -10,6 +10,7 @@ RSpec.describe 'Authentication - Logout', type: :request do
   # Login and extract token before tests
   let!(:token) do
     post '/api/v1/auth/login', params: auth_params.to_json, headers: headers
+    user.reload # Reload user to get the newly created session
     JSON.parse(response.body)['token']
   end
 

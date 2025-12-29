@@ -8,6 +8,7 @@ module Api
       include ::OAuthConcern
 
       before_action :authenticate_access_token!, only: %i[logout revoke revoke_all]
+      before_action :check_rate_limit!, only: %i[login refresh]
 
       # === POST /api/v1/auth/login ===
       def login
@@ -107,6 +108,47 @@ module Api
       end
 
       # === Error helpers ===
+
+      # Rate limiting check for authentication endpoints
+      def check_rate_limit!
+        # Determine which endpoint we're checking based on the action
+        case action_name
+        when 'login'
+          endpoint = 'auth/login'
+        when 'refresh'
+          endpoint = 'auth/refresh'
+        else
+          return # Don't rate limit other actions
+        end
+
+        # Extract client IP
+        client_ip = extract_client_ip_for_rate_limiting
+
+        # Check rate limit using RateLimitService
+        allowed, retry_after = RateLimitService.check_rate_limit(endpoint, client_ip, request)
+
+        # If rate limit exceeded, return 429 response
+        unless allowed
+          response.headers['Retry-After'] = retry_after.to_s
+          render json: {
+            error: 'Rate limit exceeded',
+            retry_after: retry_after
+          }, status: :too_many_requests
+        end
+      end
+
+      # Extract client IP for rate limiting
+      # Handles reverse proxies and follows Feature Contract specification
+      def extract_client_ip_for_rate_limiting
+        # Priority: X-Forwarded-For > X-Real-IP > REMOTE_ADDR
+        forwarded_for = request.env['HTTP_X_FORWARDED_FOR']
+        if forwarded_for.present?
+          # X-Forwarded-For can contain multiple IPs, take the first one
+          forwarded_for.split(',').first.strip
+        else
+          request.env['HTTP_X_REAL_IP'] || request.env['REMOTE_ADDR'] || 'unknown'
+        end
+      end
     end
   end
 end
