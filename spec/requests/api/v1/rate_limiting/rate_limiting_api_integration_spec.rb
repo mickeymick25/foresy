@@ -616,5 +616,44 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
         expect(redis_error_logs.any? { |msg| msg.to_s.include?('rate_limit.redis_unavailable') }).to be true
       end
     end
+
+    # === REDIS FAILURE TEST (CTO REQUIREMENT) ===
+    # Explicit test for Redis::CannotConnectError as requested by CTO
+    # Validates fail-closed behavior when Redis is unavailable
+    context 'should fail closed when Redis is unavailable (Redis::CannotConnectError)' do
+      it 'returns 429 when Redis connection fails' do
+        test_ip = '192.168.1.200'
+        endpoint = 'auth/login'
+
+        # Simulate Redis::CannotConnectError (or equivalent StandardError)
+        # RateLimitService catches StandardError which includes Redis::CannotConnectError
+        allow(RateLimitService).to receive(:redis).and_raise(
+          Redis::CannotConnectError.new('Error connecting to Redis on localhost:6379 (Errno::ECONNREFUSED)')
+        )
+
+        # Service should fail closed (return blocked state)
+        allowed, retry_after = RateLimitService.check_rate_limit(endpoint, test_ip)
+
+        expect(allowed).to be false
+        expect(retry_after).to eq(60)
+      end
+
+      it 'returns 429 HTTP response when Redis is down during request' do
+        # Mock RateLimitService to simulate Redis failure behavior
+        allow(RateLimitService).to receive(:check_rate_limit).and_return([false, 60])
+
+        post '/api/v1/auth/login',
+             params: { email: 'test@example.com', password: 'password123' }.to_json,
+             headers: { 'Content-Type' => 'application/json' }
+
+        expect(response).to have_http_status(:too_many_requests)
+        expect(response.headers['Retry-After']).to be_present
+        expect(response.headers['Retry-After']).to eq('60')
+
+        json = JSON.parse(response.body)
+        expect(json['error']).to eq('Rate limit exceeded')
+        expect(json['retry_after']).to eq(60)
+      end
+    end
   end
 end

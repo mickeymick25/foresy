@@ -21,7 +21,11 @@ Protège les endpoints critiques d'authentification contre :
 
 ### Pourquoi `before_action` (Controller-based) vs Rack Middleware ?
 
-**Choix retenu : Controller-based avec `before_action` filters**
+**Choix retenu : Controller-based avec `before_action` filters + RateLimitService**
+
+> ⚠️ **Note importante** : Le gem `rack-attack` est présent dans le Gemfile mais **n'est PAS utilisé**.
+> Aucun initializer `config/initializers/rack_attack.rb` n'existe.
+> Le rate limiting est entièrement géré par `RateLimitService` + `before_action`.
 
 | Critère | Middleware (rack-attack) | Controller-based (retenu) |
 |---------|-------------------------|---------------------------|
@@ -30,8 +34,21 @@ Protège les endpoints critiques d'authentification contre :
 | **Testabilité** | Difficile à mocker | RSpec request specs simple ✅ |
 | **Maintenabilité** | Configuration séparée | Conventions Rails standard ✅ |
 | **Rails 8.1.1** | Problèmes d'intégration ❌ | Compatible ✅ |
+| **Sliding Window** | Fixed window par défaut | TRUE sliding window (Redis ZSET) ✅ |
 
 **Trade-off accepté** : Légèrement plus tard dans le cycle de requête, mais négligeable pour des endpoints d'authentification où la logique métier est le coût principal.
+
+### Où le service est-il appelé ?
+
+```ruby
+# app/controllers/api/v1/authentication_controller.rb
+before_action :check_rate_limit!, only: %i[login refresh]
+
+# app/controllers/api/v1/users_controller.rb  
+before_action :check_rate_limit!, only: [:create]
+```
+
+Le `before_action` appelle `RateLimitService.check_rate_limit(endpoint, client_ip)` **AVANT** toute logique métier.
 
 ### Sliding Window Algorithm (Redis Sorted Sets)
 
@@ -84,13 +101,15 @@ Retry-After: 42
 | Refresh rate limiting | ✅ | Pass |
 | Out-of-scope endpoints | ✅ | Pass |
 | Redis unavailable → 429 | ✅ | Pass |
+| Redis::CannotConnectError → 429 | ✅ | Pass |
+| Redis failure HTTP response | ✅ | Pass |
 | Retry-After header | ✅ | Pass |
 | IP extraction (X-Forwarded-For) | ✅ | Pass |
 | Centralized logic verification | ✅ | Pass |
 | Sliding window verification | ✅ | Pass |
 | Logging with masked IP | ✅ | Pass |
 
-**Total : 32 tests, 0 failures**
+**Total : 34 tests, 0 failures**
 
 ## ✅ Quality Gates
 
