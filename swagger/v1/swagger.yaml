@@ -20,6 +20,28 @@ paths:
           description: inactive user
         '429':
           description: fail closed when Redis is down
+          content:
+            application/json:
+              examples:
+                example_0:
+                  value:
+                    rate_limit_exceeded:
+                      summary: Rate limit exceeded (5 requests/minute)
+                      value:
+                        error: Rate limit exceeded
+                        retry_after: 42
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Rate limit exceeded
+                  retry_after:
+                    type: integer
+                    example: 42
+                required:
+                - error
+                - retry_after
       requestBody:
         content:
           application/json:
@@ -221,6 +243,28 @@ paths:
           description: token refreshed (under rate limit)
         '429':
           description: rate limit exceeded - too many refresh attempts
+          content:
+            application/json:
+              examples:
+                example_0:
+                  value:
+                    rate_limit_exceeded:
+                      summary: Rate limit exceeded (10 requests/minute)
+                      value:
+                        error: Rate limit exceeded
+                        retry_after: 35
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Rate limit exceeded
+                  retry_after:
+                    type: integer
+                    example: 35
+                required:
+                - error
+                - retry_after
       requestBody:
         content:
           application/json:
@@ -243,6 +287,28 @@ paths:
           description: Création échouée
         '429':
           description: rate limit exceeded - too many signup attempts
+          content:
+            application/json:
+              examples:
+                example_0:
+                  value:
+                    rate_limit_exceeded:
+                      summary: Rate limit exceeded (3 requests/minute)
+                      value:
+                        error: Rate limit exceeded
+                        retry_after: 55
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Rate limit exceeded
+                  retry_after:
+                    type: integer
+                    example: 55
+                required:
+                - error
+                - retry_after
         '201':
           description: Utilisateur créé
       requestBody:

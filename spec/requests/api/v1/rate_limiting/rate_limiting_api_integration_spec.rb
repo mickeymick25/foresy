@@ -48,6 +48,23 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
       # Then: I receive a 429 response
       # And: a Retry-After header is present
       response '429', 'rate limit exceeded - too many login attempts' do
+        schema type: :object,
+               properties: {
+                 error: { type: :string, example: 'Rate limit exceeded' },
+                 retry_after: { type: :integer, example: 42 }
+               },
+               required: %w[error retry_after]
+
+        examples 'application/json' => {
+          rate_limit_exceeded: {
+            summary: 'Rate limit exceeded (5 requests/minute)',
+            value: {
+              error: 'Rate limit exceeded',
+              retry_after: 42
+            }
+          }
+        }
+
         let(:login_params) do
           {
             email: 'invalid_user_never_exists@example.com',
@@ -153,6 +170,23 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
       # When: I call POST /api/v1/signup
       # Then: I receive a 429 response
       response '429', 'rate limit exceeded - too many signup attempts' do
+        schema type: :object,
+               properties: {
+                 error: { type: :string, example: 'Rate limit exceeded' },
+                 retry_after: { type: :integer, example: 55 }
+               },
+               required: %w[error retry_after]
+
+        examples 'application/json' => {
+          rate_limit_exceeded: {
+            summary: 'Rate limit exceeded (3 requests/minute)',
+            value: {
+              error: 'Rate limit exceeded',
+              retry_after: 55
+            }
+          }
+        }
+
         let(:user_params) do
           {
             email: 'newuser@example.com',
@@ -229,6 +263,23 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
       # When: I call POST /api/v1/auth/refresh
       # Then: I receive a 429 response
       response '429', 'rate limit exceeded - too many refresh attempts' do
+        schema type: :object,
+               properties: {
+                 error: { type: :string, example: 'Rate limit exceeded' },
+                 retry_after: { type: :integer, example: 35 }
+               },
+               required: %w[error retry_after]
+
+        examples 'application/json' => {
+          rate_limit_exceeded: {
+            summary: 'Rate limit exceeded (10 requests/minute)',
+            value: {
+              error: 'Rate limit exceeded',
+              retry_after: 35
+            }
+          }
+        }
+
         let(:refresh_params) do
           {
             refresh_token: 'dummy_refresh_token'
