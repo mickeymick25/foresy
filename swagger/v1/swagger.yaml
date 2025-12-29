@@ -10,17 +10,12 @@ paths:
       summary: Test Redis unavailable - fail closed (HTTP 429)
       tags:
       - Authentication
-      parameters:
-      - name: X-Simulate-Redis-Failure
-        in: header
-        required: false
-        schema:
-          type: string
+      parameters: []
       responses:
         '200':
-          description: handles missing X-Forwarded-For by using remote_ip
+          description: user authenticated
         '401':
-          description: missing email
+          description: handles missing X-Forwarded-For by using remote_ip
         '403':
           description: inactive user
         '429':
@@ -61,33 +56,9 @@ paths:
           type: string
       responses:
         '200':
-          description: delete logout success (not rate-limited)
+          description: user logged out
         '401':
           description: delete logout unauthorized (not rate-limited)
-  "/api/v1/auth/refresh":
-    post:
-      summary: Refreshes authentication token with rate limiting
-      tags:
-      - Authentication
-      parameters: []
-      responses:
-        '200':
-          description: token refreshed (under rate limit)
-        '401':
-          description: refresh token expired
-        '429':
-          description: rate limit exceeded - too many refresh attempts
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                refresh_token:
-                  type: string
-              required:
-              - refresh_token
-        required: true
   "/api/v1/auth/{provider}/callback":
     post:
       summary: OAuth callback for provider authentication
@@ -220,7 +191,7 @@ paths:
         level
       responses:
         '401':
-          description: OAuth authentication failed
+          description: oauth failure (not rate-limited)
           content:
             application/json:
               schema:
@@ -237,8 +208,30 @@ paths:
                 required:
                 - error
                 - message
+  "/api/v1/auth/refresh":
+    post:
+      summary: Refreshes authentication token with rate limiting
+      tags:
+      - Authentication
+      parameters: []
+      responses:
         '200':
-          description: oauth failure (not rate-limited)
+          description: token refreshed
+        '401':
+          description: token refreshed (under rate limit)
+        '429':
+          description: rate limit exceeded - too many refresh attempts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh_token:
+                  type: string
+              required:
+              - refresh_token
+        required: true
   "/api/v1/signup":
     post:
       summary: Crée un nouvel utilisateur
@@ -246,12 +239,12 @@ paths:
       - Users
       parameters: []
       responses:
-        '201':
-          description: Utilisateur créé
-        '429':
-          description: rate limit exceeded - too many signup attempts
         '422':
           description: Création échouée
+        '429':
+          description: rate limit exceeded - too many signup attempts
+        '201':
+          description: Utilisateur créé
       requestBody:
         content:
           application/json:

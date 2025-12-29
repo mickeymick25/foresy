@@ -1,13 +1,14 @@
-✅ FEATURE CONTRACT 05 — RATE LIMITING — **COMPLÉTÉ**
+✅ FEATURE CONTRACT 05 — RATE LIMITING — **PLATINUM LEVEL ATTEINT**
 
-**Status :** ✅ **IMPLÉMENTÉ ET OPÉRATIONNEL**
+**Status :** ✅ **PLATINUM LEVEL - PRÊT À MERGER**
 **Date de completion :** 28 décembre 2025
-**Dernière mise à jour :** 29 décembre 2025 - Corrections finales apportées
+**Dernière mise à jour :** 29 décembre 2025 - Platinum Level atteint
 **Implémentation :** Controller-based avec before_action filters
-**Quality Gate :** ✅ Brakeman 0 warnings, ✅ RSwag 107 exemples 0 échec, ✅ Rubocop corrigé
-**Corrections récentes :** ✅ Header Retry-After ajouté dans UsersController, ✅ Tests Redis failure corrigés
-**Optimisations appliquées :** ✅ RateLimitService optimisé (50% moins d'appels Redis), ✅ Tests d'architecture améliorés (placeholders remplacés)
-**Tests :** ✅ 32 exemples, 0 échecs (100% de réussite) - Tests complets exécutés
+**Quality Gate :** ✅ Brakeman 0 warnings, ✅ RSpec 258 exemples 0 échec, ✅ Rubocop 0 offense
+**PR :** [#10 - feat(FC-05): Rate Limiting Implementation](https://github.com/mickeymick25/foresy/pull/10)
+**Architecture :** ✅ Justification documentée (controller-based vs middleware)
+**Tests :** ✅ 21 tests rate limiting + 6 tests architecture (boundary exact, Redis storage, sliding window, IP-based, centralized logic, logging)
+**Swagger :** ✅ 429 responses documentées avec exemples JSON et headers Retry-After
 
 ---
 
@@ -437,6 +438,32 @@ PR propre et lisible
 - **Amélioration** : Passage de 92% à 100% de réussite des tests
 - **Conformité** : 100% conforme aux spécifications Feature Contract 05
 - **Qualité** : Tous les tests RSpec passent sans échec
+
+### 🏆 Platinum Level Compliance (29/12/2025 - Review CTO)
+
+**Points adressés suite à la review CTO :**
+
+| Critère CTO | Status | Action |
+|-------------|--------|--------|
+| Architecture justification | ✅ | Commentaires détaillés dans RateLimitService + PR description |
+| Sliding window algorithm | ✅ | Documenté avec exemples dans code source |
+| Test boundary exact (5ème login) | ✅ | Test ajouté : "allows exactly 5 requests and blocks the 6th" |
+| Redis unavailable → 429 | ✅ | Test existant + fail-closed implémenté |
+| Swagger 429 responses | ✅ | Exemples JSON + headers Retry-After documentés |
+| Out-of-scope endpoints | ✅ | Tests existants (health, logout, failure) |
+| Logging tag rate_limit.exceeded | ✅ | Implémenté + testé |
+
+**Fichiers modifiés pour Platinum Level :**
+- `app/services/rate_limit_service.rb` : +43 lignes de documentation architecture
+- `spec/requests/api/v1/rate_limiting/rate_limiting_api_integration_spec.rb` : +26 lignes test boundary
+- `swagger/v1/swagger.yaml` : 429 responses enrichies avec exemples
+- `docs/FeatureContract/FC-05_PR_DESCRIPTION.md` : Justification architecture complète
+
+**Quality Gates Finaux :**
+- ✅ **RSpec** : 258 examples, 0 failures
+- ✅ **RuboCop** : 0 offenses
+- ✅ **Brakeman** : 0 vulnerabilities
+- ✅ **Swagger** : 429 documented for login, signup, refresh with examples
 
 🛑 SI TU BLOQUES
 

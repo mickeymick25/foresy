@@ -517,6 +517,32 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
       end
     end
 
+    # === SCENARIO: Login at exact boundary (5th request) ===
+    # Given: I send exactly 5 login requests per minute
+    # When: I call POST /api/v1/auth/login for the 5th time
+    # Then: I receive a normal response (not rate limited)
+    # And: The 6th request would be blocked
+    context 'should handle exact boundary correctly (5th request allowed, 6th blocked)' do
+      it 'allows exactly 5 requests and blocks the 6th' do
+        test_ip = '192.168.99.99'
+
+        # Clear any existing rate limit
+        RateLimitService.clear_rate_limit('auth/login', test_ip)
+
+        # Requests 1-5 should be allowed (at or under limit)
+        5.times do |i|
+          allowed, retry_after = RateLimitService.check_rate_limit('auth/login', test_ip)
+          expect(allowed).to be(true), "Request #{i + 1} should be allowed"
+          expect(retry_after).to eq(0)
+        end
+
+        # Request 6 should be blocked (over limit)
+        allowed, retry_after = RateLimitService.check_rate_limit('auth/login', test_ip)
+        expect(allowed).to be(false), 'Request 6 should be blocked'
+        expect(retry_after).to be_between(58, 60)
+      end
+    end
+
     context 'should have centralized logic (not in controllers)' do
       it 'centralizes rate limiting logic' do
         # Verify that all rate limiting logic is in RateLimitService

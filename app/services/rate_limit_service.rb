@@ -5,26 +5,69 @@
 # Implements IP-based rate limiting with sliding window algorithm
 # for protection against brute force attacks on authentication endpoints.
 #
-# SECURITY FEATURES:
+# == ARCHITECTURE DECISION (FC-05)
+#
+# Why controller-based (before_action) instead of Rack middleware?
+#
+# 1. **Granularity**: before_action allows per-endpoint configuration
+#    without complex path matching in middleware
+# 2. **Rails Integration**: Native access to request object, params, and
+#    controller context for accurate endpoint identification
+# 3. **Testability**: Easier to test with RSpec request specs and mocking
+# 4. **Maintainability**: Logic stays within Rails conventions, easier for
+#    Rails developers to understand and modify
+# 5. **rack-attack issues**: Initial middleware approach had integration
+#    problems with Rails 8.1.1 configuration
+#
+# Trade-off: Slightly later in request lifecycle, but negligible for auth
+# endpoints where business logic validation is the main cost.
+#
+# == SLIDING WINDOW ALGORITHM
+#
+# Uses Redis Sorted Sets (ZSET) for accurate sliding window rate limiting:
+#
+# 1. Each request is stored as a ZSET member with timestamp as score
+# 2. On each check:
+#    a. ZREMRANGEBYSCORE removes entries older than window (60s)
+#    b. ZCARD counts remaining entries in window
+#    c. If count >= limit → reject with retry_after calculation
+#    d. If count < limit → ZADD new entry with current timestamp
+#
+# Why Sorted Sets vs simple counter with TTL?
+# - Simple counter resets entirely after TTL, allowing burst at window edges
+# - Sorted Set provides TRUE sliding window: each request has its own expiry
+# - More accurate rate limiting, no "thundering herd" at window boundaries
+#
+# Example: 5 req/min limit
+#   T=0s:  Request 1 → ZADD score=0    → count=1 → ALLOWED
+#   T=10s: Request 2 → ZADD score=10   → count=2 → ALLOWED
+#   T=20s: Request 3 → ZADD score=20   → count=3 → ALLOWED
+#   T=30s: Request 4 → ZADD score=30   → count=4 → ALLOWED
+#   T=40s: Request 5 → ZADD score=40   → count=5 → ALLOWED
+#   T=50s: Request 6 → count=5         → BLOCKED (retry_after=10s)
+#   T=61s: Request 7 → ZREM score<1    → count=4 → ALLOWED (request 1 expired)
+#
+# == SECURITY FEATURES
 # - Redis-only state (no internal data exposed)
 # - IP-based identification (stateless servers compatible)
 # - Generic error messages only
-# - Sliding window algorithm for accurate rate limiting
+# - Fail closed on Redis failure (returns 429, not 500)
 #
-# SUPPORTED ENDPOINTS:
+# == SUPPORTED ENDPOINTS
 # - POST /api/v1/auth/login (5 requests/minute)
 # - POST /api/v1/signup (3 requests/minute)
 # - POST /api/v1/auth/refresh (10 requests/minute)
 #
-# EDGE CASES:
+# == EDGE CASES
 # - Redis unavailable → fail closed (HTTP 429)
 # - IP absente → fallback sur request.remote_ip
-# - Endpoint hors scope → AUCUN impact
+# - Endpoint hors scope → AUCUN impact (returns [true, 0])
 #
-# LOGGING & MONITORING:
-# - Log des événements de dépassement
-# - Aucun IP ni token en clair dans les logs
-# - Tag : rate_limit.exceeded
+# == LOGGING & MONITORING
+# - Log des événements de dépassement avec tag: rate_limit.exceeded
+# - Log Redis failures avec tag: rate_limit.redis_unavailable
+# - IPs masquées dans les logs (192.168.x.x)
+# - Aucun token en clair dans les logs
 class RateLimitService
   WINDOW_SIZE = 60 # 1 minute in seconds
 
@@ -139,6 +182,10 @@ class RateLimitService
     @redis ||= ::Redis.new(url: ENV['REDIS_URL'] || 'redis://localhost:6379/0')
   end
 
+  # Count requests in current sliding window
+  # Uses Redis pipeline for atomic operations:
+  # 1. ZREMRANGEBYSCORE: Remove expired entries (score < window_start)
+  # 2. ZCARD: Count remaining entries
   private_class_method def self.count_current_requests(key, now)
     window_start = now - WINDOW_SIZE
 
@@ -151,6 +198,8 @@ class RateLimitService
     result[1] # zcard result is the second operation in the pipeline
   end
 
+  # Calculate seconds until oldest request expires from window
+  # This gives accurate retry_after value for 429 response
   private_class_method def self.calculate_retry_after(key, now)
     oldest_request = redis.zrange(key, 0, 0, with_scores: true)&.first&.last
     return 60 unless oldest_request
@@ -159,8 +208,10 @@ class RateLimitService
     [retry_after, 60].min
   end
 
+  # Add new request to sliding window
+  # Uses UUID as member to ensure uniqueness (same timestamp possible)
+  # Sets key expiry to 2x window to ensure cleanup
   private_class_method def self.add_request_to_window(key, now)
-    # Add request to the sliding window when under limit
     redis.pipelined do |pipeline|
       pipeline.zadd(key, now, SecureRandom.uuid)
       pipeline.expire(key, WINDOW_SIZE * 2)
