@@ -4,6 +4,8 @@ require_relative 'boot'
 
 require 'rails/all'
 
+require 'redis'
+
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
@@ -41,5 +43,17 @@ module App
     # Authentication remains stateless via JWT tokens - session is only for OAuth
     config.middleware.use ActionDispatch::Cookies
     config.middleware.use ActionDispatch::Session::CookieStore, key: '_foresy_session'
+
+    # Rate limiting middleware for FC-05 Feature Contract
+    # Protects authentication endpoints from brute force attacks
+    # - POST /api/v1/auth/login (5 requests/minute)
+    # - POST /api/v1/auth/signup (3 requests/minute)
+    # - POST /api/v1/auth/refresh (10 requests per minute)
+    # Rate limiting is handled directly in controllers using RateLimitService
+    require_relative '../app/services/rate_limit_service'
+    # This provides IP-based rate limiting for authentication endpoints:
+    # - POST /api/v1/auth/login: 5 requests per minute
+    # - POST /api/v1/signup: 3 requests per minute
+    # - POST /api/v1/auth/refresh: 10 requests per minute
   end
 end

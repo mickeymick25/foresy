@@ -3,7 +3,7 @@
 require 'rails_helper'
 
 RSpec.describe 'Token Revocation', type: :request do
-  let(:user) { create(:user, email: 'test@example.com', password: 'password123') }
+  let(:user) { create(:user, email: "test_#{SecureRandom.hex(4)}@example.com", password: 'password123') }
   let(:headers) { { 'Content-Type' => 'application/json' } }
 
   # Helper to get auth tokens
@@ -22,6 +22,7 @@ RSpec.describe 'Token Revocation', type: :request do
     context 'with valid token' do
       it 'revokes the current session token' do
         auth_response = login_user(user)
+        user.reload # Reload user to get the newly created session
         token = auth_response['token']
 
         delete '/api/v1/auth/revoke', headers: auth_headers(token)
@@ -33,15 +34,27 @@ RSpec.describe 'Token Revocation', type: :request do
       end
 
       it 'invalidates the token for future requests' do
-        auth_response = login_user(user)
+        # Create session and get token in same test block
+        post '/api/v1/auth/login',
+             params: { email: user.email, password: 'password123' }.to_json,
+             headers: { 'Content-Type' => 'application/json' }
+
+        expect(response.status).to eq(200)
+        auth_response = JSON.parse(response.body)
         token = auth_response['token']
+
+        # Access session immediately after creation (same transaction)
+        expect(user.sessions.count).to be >= 1
+        user.sessions.last
 
         # Revoke the token
         delete '/api/v1/auth/revoke', headers: auth_headers(token)
+
         expect(response).to have_http_status(:ok)
 
-        # Try to use the revoked token
+        # Try to use the same token again
         delete '/api/v1/auth/revoke', headers: auth_headers(token)
+
         expect(response).to have_http_status(:unauthorized)
       end
     end
@@ -64,11 +77,21 @@ RSpec.describe 'Token Revocation', type: :request do
 
     context 'with expired token' do
       it 'returns 401 unauthorized' do
-        auth_response = login_user(user)
+        # Create session and get token in same test block
+        post '/api/v1/auth/login',
+             params: { email: user.email, password: 'password123' }.to_json,
+             headers: { 'Content-Type' => 'application/json' }
+
+        expect(response.status).to eq(200)
+        auth_response = JSON.parse(response.body)
         token = auth_response['token']
 
+        # Access session immediately after creation (same transaction)
+        expect(user.sessions.count).to be >= 1
+        session = user.sessions.last
+
         # Manually expire the session
-        user.sessions.last.update(expires_at: 1.hour.ago)
+        session.update(expires_at: 1.hour.ago)
 
         delete '/api/v1/auth/revoke', headers: auth_headers(token)
 
@@ -81,18 +104,33 @@ RSpec.describe 'Token Revocation', type: :request do
     context 'with valid token' do
       it 'revokes all sessions for the user' do
         # Create multiple sessions by logging in multiple times
-        login_user(user)
-        login_user(user)
-        auth_response3 = login_user(user)
+        post '/api/v1/auth/login',
+             params: { email: user.email, password: 'password123' }.to_json,
+             headers: { 'Content-Type' => 'application/json' }
+        expect(response.status).to eq(200)
+        sleep 1  # Delay to avoid rate limiting
 
+        post '/api/v1/auth/login',
+             params: { email: user.email, password: 'password123' }.to_json,
+             headers: { 'Content-Type' => 'application/json' }
+        expect(response.status).to eq(200)
+        sleep 1  # Delay to avoid rate limiting
+
+        post '/api/v1/auth/login',
+             params: { email: user.email, password: 'password123' }.to_json,
+             headers: { 'Content-Type' => 'application/json' }
+        expect(response.status).to eq(200)
+        auth_response3 = JSON.parse(response.body)
         token = auth_response3['token']
-        active_sessions_before = user.sessions.active.count
 
+        # Access sessions immediately after creation (same transaction)
+        active_sessions_before = user.sessions.active.count
         expect(active_sessions_before).to be >= 3
 
         delete '/api/v1/auth/revoke_all', headers: auth_headers(token)
 
         expect(response).to have_http_status(:ok)
+
         json_response = JSON.parse(response.body)
         expect(json_response['message']).to eq('All tokens revoked successfully')
         expect(json_response['revoked_count']).to eq(active_sessions_before)
@@ -103,11 +141,25 @@ RSpec.describe 'Token Revocation', type: :request do
       end
 
       it 'invalidates all tokens for future requests' do
-        auth_response1 = login_user(user)
-        auth_response2 = login_user(user)
-
+        # Create first session
+        post '/api/v1/auth/login',
+             params: { email: user.email, password: 'password123' }.to_json,
+             headers: { 'Content-Type' => 'application/json' }
+        expect(response.status).to eq(200)
+        auth_response1 = JSON.parse(response.body)
         token1 = auth_response1['token']
+        sleep 1 # Delay to avoid rate limiting
+
+        # Create second session in same test block
+        post '/api/v1/auth/login',
+             params: { email: user.email, password: 'password123' }.to_json,
+             headers: { 'Content-Type' => 'application/json' }
+        expect(response.status).to eq(200)
+        auth_response2 = JSON.parse(response.body)
         token2 = auth_response2['token']
+
+        # Access sessions immediately after creation (same transaction)
+        expect(user.sessions.count).to be >= 2
 
         # Revoke all using token2
         delete '/api/v1/auth/revoke_all', headers: auth_headers(token2)
@@ -122,14 +174,27 @@ RSpec.describe 'Token Revocation', type: :request do
       end
 
       it 'does not affect other users sessions' do
-        other_user = create(:user, email: 'other@example.com', password: 'password123')
+        other_user = create(:user, email: "other_#{SecureRandom.hex(4)}@example.com", password: 'password123')
 
-        # Login both users
-        auth_response_user = login_user(user)
-        auth_response_other = login_user(other_user)
-
+        # Login both users in same test block
+        post '/api/v1/auth/login',
+             params: { email: user.email, password: 'password123' }.to_json,
+             headers: { 'Content-Type' => 'application/json' }
+        expect(response.status).to eq(200)
+        auth_response_user = JSON.parse(response.body)
         token_user = auth_response_user['token']
+        sleep 1 # Delay to avoid rate limiting
+
+        post '/api/v1/auth/login',
+             params: { email: other_user.email, password: 'password123' }.to_json,
+             headers: { 'Content-Type' => 'application/json' }
+        expect(response.status).to eq(200)
+        auth_response_other = JSON.parse(response.body)
         token_other = auth_response_other['token']
+
+        # Access sessions immediately after creation (same transaction)
+        expect(user.sessions.count).to be >= 1
+        expect(other_user.sessions.count).to be >= 1
 
         # Revoke all sessions for first user
         delete '/api/v1/auth/revoke_all', headers: auth_headers(token_user)
@@ -161,11 +226,19 @@ RSpec.describe 'Token Revocation', type: :request do
   describe 'Token revocation security' do
     context 'when user has been deactivated' do
       it 'prevents token revocation for inactive users' do
-        auth_response = login_user(user)
+        # Create session and get token in same test block
+        post '/api/v1/auth/login',
+             params: { email: user.email, password: 'password123' }.to_json,
+             headers: { 'Content-Type' => 'application/json' }
+        expect(response.status).to eq(200)
+        auth_response = JSON.parse(response.body)
         token = auth_response['token']
 
+        # Access session immediately after creation (same transaction)
+        expect(user.sessions.count).to be >= 1
+
         # Deactivate user
-        user.update(active: false)
+        user.update!(active: false)
 
         delete '/api/v1/auth/revoke', headers: auth_headers(token)
 

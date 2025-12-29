@@ -14,16 +14,18 @@ RSpec.describe 'API V1 Users', type: :request do
       response '201', 'Utilisateur créé' do
         let(:user_params) do
           {
-            email: "user_#{SecureRandom.hex(4)}@example.com",
-            password: 'password123',
-            password_confirmation: 'password123'
+            user: {
+              email: "user_#{SecureRandom.hex(4)}@example.com",
+              password: 'password123',
+              password_confirmation: 'password123'
+            }
           }
         end
 
         run_test! do |response|
           data = JSON.parse(response.body)
           expect(data['token']).to be_present
-          expect(data['email']).to eq(user_params[:email])
+          expect(data['email']).to eq(user_params[:user][:email])
         end
       end
 

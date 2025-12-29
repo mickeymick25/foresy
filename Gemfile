@@ -17,12 +17,16 @@ gem 'pg', '~> 1.1'
 gem 'puma', '>= 5.0'
 gem 'rack-cors'
 gem 'rails', '~> 8.1.1'
+gem 'redis', '~> 5.0'
 gem 'sprockets-rails'
 gem 'stimulus-rails'
 gem 'turbo-rails'
 
 # For Windows compatibility
 gem 'tzinfo-data', platforms: %i[windows jruby]
+
+# Security & Rate Limiting
+gem 'rack-attack', '~> 6.7.0'
 
 # == Development & Test ==
 group :development, :test do

@@ -7,7 +7,7 @@ info:
 paths:
   "/api/v1/auth/login":
     post:
-      summary: Authenticates a user
+      summary: Test Redis unavailable - fail closed (HTTP 429)
       tags:
       - Authentication
       parameters: []
@@ -15,9 +15,33 @@ paths:
         '200':
           description: user authenticated
         '401':
-          description: missing email
+          description: handles missing X-Forwarded-For by using remote_ip
         '403':
           description: inactive user
+        '429':
+          description: fail closed when Redis is down
+          content:
+            application/json:
+              examples:
+                example_0:
+                  value:
+                    rate_limit_exceeded:
+                      summary: Rate limit exceeded (5 requests/minute)
+                      value:
+                        error: Rate limit exceeded
+                        retry_after: 42
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Rate limit exceeded
+                  retry_after:
+                    type: integer
+                    example: 42
+                required:
+                - error
+                - retry_after
       requestBody:
         content:
           application/json:
@@ -26,49 +50,37 @@ paths:
               properties:
                 email:
                   type: string
+                  format: email
                 password:
                   type: string
+                  format: password
               required:
               - email
               - password
+        required: true
+    get:
+      summary: GET login endpoint - not rate-limited (endpoint does not exist)
+      tags:
+      - Authentication
+      responses:
+        '404':
+          description: get login endpoint does not exist (not rate-limited)
   "/api/v1/auth/logout":
     delete:
-      summary: Logs out the user
+      summary: DELETE logout endpoint - not rate-limited (only POST is rate-limited)
       tags:
       - Authentication
       parameters:
       - name: Authorization
         in: header
-        required: true
-        description: Bearer token
+        required: false
         schema:
           type: string
       responses:
         '200':
           description: user logged out
         '401':
-          description: unauthorized - second logout (session already expired)
-  "/api/v1/auth/refresh":
-    post:
-      summary: Refreshes authentication token
-      tags:
-      - Authentication
-      parameters: []
-      responses:
-        '200':
-          description: token refreshed
-        '401':
-          description: refresh token expired
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                refresh_token:
-                  type: string
-              required:
-              - refresh_token
+          description: delete logout unauthorized (not rate-limited)
   "/api/v1/auth/{provider}/callback":
     post:
       summary: OAuth callback for provider authentication
@@ -194,14 +206,14 @@ paths:
         description: OAuth authorization code and redirect URI
   "/api/v1/auth/failure":
     get:
-      summary: OAuth failure endpoint
+      summary: OAuth failure endpoint - not rate-limited
       tags:
       - OAuth
       description: Endpoint called when OAuth authentication fails at the provider
         level
       responses:
         '401':
-          description: OAuth authentication failed
+          description: oauth failure (not rate-limited)
           content:
             application/json:
               schema:
@@ -218,6 +230,52 @@ paths:
                 required:
                 - error
                 - message
+  "/api/v1/auth/refresh":
+    post:
+      summary: Refreshes authentication token with rate limiting
+      tags:
+      - Authentication
+      parameters: []
+      responses:
+        '200':
+          description: token refreshed
+        '401':
+          description: token refreshed (under rate limit)
+        '429':
+          description: rate limit exceeded - too many refresh attempts
+          content:
+            application/json:
+              examples:
+                example_0:
+                  value:
+                    rate_limit_exceeded:
+                      summary: Rate limit exceeded (10 requests/minute)
+                      value:
+                        error: Rate limit exceeded
+                        retry_after: 35
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Rate limit exceeded
+                  retry_after:
+                    type: integer
+                    example: 35
+                required:
+                - error
+                - retry_after
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh_token:
+                  type: string
+              required:
+              - refresh_token
+        required: true
   "/api/v1/signup":
     post:
       summary: Crée un nouvel utilisateur
@@ -225,16 +283,48 @@ paths:
       - Users
       parameters: []
       responses:
-        '201':
-          description: Utilisateur créé
         '422':
           description: Création échouée
+        '429':
+          description: rate limit exceeded - too many signup attempts
+          content:
+            application/json:
+              examples:
+                example_0:
+                  value:
+                    rate_limit_exceeded:
+                      summary: Rate limit exceeded (3 requests/minute)
+                      value:
+                        error: Rate limit exceeded
+                        retry_after: 55
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Rate limit exceeded
+                  retry_after:
+                    type: integer
+                    example: 55
+                required:
+                - error
+                - retry_after
+        '201':
+          description: Utilisateur créé
       requestBody:
         content:
           application/json:
             schema:
               "$ref": "#/components/schemas/user"
         required: true
+  "/health":
+    get:
+      summary: Health check endpoint - not rate-limited
+      tags:
+      - Health
+      responses:
+        '200':
+          description: health check (not rate-limited)
 servers:
 - url: http://{defaultHost}
   description: Serveur local de développement

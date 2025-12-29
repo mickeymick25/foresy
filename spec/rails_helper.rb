@@ -36,6 +36,16 @@ RSpec.configure do |config|
   config.include FactoryBot::Syntax::Methods
   config.include AuthHelpers, type: :request
 
+  # Clear rate limiting cache between tests to avoid 429 errors
+  config.before(:each) do
+    # Clear rate limits for common test IPs and endpoints
+    ['127.0.0.1', '192.168.1.1', '10.0.0.1'].each do |ip|
+      ['auth/login', 'auth/signup', 'auth/refresh'].each do |endpoint|
+        RateLimitService.clear_rate_limit(endpoint, ip) if defined?(RateLimitService)
+      end
+    end
+  end
+
   # Mode test pour OmniAuth
   OmniAuth.config.test_mode = true
 end
