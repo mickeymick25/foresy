@@ -39,6 +39,16 @@
       "key": "oauth_code",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "mission_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "client_company_id",
+      "value": "",
+      "type": "string"
     }
   ],
   "item": [
@@ -492,6 +502,207 @@
               "path": ["api", "v1", "auth", "failure"]
             },
             "description": "Endpoint appelé en cas d'échec OAuth"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Missions (FC-06)",
+      "description": "Feature Contract 06 - Gestion des missions professionnelles pour indépendants",
+      "item": [
+        {
+          "name": "Create Mission (time_based)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('mission_id', jsonData.id);",
+                  "    console.log('Mission created with ID:', jsonData.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mission Data Platform\",\n  \"description\": \"Backend architecture and API development\",\n  \"mission_type\": \"time_based\",\n  \"status\": \"lead\",\n  \"start_date\": \"2025-01-15\",\n  \"daily_rate\": 60000,\n  \"currency\": \"EUR\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/missions",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "missions"]
+            },
+            "description": "Crée une nouvelle mission time_based (TJM). Requiert une company independent liée à l'utilisateur."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Mission (fixed_price)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('mission_id', jsonData.id);",
+                  "    console.log('Mission created with ID:', jsonData.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Website Redesign Project\",\n  \"description\": \"Complete website redesign with new branding\",\n  \"mission_type\": \"fixed_price\",\n  \"status\": \"lead\",\n  \"start_date\": \"2025-02-01\",\n  \"end_date\": \"2025-04-30\",\n  \"fixed_price\": 2500000,\n  \"currency\": \"EUR\",\n  \"client_company_id\": \"{{client_company_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/missions",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "missions"]
+            },
+            "description": "Crée une nouvelle mission fixed_price (forfait) avec client company optionnel."
+          },
+          "response": []
+        },
+        {
+          "name": "List Missions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/missions",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "missions"]
+            },
+            "description": "Liste toutes les missions accessibles à l'utilisateur (via ses companies avec rôle independent ou client)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Mission Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/missions/{{mission_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "missions", "{{mission_id}}"]
+            },
+            "description": "Récupère les détails d'une mission incluant les companies associées (independent et client)."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Mission",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mission Data Platform - Updated\",\n  \"description\": \"Updated description with new scope\",\n  \"status\": \"pending\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/missions/{{mission_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "missions", "{{mission_id}}"]
+            },
+            "description": "Modifie une mission. Seul le créateur peut modifier. Les transitions de statut doivent respecter le lifecycle: lead → pending → won → in_progress → completed."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Mission Status (Transition)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"won\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/missions/{{mission_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "missions", "{{mission_id}}"]
+            },
+            "description": "Change le statut d'une mission. Transitions autorisées: lead→pending, pending→won, won→in_progress, in_progress→completed. Pas de retour arrière."
+          },
+          "response": []
+        },
+        {
+          "name": "Archive Mission (Soft Delete)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/missions/{{mission_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "missions", "{{mission_id}}"]
+            },
+            "description": "Archive une mission (soft delete). Retourne 409 Conflict si la mission est liée à un CRA."
           },
           "response": []
         }

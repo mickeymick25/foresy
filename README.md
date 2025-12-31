@@ -4,7 +4,7 @@
 🔒 **Security:** Stateless JWT, no token logging, no cookies  
 ⚡ **Stack:** Ruby 3.4.8 + Rails 8.1.1
 
-Foresy est une application Ruby on Rails API-only qui fournit une API RESTful robuste pour la gestion des utilisateurs avec authentification JWT et support OAuth (Google & GitHub).
+Foresy est une application Ruby on Rails API-only qui fournit une API RESTful robuste pour la gestion des utilisateurs, des missions professionnelles, avec authentification JWT et support OAuth (Google & GitHub). Conçue pour les travailleurs indépendants.
 
 ## 🚀 Fonctionnalités
 
@@ -20,6 +20,14 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 - **Profil utilisateur** : Gestion des données utilisateur via API
 - **Multi-provider** : Support utilisateur avec Google et GitHub
 - **Validation robuste** : Contraintes d'unicité et validations métier
+
+### Gestion des Missions (Feature Contract 06)
+- **CRUD Missions** : Création, lecture, modification, archivage de missions
+- **Types de mission** : Time-based (TJM) et Fixed-price (forfait)
+- **Lifecycle** : lead → pending → won → in_progress → completed
+- **Architecture Domain-Driven** : Relations via tables dédiées (MissionCompany)
+- **Contrôle d'accès** : Basé sur les rôles (independent/client)
+- **Soft delete** : Archivage avec protection si CRA liés
 
 ### Documentation & Qualité
 - **Swagger/OpenAPI** : Documentation API interactive et à jour
@@ -47,30 +55,40 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 │   ├── login          # Authentification JWT
 │   ├── logout         # Déconnexion utilisateur
 │   ├── refresh        # Rafraîchissement token
+│   ├── revoke         # Révocation token courant
+│   ├── revoke_all     # Révocation tous les tokens
 │   └── :provider/
 │       └── callback   # OAuth callbacks (Google, GitHub)
 ├── users/
 │   └── create         # Inscription utilisateur
+├── missions/
+│   ├── index          # Liste des missions accessibles
+│   ├── show           # Détail d'une mission
+│   ├── create         # Création de mission
+│   ├── update         # Modification de mission
+│   └── destroy        # Archivage de mission
 └── health             # Health check endpoint
 ```
 
 ## 🧪 Tests & Qualité
 
 ### Statistiques Actuelles (Décembre 2025)
-- **Tests RSpec** : ✅ 221 tests qui passent (0 échec)
+- **Tests RSpec** : ✅ 290 tests qui passent (0 échec)
+- **Tests Missions (FC-06)** : ✅ 30/30 passent
 - **Tests d'acceptation OAuth** : ✅ 15/15 passent
 - **Tests d'intégration OAuth** : ✅ 10/10 passent (100% succès)
-- **Tests Rswag OAuth** : ✅ 10/10 passent (Swagger auto-généré)
-- **RuboCop** : ✅ 0 violation détectée (82 fichiers)
+- **Tests Rswag** : ✅ 119 specs Swagger auto-générées
+- **RuboCop** : ✅ 0 violation détectée (93 fichiers)
 - **Brakeman** : ✅ 0 vulnérabilité critique
 
 ### Couverture de Tests
-- **Authentication** : Login, logout, token refresh ✅
-- **Rate Limiting** : Login (5/min), Signup (3/min), Refresh (10/min), headers Retry-After ✅
+- **Authentication** : Login, logout, token refresh, revocation ✅
+- **Rate Limiting** : Login (5/min), Signup (3/min), Refresh (10/min), Missions ✅
 - **OAuth Integration** : Google OAuth2, GitHub ✅
 - **Session Management** : Création, expiration, invalidation ✅
+- **Missions (FC-06)** : CRUD complet, lifecycle, access control ✅
 - **API Endpoints** : Tous les endpoints testés ✅
-- **Models** : User, Session avec validations complètes ✅
+- **Models** : User, Session, Mission, Company, relations ✅
 - **Error Handling** : Gestion d'erreurs robuste testée ✅
 
 ## 🔧 Améliorations Récentes (Décembre 2025)
@@ -266,6 +284,63 @@ Déconnexion et invalidation de session
 #### GET /api/v1/auth/failure
 Endpoint d'échec OAuth (optionnel)
 
+### Missions Endpoints (Feature Contract 06)
+
+#### POST /api/v1/missions
+Crée une nouvelle mission
+
+**Headers :** `Authorization: Bearer <jwt_token>`
+
+**Body JSON :**
+```json
+{
+  "name": "Mission Data Platform",
+  "description": "Backend architecture",
+  "mission_type": "time_based",
+  "status": "lead",
+  "start_date": "2025-01-01",
+  "daily_rate": 60000,
+  "currency": "EUR",
+  "client_company_id": "uuid (optional)"
+}
+```
+
+**Responses :**
+- **201 Created** : Mission créée avec succès
+- **401 Unauthorized** : JWT invalide
+- **403 Forbidden** : User sans company independent
+- **422 Unprocessable Entity** : Validation métier échouée
+
+#### GET /api/v1/missions
+Liste les missions accessibles à l'utilisateur
+
+**Headers :** `Authorization: Bearer <jwt_token>`
+
+**Responses :**
+- **200 OK** : Liste des missions avec meta.total
+
+#### GET /api/v1/missions/:id
+Détail d'une mission
+
+**Responses :**
+- **200 OK** : Mission avec companies associées
+- **404 Not Found** : Mission inaccessible
+
+#### PATCH /api/v1/missions/:id
+Modifie une mission (creator only)
+
+**Responses :**
+- **200 OK** : Mission mise à jour
+- **403 Forbidden** : Non-creator
+- **422 Unprocessable Entity** : Transition de statut invalide
+
+#### DELETE /api/v1/missions/:id
+Archive une mission (soft delete)
+
+**Responses :**
+- **200 OK** : Mission archivée
+- **409 Conflict** : Mission liée à un CRA
+
 ## 🚀 Démarrage
 
 ### Prérequis
@@ -456,7 +531,18 @@ spec/
 - **Memory Usage** : Monitoring et optimisation continue
 
 ## 📝 Changelog
-### Changelog
+
+### Version 2.1.0 (31 Décembre 2025) - Feature Contract 06: Missions
+- 🎯 **Missions CRUD** : Création, lecture, modification, archivage de missions professionnelles
+- 🏗️ **Architecture Domain-Driven** : Relations via tables dédiées (MissionCompany, UserCompany)
+- 📊 **Types de mission** : Time-based (TJM) et Fixed-price (forfait)
+- 🔄 **Lifecycle** : lead → pending → won → in_progress → completed
+- 🔐 **Contrôle d'accès** : Basé sur les rôles (independent/client) via Company
+- 🗑️ **Soft delete** : Archivage avec protection si CRA liés
+- ✅ **290 Tests** : +69 nouveaux tests, 0 échec
+- ✅ **RuboCop** : 93 fichiers, 0 offense
+- ✅ **Brakeman** : 0 vulnérabilité
+- ✅ **Swagger** : 119 specs générées
 
 ### Version 2.0.0 (26 Décembre 2025) - Rails 8.1.1 Migration
 - 🚀 **Rails Upgrade** : Migration majeure de Rails 7.1.5.1 → 8.1.1

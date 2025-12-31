@@ -29,6 +29,16 @@ class User < ApplicationRecord
 
   has_many :sessions, dependent: :destroy
 
+  # Company associations via relation table (Domain-Driven Architecture)
+  has_many :user_companies, dependent: :destroy
+  has_many :companies, through: :user_companies
+
+  # Role-based company associations
+  has_many :independent_companies, -> { where(user_companies: { role: 'independent' }) },
+           through: :user_companies, source: :company
+  has_many :client_companies, -> { where(user_companies: { role: 'client' }) },
+           through: :user_companies, source: :company
+
   # Email validation is conditional for OAuth support
   # For traditional users (no provider): global email uniqueness (case-insensitive)
   # For OAuth users (with provider): email uniqueness per provider (handled by OAuth validation below)

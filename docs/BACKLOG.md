@@ -1,6 +1,6 @@
 # 📋 Backlog - Foresy
 
-**Dernière mise à jour** : 26 décembre 2025 (soir) - Platinum Level
+**Dernière mise à jour** : 31 décembre 2025 - FC-06 Missions terminé
 
 ---
 
@@ -12,6 +12,181 @@
 | 🟠 | Moyenne - Planifié |
 | 🟢 | Basse - Nice to have |
 | ✅ | Terminé |
+
+---
+
+## 🧭 Roadmap Produit
+
+```
+v0.1.0 (Fondations métier)
+ ├─ Feature Contract #06 — Missions (Projets) ✅ TERMINÉ
+ ├─ Feature Contract #07 — CRA mensuel (brouillon)
+ ├─ Feature Contract #08 — Entreprise de l'indépendant
+ └─ Feature Contract #09 — Validation & verrouillage CRA
+
+v0.2.x (Extension)
+ ├─ Feature Contract #07 — Rôles & visions
+ └─ Feature Contract #08 — Pré-facturation
+
+v0.3+ (Optimisation)
+ ├─ Feature #10 — Versioning CRA avancé
+ ├─ Feature #11 — Export PDF
+ └─ Feature #12 — Historique & audit métier
+
+v1.0.0 (MVP Production)
+ └─ À définir après validation des fondations
+```
+
+---
+
+## ✅ TERMINÉ — FONDATIONS MÉTIER
+
+### Feature Contract #06 — Missions (Projets) ✅ TERMINÉ (31 Déc 2025)
+
+🧱 **Fondation métier** — C'est le pivot de tout (CRA, facturation, TVA, reporting)
+
+| Aspect | Détails |
+|--------|---------|
+| **Statut** | ✅ **TERMINÉ** - 31 décembre 2025 |
+| **Scope fonctionnel** | CRUD Mission complet |
+| **Architecture** | Domain-Driven / Relation-Driven (tables dédiées) |
+| **Types** | time_based (TJM), fixed_price (forfait) |
+| **Lifecycle** | lead → pending → won → in_progress → completed |
+| **Modèles** | Mission, MissionCompany, Company, UserCompany |
+| **Tests** | 30 RSpec tests (100% passing) |
+| **Qualité** | RuboCop 0 offense, Brakeman 0 vulnérabilité |
+| **Swagger** | 119 specs générées |
+
+> ✅ **Feature pivot livrée — prêt pour CRA**
+
+---
+
+## 🔴 PRIORITÉ ABSOLUE — PROCHAINE ÉTAPE
+
+### Feature Contract #07 — CRA mensuel (brouillon)
+
+📊 **Cœur différenciant** — Vraie valeur pour l'indépendant
+
+| Aspect | Détails |
+|--------|---------|
+| **Pourquoi maintenant ?** | FC-06 Missions terminé, permet le suivi d'activité réel |
+| **Scope fonctionnel** | Création d'un CRA pour un mois donné, vision jour par jour |
+| **Types de jours** | Mission X, Non facturable, Congé, Jour férié, Inter-contrat |
+| **États** | Draft, Submitted |
+| **Contraintes** | 1 CRA par mois / user, modifiable tant qu'en draft, historisation minimale |
+
+> 📌 **Prochaine priorité après FC-06**
+
+---
+
+## 🔴 PRIORITÉ HAUTE — CRÉATION DE VALEUR IMMÉDIATE
+
+### Feature Contract #08 — Entreprise de l'indépendant
+
+🏛️ **Base fiscale & légale** — Conditionne TVA, statuts fiscaux
+
+| Aspect | Détails |
+|--------|---------|
+| **Pourquoi maintenant ?** | Indispensable avant facturation, fort levier de différenciation |
+| **Scope fonctionnel** | Création d'une entreprise, SIREN/SIRET |
+| **Récupération données** | API à définir (forme juridique, régime fiscal, TVA oui/non) |
+
+> ⚠️ Pas encore de logique comptable
+
+---
+
+## 🟠 PRIORITÉ MOYENNE — SÉCURISATION MÉTIER
+
+### Feature Contract #09 — Validation & verrouillage CRA
+
+🔒 **Confiance & conformité**
+
+| Aspect | Détails |
+|--------|---------|
+| **Scope** | Validation CRA par l'indépendant, CRA verrouillé en écriture |
+| **Dérogation** | Modification → double approbation (plus tard) |
+
+| Aspect | Détails |
+|--------|---------|
+| **Pourquoi maintenant ?** | Indispensable avant facturation, fort levier de différenciation |
+| **Scope fonctionnel** | Création d'une entreprise, SIREN/SIRET |
+| **Récupération données** | API à définir (forme juridique, régime fiscal, TVA oui/non) |
+
+> ⚠️ Pas encore de logique comptable
+
+---
+
+## 🟠 PRIORITÉ MOYENNE — SÉCURISATION MÉTIER
+
+### Feature Contract #09 — Validation & verrouillage CRA
+
+🔒 **Confiance & conformité**
+
+| Aspect | Détails |
+|--------|---------|
+| **Scope** | Validation CRA par l'indépendant, CRA verrouillé en écriture |
+| **Dérogation** | Modification → double approbation (plus tard) |
+
+---
+
+### Feature Contract #10 — Rôles & visions
+
+👥 **Rôles utilisateur** — Les rôles émergent naturellement des cas concrets
+
+| Rôle | Description |
+|------|-------------|
+| `independent` | Utilisateur principal |
+| `client_representative` | Lecture CRA |
+| `admin` | Plus tard |
+
+---
+
+### Feature Contract #11 — Pré-facturation
+
+💰 **Préparation cash**
+
+| Aspect | Détails |
+|--------|---------|
+| **Calcul automatique** | TJM × jours travaillés, forfait proratisé |
+| **Limitations** | Pas encore d'édition de facture, export data only |
+
+---
+
+## 🟢 PRIORITÉ BASSE — OPTIMISATION & SCALE
+
+| Feature | Description |
+|---------|-------------|
+| Feature #10 — Versioning CRA avancé | NoSQL ? |
+| Feature #11 — Export PDF | Génération documents |
+| Feature #12 — Historique & audit métier | Traçabilité |
+| Feature #13 — Multi-entreprises / multi-clients | Scale |
+
+---
+
+## ✅ Features Techniques Terminées
+
+### 🔐 Sécurité
+
+| Tâche | Priorité | Statut | Notes |
+|-------|----------|--------|-------|
+| Brakeman (scan vulnérabilités) | ✅ | Terminé | 0 vulnérabilités |
+| Bundle audit | ✅ | Terminé | Intégré CI |
+| CSRF protection | ✅ | Terminé | State validation |
+| Rate limiting | ✅ | Terminé | Feature Contract 05 - Protection brute force implémentée (/login: 5/min, /signup: 3/min, /refresh: 10/min) |
+| Refresh-token revocation E2E | 🟠 | Important | Extension script revocation actuel |
+| Audit logs | 🟢 | Plus tard | Traçabilité actions (quand produit vit) |
+
+---
+
+## 📊 Monitoring & Observabilité
+
+| Tâche | Priorité | Statut | Notes |
+|-------|----------|--------|-------|
+| APM Service (Datadog) | ✅ | Terminé | Configuré |
+| Health check endpoint | ✅ | Terminé | `/up` |
+| Dashboard monitoring E2E | 🟢 | Plus tard | Visualisation des résultats (quand produit vit) |
+| Métriques YJIT performance | 🟢 | Plus tard | Tracking post-migration (quand produit vit) |
+| Alertes production | 🟠 | À configurer | Seuils à définir |
 
 ---
 
@@ -30,34 +205,7 @@
 | Datadog Synthetics | 🟢 | Plus tard | Monitoring externe (quand produit vit) |
 | Alerting sur échec E2E | 🟢 | Plus tard | Notifications Slack/Email (quand produit vit) |
 
----
-
-## 📊 Monitoring & Observabilité
-
-| Tâche | Priorité | Statut | Notes |
-|-------|----------|--------|-------|
-| APM Service (Datadog) | ✅ | Terminé | Configuré |
-| Health check endpoint | ✅ | Terminé | `/up` |
-| Dashboard monitoring E2E | 🟢 | Plus tard | Visualisation des résultats (quand produit vit) |
-| Métriques YJIT performance | 🟢 | Plus tard | Tracking post-migration (quand produit vit) |
-| Alertes production | 🟠 | À configurer | Seuils à définir |
-
----
-
-## 🔐 Sécurité
-
-| Tâche | Priorité | Statut | Notes |
-|-------|----------|--------|-------|
-| Brakeman (scan vulnérabilités) | ✅ | Terminé | 0 vulnérabilités |
-| Bundle audit | ✅ | Terminé | Intégré CI |
-| CSRF protection | ✅ | Terminé | State validation |
-| Rate limiting | ✅ | Terminé | Feature Contract 05 - Protection brute force implémentée (/login: 5/min, /signup: 3/min, /refresh: 10/min) |
-| Refresh-token revocation E2E | 🟠 | Important | Extension script revocation actuel |
-| Audit logs | 🟢 | Plus tard | Traçabilité actions (quand produit vit) |
-
----
-
-## 🏗️ Infrastructure
+### 🏗️ Infrastructure
 
 | Tâche | Priorité | Statut | Notes |
 |-------|----------|--------|-------|
@@ -70,34 +218,16 @@
 | Repository State | ✅ | Optimal | 1 branche (main) + branches Feature Contract temporaires |
 | Kubernetes migration | 🟢 | Plus tard | Si scaling nécessaire (quand produit vit) |
 
----
-
-## 📚 Documentation
+### 📚 Documentation
 
 | Tâche | Priorité | Statut | Notes |
 |-------|----------|--------|-------|
-| API Swagger/Rswag | ✅ | Terminé | 66 specs |
+| API Swagger/Rswag | ✅ | Terminé | 89 specs |
 | Guide migration Rails 8 | ✅ | Terminé | `docs/technical/migrations/` |
 | Plans déploiement/rollback | ✅ | Terminé | `docs/technical/deployment/` |
 | Documentation OAuth flow | ✅ | Terminé | `docs/technical/guides/` |
 | Guide contribution | 🟢 | Plus tard | CONTRIBUTING.md (quand équipe grandit) |
 | Architecture Decision Records | 🟢 | Plus tard | ADR formels (quand produit vit) |
-
----
-
-## 🚀 Features Métier (Foresy)
-
-| Tâche | Priorité | Statut | Notes |
-|-------|----------|--------|-------|
-| *À définir* | 🔴 | Backlog | En attente feature contracts |
-
-> ⚠️ **Note** : Les features métier de Foresy ne sont pas encore définies. 
-> Le versioning actuel (`v0.0.x`) reflète cette situation.
-> La v1.0.0 sera créée lors de la première release avec features métier.
-> 
-> ✅ **Prêt techniquement** : Infrastructure optimale établie (main + workflow Feature Contract)
-> ❌ **Pas encore prêt produit** : Absence de Feature Contract métier = risque de stagnation
-> 🚀 **PROCHAINE ÉTAPE ABSOLUE** : Créer le premier Feature Contract (même trivial, même moche, mais RÉEL) |
 
 ---
 
@@ -107,7 +237,7 @@
 |---------|------|-------------|
 | v0.0.1 | 26 Dec 2025 | Rails 7.1.5.1 / Ruby 3.3.0 - Pre-migration baseline |
 | v0.0.2 | 26 Dec 2025 | Rails 8.1.1 / Ruby 3.4.8 baseline |
-| v0.0.3 | 26 Dec 2025 (soir) | E2E Token Revocation Script (Platinum Level) + Git cleanup |
+| v0.0.3 | 29 Dec 2025 | Rate Limiting (FC-05) - Platinum Level |
 
 ---
 
@@ -115,4 +245,6 @@
 
 - Ce backlog est maintenu manuellement
 - Les priorités sont réévaluées à chaque sprint
-- Les features métier seront ajoutées via Feature Contracts
+- Les features métier suivent le workflow Feature Contract
+- La v0.1.0 sera créée après FC #06 à #09
+- La v1.0.0 (MVP Production) sera définie après validation des fondations

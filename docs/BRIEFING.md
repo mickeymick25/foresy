@@ -1,7 +1,7 @@
 # BRIEFING.md - Foresy API Project
 
 **For AI Context Understanding - Optimized for Fast Project Comprehension**  
-**Last Updated:** 26 décembre 2025
+**Last Updated:** 31 décembre 2025
 
 ---
 
@@ -9,19 +9,23 @@
 
 ### Basic Info
 - **Project Type**: Ruby on Rails 8.1.1 API-only application
-- **Primary Function**: User management with JWT + OAuth (Google/GitHub)
+- **Primary Function**: User management, Mission management with JWT + OAuth (Google/GitHub)
 - **Ruby Version**: 3.4.8
 - **Environment**: Docker Compose (non-optional, mandatory)
 - **Status**: Production Ready - All tests passing, excellent code quality
+- **Current Feature**: FC-06 Missions implemented (31 Dec 2025)
 
 ### Quality Metrics (Dec 2025)
-- **RSpec Tests**: 221 examples, 0 failures
+- **RSpec Tests**: 290 examples, 0 failures
+- **Missions Tests (FC-06)**: 30/30 passing
 - **OAuth Tests**: 15/15 acceptance (Feature Contract compliant)
-- **Code Quality**: Rubocop 82 files, 0 offenses detected
+- **Swagger Specs**: 119 examples generated
+- **Code Quality**: Rubocop 93 files, 0 offenses detected
 - **Security**: Brakeman 0 critical vulnerabilities, no token logging, stateless JWT, token revocation
 - **CI/CD**: GitHub Actions CI + Render CD fully functional
 - **Production**: Deployed on Render (https://foresy-api.onrender.com)
 - **Rails Upgrade**: ✅ Successfully migrated from 7.1.5.1 to 8.1.1 (Dec 26, 2025)
+- **FC-06 Missions**: ✅ Fully implemented (Dec 31, 2025)
 
 ### Technical Stack
 - **Framework**: Rails 8.1.1 (API-only)
@@ -35,6 +39,34 @@
 ---
 
 ## 📅 RECENT CHANGES TIMELINE
+
+### Dec 31, 2025 - 🎯 Feature Contract 06: Missions (MAJOR FEATURE)
+- **Feature Contract**: `06_Feature Contract — Missions`
+- **Purpose**: Enable independents to create and manage professional missions
+- **Architecture**: Domain-Driven / Relation-Driven (pure domain models, relations via dedicated tables)
+- **Models Created**:
+  - `Mission` - Pure domain model (no FK to Company/User)
+  - `MissionCompany` - Relation table (mission_id, company_id, role)
+  - `Company` - Legal entity model
+  - `UserCompany` - User-Company relation with roles
+- **API Endpoints**:
+  - `POST /api/v1/missions` - Create mission
+  - `GET /api/v1/missions` - List accessible missions
+  - `GET /api/v1/missions/:id` - Show mission details
+  - `PATCH /api/v1/missions/:id` - Update mission (creator only)
+  - `DELETE /api/v1/missions/:id` - Archive mission (soft delete)
+- **Features**:
+  - Mission types: time_based (TJM) / fixed_price
+  - Lifecycle: lead → pending → won → in_progress → completed
+  - Role-based access control (independent/client)
+  - Soft delete with CRA protection
+  - Rate limiting on create/update
+- **Quality**:
+  - 30 new RSpec tests (all passing)
+  - RuboCop: 0 offenses
+  - Brakeman: 0 vulnerabilities
+  - Swagger: Auto-generated
+- **Level**: ✅ Platinum Level (CTO approved)
 
 ### Dec 26, 2025 - 🧪 E2E Token Revocation Script (FEATURE - PLATINUM LEVEL)
 - **Feature Contract**: `04_Feature Contract — E2E Revocation`
@@ -352,9 +384,17 @@
 │   ├── login          # JWT authentication
 │   ├── logout         # User logout
 │   ├── refresh        # Token refresh
+│   ├── revoke         # Revoke current token
+│   ├── revoke_all     # Revoke all user tokens
 │   └── :provider/     # OAuth callbacks (google_oauth2, github)
 ├── users/
 │   └── create         # User registration
+├── missions/
+│   ├── index          # List accessible missions
+│   ├── show           # Mission details
+│   ├── create         # Create mission (independent only)
+│   ├── update         # Update mission (creator only)
+│   └── destroy        # Archive mission (soft delete)
 └── health             # Health check endpoint
 ```
 
@@ -381,13 +421,35 @@ Foresy/
 ├── entrypoint.sh               # Container entrypoint script
 ├── docs/
 │   ├── BRIEFING.md             # This file - AI project understanding
+│   ├── BACKLOG.md              # Product backlog and roadmap
+│   ├── VISION.md               # Product vision and architecture principles
 │   ├── index.md                # Central documentation navigation
+│   ├── FeatureContract/        # Feature contracts (source of truth)
+│   │   ├── 01_...OAuth         # OAuth authentication
+│   │   ├── 02_...Auth          # Email/password authentication
+│   │   ├── 03_...Rails_Upgrade # Rails 8.1.1 migration
+│   │   ├── 04_...Revocation    # Token revocation E2E
+│   │   ├── 05_...Rate_Limiting # Rate limiting
+│   │   └── 06_...Missions      # Mission management (CURRENT)
 │   └── technical/              # Technical documentation
 │       ├── changes/            # Change log with timestamps
 │       ├── audits/             # Technical analysis reports
 │       └── corrections/        # Problem resolution history
-├── app/                        # Rails application code
-├── spec/                       # RSpec tests (149 examples)
+├── app/
+│   ├── models/
+│   │   ├── mission.rb          # Mission domain model (pure)
+│   │   ├── mission_company.rb  # Mission-Company relation
+│   │   ├── company.rb          # Company domain model
+│   │   ├── user_company.rb     # User-Company relation
+│   │   ├── user.rb             # User model
+│   │   └── session.rb          # Session model
+│   ├── controllers/api/v1/
+│   │   ├── missions_controller.rb    # Missions CRUD
+│   │   ├── authentication_controller.rb
+│   │   ├── oauth_controller.rb
+│   │   └── users_controller.rb
+│   └── services/               # Business services
+├── spec/                       # RSpec tests (290 examples)
 ├── config/                     # Rails configuration
 ├── docker-compose.yml          # Docker Compose configuration (dev)
 └── .env                        # Environment variables (to be created)

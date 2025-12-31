@@ -1,11 +1,12 @@
 # 📚 Documentation Centrale - Projet Foresy
 
-**Version :** 3.0  
-**Dernière mise à jour :** 26 décembre 2025  
+**Version :** 3.1  
+**Dernière mise à jour :** 31 décembre 2025  
 **Stack :** Ruby 3.4.8 + Rails 8.1.1  
 **Objectif :** Point d'entrée centralisé pour toute la documentation du projet Foresy API  
 **Production :** https://foresy-api.onrender.com  
-**Sécurité :** Stateless JWT, token revocation, no token logging, session minimale pour OmniAuth uniquement
+**Sécurité :** Stateless JWT, token revocation, no token logging, session minimale pour OmniAuth uniquement  
+**Feature actuelle :** FC-06 Missions — TERMINÉ ✅
 
 ---
 
@@ -21,10 +22,17 @@ Foresy/
 ├── Dockerfile                   # Multi-stage Docker build
 ├── entrypoint.sh               # Container entrypoint script
 └── docs/
-    ├── Documentation_Centrale.md                 # Documentation centrale (ce fichier)
+    ├── index.md                 # Documentation centrale (ce fichier)
     ├── BRIEFING.md              # Contexte projet pour IA
+    ├── BACKLOG.md               # Backlog produit et roadmap
+    ├── VISION.md                # Vision produit et principes architecture
     ├── FeatureContract/         # Contrats de fonctionnalités
-    │   └── 01_FEATURE OAUTH...  # Feature Contract OAuth
+    │   ├── 01_...OAuth          # Feature Contract OAuth
+    │   ├── 02_...Auth           # Authentication email/password
+    │   ├── 03_...Rails_Upgrade  # Migration Rails 8.1.1
+    │   ├── 04_...Revocation     # Token revocation E2E
+    │   ├── 05_...Rate_Limiting  # Rate limiting
+    │   └── 06_...Missions       # ✅ Mission management (TERMINÉ)
     └── technical/               # Documentation technique centralisée
         ├── guides/              # 📖 Guides d'intégration
         │   ├── oauth_flow_documentation.md      # 🔐 Guide complet OAuth
@@ -35,12 +43,10 @@ Foresy/
         │   ├── omniauth_oauth_configuration_solution.md
         │   └── csrf_security_analysis_same_site_none.md
         ├── changes/             # Journal chronologique des modifications
-        │   ├── 2025-12-18-CI_Fix_Resolution.md
-        │   ├── 2025-12-18-GoogleOauthService_Fix_Resolution.md
-        │   ├── 2025-12-18-OAuthTokenService_Comment_Fix.md
+        │   ├── 2025-12-31-FC06_Missions_Implementation.md  # ✅ FC-06 Missions
+        │   ├── 2025-12-26-Rails_8_1_1_Migration_Complete.md
         │   ├── 2025-12-19-Security_CI_Complete_Fix.md
-        │   ├── 2025-12-19-Zeitwerk_OAuth_Services_Rename.md
-        │   └── 2025-12-19-Rswag_OAuth_Specs_Feature_Contract.md
+        │   └── ...
         ├── audits/              # Rapports d'audit technique
         │   ├── ANALYSE_TECHNIQUE_FORESY.md
         │   └── CHANGELOG_REFACTORISATION.md
@@ -60,6 +66,11 @@ Foresy/
 4. **[🔒 Token Revocation](./technical/guides/token_revocation_strategy.md)** - Stratégie de revocation des tokens (sécurité)
 5. **[📮 Postman Collection](./postman/Foresy_API.postman_collection.json)** - Collection pour tester les endpoints
 
+### 🎯 **Feature Contract 06 — Missions (31/12/2025)** ✅ TERMINÉ
+1. **[📋 Feature Contract 06](./FeatureContract/06_Feature%20Contract%20—%20Missions)** - Contrat source de vérité
+2. **[📝 Changelog FC-06](./technical/changes/2025-12-31-FC06_Missions_Implementation.md)** - Documentation technique complète de l'implémentation
+3. **[📊 BACKLOG.md](./BACKLOG.md)** - Roadmap mise à jour avec FC-06 terminé
+
 ### 🔧 **Pour le Développement**
 1. **[Analyse Technique](./technical/audits/ANALYSE_TECHNIQUE_FORESY.md)** - Architecture et analyse technique complète
 2. **[✅ Migration Rails 8.1.1 Complétée](./technical/changes/2025-12-26-Rails_8_1_1_Migration_Complete.md)** - Migration Rails 7.1.5.1 → 8.1.1 + Ruby 3.4.8 (26/12/2025)
@@ -73,11 +84,12 @@ Foresy/
 4. **[🛡️ CSRF Security Analysis](./technical/analysis/csrf_security_analysis_same_site_none.md)** - **CRITIQUE** - Analyse risque CSRF et sécurisation
 
 ### 📊 **Pour les Modifications Récentes**
-1. **[🚀 Migration Rails 8.1.1 26/12/2025](./technical/changes/2025-12-26-Rails_8_1_1_Migration_Complete.md)** - **MAJEUR** - Upgrade complet Ruby 3.4.8 + Rails 8.1.1, 221 tests OK, 0 vulnérabilités (26/12/2025)
-2. **[🔒 Token Revocation Endpoints 24/12/2025](./technical/guides/token_revocation_strategy.md)** - Endpoints DELETE /revoke et /revoke_all pour invalidation des tokens (24/12/2025)
-3. **[🧪 Tests E2E Staging Infrastructure 24/12/2025](./technical/testing/e2e_staging_tests_guide.md)** - Scripts E2E pour staging: smoke_test.sh (15 tests) et e2e_auth_flow.sh (8 tests) (24/12/2025)
-4. **[🚨 Résolution Erreurs 500 Production 24/12/2025](./technical/changes/2025-12-24-Production_Errors_500_Fix.md)** - Migration des tables users/sessions appliquée en production (24/12/2025)
-4. **[🔧 OmniAuth Session Middleware Fix 23/12/2025](./technical/changes/2025-12-23-OmniAuth_Session_Middleware_Fix.md)** - **CRITIQUE** - Résolution erreur OmniAuth::NoSessionError bloquant tous les endpoints (23/12/2025)
+1. **[🎯 FC-06 Missions 31/12/2025](./technical/changes/2025-12-31-FC06_Missions_Implementation.md)** - **MAJEUR** - Feature Contract 06 Missions complet, 290 tests OK, 0 vulnérabilités (31/12/2025)
+2. **[🚀 Migration Rails 8.1.1 26/12/2025](./technical/changes/2025-12-26-Rails_8_1_1_Migration_Complete.md)** - **MAJEUR** - Upgrade complet Ruby 3.4.8 + Rails 8.1.1 (26/12/2025)
+3. **[🔒 Token Revocation Endpoints 24/12/2025](./technical/guides/token_revocation_strategy.md)** - Endpoints DELETE /revoke et /revoke_all pour invalidation des tokens (24/12/2025)
+4. **[🧪 Tests E2E Staging Infrastructure 24/12/2025](./technical/testing/e2e_staging_tests_guide.md)** - Scripts E2E pour staging: smoke_test.sh (15 tests) et e2e_auth_flow.sh (8 tests) (24/12/2025)
+5. **[🚨 Résolution Erreurs 500 Production 24/12/2025](./technical/changes/2025-12-24-Production_Errors_500_Fix.md)** - Migration des tables users/sessions appliquée en production (24/12/2025)
+6. **[🔧 OmniAuth Session Middleware Fix 23/12/2025](./technical/changes/2025-12-23-OmniAuth_Session_Middleware_Fix.md)** - **CRITIQUE** - Résolution erreur OmniAuth::NoSessionError bloquant tous les endpoints (23/12/2025)
 3. **[🔧 OAuth Services Elegant Solution 23/12/2025](./technical/changes/2025-12-23-OAuth_Services_Elegant_Solution.md)** - **MAJEUR** - Solution élégante élimination require_relative, conventions Zeitwerk respectées (23/12/2025)
 4. **[🐳 Docker Build Health Check 23/12/2025](./technical/changes/2025-12-23-Docker_Build_Health_Check_Resolution.md)** - **RÉSOLU** - Conteneurs Docker healthy, health endpoints fonctionnels (23/12/2025)
 3. **[📊 Standardisation APM Datadog 22/12/2025](./technical/changes/2025-12-22-Datadog_APM_Standardization_Resolution.md)** - **RÉSOLU** - Standardisation API Datadog multi-versions (22/12/2025)

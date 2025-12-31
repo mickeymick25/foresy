@@ -24,6 +24,7 @@ Rails.application.routes.draw do
       post 'auth/:provider/callback', to: 'oauth#callback'
       get 'auth/failure', to: 'oauth#failure'
       post 'signup', to: 'users#create'
+      resources :missions, only: %i[index show create update destroy]
     end
   end
 
