@@ -2,9 +2,9 @@
 
 **Date:** 31 décembre 2025  
 **Feature Contract:** 06 — Mission Management  
-**Status:** ✅ TERMINÉ — Platinum Level  
+**Status:** ✅ **PR #12 MERGED** — Platinum Level  
 **Author:** Co-CTO  
-**Last Updated:** 31 décembre 2025 (E2E endpoints rename)
+**Last Updated:** 1 janvier 2026 (PR #12 merged, CTO approved)
 
 ---
 
@@ -313,7 +313,33 @@ La méthode `Mission#should_send_post_won_notification?` existe mais n'est pas e
 - [x] E2E tests implemented (6/6 passing)
 - [x] E2E endpoints renamed (Platinum compliance)
 - [x] PR ready to merge
+- [x] **PR #12 reviewed & approved by CTO** (1 janvier 2026)
+- [x] **PR #12 MERGED** ✅
 
 ---
 
-**Niveau atteint : 🏆 PLATINUM**
+## 🔍 Clarifications CTO (Post-Review)
+
+Suite à la review CTO de la PR #12, les points suivants ont été clarifiés :
+
+### Comportement Post-WON
+| Aspect | Décision |
+|--------|----------|
+| Modifications après `won` | ✅ Autorisées |
+| Champs contractuels | Modifiables (pas de blocage technique) |
+| Notifications client | Placeholder en place, implémentation future |
+| Tests explicites post-won | Non requis pour MVP |
+
+### Points d'anticipation (Backlog)
+- 📌 Définir précisément les "champs contractuels" (daily_rate, fixed_price, dates, currency)
+- 📌 Versionning/historisation des modifications (futur FC)
+- 📌 Service de notification réel (futur FC)
+
+### Sécurité E2E Endpoints
+- ✅ Vérifié : endpoints `/__test_support__/e2e/*` n'existent pas en production
+- ✅ Double protection : routes conditionnelles + `before_action :verify_e2e_mode!`
+
+---
+
+**Niveau atteint : 🏆 PLATINUM**  
+**PR Status : ✅ MERGED (1 janvier 2026)**

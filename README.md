@@ -589,7 +589,7 @@ STAGING_URL=https://api.example.com E2E_MODE=true ./bin/e2e/e2e_missions.sh
 
 ## 📝 Changelog
 
-### Version 2.1.0 (31 Décembre 2025) - Feature Contract 06: Missions
+### Version 2.1.0 (31 Décembre 2025) - Feature Contract 06: Missions ✅ PR #12 MERGED
 - 🎯 **Missions CRUD** : Création, lecture, modification, archivage de missions professionnelles
 - 🏗️ **Architecture Domain-Driven** : Relations via tables dédiées (MissionCompany, UserCompany)
 - 📊 **Types de mission** : Time-based (TJM) et Fixed-price (forfait)
@@ -600,6 +600,7 @@ STAGING_URL=https://api.example.com E2E_MODE=true ./bin/e2e/e2e_missions.sh
 - ✅ **RuboCop** : 93 fichiers, 0 offense
 - ✅ **Brakeman** : 0 vulnérabilité
 - ✅ **Swagger** : 119 specs générées
+- ✅ **PR #12** : Approuvée CTO, mergée le 1 janvier 2026
 
 ### Version 2.0.0 (26 Décembre 2025) - Rails 8.1.1 Migration
 - 🚀 **Rails Upgrade** : Migration majeure de Rails 7.1.5.1 → 8.1.1

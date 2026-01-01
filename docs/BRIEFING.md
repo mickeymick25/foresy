@@ -1,7 +1,7 @@
 # BRIEFING.md - Foresy API Project
 
 **For AI Context Understanding - Optimized for Fast Project Comprehension**  
-**Last Updated:** 31 décembre 2025
+**Last Updated:** 1 janvier 2026
 
 ---
 
@@ -13,7 +13,7 @@
 - **Ruby Version**: 3.4.8
 - **Environment**: Docker Compose (non-optional, mandatory)
 - **Status**: Production Ready - All tests passing, excellent code quality
-- **Current Feature**: FC-06 Missions implemented (31 Dec 2025)
+- **Current Feature**: FC-06 Missions implemented (31 Dec 2025) - **PR #12 MERGED** (1 Jan 2026) ✅
 
 ### Quality Metrics (Dec 2025)
 - **RSpec Tests**: 290 examples, 0 failures
@@ -75,7 +75,14 @@
 - **Notes Techniques**:
   - CRA protection: `cra_entries?` is placeholder (returns false until FC-07)
   - Post-WON notifications: `should_send_post_won_notification?` exists but not called (future FC)
+- **Clarifications CTO (Post-WON behavior)** :
+  - ✅ Modifications autorisées après statut `won`
+  - ✅ Champs contractuels modifiables (non bloqués techniquement)
+  - ✅ Notification client prévue (placeholder en place, implémentation future)
+  - ✅ Pas de test explicite post-won requis pour MVP (décision CTO)
+  - 📌 Backlog : définir précisément "champs contractuels" + versionning futur
 - **Level**: ✅ Platinum Level (CTO approved)
+- **PR Status**: ✅ **PR #12 MERGED** (1 Jan 2026) - Reviewed & approved by CTO
 
 ### Dec 26, 2025 - 🧪 E2E Token Revocation Script (FEATURE - PLATINUM LEVEL)
 - **Feature Contract**: `04_Feature Contract — E2E Revocation`

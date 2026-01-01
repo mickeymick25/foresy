@@ -1,6 +1,6 @@
 # 📋 Backlog - Foresy
 
-**Dernière mise à jour** : 31 décembre 2025 - FC-06 Missions terminé
+**Dernière mise à jour** : 1 janvier 2026 - FC-06 Missions mergé (PR #12)
 
 ---
 
@@ -47,7 +47,7 @@ v1.0.0 (MVP Production)
 
 | Aspect | Détails |
 |--------|---------|
-| **Statut** | ✅ **TERMINÉ** - 31 décembre 2025 |
+| **Statut** | ✅ **MERGÉ** - PR #12 approuvée CTO (1 janvier 2026) |
 | **Scope fonctionnel** | CRUD Mission complet |
 | **Architecture** | Domain-Driven / Relation-Driven (tables dédiées) |
 | **Types** | time_based (TJM), fixed_price (forfait) |
