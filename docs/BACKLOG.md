@@ -241,6 +241,57 @@ v1.0.0 (MVP Production)
 
 ---
 
+## 🚀 Axes d'Amélioration (State-of-the-Art)
+
+> Améliorations pour atteindre le niveau des startups en forte croissance
+
+### 📊 Observabilité Avancée
+
+| Tâche | Priorité | Statut | Impact |
+|-------|----------|--------|--------|
+| OpenTelemetry (Rails instrumentation) | 🟠 | À faire | Traces distribuées, métriques détaillées (latence, erreurs, requêtes/endpoint) |
+| Grafana + Prometheus | 🟠 | À faire | Dashboards SLO/SLA, détection rapide des incidents |
+
+### 🔐 Sécurité Avancée
+
+| Tâche | Priorité | Statut | Impact |
+|-------|----------|--------|--------|
+| Rotation des secrets JWT | 🟠 | À faire | Job `jwt_secret_rotation` (cron), invalidation via denylist |
+| Trivy (scan vulnérabilités Docker) | 🟠 | À faire | Protection contre CVE images Docker |
+| Dependency-check (bundler-audit) | 🟠 | À faire | Protection contre CVE dépendances |
+
+### 🔄 API Evolution
+
+| Tâche | Priorité | Statut | Impact |
+|-------|----------|--------|--------|
+| API versioning (`Accept-Version` ou path) | 🟢 | À faire | Évolution sans casser les clients existants |
+| Feature-flags (Flipper/Rollout) | 🟠 | À faire | Déploiements progressifs, rollback instantané |
+| Documentation OpenAPI exhaustive | 🟠 | À faire | Enrichir erreurs, générer SDKs clients (OpenAPI-Generator) |
+
+### ⚡ Performance & Scale
+
+| Tâche | Priorité | Statut | Impact |
+|-------|----------|--------|--------|
+| Cache de lecture (Rails cache + Redis) | 🟢 | À faire | Améliore latence, réduit charge DB sur listes missions |
+| Load-testing (k6/locust) | 🟢 | À faire | Valider limites rate-limiting, scalabilité JWT |
+| Composite unique indexes | ✅ | Fait | `(mission_id, role)` — intégrité à grande échelle |
+
+### 🏗️ Architecture Event-Driven
+
+| Tâche | Priorité | Statut | Impact |
+|-------|----------|--------|--------|
+| Domain Events (RailsEventStore/Kafka) | 🟢 | À faire | `MissionCreated`, `MissionStatusChanged` — découplage services |
+| Event sourcing pour CRA | 🟢 | À faire | Audit, reporting sans toucher au core |
+
+### 🧪 Tests & CI Hardening
+
+| Tâche | Priorité | Statut | Impact |
+|-------|----------|--------|--------|
+| Intégration E2E dans CI (GitHub Actions) | 🔴 | Critique | `e2e_missions.sh`, `e2e_auth_flow.sh` en pipeline |
+| Deploy Preview (Render/Fly) | 🟠 | À faire | Preview-environnements par PR, validation PO accélérée |
+
+---
+
 ## 📝 Notes
 
 - Ce backlog est maintenu manuellement

@@ -1,7 +1,137 @@
+🧾 FEATURE CONTRACT 07 — CRA
+
+Compte Rendu d’Activité
+
+⚠️ DOCUMENT CONTRACTUEL — SOURCE DE VÉRITÉ
+⚠️ Toute ambiguïté DOIT être signalée avant implémentation
+⚠️ Aucune déviation autorisée
+
+1️⃣ Feature Name
+
+CRA Management (Compte Rendu d’Activité)
+
+2️⃣ Business Goal
+
+Permettre à un Indépendant de :
+
+déclarer son activité réelle par mission
+
+suivre son temps / valeur produite
+
+disposer d’un historique mensuel fiable, auditable et versionné
+
+Fournir le socle :
+
+de la facturation
+
+du pilotage fiscal
+
+des reportings long terme
+
+👉 Le CRA est un artefact légal et contractuel, immutabilisé dans le temps.
+
+3️⃣ Actors
+Primary Actor
+
+Authenticated User (JWT)
+
+Pré-requis métier
+
+L’utilisateur appartient à une Company avec rôle independent
+
+Les missions référencées sont accessibles à l’utilisateur (règles FC06)
+
+⚠️ Toute incohérence → 403 forbidden
+⚠️ Mission non accessible → 404 not_found
+
+4️⃣ Architectural Principles (NON NÉGOCIABLES)
+
+🧱 Domain-Driven / Relation-Driven
+
+❌ Aucune clé étrangère métier dans les Domain Models
+✅ Toutes les relations passent par des Relation Models dédiés
+
+Entités métiers pures
+
+Relations auditables, versionnables
+
+CRA = agrégat racine
+
+5️⃣ Domain Models (purs)
+CRA
+Champ	Type	Required	Notes
+id	UUID	Yes
+month	Integer	Yes	1–12
+year	Integer	Yes
+status	Enum	Yes	draft | submitted | locked
+total_days	Decimal	No	Calculé
+total_amount	Integer	No	Calculé
+currency	String	Yes	ISO 4217
+created_at	DateTime	Yes
+updated_at	DateTime	Yes
+locked_at	DateTime	No
+deleted_at	DateTime	No	Soft delete
+
+⚠️ Aucune référence vers Mission / Company / User
+
+CRAEntry
+Champ	Type	Required	Notes
+id	UUID	Yes
+date	Date	Yes
+quantity	Decimal	Yes	Quantité facturable déclarée
+unit_price	Integer	Yes
+description	Text	No
+created_at	DateTime	Yes
+updated_at	DateTime	Yes
+deleted_at	DateTime	No
+🔑 Définition contractuelle de quantity
+
+Représente la quantité facturable déclarée
+
+Unité : journée
+
+Granularité libre (ex : 0.25, 0.5, 1.0, 2.0)
+
+Aucune borne supérieure métier imposée côté backend
+
+⚠️ Entité strictement métier
+⚠️ Aucune validation “morale” du temps (≤ 1 jour) n’est autorisée
+
+6️⃣ Relation Models (OBLIGATOIRES)
+CRAMission
+Champ	Type	Required
+id	UUID	Yes
+cra_id	UUID	Yes
+mission_id	UUID	Yes
+created_at	DateTime	Yes
+
+🔒 Contraintes
+
+Un CRA peut être lié à plusieurs missions
+
+Une mission ne peut apparaître qu’une seule fois dans un CRA
+
+CRAEntryCRA
+Champ	Type	Required
+id	UUID	Yes
+cra_id	UUID	Yes
+cra_entry_id	UUID	Yes
+created_at	DateTime	Yes
+CRAEntryMission
+Champ	Type	Required
+id	UUID	Yes
+cra_entry_id	UUID	Yes
+mission_id	UUID	Yes
+created_at	DateTime	Yes
+🔒 Contraintes métier sur les entrées
+
+Un CRA peut contenir plusieurs CRAEntry pour une même date
+
 Une date peut être associée à plusieurs missions distinctes
 
-Unicité stricte :
+Une mission peut apparaître plusieurs fois dans un CRA sur des dates différentes
 
+Unicité stricte
 (cra_id, mission_id, date)
 
 
@@ -37,13 +167,14 @@ CRA accessible uniquement si :
 
 user ∈ company independent
 
-mission accessible (FC06)
+missions accessibles (FC06)
 
 Violation → 404 not_found
 
 Unicité
 
-1 CRA max par (mission, month, year)
+1 CRA max par (user, month, year)
+
 Violation → 409 cra_already_exists
 
 Modification
@@ -91,14 +222,14 @@ Repository : cra-ledger
 Branch : main
 
 Commit message
-CRA locked — mission:{id} — {month}/{year}
+CRA locked — cra:{id} — {month}/{year}
 
 Payload versionné
 {
   "cra_id": "uuid",
-  "mission_id": "uuid",
   "month": 1,
   "year": 2025,
+  "missions": ["uuid", "uuid"],
   "entries": [...],
   "totals": {...}
 }
@@ -118,13 +249,14 @@ POST	/api/v1/cras/:id/lock	Verrouiller
 1️⃣1️⃣ Inputs / Outputs
 POST /api/v1/cras
 {
-  "mission_id": "uuid",
   "month": 1,
   "year": 2025,
   "currency": "EUR"
 }
 
+
 Success — 201
+
 {
   "id": "uuid",
   "status": "draft"
@@ -158,15 +290,15 @@ JWT security
 Exemples success & errors
 
 1️⃣4️⃣ E2E Tests (OBLIGATOIRES)
-Script
 
+Script
 bin/e2e/e2e_cra_lifecycle.sh
 
 Scénario E2E canonique
 
 Setup independent + 2 missions
 
-Create CRA (mission A)
+Create CRA
 
 Add entry (date D, mission A, quantity 0.5)
 
@@ -219,6 +351,7 @@ Git Ledger	🟢 Intégré
 Scalabilité	🟢 Long terme
 Qualité	🟢 Platinum
 
+
 🤖 PROMPT MINIMAX-M2 — PLATINUM
 
 FEATURE: CRA Management (FC07)
@@ -246,8 +379,9 @@ Security, correctness, immutability, and long-term auditability are non-negotiab
 You produce production-ready, CI-safe code.
 
 🔹 FEATURE CONTRACT (SOURCE OF TRUTH)
+FEATURE NAME
 
-FEATURE NAME: CRA Management (Compte Rendu d’Activité)
+CRA Management (Compte Rendu d’Activité)
 
 🎯 GOAL
 
@@ -278,9 +412,9 @@ Business Preconditions
 
 User belongs to a Company with role independent
 
-Mission is accessible to the user (FC06 rules)
+Missions referenced are accessible to the user (FC06 rules)
 
-Violations:
+Violations
 
 Role incoherence → 403 forbidden
 
@@ -289,7 +423,6 @@ Mission not accessible → 404 not_found
 🧱 ARCHITECTURAL PRINCIPLES (STRICT)
 
 ❌ No business foreign keys in Domain Models
-
 ✅ All relations via Relation Models
 
 Domain entities are pure
@@ -301,7 +434,7 @@ CRA is the aggregate root
 📦 DOMAIN MODELS (PURE)
 CRA
 
-Fields:
+Fields
 
 id (UUID)
 
@@ -329,7 +462,7 @@ deleted_at (soft delete)
 
 CRAEntry
 
-Fields:
+Fields
 
 id (UUID)
 
@@ -347,9 +480,9 @@ updated_at
 
 deleted_at
 
-Quantity rules:
+Quantity rules
 
-Represents declared billable quantity for a mission on a given date
+Represents declared billable quantity
 
 Unit: day
 
@@ -357,43 +490,74 @@ Granularity allowed (e.g. 0.25, 0.5, 1.0, 2.0)
 
 No upper bound validation
 
-⚠️ No moral or time-based validation allowed
+No moral or time-based validation
+
+⚠️ Domain-pure entity
+⚠️ Backend must not enforce “≤ 1 day” constraints
 
 🔗 RELATION MODELS (MANDATORY)
 CRAMission
+
+Fields
+
+id
 
 cra_id
 
 mission_id
 
-Constraints:
+created_at
 
-One CRA belongs to exactly one mission
+Constraints
 
-One mission has max one CRA per (month, year)
+A CRA can be linked to multiple missions
+
+A mission can appear only once per CRA
 
 CRAEntryCRA
+
+Fields
+
+id
 
 cra_id
 
 cra_entry_id
 
-Constraints:
+created_at
 
-Multiple entries allowed on the same date
+CRAEntryMission
 
-Same date can be associated with multiple missions
+Fields
 
-Uniqueness constraint:
+id
 
+cra_entry_id
+
+mission_id
+
+created_at
+
+Entry Constraints
+
+A CRA may contain multiple entries on the same date
+
+A date may be associated with multiple missions
+
+Multi-mission billing on the same date is allowed
+
+Over-billing is contractually allowed
+
+Empty dates are allowed
+
+Strict uniqueness
 (cra_id, mission_id, date)
 
 
 Violation → 409 duplicate_entry
 
 🔁 CRA LIFECYCLE
-
-Statuses:
+Statuses
 
 draft
 
@@ -401,13 +565,13 @@ submitted
 
 locked
 
-Allowed transitions:
+Allowed transitions
 
 draft → submitted
 
 submitted → locked
 
-Rules:
+Rules
 
 No rollback
 
@@ -422,18 +586,19 @@ CRA accessible only if:
 
 User ∈ company independent
 
-Mission accessible (FC06)
+Referenced missions are accessible (FC06)
 
 Else → 404 not_found
 
 Uniqueness
 
-1 CRA max per (mission, month, year)
-→ 409 cra_already_exists
+1 CRA max per (user, month, year)
+
+Violation → 409 cra_already_exists
 
 Modification
 
-draft → free
+draft → free modification
 
 submitted → metadata only (non-financial)
 
@@ -447,7 +612,7 @@ total_days = Σ CRAEntry.quantity
 
 total_amount = Σ(quantity × unit_price)
 
-Client values are never trusted.
+⚠️ Client values are never trusted
 
 Deletion
 
@@ -458,25 +623,37 @@ Forbidden if submitted or locked
 Violation → 409 cra_in_use
 
 🧬 GIT / VERSIONING CONTRACT (PLATINUM)
-
-On CRA lock:
+On CRA lock
 
 Serialize CRA into canonical JSON
 
 Commit into internal Git repository
 
-Git specs:
+Commit is immutable
+
+Git specs
 
 Repository: cra-ledger
 
 Branch: main
 
-Commit message:
+Commit message
+CRA locked — cra:{id} — {month}/{year}
 
-CRA locked — mission:{id} — {month}/{year}
+Versioned payload
+{
+  "cra_id": "uuid",
+  "month": 1,
+  "year": 2025,
+  "missions": ["uuid", "uuid"],
+  "entries": [...],
+  "totals": {
+    "total_days": 1.0,
+    "total_amount": 800
+  }
+}
 
-
-Failure:
+Failure
 
 Git error → 500 internal_error
 
@@ -500,16 +677,19 @@ POST /api/v1/cras/:id/lock
 
 🧪 E2E TESTS (MANDATORY)
 
-Script:
+Script
+
 bin/e2e/e2e_cra_lifecycle.sh
 
-Canonical E2E scenario:
+Canonical E2E scenario
 
 Setup independent + two missions
 
 Create CRA
 
-Add entries on same date for different missions
+Add entry (date D, mission A, quantity 0.5)
+
+Add entry (date D, mission B, quantity 0.5)
 
 Submit CRA
 
@@ -519,7 +699,7 @@ Attempt modification → 409
 
 Verify Git commit exists
 
-Constraints:
+Constraints
 
 No mocks
 
@@ -544,7 +724,7 @@ Scenario: Lock a CRA with multi-mission entries
 
 Implement full backend support for CRA Management strictly following this contract.
 
-Requirements:
+Requirements
 
 Rails models
 
@@ -558,7 +738,7 @@ Lifecycle enforcement
 
 Git ledger integration
 
-Swagger/OpenAPI
+Swagger / OpenAPI
 
 RSpec tests
 
@@ -574,7 +754,7 @@ E2E script
 
 Swagger schemas
 
-Do NOT:
+Do NOT
 
 Add undocumented features
 
