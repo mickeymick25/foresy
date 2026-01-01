@@ -3,7 +3,8 @@
 **Date:** 31 décembre 2025  
 **Feature Contract:** 06 — Mission Management  
 **Status:** ✅ TERMINÉ — Platinum Level  
-**Author:** Co-CTO
+**Author:** Co-CTO  
+**Last Updated:** 31 décembre 2025 (E2E endpoints rename)
 
 ---
 
@@ -189,6 +190,15 @@ validate :validate_enum_values
 
 **Solution :** Ajout dans `AllowedIdentifiers` (convention de nommage base de données)
 
+### 6. Renommage Endpoints E2E (Platinum Compliance)
+**Problème :** Les endpoints `/__e2e__/setup` et `/__e2e__/cleanup` n'étaient pas assez explicites pour un auditeur sécurité
+
+**Solution :** Renommage vers `/__test_support__/e2e/setup` et `/__test_support__/e2e/cleanup`
+- Terme `__test_support__` reconnu (Rails, RSpec)
+- Clairement non-métier et non-public
+- Facile à blacklister
+- Namespace `TestSupport::E2e::SetupController`
+
 ---
 
 ## 📁 Fichiers Modifiés/Créés
@@ -207,6 +217,7 @@ validate :validate_enum_values
 
 ### Tests
 - `spec/requests/api/v1/missions/missions_spec.rb` - 30 tests
+- `bin/e2e/e2e_missions.sh` - 6 tests E2E
 - `spec/factories/missions.rb`
 - `spec/factories/companies.rb`
 - `spec/factories/mission_companies.rb`
@@ -214,6 +225,10 @@ validate :validate_enum_values
 
 ### Configuration
 - `.rubocop.yml` - Ajout AllowedIdentifiers
+
+### E2E Infrastructure
+- `app/controllers/__test_support__/e2e/setup_controller.rb` - Endpoints E2E isolés
+- `bin/e2e/e2e_missions.sh` - Script de tests E2E missions
 
 ### Documentation
 - `README.md` - Mise à jour
@@ -227,10 +242,40 @@ validate :validate_enum_values
 | Métrique | Avant | Après |
 |----------|-------|-------|
 | Tests RSpec | 221 | 290 (+69) |
+| Tests E2E | 0 | 6 |
 | Fichiers RuboCop | 82 | 93 |
 | Offenses RuboCop | 0 | 0 |
 | Vulnérabilités Brakeman | 0 | 0 |
 | Swagger specs | ~100 | 119 |
+
+---
+
+## 🧪 Tests E2E
+
+### Endpoints de Support
+| Endpoint | Description |
+|----------|-------------|
+| `POST /__test_support__/e2e/setup` | Crée contexte test (User + Company + relation) |
+| `DELETE /__test_support__/e2e/cleanup` | Nettoie les données E2E |
+
+⚠️ **Sécurité :** Ces endpoints n'existent qu'en `RAILS_ENV=test` ou `E2E_MODE=true`. Toute exposition en production est une faille critique.
+
+### Tests Couverts (6/6)
+1. ✅ Création Mission (independent) → 201
+2. ✅ Accès autorisé (GET mission) → 200
+3. ✅ Accès interdit (autre company) → 404
+4. ✅ Lifecycle complet (lead → completed)
+5. ✅ Transition invalide → 422
+6. ✅ Modification post-WON → 200
+
+### Usage
+```bash
+# Local
+./bin/e2e/e2e_missions.sh
+
+# Staging/CI
+STAGING_URL=https://api.example.com E2E_MODE=true ./bin/e2e/e2e_missions.sh
+```
 
 ---
 
@@ -239,6 +284,19 @@ validate :validate_enum_values
 1. **FC-07 — CRA mensuel** : Utiliser les Missions pour le suivi d'activité
 2. **FC-08 — Entreprise indépendant** : Enrichir le modèle Company
 3. **FC-09 — Validation CRA** : Verrouillage et conformité
+
+---
+
+## 📌 Notes Techniques
+
+### Protection CRA (Placeholder)
+La méthode `Mission#cra_entries?` retourne actuellement `false` (placeholder). Elle sera implémentée dans FC-07 pour vérifier les liaisons CRA effectives.
+
+### Notifications Post-WON (Prévu)
+La méthode `Mission#should_send_post_won_notification?` existe mais n'est pas encore appelée. Sera implémentée dans un FC futur avec les conditions :
+- Company client liée
+- Représentant client existant
+- Email client présent
 
 ---
 
@@ -252,6 +310,8 @@ validate :validate_enum_values
 - [x] BRIEFING.md updated
 - [x] BACKLOG.md updated
 - [x] Technical changelog created
+- [x] E2E tests implemented (6/6 passing)
+- [x] E2E endpoints renamed (Platinum compliance)
 - [x] PR ready to merge
 
 ---

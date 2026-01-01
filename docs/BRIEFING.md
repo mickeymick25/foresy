@@ -59,13 +59,22 @@
   - Mission types: time_based (TJM) / fixed_price
   - Lifecycle: lead → pending → won → in_progress → completed
   - Role-based access control (independent/client)
-  - Soft delete with CRA protection
+  - Soft delete with CRA protection (placeholder for FC-07)
   - Rate limiting on create/update
+- **E2E Test Infrastructure** (Platinum Level):
+  - `POST /__test_support__/e2e/setup` - Create test context
+  - `DELETE /__test_support__/e2e/cleanup` - Clean up test data
+  - ⚠️ Routes only exist in test/E2E mode (NOT in production)
+  - Script: `bin/e2e/e2e_missions.sh` - 6 tests passing
 - **Quality**:
   - 30 new RSpec tests (all passing)
+  - 6 E2E tests (all passing)
   - RuboCop: 0 offenses
   - Brakeman: 0 vulnerabilities
   - Swagger: Auto-generated
+- **Notes Techniques**:
+  - CRA protection: `cra_entries?` is placeholder (returns false until FC-07)
+  - Post-WON notifications: `should_send_post_won_notification?` exists but not called (future FC)
 - **Level**: ✅ Platinum Level (CTO approved)
 
 ### Dec 26, 2025 - 🧪 E2E Token Revocation Script (FEATURE - PLATINUM LEVEL)

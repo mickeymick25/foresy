@@ -5,6 +5,10 @@
 #   ./bin/e2e/e2e_missions.sh                    # Test localhost:3000
 #   STAGING_URL=https://foresy-api.onrender.com E2E_MODE=true ./bin/e2e/e2e_missions.sh
 #
+# Endpoints used:
+#   POST   /__test_support__/e2e/setup    - Create test context
+#   DELETE /__test_support__/e2e/cleanup  - Clean up test data
+#
 # Requirements:
 #   - curl
 #   - jq
@@ -61,12 +65,12 @@ TESTS_FAILED=0
 # SETUP: Create test contexts via E2E endpoint
 # ============================================
 
-echo "📦 SETUP: Creating test contexts via /__e2e__/setup..."
+echo "📦 SETUP: Creating test contexts via /__test_support__/e2e/setup..."
 echo ""
 
 # Create main user with independent company
 echo "   Creating main user (independent)..."
-SETUP_RESPONSE=$(curl -s -X POST "$API_URL/__e2e__/setup" \
+SETUP_RESPONSE=$(curl -s -X POST "$API_URL/__test_support__/e2e/setup" \
     -H "Content-Type: application/json" \
     -d "{
         \"user\": {
@@ -94,7 +98,7 @@ echo "   Company ID: $COMPANY_ID"
 
 # Create other user with independent company (for access control test)
 echo "   Creating other user (independent)..."
-SETUP_OTHER=$(curl -s -X POST "$API_URL/__e2e__/setup" \
+SETUP_OTHER=$(curl -s -X POST "$API_URL/__test_support__/e2e/setup" \
     -H "Content-Type: application/json" \
     -d "{
         \"user\": {
@@ -361,7 +365,7 @@ echo ""
 
 echo "🧹 CLEANUP..."
 
-CLEANUP_RESPONSE=$(curl -s -X DELETE "$API_URL/__e2e__/cleanup?email_pattern=e2e-mission-${TIMESTAMP}%25" \
+CLEANUP_RESPONSE=$(curl -s -X DELETE "$API_URL/__test_support__/e2e/cleanup?email_pattern=e2e-mission-${TIMESTAMP}%25" \
     -H "Content-Type: application/json")
 
 CLEANUP_STATUS=$(json_field "$CLEANUP_RESPONSE" '.message')

@@ -341,6 +341,30 @@ Archive une mission (soft delete)
 - **200 OK** : Mission archivée
 - **409 Conflict** : Mission liée à un CRA
 
+### Règles Métier Missions (FC-06)
+
+#### Lifecycle (Transitions de Statut)
+```
+lead → pending → won → in_progress → completed
+```
+- ⚠️ Pas de retour arrière autorisé
+- ⚠️ Transitions invalides → 422 `invalid_transition`
+
+#### Protection CRA
+- Une mission liée à un CRA ne peut pas être supprimée
+- Tentative de suppression → 409 `mission_in_use`
+- Note : FC-07 (CRA) implémentera la liaison effective
+
+#### Notifications Post-WON (Prévu)
+Une notification sera envoyée après modification d'une mission en statut `won` uniquement si :
+- Une Company client est liée à la mission
+- Un représentant client existe
+- Un email client est présent
+
+Sinon : comportement silencieux (pas d'erreur).
+
+> 📌 Cette fonctionnalité sera implémentée dans un Feature Contract futur.
+
 ## 🚀 Démarrage
 
 ### Prérequis
@@ -515,7 +539,40 @@ spec/
 ├── unit/              # Tests unitaires (modèles, services)
 ├── factories/         # Factories pour les données de test
 └── support/           # Helpers et configurations de test
+
+bin/e2e/
+├── e2e_auth_flow.sh     # Tests E2E authentification
+├── e2e_missions.sh      # Tests E2E missions (FC-06)
+├── e2e_revocation.sh    # Tests E2E révocation tokens
+└── smoke_test.sh        # Tests smoke basiques
 ```
+
+### Tests E2E
+
+Les tests E2E valident les flux critiques end-to-end en conditions réelles.
+
+**Usage :**
+```bash
+# Local (RAILS_ENV=test)
+./bin/e2e/e2e_missions.sh
+
+# Staging/CI (nécessite E2E_MODE=true)
+STAGING_URL=https://api.example.com E2E_MODE=true ./bin/e2e/e2e_missions.sh
+```
+
+**Endpoints de support E2E :**
+
+⚠️ **Ces endpoints n'existent qu'en environnement test/CI. Toute exposition en production est une faille critique.**
+
+| Endpoint | Description |
+|----------|-------------|
+| `POST /__test_support__/e2e/setup` | Crée un contexte de test (User + Company + relation) |
+| `DELETE /__test_support__/e2e/cleanup` | Nettoie les données de test E2E |
+
+**Sécurité :**
+- Routes montées uniquement si `RAILS_ENV=test` ou `E2E_MODE=true`
+- Double vérification dans le contrôleur (defense in depth)
+- En production, les routes n'existent pas
 
 ## 📈 Performance
 
