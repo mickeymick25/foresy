@@ -28,6 +28,18 @@ Rails.application.routes.draw do
     end
   end
 
+  # E2E Test Support Routes - ONLY mounted in test mode or when E2E_MODE=true
+  # 🔐 SECURITY: These routes are NOT accessible in production
+  # ⚠️ Any exposure in production is a CRITICAL security flaw
+  if Rails.env.test? || ENV['E2E_MODE'] == 'true'
+    namespace :__test_support__, path: '__test_support__' do
+      namespace :e2e, path: 'e2e' do
+        post 'setup', to: 'setup#create'
+        delete 'cleanup', to: 'setup#destroy'
+      end
+    end
+  end
+
   # Pour éviter une 404 inutile sur la racine, Définir une racine propre pour l'API
   root to: proc { [200, { 'Content-Type' => 'application/json' }, ['{"status":"API is live"}']] }
 

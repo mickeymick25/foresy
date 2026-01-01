@@ -66,10 +66,26 @@ Foresy/
 4. **[🔒 Token Revocation](./technical/guides/token_revocation_strategy.md)** - Stratégie de revocation des tokens (sécurité)
 5. **[📮 Postman Collection](./postman/Foresy_API.postman_collection.json)** - Collection pour tester les endpoints
 
-### 🎯 **Feature Contract 06 — Missions (31/12/2025)** ✅ TERMINÉ
+### 🎯 **Feature Contract 06 — Missions (31/12/2025)** ✅ PR #12 MERGED (1 Jan 2026)
 1. **[📋 Feature Contract 06](./FeatureContract/06_Feature%20Contract%20—%20Missions)** - Contrat source de vérité
 2. **[📝 Changelog FC-06](./technical/changes/2025-12-31-FC06_Missions_Implementation.md)** - Documentation technique complète de l'implémentation
-3. **[📊 BACKLOG.md](./BACKLOG.md)** - Roadmap mise à jour avec FC-06 terminé
+3. **[📊 BACKLOG.md](./BACKLOG.md)** - Roadmap mise à jour avec FC-06 mergé
+4. **[🧪 Script E2E Missions](../bin/e2e/e2e_missions.sh)** - 6 tests E2E (tous passent)
+
+### 🧪 **Tests E2E Infrastructure**
+**Endpoints de support** (uniquement en `RAILS_ENV=test` ou `E2E_MODE=true`) :
+| Endpoint | Description |
+|----------|-------------|
+| `POST /__test_support__/e2e/setup` | Crée contexte test (User + Company + relation) |
+| `DELETE /__test_support__/e2e/cleanup` | Nettoie les données E2E |
+
+⚠️ **Sécurité** : Ces endpoints n'existent PAS en production. Toute exposition serait une faille critique.
+
+**Scripts disponibles** :
+- `bin/e2e/e2e_missions.sh` - Tests missions (6 tests)
+- `bin/e2e/e2e_auth_flow.sh` - Tests authentification
+- `bin/e2e/e2e_revocation.sh` - Tests révocation tokens
+- `bin/e2e/smoke_test.sh` - Tests smoke basiques
 
 ### 🔧 **Pour le Développement**
 1. **[Analyse Technique](./technical/audits/ANALYSE_TECHNIQUE_FORESY.md)** - Architecture et analyse technique complète
