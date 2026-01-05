@@ -95,6 +95,12 @@ class Mission < ApplicationRecord
   has_many :mission_companies, dependent: :destroy
   has_many :companies, through: :mission_companies
 
+  # CRA-related associations
+  has_many :cra_missions
+  has_many :cras, through: :cra_missions
+  has_many :cra_entry_missions, dependent: :destroy
+  has_many :cra_entries, through: :cra_entry_missions
+
   # Role-based associations
   has_one :independent_company, -> { where(mission_companies: { role: 'independent' }) },
           through: :mission_companies, source: :company
@@ -102,8 +108,8 @@ class Mission < ApplicationRecord
   has_one :client_company, -> { where(mission_companies: { role: 'client' }) },
           through: :mission_companies, source: :company
 
-  # Creator association (for authorization)
-  belongs_to :creator, class_name: 'User', foreign_key: 'created_by_user_id'
+  # User association (for authorization) - FIXED: follows Rails naming conventions
+  belongs_to :user, foreign_key: 'created_by_user_id'
 
   # Scopes
   scope :active, -> { where(deleted_at: nil) }

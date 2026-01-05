@@ -11,8 +11,8 @@ FactoryBot.define do
     # Ensure name is unique
     sequence(:name) { |n| "Mission #{n} - #{Faker::Company.industry}" }
 
-    # Association to creator (required field)
-    association :creator, factory: :user
+    # Association to user (required field) - FIXED: follows Rails naming conventions
+    association :user, factory: :user
 
     # Conditional financial fields based on mission_type
     after(:build) do |mission|
@@ -68,23 +68,49 @@ FactoryBot.define do
       status { 'completed' }
     end
 
+    # Traits for soft delete scenarios (for testing)
+    trait :discarded do
+      # For soft delete testing - assumes Mission model implements acts_as_paranoid
+      # This sets the deleted_at timestamp if the model supports soft delete
+      deleted_at { Time.current }
+    end
+
+    trait :active do
+      # For testing active (non-deleted) missions
+      deleted_at { nil }
+    end
+
     # Combined traits for realistic scenarios
     trait :time_based_active do
       time_based
       won
       with_end_date
+      active
     end
 
     trait :fixed_price_completed do
       fixed_price
       completed
       with_end_date
+      active
     end
 
     trait :open_ended_lead do
       time_based
       lead
       open_ended
+      active
+    end
+
+    # Combined traits for soft delete testing scenarios
+    trait :discarded_time_based do
+      time_based
+      discarded
+    end
+
+    trait :discarded_fixed_price do
+      fixed_price
+      discarded
     end
   end
 end
