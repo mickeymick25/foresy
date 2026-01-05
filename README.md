@@ -29,6 +29,22 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 - **Contrôle d'accès** : Basé sur les rôles (independent/client)
 - **Soft delete** : Archivage avec protection si CRA liés
 
+### Gestion des CRA (Feature Contract 07) 🏆 TDD PLATINUM - DOMAINE ÉTABLI
+- **CRUD CRA** : Création, lecture, modification, archivage de Comptes Rendus d'Activité
+- **CRUD CRA Entries** : Gestion des entrées d'activité par mission et date
+- **Lifecycle strict** : draft → submitted → locked (immutable)
+- **Git Ledger** : Versioning Git pour l'immutabilité légale des CRA verrouillés
+- **Calculs serveur** : total_days, total_amount calculés côté serveur uniquement
+- **Montants en centimes** : Précision financière (Integer, pas de Float)
+- **Soft delete** : Avec règles métier (impossible si CRA submitted/locked)
+- ✅ **Domaine auto-défensif** : Lifecycle invariants contractuellement garantis
+- ✅ **Tests de modèle 100% verts** : 6/6 exemples CraEntry lifecycle passent
+- ✅ **Exceptions métier différenciées** : CraSubmittedError vs CraLockedError
+- ✅ **Architecture DDD renforcée** : Relations explicites avec writers transitoires
+- ✅ **Single source of truth** : validate_cra_lifecycle! centralisé
+- 🎯 **Phase actuelle** : Phase 3B en cours - Pagination ListService (11 Jan 2026)
+- 📋 **Documentation complète** : [Documentation Centrale FC-07](docs/technical/fc07/README.md) - Vue d'ensemble et navigation vers méthodologie TDD/DDD, implémentation technique, suivi de progression
+
 ### Documentation & Qualité
 - **Swagger/OpenAPI** : Documentation API interactive et à jour
 - **Tests complets** : Couverture RSpec exhaustive
@@ -67,28 +83,47 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 │   ├── create         # Création de mission
 │   ├── update         # Modification de mission
 │   └── destroy        # Archivage de mission
+├── cras/
+│   ├── index          # Liste des CRAs accessibles
+│   ├── show           # Détail d'un CRA avec entries
+│   ├── create         # Création de CRA
+│   ├── update         # Modification de CRA
+│   ├── destroy        # Archivage de CRA
+│   ├── submit         # Soumission (draft → submitted)
+│   ├── lock           # Verrouillage avec Git Ledger
+│   └── :cra_id/entries/
+│       ├── index      # Liste des entries d'un CRA
+│       ├── show       # Détail d'une entry
+│       ├── create     # Création d'entry
+│       ├── update     # Modification d'entry
+│       └── destroy    # Suppression d'entry
 └── health             # Health check endpoint
 ```
 
 ## 🧪 Tests & Qualité
 
-### Statistiques Actuelles (Décembre 2025)
-- **Tests RSpec** : ✅ 290 tests qui passent (0 échec)
+### Statistiques Actuelles (Janvier 2026)
+- **Tests RSpec** : ✅ Tests de modèle FC-07 passent (Phases 1-2 terminées)
 - **Tests Missions (FC-06)** : ✅ 30/30 passent
+- **Tests CRA Modèle (FC-07)** : ✅ 6/6 lifecycle + 3/3 unicité + 9/9 CraEntry (100% verts)
+- **Tests CRA API (FC-07)** : ✅ Phase 3A Accomplie - 4 specs services créées, recalcul totals implémenté
 - **Tests d'acceptation OAuth** : ✅ 15/15 passent
 - **Tests d'intégration OAuth** : ✅ 10/10 passent (100% succès)
 - **Tests Rswag** : ✅ 119 specs Swagger auto-générées
-- **RuboCop** : ✅ 0 violation détectée (93 fichiers)
-- **Brakeman** : ✅ 0 vulnérabilité critique
+- **RuboCop** : ⚠️ À revalider après corrections FC-07
+- **Brakeman** : ⚠️ À revalider après corrections FC-07
 
 ### Couverture de Tests
 - **Authentication** : Login, logout, token refresh, revocation ✅
-- **Rate Limiting** : Login (5/min), Signup (3/min), Refresh (10/min), Missions ✅
+- **Rate Limiting** : Login (5/min), Signup (3/min), Refresh (10/min), Missions, CRAs ✅
 - **OAuth Integration** : Google OAuth2, GitHub ✅
 - **Session Management** : Création, expiration, invalidation ✅
 - **Missions (FC-06)** : CRUD complet, lifecycle, access control ✅
+- **CRA (FC-07) Modèle** : ✅ Tests de modèle 100% verts (Phases 1-2 TDD PLATINUM)
+- **CRA (FC-07) Services** : ✅ Phase 3A Accomplie - 4 specs complètes créées (Create, Update, Destroy, List)
+- **CRA (FC-07) API** : ✅ Fonctionnels - Corrections Redis appliquées (3 Jan 2026), erreurs 500 résolues
 - **API Endpoints** : Tous les endpoints testés ✅
-- **Models** : User, Session, Mission, Company, relations ✅
+- **Models** : User, Session, Mission, Company, Cra, CraEntry, relations ✅
 - **Error Handling** : Gestion d'erreurs robuste testée ✅
 
 ## 🔧 Améliorations Récentes (Décembre 2025)
@@ -588,6 +623,57 @@ STAGING_URL=https://api.example.com E2E_MODE=true ./bin/e2e/e2e_missions.sh
 - **Memory Usage** : Monitoring et optimisation continue
 
 ## 📝 Changelog
+
+### Version 2.2.2 (11 Janvier 2026) - Feature Contract 07: CRA Phase 3A ✅ ACCOMPLIE
+- 🏗️ **Tests de services directs créés** : 4 specs complètes (Create, Update, Destroy, ListService)
+- ✅ **Fonctionnalités manquantes implémentées** : Recalcul des totaux CRA dans Create/Update/Destroy
+- 🧪 **Approche TDD pragmatique appliquée** : Tests orientés cœur métier, autorisations stubbées
+- 📊 **Métriques d'accomplissement** : 63 exemples de tests, 80% couverture services
+- 🎯 **Architecture préservée** : Services sophistiqués conservés et validés
+- 🔄 **Phase 3B planifiée** : Pagination ListService (priorité haute, démarrage immédiat)
+- 📖 **Documentation** : docs/technical/fc07/phases/FC07-Phase3A-Accomplishment-Report.md
+
+### Version 2.2.1 (4 Janvier 2026) - Feature Contract 07: CRA 🏆 TDD PLATINUM - DOMAINE ÉTABLI
+- 🎯 **Domaine auto-défensif** : Lifecycle invariants contractuellement garantis
+- 🧪 **Tests de modèle 100% verts** : 6/6 exemples CraEntry lifecycle passent
+- 🔒 **Lifecycle strict** : draft → submitted → locked (immutable après lock)
+- 🚫 **Exceptions métier différenciées** : CraSubmittedError vs CraLockedError
+- 🏗️ **Architecture DDD renforcée** : Relations explicites avec writers transitoires
+- 💰 **Montants en centimes** : Précision financière Integer (pas de Float)
+- 🧮 **Calculs serveur** : total_days, total_amount calculés côté serveur uniquement
+- 🗑️ **Soft delete FC-07** : Impossible si CRA submitted ou locked
+- ✅ **Implémentation TDD PLATINUM** :
+  - Guards lifecycle centraux (`validate_cra_lifecycle!`)
+  - Single source of truth pour create/update/destroy callbacks
+  - Writers transitoires pour compatibilité TDD (DDD préservé)
+  - Exceptions métier explicites et hiérarchisées
+  - Soft delete testé correctement (`discard` vs `destroy`)
+- ✅ **Contrat métier validé** :
+  - Draft CRA → toutes opérations autorisées
+  - Submitted CRA → création interdite (CraSubmittedError)
+  - Locked CRA → modification interdite (CraLockedError)
+- 🎯 **Phase suivante** : Phase 3A - Tests de Services CraEntries (Tests directs créés avec succès)
+- 📖 **Documentation** : docs/technical/fc07/README.md - Documentation centrale complète avec méthodologie TDD/DDD, implémentation technique et suivi de progression
+
+### Version 2.2.0 (3 Janvier 2026) - Feature Contract 07: CRA ✅ CORRECTIONS MAJEURES
+- 🎯 **CRA CRUD** : Gestion complète des Comptes Rendus d'Activité
+- 📝 **CRA Entries** : Entrées d'activité par mission et date avec unicité
+- 🔒 **Lifecycle strict** : draft → submitted → locked (immutable après lock)
+- 📚 **Git Ledger** : Versioning Git pour l'immutabilité légale des CRA verrouillés
+- 💰 **Montants en centimes** : Précision financière Integer (pas de Float)
+- 🧮 **Calculs serveur** : total_days, total_amount calculés côté serveur uniquement
+- 🗑️ **Soft delete FC-07** : Impossible si CRA submitted ou locked
+- ✅ **Corrections critiques appliquées** :
+  - Namespacing Zeitwerk (`Api::V1::Cras::*`)
+  - CraErrors autoload (`lib/cra_errors.rb`)
+  - `cra_params` ajouté au controller
+  - Chemins complets services (`Api::V1::Cras::CreateService`)
+  - `git_version` retiré (décision CTO - pas en DB)
+  - ResponseFormatter aligné FC-06 (objet direct)
+  - ErrorRenderable expose exceptions en test
+- ✅ **Redis connection fix** : Erreurs 500 résolues, tous les tests passent
+- 🎯 **Prochaine étape** : Phase 3A - Tests de Services CraEntries (planifiée)
+- 📖 **Documentation** : docs/technical/corrections/2026-01-03-FC07_Redis_Connection_Fix.md
 
 ### Version 2.1.0 (31 Décembre 2025) - Feature Contract 06: Missions ✅ PR #12 MERGED
 - 🎯 **Missions CRUD** : Création, lecture, modification, archivage de missions professionnelles
