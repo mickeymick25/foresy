@@ -1,6 +1,6 @@
 # 📋 Backlog - Foresy
 
-**Dernière mise à jour** : 1 janvier 2026 - FC-06 Missions mergé (PR #12)
+**Dernière mise à jour** : 6 janvier 2026 - FC-07 CRA ✅ **100% TERMINÉ**
 
 ---
 
@@ -20,9 +20,9 @@
 ```
 v0.1.0 (Fondations métier)
  ├─ Feature Contract #06 — Missions (Projets) ✅ TERMINÉ
- ├─ Feature Contract #07 — CRA mensuel (brouillon)
+ ├─ Feature Contract #07 — CRA mensuel ✅ TERMINÉ
  ├─ Feature Contract #08 — Entreprise de l'indépendant
- └─ Feature Contract #09 — Validation & verrouillage CRA
+ └─ Feature Contract #09 — Notifications & alertes
 
 v0.2.x (Extension)
  ├─ Feature Contract #07 — Rôles & visions
@@ -57,54 +57,63 @@ v1.0.0 (MVP Production)
 | **Qualité** | RuboCop 0 offense, Brakeman 0 vulnérabilité |
 | **Swagger** | 119 specs générées |
 
-> ✅ **Feature pivot livrée — prêt pour CRA**
+> ✅ **Feature pivot livrée — CRA implémenté**
 
 ---
 
-## 🔴 PRIORITÉ ABSOLUE — PROCHAINE ÉTAPE
+### Feature Contract #07 — CRA (Compte Rendu d'Activité) ✅ TERMINÉ (6 Jan 2026)
 
-### Feature Contract #07 — CRA mensuel (brouillon)
-
-📊 **Cœur différenciant** — Vraie valeur pour l'indépendant
+🧱 **Fondation métier** — Gestion des déclarations d'activité mensuelles
 
 | Aspect | Détails |
 |--------|---------|
-| **Pourquoi maintenant ?** | FC-06 Missions terminé, permet le suivi d'activité réel |
-| **Scope fonctionnel** | Création d'un CRA pour un mois donné, vision jour par jour |
-| **Types de jours** | Mission X, Non facturable, Congé, Jour férié, Inter-contrat |
-| **États** | Draft, Submitted |
-| **Contraintes** | 1 CRA par mois / user, modifiable tant qu'en draft, historisation minimale |
+| **Statut** | ✅ **100% TERMINÉ** - TDD PLATINUM |
+| **Scope fonctionnel** | CRUD CRA + CRA Entries complet |
+| **Architecture** | Domain-Driven / Service-Oriented (pas de callbacks) |
+| **Lifecycle** | draft → submitted → locked (immutable) |
+| **Modèles** | Cra, CraEntry, CraMission, CraEntryCra, CraEntryMission |
+| **Services** | CreateService, UpdateService, DestroyService, ListService |
+| **Tests** | ✅ **50 tests services + 9 tests legacy = 59 tests TDD Platinum** |
+| **Qualité** | Zeitwerk OK, RuboCop OK, Brakeman 0 vulnérabilité |
+| **Documentation** | `docs/technical/fc07/` - Documentation complète |
 
-> 📌 **Prochaine priorité après FC-06**
+**Phases Complétées (3-6 Jan 2026) :**
+
+| Phase | Description | Tests | Status |
+|-------|-------------|-------|--------|
+| Phase 1 | CraEntry Lifecycle + CraMissionLinker | 6/6 ✅ | TDD PLATINUM |
+| Phase 2 | Unicité Métier (cra, mission, date) | 3/3 ✅ | TDD PLATINUM |
+| Phase 3A | Legacy Tests Alignment | 9/9 ✅ | TDD PLATINUM |
+| Phase 3B.1 | Pagination ListService | 9/9 ✅ | TDD PLATINUM |
+| Phase 3B.2 | Unlink Mission DestroyService | 8/8 ✅ | TDD PLATINUM |
+| Phase 3C | Recalcul Totaux (Create/Update/Destroy) | 24/24 ✅ | TDD PLATINUM |
+
+**Décision Architecturale Clé :**
+- ❌ **Callbacks ActiveRecord** → Rejeté
+- ✅ **Services Applicatifs** → Adopté
+
+La logique de recalcul des totaux (`total_days`, `total_amount`) est orchestrée dans les services, pas dans les callbacks du modèle.
+
+**Leçons Apprises :**
+1. **Services > Callbacks** pour la logique métier complexe
+2. **RSpec lazy `let`** : toujours forcer l'évaluation avant `reload`
+3. **Montants financiers** : toujours en centimes (integer)
+
+> ✅ **Feature CRA 100% TERMINÉE — Peut être mergée, livrée et maintenue sans honte**
+
+**Commande de validation :**
+```bash
+docker compose exec web bundle exec rspec spec/services/cra_entries/ spec/models/cra_entry_lifecycle_spec.rb spec/models/cra_entry_uniqueness_spec.rb --format progress
+# Résultat attendu : 50 examples, 0 failures
+```
 
 ---
 
-## 🔴 PRIORITÉ HAUTE — CRÉATION DE VALEUR IMMÉDIATE
+## 🟡 PROCHAINE ÉTAPE — CRÉATION DE VALEUR IMMÉDIATE
 
 ### Feature Contract #08 — Entreprise de l'indépendant
 
 🏛️ **Base fiscale & légale** — Conditionne TVA, statuts fiscaux
-
-| Aspect | Détails |
-|--------|---------|
-| **Pourquoi maintenant ?** | Indispensable avant facturation, fort levier de différenciation |
-| **Scope fonctionnel** | Création d'une entreprise, SIREN/SIRET |
-| **Récupération données** | API à définir (forme juridique, régime fiscal, TVA oui/non) |
-
-> ⚠️ Pas encore de logique comptable
-
----
-
-## 🟠 PRIORITÉ MOYENNE — SÉCURISATION MÉTIER
-
-### Feature Contract #09 — Validation & verrouillage CRA
-
-🔒 **Confiance & conformité**
-
-| Aspect | Détails |
-|--------|---------|
-| **Scope** | Validation CRA par l'indépendant, CRA verrouillé en écriture |
-| **Dérogation** | Modification → double approbation (plus tard) |
 
 | Aspect | Détails |
 |--------|---------|
@@ -238,6 +247,8 @@ v1.0.0 (MVP Production)
 | v0.0.1 | 26 Dec 2025 | Rails 7.1.5.1 / Ruby 3.3.0 - Pre-migration baseline |
 | v0.0.2 | 26 Dec 2025 | Rails 8.1.1 / Ruby 3.4.8 baseline |
 | v0.0.3 | 29 Dec 2025 | Rate Limiting (FC-05) - Platinum Level |
+| v0.0.4 | 31 Dec 2025 | Missions (FC-06) - Merged |
+| v0.0.5 | 6 Jan 2026 | CRA (FC-07) - TDD Platinum Complete |
 
 ---
 

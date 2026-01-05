@@ -66,6 +66,50 @@ Foresy/
 4. **[🔒 Token Revocation](./technical/guides/token_revocation_strategy.md)** - Stratégie de revocation des tokens (sécurité)
 5. **[📮 Postman Collection](./postman/Foresy_API.postman_collection.json)** - Collection pour tester les endpoints
 
+### 🎯 **Feature Contract 07 — CRA (6/01/2026)** 🏆 **100% TERMINÉ - TDD PLATINUM**
+1. **[📋 Documentation Centrale FC-07](./technical/fc07/README.md)** - Vue d'ensemble et navigation complète
+2. **[📚 Méthodologie TDD/DDD](./technical/fc07/methodology/fc07_methodology_tracker.md)** - Suivi méthodologique
+3. **[🔧 Implémentation Technique](./technical/fc07/implementation/fc07_technical_implementation.md)** - Documentation technique
+4. **[🏗️ Phases Complétées](./technical/fc07/phases/)** - Toutes phases terminées
+5. **[🧪 Phase 3C Report](./technical/fc07/phases/FC07-Phase3C-Completion-Report.md)** - Recalcul totaux ✨ NEW
+
+**✅ TOUTES LES PHASES TERMINÉES - 59 TESTS TDD PLATINUM**
+
+| Phase | Description | Tests | Status |
+|-------|-------------|-------|--------|
+| Phase 1 | CraEntry Lifecycle + CraMissionLinker | 6/6 ✅ | TDD PLATINUM |
+| Phase 2 | Unicité Métier (cra, mission, date) | 3/3 ✅ | TDD PLATINUM |
+| Phase 3A | Legacy Tests Alignment | 9/9 ✅ | TDD PLATINUM |
+| Phase 3B.1 | Pagination ListService | 9/9 ✅ | TDD PLATINUM |
+| Phase 3B.2 | Unlink Mission DestroyService | 8/8 ✅ | TDD PLATINUM |
+| Phase 3C | Recalcul Totaux (Create/Update/Destroy) | 24/24 ✅ | TDD PLATINUM |
+
+**Décision Architecturale Clé (Phase 3C)** :
+- ❌ **Callbacks ActiveRecord** → Rejeté
+- ✅ **Services Applicatifs** → Adopté
+
+La logique de recalcul (`total_days`, `total_amount`) est dans les services, pas dans les callbacks.
+
+**Leçons Apprises** :
+1. **Services > Callbacks** pour la logique métier complexe
+2. **RSpec lazy `let`** : toujours forcer l'évaluation avant `reload`
+3. **Montants financiers** : toujours en centimes (integer)
+
+**Contrat Métier Validé** :
+| Action | CRA draft | CRA submitted | CRA locked |
+|--------|-----------|---------------|------------|
+| create | ✅ autorisé | ❌ CraSubmittedError | ❌ CraLockedError |
+| update | ✅ autorisé | ❌ (implicitement) | ❌ CraLockedError |
+| discard | ✅ autorisé | ❌ CraSubmittedError | ❌ CraLockedError |
+
+**Commande de Validation** :
+```bash
+docker compose exec web bundle exec rspec spec/services/cra_entries/ spec/models/cra_entry_lifecycle_spec.rb spec/models/cra_entry_uniqueness_spec.rb --format progress
+# Résultat : 50 examples, 0 failures
+```
+
+> ✅ **FC-07 peut être mergé, livré et maintenu sans honte.**
+
 ### 🎯 **Feature Contract 06 — Missions (31/12/2025)** ✅ PR #12 MERGED (1 Jan 2026)
 1. **[📋 Feature Contract 06](./FeatureContract/06_Feature%20Contract%20—%20Missions)** - Contrat source de vérité
 2. **[📝 Changelog FC-06](./technical/changes/2025-12-31-FC06_Missions_Implementation.md)** - Documentation technique complète de l'implémentation
@@ -100,7 +144,8 @@ Foresy/
 4. **[🛡️ CSRF Security Analysis](./technical/analysis/csrf_security_analysis_same_site_none.md)** - **CRITIQUE** - Analyse risque CSRF et sécurisation
 
 ### 📊 **Pour les Modifications Récentes**
-1. **[🎯 FC-06 Missions 31/12/2025](./technical/changes/2025-12-31-FC06_Missions_Implementation.md)** - **MAJEUR** - Feature Contract 06 Missions complet, 290 tests OK, 0 vulnérabilités (31/12/2025)
+1. **[🔴 FC-07 CRA 03/01/2026](./technical/corrections/2026-01-03-FC07_Concerns_Namespace_Fix.md)** - **EN COURS** - FC-07 CRA - Exception 500 à identifier (corrections Zeitwerk appliquées) (03/01/2026)
+2. **[🎯 FC-06 Missions 31/12/2025](./technical/changes/2025-12-31-FC06_Missions_Implementation.md)** - **MAJEUR** - Feature Contract 06 Missions complet, 290 tests OK, 0 vulnérabilités (31/12/2025)
 2. **[🚀 Migration Rails 8.1.1 26/12/2025](./technical/changes/2025-12-26-Rails_8_1_1_Migration_Complete.md)** - **MAJEUR** - Upgrade complet Ruby 3.4.8 + Rails 8.1.1 (26/12/2025)
 3. **[🔒 Token Revocation Endpoints 24/12/2025](./technical/guides/token_revocation_strategy.md)** - Endpoints DELETE /revoke et /revoke_all pour invalidation des tokens (24/12/2025)
 4. **[🧪 Tests E2E Staging Infrastructure 24/12/2025](./technical/testing/e2e_staging_tests_guide.md)** - Scripts E2E pour staging: smoke_test.sh (15 tests) et e2e_auth_flow.sh (8 tests) (24/12/2025)
