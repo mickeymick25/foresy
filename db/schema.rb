@@ -10,13 +10,14 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 20251226) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_02_171723) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
 
   # Custom types defined in this database.
   # Note that some types may not work with other database engines. Be careful if changing database.
+  create_enum "cra_status", ["draft", "submitted", "locked"]
   create_enum "mission_company_role_enum", ["independent", "client"]
   create_enum "mission_status_enum", ["lead", "pending", "won", "in_progress", "completed"]
   create_enum "mission_type_enum", ["time_based", "fixed_price"]
@@ -43,6 +44,75 @@ ActiveRecord::Schema[8.1].define(version: 20251226) do
     t.index ["siren"], name: "index_companies_on_siren"
     t.index ["siret"], name: "index_companies_on_siret", unique: true
     t.check_constraint "country::text ~ '^[A-Z]{2}$'::text", name: "company_country_format_constraint"
+  end
+
+  create_table "cra_entries", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.date "date", null: false, comment: "Date of the CRA entry"
+    t.datetime "deleted_at", comment: "Soft delete timestamp"
+    t.text "description", comment: "Optional description"
+    t.decimal "quantity", precision: 10, scale: 2, null: false, comment: "Billable quantity (in days, free granularity: 0.25, 0.5, 1.0, 2.0)"
+    t.integer "unit_price", null: false, comment: "Unit price in cents"
+    t.datetime "updated_at", null: false
+    t.index ["date", "deleted_at"], name: "index_cra_entries_date_active"
+    t.index ["date"], name: "index_cra_entries_on_date", comment: "Filter entries by date"
+    t.index ["deleted_at"], name: "index_cra_entries_on_deleted_at", comment: "Soft delete queries"
+    t.index ["quantity"], name: "index_cra_entries_on_quantity", comment: "Calculate totals and analytics"
+    t.index ["unit_price"], name: "index_cra_entries_on_unit_price", comment: "Price filtering and calculations"
+  end
+
+  create_table "cra_entry_cras", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "cra_entry_id", null: false, comment: "Reference to CRAEntry"
+    t.uuid "cra_id", null: false, comment: "Reference to CRA"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["cra_entry_id", "cra_id"], name: "index_cra_entry_cras_entry_cra"
+    t.index ["cra_entry_id"], name: "index_cra_entry_cras_on_cra_entry_id", comment: "Find CRA for an entry"
+    t.index ["cra_id", "cra_entry_id"], name: "index_cra_entry_cras_unique_cra_entry", unique: true, comment: "Enforce: One CRA per entry relationship"
+    t.index ["cra_id"], name: "index_cra_entry_cras_on_cra_id", comment: "Find CRA entries for a CRA"
+  end
+
+  create_table "cra_entry_missions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "cra_entry_id", null: false, comment: "Reference to CRAEntry"
+    t.datetime "created_at", null: false
+    t.uuid "mission_id", null: false, comment: "Reference to Mission"
+    t.datetime "updated_at", null: false
+    t.index ["cra_entry_id"], name: "index_cra_entry_missions_on_cra_entry_id", comment: "Find missions for a CRA entry"
+    t.index ["mission_id", "cra_entry_id"], name: "index_cra_entry_missions_mission_entry"
+    t.index ["mission_id"], name: "index_cra_entry_missions_on_mission_id", comment: "Find CRA entries for a mission"
+  end
+
+  create_table "cra_missions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "cra_id", null: false, comment: "Reference to CRA"
+    t.datetime "created_at", null: false
+    t.uuid "mission_id", null: false, comment: "Reference to Mission"
+    t.datetime "updated_at", null: false
+    t.index ["cra_id", "mission_id"], name: "index_cra_missions_unique_cra_mission", unique: true, comment: "Enforce: One mission per CRA maximum"
+    t.index ["cra_id"], name: "index_cra_missions_on_cra_id", comment: "Find missions for a CRA"
+    t.index ["mission_id", "cra_id"], name: "index_cra_missions_mission_cra"
+    t.index ["mission_id"], name: "index_cra_missions_on_mission_id", comment: "Find CRAs for a mission"
+  end
+
+  create_table "cras", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "created_by_user_id", null: false, comment: "Audit-only: user who created the CRA"
+    t.string "currency", default: "EUR", null: false, comment: "ISO 4217 currency code"
+    t.datetime "deleted_at", comment: "Soft delete timestamp"
+    t.text "description", comment: "Non-financial metadata (description)"
+    t.datetime "locked_at", comment: "Timestamp when CRA was locked"
+    t.integer "month", null: false, comment: "Month (1-12)"
+    t.enum "status", default: "draft", null: false, comment: "CRA lifecycle status", enum_type: "cra_status"
+    t.integer "total_amount", comment: "Calculated total amount (in cents)"
+    t.decimal "total_days", precision: 10, scale: 2, comment: "Calculated total days"
+    t.datetime "updated_at", null: false
+    t.integer "year", null: false, comment: "Year"
+    t.index ["created_by_user_id", "month", "year"], name: "index_cras_unique_user_month_year", unique: true, where: "(deleted_at IS NULL)", comment: "Enforce uniqueness: 1 CRA max per (user, month, year)"
+    t.index ["created_by_user_id"], name: "index_cras_on_created_by_user_id", comment: "Find CRAs by creator"
+    t.index ["deleted_at"], name: "index_cras_on_deleted_at", comment: "Soft delete queries"
+    t.index ["locked_at"], name: "index_cras_on_locked_at", comment: "Find locked CRAs"
+    t.index ["month"], name: "index_cras_on_month", comment: "Filter by month"
+    t.index ["status"], name: "index_cras_on_status", comment: "Filter by CRA status"
+    t.index ["year"], name: "index_cras_on_year", comment: "Filter by year"
   end
 
   create_table "mission_companies", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -129,6 +199,12 @@ ActiveRecord::Schema[8.1].define(version: 20251226) do
     t.index ["uuid"], name: "index_users_on_uuid", unique: true
   end
 
+  add_foreign_key "cra_entry_cras", "cra_entries", on_delete: :cascade
+  add_foreign_key "cra_entry_cras", "cras", on_delete: :cascade
+  add_foreign_key "cra_entry_missions", "cra_entries", on_delete: :cascade
+  add_foreign_key "cra_entry_missions", "missions", on_delete: :cascade
+  add_foreign_key "cra_missions", "cras", on_delete: :cascade
+  add_foreign_key "cra_missions", "missions", on_delete: :cascade
   add_foreign_key "mission_companies", "companies"
   add_foreign_key "mission_companies", "missions"
   add_foreign_key "sessions", "users"
