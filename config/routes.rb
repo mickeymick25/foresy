@@ -25,6 +25,21 @@ Rails.application.routes.draw do
       get 'auth/failure', to: 'oauth#failure'
       post 'signup', to: 'users#create'
       resources :missions, only: %i[index show create update destroy]
+
+      # CRA routes
+      resources :cras, except: %i[new edit] do
+        member do
+          post 'submit'
+          post 'lock'
+        end
+      end
+
+      # CRA Entry routes (nested under CRA)
+      get 'cras/:cra_id/entries', to: 'cra_entries#index'
+      post 'cras/:cra_id/entries', to: 'cra_entries#create'
+      get 'cras/:cra_id/entries/:id', to: 'cra_entries#show'
+      patch 'cras/:cra_id/entries/:id', to: 'cra_entries#update'
+      delete 'cras/:cra_id/entries/:id', to: 'cra_entries#destroy'
     end
   end
 
