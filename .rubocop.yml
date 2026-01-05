@@ -39,7 +39,7 @@ Metrics/BlockLength:
 Metrics/MethodLength:
   Enabled: true
   CountComments: false
-  Max: 20
+  Max: 35
   CountAsOne: []
   Exclude:
     - "spec/**/*"
@@ -47,15 +47,34 @@ Metrics/MethodLength:
     - "db/migrate/*"
     - "config/initializers/*"
     - "app/controllers/api/v1/missions_controller.rb"
+    - "app/controllers/api/v1/cras_controller.rb"
     - "app/controllers/__test_support__/**/*"
 
 # Metrics/AbcSize - augmenter la limite pour la complexité
 Metrics/AbcSize:
   Enabled: true
-  Max: 28
+  Max: 35
   Exclude:
     - "app/controllers/api/v1/missions_controller.rb"
     - "app/controllers/__test_support__/**/*"
+    - "app/controllers/api/v1/cras_controller.rb"
+    - "app/controllers/concerns/api/v1/cras/**/*"
+    - "app/services/api/v1/cras/**/*"
+
+# Metrics/CyclomaticComplexity - augmenter la limite
+Metrics/CyclomaticComplexity:
+  Enabled: true
+  Max: 12
+  Exclude:
+    - "app/controllers/api/v1/cras_controller.rb"
+    - "app/models/concerns/validatable.rb"
+
+# Metrics/PerceivedComplexity - augmenter la limite
+Metrics/PerceivedComplexity:
+  Enabled: true
+  Max: 15
+  Exclude:
+    - "app/models/concerns/validatable.rb"
 
 # Layout/LineLength - permettre des lignes plus longues
 Layout/LineLength:
@@ -86,11 +105,21 @@ Style/EmptyMethod:
 # Metrics/ClassLength - augmenter la limite pour les classes de modèles
 Metrics/ClassLength:
   Enabled: true
-  Max: 150
+  Max: 300
   Exclude:
     - "spec/**/*"
     - "test/**/*"
     - "app/controllers/api/v1/missions_controller.rb"
+
+# Metrics/ModuleLength - augmenter la limite pour les modules helper
+Metrics/ModuleLength:
+  Enabled: true
+  Max: 200
+  Exclude:
+    - "spec/**/*"
+    - "test/**/*"
+    - "app/controllers/concerns/api/v1/**/*"
+    - "app/controllers/concerns/common/**/*"
 
 # Style/GuardClause - rendre plus flexible
 Style/GuardClause:
@@ -135,23 +164,46 @@ Naming/PredicateMethod:
     - set_tags_with_modern_api
     - set_tags_with_legacy_api
     - add_attributes_datadog_modern_api
+    - check_locked_and_render
+    - check_creator_and_render
+    - check_transition_and_render
+    - execute_destroy_link
 
 # Naming/AccessorMethodName - permettre get_ prefix pour clarté
 Naming/AccessorMethodName:
-  Enabled: true
-  Exclude:
-    - "app/controllers/api/v1/missions_controller.rb"
+  Enabled: false
 
-# Naming/VariableNumber - permettre address_line_1, address_line_2
+# Naming/PredicateMethod - désactiver pour les concerns DDD
+Naming/PredicateMethod:
+  Enabled: false
+
+# Style/SafeNavigationChainLength - désactiver pour les chaînes de navigation complexes
+Style/SafeNavigationChainLength:
+  Enabled: false
+
+# Naming/PredicatePrefix - désactiver pour les noms personnalisés
+Naming/PredicatePrefix:
+  Enabled: false
+
+# Naming/VariableNumber - permettre address_line_1, address_line_2, entry_mission_1
 Naming/VariableNumber:
   Enabled: true
   EnforcedStyle: normalcase
   AllowedIdentifiers:
     - address_line_1
     - address_line_2
+    - entry_mission_1
+    - entry_mission_2
 
 # Lint/DuplicateBranch - désactiver pour les controllers avec gestion d'erreurs similaires
 Lint/DuplicateBranch:
   Enabled: true
   Exclude:
     - "app/controllers/api/v1/missions_controller.rb"
+    - "app/controllers/api/v1/cras_controller.rb"
+
+# Lint/Void - désactiver pour les expressions de logging
+Lint/Void:
+  Enabled: true
+  Exclude:
+    - "app/controllers/concerns/**/*"

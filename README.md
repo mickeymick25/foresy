@@ -42,7 +42,7 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 - ✅ **Exceptions métier différenciées** : CraSubmittedError vs CraLockedError
 - ✅ **Architecture DDD renforcée** : Relations explicites avec writers transitoires
 - ✅ **Single source of truth** : validate_cra_lifecycle! centralisé
-- 🎯 **Phase actuelle** : Phase 3B en cours - Pagination ListService (11 Jan 2026)
+- 🎯 **État actuel** : Phases 1-3B STABILISÉES ✅ — Specs legacy purgées, base propre (5 Jan 2026)
 - 📋 **Documentation complète** : [Documentation Centrale FC-07](docs/technical/fc07/README.md) - Vue d'ensemble et navigation vers méthodologie TDD/DDD, implémentation technique, suivi de progression
 
 ### Documentation & Qualité
