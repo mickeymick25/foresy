@@ -127,14 +127,14 @@ gem 'csv', '~> 3.3'
 | Tests request ajoutés | 9 |
 | Total nouveaux tests | 26 |
 | Suite complète avant | 401 |
-| Suite complète après | **427 GREEN** |
+| Suite complète après | **456 GREEN** |
 | Lignes de code service | ~95 |
 
 ### Résultats de Validation (7 janvier 2026)
 
 | Outil | Résultat | Status |
 |-------|----------|--------|
-| **RSpec** | 427 examples, 0 failures | ✅ |
+| **RSpec** | 456 examples, 0 failures | ✅ |
 | **Rswag** | 128 examples, 0 failures | ✅ |
 | **RuboCop** | 147 files inspected, no offenses detected | ✅ |
 | **Brakeman** | 0 Security Warnings (3 ignored) | ✅ |
@@ -205,7 +205,7 @@ docker compose exec web bundle exec rspec \
 
 # Suite complète RSpec
 docker compose exec web bundle exec rspec --format progress
-# Résultat : 427 examples, 0 failures ✅
+# Résultat : 456 examples, 0 failures ✅
 
 # Rswag - Génération Swagger
 docker compose exec web bundle exec rake rswag:specs:swaggerize

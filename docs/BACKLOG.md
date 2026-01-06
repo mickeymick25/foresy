@@ -3,7 +3,7 @@
 **Dernière mise à jour** : 7 janvier 2026 - FC-07 CRA ✅ **100% TERMINÉ**
 
 ### Métriques de Qualité (Validé le 7 janvier 2026)
-- **RSpec** : ✅ **427 examples, 0 failures**
+- **RSpec** : ✅ **456 examples, 0 failures**
 - **Rswag** : ✅ **128 examples, 0 failures** — `swagger.yaml` généré
 - **RuboCop** : ✅ **147 files inspected, no offenses detected**
 - **Brakeman** : ✅ **0 Security Warnings** (3 ignored)
@@ -79,7 +79,7 @@ v1.0.0 (MVP Production)
 | **Lifecycle** | draft → submitted → locked (immutable) |
 | **Modèles** | Cra, CraEntry, CraMission, CraEntryCra, CraEntryMission |
 | **Services** | CreateService, UpdateService, DestroyService, ListService, ExportService |
-| **Tests** | ✅ **427 tests GREEN** (suite complète) |
+| **Tests** | ✅ **456 tests GREEN** (suite complète) |
 | **Qualité** | Zeitwerk OK, RuboCop 0 offense, Brakeman 0 vulnérabilité |
 | **Documentation** | `docs/technical/fc07/` - Documentation complète |
 
@@ -115,13 +115,13 @@ La logique de recalcul des totaux (`total_days`, `total_amount`) est orchestrée
 | Mini-FC-01 | Filtrage CRAs | `GET /cras?year=&month=&status=` | 16 ✅ |
 | Mini-FC-02 | Export CSV | `GET /cras/:id/export?export_format=csv` | 26 ✅ |
 
-> ✅ **Feature CRA 100% TERMINÉE — 427 tests GREEN, taggé `fc-07-complete`, prêt pour production**
+> ✅ **Feature CRA 100% TERMINÉE — 456 tests GREEN, taggé `fc-07-complete`, prêt pour production**
 
 **Commandes de validation (résultats du 7 janvier 2026) :**
 ```bash
 # RSpec - Suite complète
 docker compose exec web bundle exec rspec --format progress
-# Résultat : 427 examples, 0 failures
+# Résultat : 456 examples, 0 failures
 
 # Rswag - Génération Swagger
 docker compose exec web bundle exec rake rswag:specs:swaggerize
@@ -278,7 +278,7 @@ docker compose exec web bundle exec brakeman -q
 | v0.0.3 | 29 Dec 2025 | Rate Limiting (FC-05) - Platinum Level |
 | v0.0.4 | 31 Dec 2025 | Missions (FC-06) - Merged |
 | v0.0.5 | 6 Jan 2026 | CRA (FC-07) - TDD Platinum Complete |
-| v0.0.6 | 7 Jan 2026 | CRA Export CSV (Mini-FC-02) - 427 tests GREEN |
+| v0.0.6 | 7 Jan 2026 | CRA Export CSV (Mini-FC-02) - 456 tests GREEN |
 
 ---
 
