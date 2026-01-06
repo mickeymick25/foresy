@@ -45,7 +45,7 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 - ✅ **Single source of truth** : validate_cra_lifecycle! centralisé
 - ✅ **Mini-FC-01 Filtering** : Filtrage par year, month, status ✅ TERMINÉ
 - ✅ **Mini-FC-02 CSV Export** : Export CSV avec UTF-8 BOM ✅ TERMINÉ (7 Jan 2026)
-- 🎯 **État actuel** : FC-07 100% TERMINÉ — 456 tests GREEN, taggé `fc-07-complete`
+- 🎯 **État actuel** : FC-07 100% TERMINÉ — 449 tests GREEN, taggé `fc-07-complete`
 - 📋 **Documentation complète** : [Documentation Centrale FC-07](docs/technical/fc07/README.md) - Vue d'ensemble et navigation vers méthodologie TDD/DDD, implémentation technique, suivi de progression
 
 ### Documentation & Qualité
@@ -106,7 +106,7 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 ## 🧪 Tests & Qualité
 
 ### Statistiques Actuelles (Janvier 2026) — Validé le 7 janvier 2026
-- **Tests RSpec** : ✅ **456 examples, 0 failures**
+- **Tests RSpec** : ✅ **449 examples, 0 failures**
 - **Tests Rswag** : ✅ **128 examples, 0 failures** — `swagger.yaml` généré
 - **RuboCop** : ✅ **147 files inspected, no offenses detected**
 - **Brakeman** : ✅ **0 Security Warnings** (3 ignored warnings)
@@ -125,7 +125,7 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 - **CRA (FC-07) Services** : ✅ Create, Update, Destroy, List, Export (17+16 tests)
 - **CRA (FC-07) Filtering** : ✅ Mini-FC-01 - Filtrage year/month/status (16 tests)
 - **CRA (FC-07) Export** : ✅ Mini-FC-02 - CSV export avec include_entries (17+9 tests)
-- **CRA (FC-07) API** : ✅ 100% opérationnel - 456 tests GREEN
+- **CRA (FC-07) API** : ✅ 100% opérationnel - 449 tests GREEN
 - **API Endpoints** : Tous les endpoints testés ✅
 - **Models** : User, Session, Mission, Company, Cra, CraEntry, relations ✅
 - **Error Handling** : Gestion d'erreurs robuste testée ✅
@@ -629,7 +629,7 @@ STAGING_URL=https://api.example.com E2E_MODE=true ./bin/e2e/e2e_missions.sh
 ## 📝 Changelog
 
 ### Version 2.3.0 (7 Janvier 2026) - Feature Contract 07: 100% TERMINÉ 🏆
-- 🎉 **FC-07 COMPLETE** : Tag `fc-07-complete` créé, 456 tests GREEN
+- 🎉 **FC-07 COMPLETE** : Tag `fc-07-complete` créé, 449 tests GREEN
 - 📤 **Mini-FC-02 CSV Export** : `GET /api/v1/cras/:id/export` endpoint
   - ExportService avec UTF-8 BOM pour compatibilité Excel
   - Option `include_entries` (true/false)

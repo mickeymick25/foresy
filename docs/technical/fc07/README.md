@@ -3,7 +3,7 @@
 **Feature Contract** : FC-07 - CRA (Compte Rendu d'Activité) Management  
 **Status Global** : 🏆 **TDD PLATINUM - 100% TERMINÉ**  
 **Dernière mise à jour** : 7 janvier 2026  
-**État** : ✅ **COMPLET** — 456 tests GREEN, taggé `fc-07-complete`
+**État** : ✅ **COMPLET** — 449 tests GREEN, taggé `fc-07-complete`
 
 ---
 
@@ -48,7 +48,7 @@ FC-07 CRA Management
 ├─ Legacy : 🗑️ PURGÉ (~60 specs obsolètes)
 └─ Qualité : 🟢 SAINE — 0 dette technique
 
-TOTAL : 456 tests GREEN (suite complète)
+TOTAL : 449 tests GREEN (suite complète)
 ```
 
 **Date de clôture** : 7 janvier 2026  
@@ -202,7 +202,7 @@ end
 
 | Outil | Résultat | Status |
 |-------|----------|--------|
-| **RSpec** | 456 examples, 0 failures | ✅ |
+| **RSpec** | 449 examples, 0 failures | ✅ |
 | **Rswag** | 128 examples, 0 failures | ✅ |
 | **RuboCop** | 147 files inspected, no offenses detected | ✅ |
 | **Brakeman** | 0 Security Warnings (3 ignored) | ✅ |
@@ -212,7 +212,7 @@ end
 ```bash
 # RSpec - Suite complète
 docker compose exec web bundle exec rspec --format progress
-# Résultat : 456 examples, 0 failures
+# Résultat : 449 examples, 0 failures
 
 # Rswag - Génération Swagger
 docker compose exec web bundle exec rake rswag:specs:swaggerize
@@ -261,7 +261,7 @@ docker compose exec web bundle exec rspec spec/services/api/v1/cras/list_service
 
 | Version | Date | Changements |
 |---------|------|-------------|
-| **4.0** | 7 Jan 2026 | **FC-07 FINAL** - Mini-FC-01 & Mini-FC-02, 456 tests GREEN, tag `fc-07-complete` |
+| **4.0** | 7 Jan 2026 | **FC-07 FINAL** - Mini-FC-01 & Mini-FC-02, 449 tests GREEN, tag `fc-07-complete` |
 | **3.0** | 6 Jan 2026 | Phase 3C terminée, 50 tests services |
 | **2.0** | 5 Jan 2026 | Phases 1-3B validées, specs legacy purgées |
 | **1.2** | 4 Jan 2026 | Phase 2 - Unicité métier |
@@ -271,6 +271,6 @@ docker compose exec web bundle exec rspec spec/services/api/v1/cras/list_service
 ---
 
 *FC-07 CRA Management : ✅ 100% TERMINÉ*  
-*456 tests GREEN — Tag: `fc-07-complete`*  
+*449 tests GREEN — Tag: `fc-07-complete`*  
 *Méthodologie TDD/DDD stricte appliquée*  
 *Dernière mise à jour : 7 janvier 2026*

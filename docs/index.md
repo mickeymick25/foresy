@@ -78,7 +78,7 @@ Foresy/
 
 | Outil | Résultat | Status |
 |-------|----------|--------|
-| **RSpec** | 456 examples, 0 failures | ✅ |
+| **RSpec** | 449 examples, 0 failures | ✅ |
 | **Rswag** | 128 examples, 0 failures | ✅ |
 | **RuboCop** | 147 files, no offenses | ✅ |
 | **Brakeman** | 0 Security Warnings | ✅ |
@@ -133,7 +133,7 @@ GET /api/v1/cras/:id/export?export_format=csv&include_entries=true
 ```bash
 # RSpec
 docker compose exec web bundle exec rspec --format progress
-# → 456 examples, 0 failures
+# → 449 examples, 0 failures
 
 # Rswag
 docker compose exec web bundle exec rake rswag:specs:swaggerize
@@ -148,7 +148,7 @@ docker compose exec web bundle exec brakeman -q
 # → 0 Security Warnings
 ```
 
-> ✅ **FC-07 TERMINÉ — 456 tests GREEN, taggé `fc-07-complete`, prêt pour production.**
+> ✅ **FC-07 TERMINÉ — 449 tests GREEN, taggé `fc-07-complete`, prêt pour production.**
 
 ### 🎯 **Feature Contract 06 — Missions (31/12/2025)** ✅ PR #12 MERGED (1 Jan 2026)
 1. **[📋 Feature Contract 06](./FeatureContract/06_Feature%20Contract%20—%20Missions)** - Contrat source de vérité

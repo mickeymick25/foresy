@@ -47,6 +47,7 @@ jobs:
         env:
           RAILS_ENV: test
           DATABASE_URL: postgres://postgres:password@localhost:5432/foresy_test
+          REDIS_URL: redis://localhost:6379/0
           SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: |
@@ -60,6 +61,7 @@ jobs:
         env:
           RAILS_ENV: test
           DATABASE_URL: postgres://postgres:password@localhost:5432/foresy_test
+          REDIS_URL: redis://localhost:6379/0
           SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: bundle exec rspec

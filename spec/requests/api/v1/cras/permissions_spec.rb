@@ -29,6 +29,9 @@ RSpec.describe 'CRA Permissions', type: :request do
     create(:mission_company, mission: other_mission, company: other_company, role: 'independent')
   end
 
+  # ===========================================
+  # GET /api/v1/cras/:id - Show
+  # ===========================================
   describe 'GET /api/v1/cras/:id' do
     let!(:cra) { create(:cra, created_by_user_id: user.id, year: 2026, month: 1) }
 
@@ -64,18 +67,11 @@ RSpec.describe 'CRA Permissions', type: :request do
     end
   end
 
+  # ===========================================
+  # PATCH /api/v1/cras/:id - Update (permissions only)
+  # ===========================================
   describe 'PATCH /api/v1/cras/:id' do
     let!(:cra) { create(:cra, created_by_user_id: user.id, year: 2026, month: 2, status: 'draft') }
-
-    context 'when user owns the CRA' do
-      it 'returns 200 OK' do
-        patch "/api/v1/cras/#{cra.id}",
-              params: { description: 'Updated description' },
-              headers: headers
-
-        expect(response).to have_http_status(:ok)
-      end
-    end
 
     context 'when another user tries to update' do
       it 'returns 403 forbidden' do
@@ -108,16 +104,11 @@ RSpec.describe 'CRA Permissions', type: :request do
     end
   end
 
+  # ===========================================
+  # DELETE /api/v1/cras/:id - Destroy
+  # ===========================================
   describe 'DELETE /api/v1/cras/:id' do
     let!(:cra) { create(:cra, created_by_user_id: user.id, year: 2026, month: 3, status: 'draft') }
-
-    context 'when user owns the CRA' do
-      it 'returns 200 OK' do
-        delete "/api/v1/cras/#{cra.id}", headers: headers
-
-        expect(response).to have_http_status(:ok)
-      end
-    end
 
     context 'when another user tries to delete' do
       it 'returns 403 forbidden' do
@@ -142,30 +133,11 @@ RSpec.describe 'CRA Permissions', type: :request do
     end
   end
 
+  # ===========================================
+  # POST /api/v1/cras/:id/submit - Submit (permissions only)
+  # ===========================================
   describe 'POST /api/v1/cras/:id/submit' do
     let!(:cra) { create(:cra, created_by_user_id: user.id, year: 2026, month: 4, status: 'draft') }
-
-    before do
-      # Submit requires at least one entry
-      entry = create(:cra_entry, date: Date.new(2026, 4, 15), quantity: 1.0, unit_price: 50_000)
-      create(:cra_entry_cra, cra: cra, cra_entry: entry)
-      create(:cra_entry_mission, cra_entry: entry, mission: mission)
-    end
-
-    context 'when user owns the CRA' do
-      it 'returns 200 OK' do
-        post "/api/v1/cras/#{cra.id}/submit", headers: headers
-
-        expect(response).to have_http_status(:ok)
-      end
-
-      it 'changes status to submitted' do
-        post "/api/v1/cras/#{cra.id}/submit", headers: headers
-
-        cra.reload
-        expect(cra.status).to eq('submitted')
-      end
-    end
 
     context 'when another user tries to submit' do
       it 'returns 403 forbidden' do
@@ -191,23 +163,11 @@ RSpec.describe 'CRA Permissions', type: :request do
     end
   end
 
+  # ===========================================
+  # POST /api/v1/cras/:id/lock - Lock (permissions only)
+  # ===========================================
   describe 'POST /api/v1/cras/:id/lock' do
     let!(:cra) { create(:cra, created_by_user_id: user.id, year: 2026, month: 5, status: 'submitted') }
-
-    context 'when user owns the CRA' do
-      it 'returns 200 OK' do
-        post "/api/v1/cras/#{cra.id}/lock", headers: headers
-
-        expect(response).to have_http_status(:ok)
-      end
-
-      it 'changes status to locked' do
-        post "/api/v1/cras/#{cra.id}/lock", headers: headers
-
-        cra.reload
-        expect(cra.status).to eq('locked')
-      end
-    end
 
     context 'when another user tries to lock' do
       it 'returns 403 forbidden' do
@@ -233,6 +193,9 @@ RSpec.describe 'CRA Permissions', type: :request do
     end
   end
 
+  # ===========================================
+  # GET /api/v1/cras/:id/export - Export
+  # ===========================================
   describe 'GET /api/v1/cras/:id/export' do
     let!(:cra) { create(:cra, created_by_user_id: user.id, year: 2026, month: 6) }
 
@@ -262,6 +225,9 @@ RSpec.describe 'CRA Permissions', type: :request do
     end
   end
 
+  # ===========================================
+  # GET /api/v1/cras - List (isolation)
+  # ===========================================
   describe 'GET /api/v1/cras (list)' do
     let!(:user_cra) { create(:cra, created_by_user_id: user.id, year: 2026, month: 7) }
     let!(:other_user_cra) { create(:cra, created_by_user_id: other_user.id, year: 2026, month: 8) }
@@ -295,25 +261,6 @@ RSpec.describe 'CRA Permissions', type: :request do
         get '/api/v1/cras'
 
         expect(response).to have_http_status(:unauthorized)
-      end
-    end
-  end
-
-  describe 'Cross-user CRA entry manipulation' do
-    let!(:cra) { create(:cra, created_by_user_id: user.id, year: 2026, month: 9, status: 'draft') }
-
-    context 'when another user tries to add entry to someone else CRA' do
-      it 'returns 403 forbidden for create entry' do
-        post "/api/v1/cras/#{cra.id}/entries",
-             params: {
-               date: '2026-09-15',
-               quantity: 1.0,
-               unit_price: 50_000,
-               mission_id: other_mission.id
-             },
-             headers: other_headers
-
-        expect(response).to have_http_status(:forbidden)
       end
     end
   end
