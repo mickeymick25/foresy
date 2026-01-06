@@ -20,6 +20,10 @@ gem 'pg', '~> 1.1'
 # Required for CRA export feature (Mini-FC-02)
 gem 'csv', '~> 3.3'
 
+# Ruby 4.0+ will remove ostruct from default gems
+# Required by rswag-ui (silence warning)
+gem 'ostruct'
+
 gem 'puma', '>= 5.0'
 gem 'rack-cors'
 gem 'rails', '~> 8.1.1'
