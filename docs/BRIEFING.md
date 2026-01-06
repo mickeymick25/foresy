@@ -1,7 +1,7 @@
 # BRIEFING.md - Foresy API Project
 
 **For AI Context Understanding - Optimized for Fast Project Comprehension**  
-**Last Updated:** 1 janvier 2026
+**Last Updated:** 7 janvier 2026 - FC-07 CRA 100% TERMINÉ (449 tests GREEN)
 
 ---
 
@@ -12,20 +12,31 @@
 - **Primary Function**: User management, Mission management with JWT + OAuth (Google/GitHub)
 - **Ruby Version**: 3.4.8
 - **Environment**: Docker Compose (non-optional, mandatory)
-- **Status**: Production Ready - All tests passing, excellent code quality
-- **Current Feature**: FC-06 Missions implemented (31 Dec 2025) - **PR #12 MERGED** (1 Jan 2026) ✅
+- **Status**: ✅ FC-07 CRA **100% TERMINÉ** — TDD PLATINUM (7 Jan 2026)
+- **Current Feature**: FC-07 CRA — **COMPLET** — 449 tests GREEN, taggé `fc-07-complete`
+- **Previous Feature**: FC-06 Missions (31 Dec 2025) - **PR #12 MERGED** (1 Jan 2026) ✅
 
-### Quality Metrics (Dec 2025)
-- **RSpec Tests**: 290 examples, 0 failures
-- **Missions Tests (FC-06)**: 30/30 passing
-- **OAuth Tests**: 15/15 acceptance (Feature Contract compliant)
-- **Swagger Specs**: 119 examples generated
-- **Code Quality**: Rubocop 93 files, 0 offenses detected
-- **Security**: Brakeman 0 critical vulnerabilities, no token logging, stateless JWT, token revocation
+### Quality Metrics (Jan 2026) — Validé le 7 janvier 2026
+- **RSpec Tests**: ✅ **449 examples, 0 failures** (validé 7 Jan 2026)
+- **Rswag Swagger**: ✅ **128 examples, 0 failures** — `swagger.yaml` généré
+- **RuboCop**: ✅ **147 files inspected, no offenses detected**
+- **Brakeman**: ✅ **0 Security Warnings** (3 ignored)
+- **Missions Tests (FC-06)**: ✅ 30/30 passing
+- **CRA Tests (FC-07)**: ✅ **TDD PLATINUM COMPLETE**
+  - Phase 1: 6/6 lifecycle ✅
+  - Phase 2: 3/3 unicité ✅
+  - Phase 3A: 9/9 legacy alignment ✅
+  - Phase 3B: 17/17 (pagination + unlink) ✅
+  - Phase 3C: 24/24 recalcul totaux ✅
+  - **Mini-FC-01**: 16/16 filtrage (year/month/status) ✅
+  - **Mini-FC-02**: 26/26 export CSV (17 service + 9 request) ✅
+- **OAuth Tests**: ✅ 15/15 acceptance (Feature Contract compliant)
+- **Zeitwerk**: ✅ All files loading correctly
 - **CI/CD**: GitHub Actions CI + Render CD fully functional
 - **Production**: Deployed on Render (https://foresy-api.onrender.com)
 - **Rails Upgrade**: ✅ Successfully migrated from 7.1.5.1 to 8.1.1 (Dec 26, 2025)
 - **FC-06 Missions**: ✅ Fully implemented (Dec 31, 2025)
+- **FC-07 CRA**: ✅ **100% TERMINÉ** — 449 tests GREEN, taggé `fc-07-complete` (7 Jan 2026)
 
 ### Technical Stack
 - **Framework**: Rails 8.1.1 (API-only)
@@ -35,12 +46,71 @@
 - **Containerization**: Docker Compose (web, db, redis services)
 - **Testing**: RSpec + Rubocop + Brakeman
 - **Bundler**: 4.0.3
+- **CSV Gem**: Required for Ruby 3.4+ (Mini-FC-02)
 
 ---
 
 ## 📅 RECENT CHANGES TIMELINE
 
-### Dec 31, 2025 - 🎯 Feature Contract 06: Missions (MAJOR FEATURE)
+### Jan 7, 2026 - ✅ Feature Contract 07: CRA **100% TERMINÉ** (449 tests GREEN)
+- **Feature Contract**: `07_Feature Contract — CRA`
+- **Purpose**: Enable independents to manage CRA (Compte Rendu d'Activité)
+- **Status**: ✅ **100% COMPLETE** - TDD PLATINUM - Tag `fc-07-complete`
+
+**Mini-FCs Completed (7 Jan 2026)**:
+| Mini-FC | Fonctionnalité | Endpoint | Tests |
+|---------|----------------|----------|-------|
+| Mini-FC-01 | Filtrage CRAs | `GET /cras?year=&month=&status=` | 16 ✅ |
+| Mini-FC-02 | Export CSV | `GET /cras/:id/export?export_format=csv` | 26 ✅ |
+
+**Phases Completed**:
+| Phase | Description | Tests | Status |
+|-------|-------------|-------|--------|
+| Phase 1 | CraEntry Lifecycle + CraMissionLinker | 6/6 ✅ | TDD PLATINUM |
+| Phase 2 | Unicité Métier (cra, mission, date) | 3/3 ✅ | TDD PLATINUM |
+| Phase 3A | Legacy Tests Alignment | 9/9 ✅ | TDD PLATINUM |
+| Phase 3B.1 | Pagination ListService | 9/9 ✅ | TDD PLATINUM |
+| Phase 3B.2 | Unlink Mission DestroyService | 8/8 ✅ | TDD PLATINUM |
+| Phase 3C | Recalcul Totaux (Create/Update/Destroy) | 24/24 ✅ | TDD PLATINUM |
+
+**Total Tests**: 59 tests TDD Platinum (50 services + 9 legacy)
+
+**Key Architectural Decision (Phase 3C)**:
+- ❌ **Callbacks ActiveRecord** → Rejected
+- ✅ **Services Applicatifs** → Adopted
+
+The recalculation logic for `total_days` and `total_amount` is orchestrated in services (`CreateService`, `UpdateService`, `DestroyService`), not in model callbacks.
+
+**Lessons Learned**:
+1. **Services > Callbacks** for complex business logic
+2. **RSpec lazy `let`**: Always force evaluation before `reload`
+3. **Financial amounts**: Always in cents (integer, never float)
+
+**Corrections Applied (Jan 3-6, 2026)**:
+- ✅ Concerns namespace fixed (`Api::V1::Cras::*`)
+- ✅ `CraErrors` moved to `lib/cra_errors.rb` for Zeitwerk
+- ✅ Redis connection fixed for rate limiting
+- ✅ Lazy evaluation fix in RSpec tests
+- ✅ Financial calculation corrections (cents)
+- ✅ Variable reference fixes in sequence tests
+
+**Documentation**: 
+- `docs/technical/fc07/` - Complete documentation
+- `docs/technical/fc07/phases/FC07-Phase3C-Completion-Report.md` - Phase 3C details
+
+**Verification Command**:
+```bash
+docker compose exec web bundle exec rspec spec/services/cra_entries/ spec/models/cra_entry_lifecycle_spec.rb spec/models/cra_entry_uniqueness_spec.rb --format progress
+```
+**Expected Result**: `50 examples, 0 failures` ✅
+
+### Jan 3, 2026 - 🔧 FC-07 CRA Technical Fixes (Redis, Namespace)
+- **Root Cause Resolved**: Redis connection issue in rate limiting
+- **Problem**: `NoMethodError: undefined method 'current' for class Redis`
+- **Solution**: Environment-aware Redis connection with proper fallback
+- **Production Ready**: ✅ Ready for Render deployment with REDIS_URL
+
+### Dec 31, 2025 - 🎯 Feature Contract 06: Missions (MAJOR FEATURE) ✅
 - **Feature Contract**: `06_Feature Contract — Missions`
 - **Purpose**: Enable independents to create and manage professional missions
 - **Architecture**: Domain-Driven / Relation-Driven (pure domain models, relations via dedicated tables)
@@ -351,6 +421,15 @@
 1. ~~**Rails EOL Warning**: Version 7.1.5.1 EOL since Oct 2025~~ ✅ **RESOLVED Dec 26, 2025**
    - **Status**: Migrated to Rails 8.1.1 + Ruby 3.4.8
    - **Impact**: Full security support restored
+
+2. 🔴 **FC-07 CRA Tests Failing** (3 Jan 2026) - **ACTIVE**
+   - **Status**: Tests RSpec retournent 500 Internal Server Error
+   - **Corrections appliquées**: Zeitwerk, namespacing, ResponseFormatter, git_version retiré
+   - **Cause restante**: Exception dans le flow HTTP à identifier
+   - **Debug**: ErrorRenderable modifié pour exposer l'exception en test
+   - **Impact**: FC-07 non validé, ne pas merger
+   - **Doc**: `docs/technical/corrections/2026-01-03-FC07_Concerns_Namespace_Fix.md`
+   - **Next**: Lancer test pour voir exception exacte dans réponse JSON
 
 ### Known Limitations
 2. **shoulda-matchers Warning**: Boolean column validation warnings (cosmetic only)

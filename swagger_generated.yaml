@@ -1,0 +1,498 @@
+---
+openapi: 3.0.1
+info:
+  title: API Foresy
+  version: v1
+  description: Documentation de l'API Foresy
+paths:
+  "/api/v1/auth/login":
+    post:
+      summary: Test Redis unavailable - fail closed (HTTP 429)
+      tags:
+      - Authentication
+      parameters: []
+      responses:
+        '200':
+          description: user authenticated
+        '401':
+          description: handles missing X-Forwarded-For by using remote_ip
+        '403':
+          description: inactive user
+        '429':
+          description: fail closed when Redis is down
+          content:
+            application/json:
+              examples:
+                example_0:
+                  value:
+                    rate_limit_exceeded:
+                      summary: Rate limit exceeded (5 requests/minute)
+                      value:
+                        error: Rate limit exceeded
+                        retry_after: 42
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Rate limit exceeded
+                  retry_after:
+                    type: integer
+                    example: 42
+                required:
+                - error
+                - retry_after
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+              required:
+              - email
+              - password
+        required: true
+    get:
+      summary: GET login endpoint - not rate-limited (endpoint does not exist)
+      tags:
+      - Authentication
+      responses:
+        '404':
+          description: get login endpoint does not exist (not rate-limited)
+  "/api/v1/auth/logout":
+    delete:
+      summary: DELETE logout endpoint - not rate-limited (only POST is rate-limited)
+      tags:
+      - Authentication
+      parameters:
+      - name: Authorization
+        in: header
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: user logged out
+        '401':
+          description: delete logout unauthorized (not rate-limited)
+  "/api/v1/auth/{provider}/callback":
+    post:
+      summary: OAuth callback for provider authentication
+      tags:
+      - OAuth
+      description: Authenticates a user via OAuth provider (Google or GitHub). Returns
+        a JWT token on success.
+      parameters:
+      - name: provider
+        in: path
+        type: string
+        required: true
+        description: OAuth provider (google_oauth2 or github)
+        schema:
+          type: string
+          enum:
+          - google_oauth2
+          - github
+      responses:
+        '200':
+          description: successful OAuth authentication with GitHub
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: JWT authentication token
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        description: User unique identifier
+                      email:
+                        type: string
+                        format: email
+                        description: User email address
+                      provider:
+                        type: string
+                        description: OAuth provider used
+                      provider_uid:
+                        type: string
+                        description: User unique identifier from OAuth provider
+                    required:
+                    - id
+                    - email
+                    - provider
+                    - provider_uid
+                required:
+                - token
+                - user
+        '400':
+          description: invalid provider - provider not supported
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: invalid_provider
+                    description: Error code
+                required:
+                - error
+        '401':
+          description: OAuth authentication failed - provider returns error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: oauth_failed
+                    description: Error code
+                required:
+                - error
+        '422':
+          description: invalid payload - missing UID from provider
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: invalid_payload
+                    description: Error code
+                required:
+                - error
+        '500':
+          description: internal server error - token generation failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: internal_error
+                    description: Error code
+                required:
+                - error
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  description: OAuth authorization code from provider
+                redirect_uri:
+                  type: string
+                  format: uri
+                  description: Redirect URI used in OAuth flow
+              required:
+              - code
+              - redirect_uri
+        required: true
+        description: OAuth authorization code and redirect URI
+  "/api/v1/auth/failure":
+    get:
+      summary: OAuth failure endpoint - not rate-limited
+      tags:
+      - OAuth
+      description: Endpoint called when OAuth authentication fails at the provider
+        level
+      responses:
+        '401':
+          description: oauth failure (not rate-limited)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: oauth_failed
+                    description: Error code
+                  message:
+                    type: string
+                    example: OAuth authentication failed
+                    description: Error message
+                required:
+                - error
+                - message
+  "/api/v1/auth/refresh":
+    post:
+      summary: Refreshes authentication token with rate limiting
+      tags:
+      - Authentication
+      parameters: []
+      responses:
+        '200':
+          description: token refreshed
+        '401':
+          description: token refreshed (under rate limit)
+        '429':
+          description: rate limit exceeded - too many refresh attempts
+          content:
+            application/json:
+              examples:
+                example_0:
+                  value:
+                    rate_limit_exceeded:
+                      summary: Rate limit exceeded (10 requests/minute)
+                      value:
+                        error: Rate limit exceeded
+                        retry_after: 35
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Rate limit exceeded
+                  retry_after:
+                    type: integer
+                    example: 35
+                required:
+                - error
+                - retry_after
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh_token:
+                  type: string
+              required:
+              - refresh_token
+        required: true
+  "/api/v1/missions":
+    post:
+      summary: Creates a new mission
+      tags:
+      - Missions
+      parameters: []
+      responses:
+        '201':
+          description: Mission created with client company
+        '401':
+          description: Unauthorized - No token
+        '403':
+          description: Forbidden - No independent company access
+        '422':
+          description: Validation failed - Fixed-price mission without fixed_price
+        '429':
+          description: Rate limit exceeded
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                mission_type:
+                  type: string
+                status:
+                  type: string
+                start_date:
+                  type: string
+                currency:
+                  type: string
+        required: true
+    get:
+      summary: Lists missions accessible to user
+      tags:
+      - Missions
+      responses:
+        '200':
+          description: Returns empty list when no missions
+        '401':
+          description: Unauthorized
+  "/api/v1/missions/{id}":
+    get:
+      summary: Shows a specific mission
+      tags:
+      - Missions
+      parameters:
+      - name: id
+        in: path
+        format: uuid
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Mission found and accessible
+        '401':
+          description: Unauthorized
+        '404':
+          description: Mission not found or not accessible
+    patch:
+      summary: Updates a mission
+      tags:
+      - Missions
+      parameters:
+      - name: id
+        in: path
+        format: uuid
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Mission updated successfully
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - User is not the creator
+        '422':
+          description: Invalid status transition
+        '404':
+          description: Mission not accessible
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                status:
+                  type: string
+                  enum:
+                  - lead
+                  - pending
+                  - won
+                  - in_progress
+                  - completed
+                end_date:
+                  type: string
+                  format: date
+        required: true
+    delete:
+      summary: Archives a mission
+      tags:
+      - Missions
+      parameters:
+      - name: id
+        in: path
+        format: uuid
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Mission archived successfully
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - User is not the creator
+        '409':
+          description: Mission in use (has CRA entries)
+        '404':
+          description: Mission not accessible
+  "/api/v1/signup":
+    post:
+      summary: Crée un nouvel utilisateur
+      tags:
+      - Users
+      parameters: []
+      responses:
+        '422':
+          description: Création échouée
+        '429':
+          description: rate limit exceeded - too many signup attempts
+          content:
+            application/json:
+              examples:
+                example_0:
+                  value:
+                    rate_limit_exceeded:
+                      summary: Rate limit exceeded (3 requests/minute)
+                      value:
+                        error: Rate limit exceeded
+                        retry_after: 55
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Rate limit exceeded
+                  retry_after:
+                    type: integer
+                    example: 55
+                required:
+                - error
+                - retry_after
+        '201':
+          description: Utilisateur créé
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/user"
+        required: true
+  "/health":
+    get:
+      summary: Health check endpoint - not rate-limited
+      tags:
+      - Health
+      responses:
+        '200':
+          description: health check (not rate-limited)
+servers:
+- url: http://{defaultHost}
+  description: Serveur local de développement
+  variables:
+    defaultHost:
+      default: localhost:3000
+components:
+  securitySchemes:
+    bearer_auth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    user:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        password_confirmation:
+          type: string
+          format: password
+      required:
+      - email
+      - password
+      - password_confirmation
+    login:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+      required:
+      - email
+      - password
+security:
+- bearer_auth: []

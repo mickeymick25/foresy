@@ -13,7 +13,13 @@ gem 'jwt', '~> 2.7'
 gem 'omniauth'
 gem 'omniauth-github'
 gem 'omniauth-google-oauth2'
+gem 'pagy', '~> 9.0'
 gem 'pg', '~> 1.1'
+
+# Ruby 3.4+ extracted csv from stdlib runtime
+# Required for CRA export feature (Mini-FC-02)
+gem 'csv', '~> 3.3'
+
 gem 'puma', '>= 5.0'
 gem 'rack-cors'
 gem 'rails', '~> 8.1.1'

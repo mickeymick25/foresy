@@ -1,0 +1,4 @@
+# CRA Ledger
+cra_*.json
+.DS_Store
+*.log

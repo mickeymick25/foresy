@@ -1,0 +1,240 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# check_concerns_architecture
+#
+# Script de vérification de l'architecture des concerns
+# À exécuter en CI pour garantir les invariants architecturaux
+#
+# Règles vérifiées:
+# 1. Un fichier = Un module (Zeitwerk compliance)
+# 2. Pas de fichiers *_new.rb ou *_old.rb
+# 3. Pas de dossiers vides dans les concerns
+# 4. Tous les concerns spécialisés incluent leur Common correspondant
+#
+# Usage:
+#   bin/check_concerns_architecture
+#   bin/check_concerns_architecture --verbose
+#
+# Exit codes:
+#   0 - Toutes les vérifications passent
+#   1 - Au moins une vérification échoue
+
+require 'pathname'
+
+class ConcernsArchitectureChecker
+  CONCERNS_PATHS = [
+    'app/controllers/concerns',
+    'app/concerns'
+  ].freeze
+
+  FORBIDDEN_SUFFIXES = %w[_new _old _backup _tmp _temp].freeze
+
+  COMMON_CONCERNS = %w[
+    ErrorHandler
+    ParameterExtractor
+    RateLimitable
+    ResponseFormatter
+  ].freeze
+
+  def initialize(verbose: false)
+    @verbose = verbose
+    @errors = []
+    @warnings = []
+    @root = Pathname.new(File.expand_path('../..', __FILE__))
+  end
+
+  def run
+    puts "🔍 Vérification de l'architecture des concerns...\n\n"
+
+    check_single_module_per_file
+    check_forbidden_suffixes
+    check_empty_directories
+    check_common_inheritance
+    check_zeitwerk_compliance
+
+    print_results
+    @errors.empty? ? 0 : 1
+  end
+
+  private
+
+  # Règle 1: Un fichier = Un module
+  def check_single_module_per_file
+    log_check "Vérification: 1 fichier = 1 module (Zeitwerk)"
+
+    concern_files.each do |file|
+      content = File.read(file)
+      module_count = content.scan(/^\s*module\s+\w+/).count
+
+      # On compte les modules imbriqués comme normaux (Api::V1::Cras = 3 modules imbriqués)
+      # Mais on détecte les modules séparés (plusieurs définitions de même niveau)
+      root_modules = content.scan(/^module\s+\w+/).count
+
+      if root_modules > 1
+        @errors << {
+          file: relative_path(file),
+          message: "Fichier contient #{root_modules} modules racine (attendu: 1)",
+          severity: :critical
+        }
+      else
+        log_ok relative_path(file) if @verbose
+      end
+    end
+  end
+
+  # Règle 2: Pas de fichiers avec suffixes interdits
+  def check_forbidden_suffixes
+    log_check "Vérification: Pas de fichiers *_new.rb, *_old.rb, etc."
+
+    concern_files.each do |file|
+      basename = File.basename(file, '.rb')
+      FORBIDDEN_SUFFIXES.each do |suffix|
+        if basename.end_with?(suffix)
+          @errors << {
+            file: relative_path(file),
+            message: "Fichier avec suffixe interdit '#{suffix}' détecté",
+            severity: :critical
+          }
+        end
+      end
+    end
+  end
+
+  # Règle 3: Pas de dossiers vides
+  def check_empty_directories
+    log_check "Vérification: Pas de dossiers vides"
+
+    CONCERNS_PATHS.each do |path|
+      full_path = @root.join(path)
+      next unless full_path.exist?
+
+      Dir.glob(full_path.join('**/*')).select { |d| File.directory?(d) }.each do |dir|
+        if Dir.empty?(dir)
+          @warnings << {
+            file: relative_path(dir),
+            message: "Dossier vide détecté",
+            severity: :warning
+          }
+        end
+      end
+    end
+  end
+
+  # Règle 4: Les concerns spécialisés incluent Common
+  def check_common_inheritance
+    log_check "Vérification: Héritage Common obligatoire"
+
+    specialized_dirs = %w[cras cra_entries missions]
+
+    specialized_dirs.each do |dir|
+      COMMON_CONCERNS.each do |concern|
+        file_name = concern.gsub(/([A-Z])/, '_\1').downcase.sub(/^_/, '') + '.rb'
+        specialized_file = @root.join("app/controllers/concerns/api/v1/#{dir}/#{file_name}")
+
+        next unless specialized_file.exist?
+
+        content = File.read(specialized_file)
+        common_include = "include Api::V1::Common::#{concern}"
+
+        unless content.include?(common_include)
+          @errors << {
+            file: relative_path(specialized_file),
+            message: "Doit inclure '#{common_include}'",
+            severity: :major
+          }
+        else
+          log_ok "#{dir}/#{file_name} inclut Common::#{concern}" if @verbose
+        end
+      end
+    end
+  end
+
+  # Vérification Zeitwerk
+  def check_zeitwerk_compliance
+    log_check "Vérification: Zeitwerk compliance"
+
+    # Vérifier que les noms de fichiers correspondent aux constantes
+    concern_files.each do |file|
+      content = File.read(file)
+      basename = File.basename(file, '.rb')
+
+      # Extraire le dernier module imbriqué (le module réel défini dans le fichier)
+      # Pattern: module Api::V1::Cras::ErrorHandler → on veut ErrorHandler
+      modules = content.scan(/module\s+(\w+)/).flatten
+      next if modules.empty?
+
+      # Le dernier module dans la hiérarchie est celui qui doit correspondre au nom du fichier
+      last_module = modules.last
+      expected_filename = last_module.gsub(/([A-Z])/, '_\1').downcase.sub(/^_/, '')
+
+      if basename != expected_filename
+        @warnings << {
+          file: relative_path(file),
+          message: "Nom de fichier '#{basename}' ne correspond pas à la constante '#{last_module}' (attendu: #{expected_filename}.rb)",
+          severity: :warning
+        }
+      else
+        log_ok "#{relative_path(file)} → #{last_module}" if @verbose
+      end
+    end
+  end
+
+  def concern_files
+    @concern_files ||= CONCERNS_PATHS.flat_map do |path|
+      full_path = @root.join(path)
+      next [] unless full_path.exist?
+
+      Dir.glob(full_path.join('**/*.rb'))
+    end.compact
+  end
+
+  def relative_path(path)
+    Pathname.new(path).relative_path_from(@root).to_s
+  end
+
+  def log_check(message)
+    puts "📋 #{message}"
+  end
+
+  def log_ok(message)
+    puts "   ✅ #{message}"
+  end
+
+  def print_results
+    puts "\n" + "=" * 60
+
+    if @errors.empty? && @warnings.empty?
+      puts "✅ Toutes les vérifications passent!"
+      puts "   Architecture des concerns conforme aux standards FC06/FC07"
+    else
+      if @errors.any?
+        puts "\n🔴 ERREURS (#{@errors.count}):\n"
+        @errors.each do |error|
+          puts "   ❌ [#{error[:severity].upcase}] #{error[:file]}"
+          puts "      #{error[:message]}"
+        end
+      end
+
+      if @warnings.any?
+        puts "\n🟡 AVERTISSEMENTS (#{@warnings.count}):\n"
+        @warnings.each do |warning|
+          puts "   ⚠️  [#{warning[:severity].upcase}] #{warning[:file]}"
+          puts "      #{warning[:message]}"
+        end
+      end
+    end
+
+    puts "=" * 60
+    puts "\n📊 Résumé:"
+    puts "   Fichiers analysés: #{concern_files.count}"
+    puts "   Erreurs: #{@errors.count}"
+    puts "   Avertissements: #{@warnings.count}"
+    puts "   Statut: #{@errors.empty? ? '✅ PASS' : '❌ FAIL'}"
+  end
+end
+
+# Exécution
+verbose = ARGV.include?('--verbose') || ARGV.include?('-v')
+checker = ConcernsArchitectureChecker.new(verbose: verbose)
+exit checker.run

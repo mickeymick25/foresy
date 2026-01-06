@@ -38,7 +38,8 @@ module ErrorRenderable
   end
 
   def render_conditional_server_error(exception = nil)
-    raise exception unless Rails.env.production?
+    # Re-raise in development for better debugging, but render JSON in test/production
+    raise exception if Rails.env.development?
 
     render_internal_server_error(exception)
   end
@@ -46,7 +47,18 @@ module ErrorRenderable
   def render_internal_server_error(exception = nil)
     Rails.logger.error "Internal server error: #{exception.message}" if exception
     Rails.logger.error exception.backtrace.join("\n") if exception
-    render_error('Internal server error', :internal_server_error)
+
+    # In test env, include exception details for debugging
+    if Rails.env.test? && exception
+      render json: {
+        error: 'Internal server error',
+        exception_class: exception.class.name,
+        exception_message: exception.message,
+        backtrace: exception.backtrace&.first(5)
+      }, status: :internal_server_error
+    else
+      render_error('Internal server error', :internal_server_error)
+    end
   end
 
   def render_error(message, status)

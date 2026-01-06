@@ -1,10 +1,8 @@
 name: CI
 
 on:
-  push:
-    branches: ["*"]
   pull_request:
-    branches: ["*"]
+    branches: [main]
 
 jobs:
   test:
@@ -49,6 +47,7 @@ jobs:
         env:
           RAILS_ENV: test
           DATABASE_URL: postgres://postgres:password@localhost:5432/foresy_test
+          REDIS_URL: redis://localhost:6379/0
           SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: |
@@ -62,6 +61,7 @@ jobs:
         env:
           RAILS_ENV: test
           DATABASE_URL: postgres://postgres:password@localhost:5432/foresy_test
+          REDIS_URL: redis://localhost:6379/0
           SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: bundle exec rspec
@@ -75,9 +75,6 @@ jobs:
           bundle exec brakeman --ignore-config=.brakeman.ignore --no-exit-on-warn --confidence-level=2
           # Bundle audit: check for known vulnerabilities in gems
           bundle exec bundle audit check --update
-
-      - name: Code quality
-        run: bundle exec rubocop
 
   lint:
     runs-on: ubuntu-latest

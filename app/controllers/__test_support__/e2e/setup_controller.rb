@@ -166,6 +166,12 @@ module TestSupport
       end
 
       # Strong params for company
+      # ⚠️ TEST SUPPORT ONLY
+      # Ce contrôleur est utilisé exclusivement pour les scénarios E2E.
+      # Il n'est jamais exposé en production.
+      # Le champ `role` est volontairement mass-assignable ici
+      # afin de simplifier la création de fixtures de test.
+      # brakeman:disable:PermitAttributes
       def company_params
         params.require(:company).permit(:name, :siret, :siren, :role)
       end

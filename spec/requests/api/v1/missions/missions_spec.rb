@@ -17,9 +17,9 @@ RSpec.describe 'API V1 Missions', type: :request do
   let(:user_client_company) { create(:user_company, user: user, company: client_company, role: 'client') }
 
   # Create missions for testing
-  let(:mission) { create(:mission, creator: user) }
+  let(:mission) { create(:mission, user: user) }
   let(:mission_with_companies) do
-    mission = create(:mission, creator: user)
+    mission = create(:mission, user: user)
     create(:mission_company, mission: mission, company: independent_company, role: 'independent')
     create(:mission_company, mission: mission, company: client_company, role: 'client')
     mission
@@ -370,7 +370,7 @@ RSpec.describe 'API V1 Missions', type: :request do
           before do
             user_independent_company
             other_user = create(:user)
-            other_mission = create(:mission, creator: other_user)
+            other_mission = create(:mission, user: other_user)
             create(:mission_company, mission: other_mission, company: independent_company, role: 'independent')
           end
 
@@ -463,7 +463,7 @@ RSpec.describe 'API V1 Missions', type: :request do
           before do
             user_independent_company
             other_user = create(:user)
-            other_mission = create(:mission, creator: other_user)
+            other_mission = create(:mission, user: other_user)
             create(:mission_company, mission: other_mission, company: independent_company, role: 'independent')
           end
 
@@ -570,7 +570,7 @@ RSpec.describe 'API V1 Missions', type: :request do
 
     context 'Valid status transitions' do
       it 'allows lead -> pending' do
-        mission = create(:mission, creator: user_with_company, status: 'lead')
+        mission = create(:mission, user: user_with_company, status: 'lead')
         create(:mission_company, mission: mission, company: independent_company, role: 'independent')
 
         patch "/api/v1/missions/#{mission.id}",
@@ -583,7 +583,7 @@ RSpec.describe 'API V1 Missions', type: :request do
       end
 
       it 'allows pending -> won' do
-        mission = create(:mission, creator: user_with_company, status: 'pending')
+        mission = create(:mission, user: user_with_company, status: 'pending')
         create(:mission_company, mission: mission, company: independent_company, role: 'independent')
 
         patch "/api/v1/missions/#{mission.id}",
@@ -596,7 +596,7 @@ RSpec.describe 'API V1 Missions', type: :request do
       end
 
       it 'allows won -> in_progress' do
-        mission = create(:mission, creator: user_with_company, status: 'won')
+        mission = create(:mission, user: user_with_company, status: 'won')
         create(:mission_company, mission: mission, company: independent_company, role: 'independent')
 
         patch "/api/v1/missions/#{mission.id}",
@@ -609,7 +609,7 @@ RSpec.describe 'API V1 Missions', type: :request do
       end
 
       it 'allows in_progress -> completed' do
-        mission = create(:mission, creator: user_with_company, status: 'in_progress')
+        mission = create(:mission, user: user_with_company, status: 'in_progress')
         create(:mission_company, mission: mission, company: independent_company, role: 'independent')
 
         patch "/api/v1/missions/#{mission.id}",
@@ -624,7 +624,7 @@ RSpec.describe 'API V1 Missions', type: :request do
 
     context 'Invalid status transitions' do
       it 'rejects completed -> in_progress' do
-        mission = create(:mission, creator: user_with_company, status: 'completed')
+        mission = create(:mission, user: user_with_company, status: 'completed')
         create(:mission_company, mission: mission, company: independent_company, role: 'independent')
 
         patch "/api/v1/missions/#{mission.id}",
@@ -637,7 +637,7 @@ RSpec.describe 'API V1 Missions', type: :request do
       end
 
       it 'rejects won -> lead' do
-        mission = create(:mission, creator: user_with_company, status: 'won')
+        mission = create(:mission, user: user_with_company, status: 'won')
         create(:mission_company, mission: mission, company: independent_company, role: 'independent')
 
         patch "/api/v1/missions/#{mission.id}",
