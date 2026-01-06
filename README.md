@@ -29,7 +29,7 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 - **Contrôle d'accès** : Basé sur les rôles (independent/client)
 - **Soft delete** : Archivage avec protection si CRA liés
 
-### Gestion des CRA (Feature Contract 07) 🏆 TDD PLATINUM - DOMAINE ÉTABLI
+### Gestion des CRA (Feature Contract 07) 🏆 TDD PLATINUM - 100% TERMINÉ
 - **CRUD CRA** : Création, lecture, modification, archivage de Comptes Rendus d'Activité
 - **CRUD CRA Entries** : Gestion des entrées d'activité par mission et date
 - **Lifecycle strict** : draft → submitted → locked (immutable)
@@ -37,12 +37,15 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 - **Calculs serveur** : total_days, total_amount calculés côté serveur uniquement
 - **Montants en centimes** : Précision financière (Integer, pas de Float)
 - **Soft delete** : Avec règles métier (impossible si CRA submitted/locked)
+- **Export CSV** : `GET /api/v1/cras/:id/export` avec option `include_entries` ✅ NEW
 - ✅ **Domaine auto-défensif** : Lifecycle invariants contractuellement garantis
 - ✅ **Tests de modèle 100% verts** : 6/6 exemples CraEntry lifecycle passent
 - ✅ **Exceptions métier différenciées** : CraSubmittedError vs CraLockedError
 - ✅ **Architecture DDD renforcée** : Relations explicites avec writers transitoires
 - ✅ **Single source of truth** : validate_cra_lifecycle! centralisé
-- 🎯 **État actuel** : Phases 1-3B STABILISÉES ✅ — Specs legacy purgées, base propre (5 Jan 2026)
+- ✅ **Mini-FC-01 Filtering** : Filtrage par year, month, status ✅ TERMINÉ
+- ✅ **Mini-FC-02 CSV Export** : Export CSV avec UTF-8 BOM ✅ TERMINÉ (7 Jan 2026)
+- 🎯 **État actuel** : FC-07 100% TERMINÉ — 427 tests GREEN, taggé `fc-07-complete`
 - 📋 **Documentation complète** : [Documentation Centrale FC-07](docs/technical/fc07/README.md) - Vue d'ensemble et navigation vers méthodologie TDD/DDD, implémentation technique, suivi de progression
 
 ### Documentation & Qualité
@@ -102,16 +105,15 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 
 ## 🧪 Tests & Qualité
 
-### Statistiques Actuelles (Janvier 2026)
-- **Tests RSpec** : ✅ Tests de modèle FC-07 passent (Phases 1-2 terminées)
+### Statistiques Actuelles (Janvier 2026) — Validé le 7 janvier 2026
+- **Tests RSpec** : ✅ **427 examples, 0 failures**
+- **Tests Rswag** : ✅ **128 examples, 0 failures** — `swagger.yaml` généré
+- **RuboCop** : ✅ **147 files inspected, no offenses detected**
+- **Brakeman** : ✅ **0 Security Warnings** (3 ignored warnings)
 - **Tests Missions (FC-06)** : ✅ 30/30 passent
-- **Tests CRA Modèle (FC-07)** : ✅ 6/6 lifecycle + 3/3 unicité + 9/9 CraEntry (100% verts)
-- **Tests CRA API (FC-07)** : ✅ Phase 3A Accomplie - 4 specs services créées, recalcul totals implémenté
+- **Tests CRA Services (FC-07)** : ✅ 17 tests ExportService + 16 tests ListService filtering
+- **Tests CRA Request (FC-07)** : ✅ 9 tests export endpoint
 - **Tests d'acceptation OAuth** : ✅ 15/15 passent
-- **Tests d'intégration OAuth** : ✅ 10/10 passent (100% succès)
-- **Tests Rswag** : ✅ 119 specs Swagger auto-générées
-- **RuboCop** : ⚠️ À revalider après corrections FC-07
-- **Brakeman** : ⚠️ À revalider après corrections FC-07
 
 ### Couverture de Tests
 - **Authentication** : Login, logout, token refresh, revocation ✅
@@ -119,9 +121,11 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 - **OAuth Integration** : Google OAuth2, GitHub ✅
 - **Session Management** : Création, expiration, invalidation ✅
 - **Missions (FC-06)** : CRUD complet, lifecycle, access control ✅
-- **CRA (FC-07) Modèle** : ✅ Tests de modèle 100% verts (Phases 1-2 TDD PLATINUM)
-- **CRA (FC-07) Services** : ✅ Phase 3A Accomplie - 4 specs complètes créées (Create, Update, Destroy, List)
-- **CRA (FC-07) API** : ✅ Fonctionnels - Corrections Redis appliquées (3 Jan 2026), erreurs 500 résolues
+- **CRA (FC-07) Modèle** : ✅ Tests de modèle 100% verts (Phases 1-3C TDD PLATINUM)
+- **CRA (FC-07) Services** : ✅ Create, Update, Destroy, List, Export (17+16 tests)
+- **CRA (FC-07) Filtering** : ✅ Mini-FC-01 - Filtrage year/month/status (16 tests)
+- **CRA (FC-07) Export** : ✅ Mini-FC-02 - CSV export avec include_entries (17+9 tests)
+- **CRA (FC-07) API** : ✅ 100% opérationnel - 427 tests GREEN
 - **API Endpoints** : Tous les endpoints testés ✅
 - **Models** : User, Session, Mission, Company, Cra, CraEntry, relations ✅
 - **Error Handling** : Gestion d'erreurs robuste testée ✅
@@ -623,6 +627,16 @@ STAGING_URL=https://api.example.com E2E_MODE=true ./bin/e2e/e2e_missions.sh
 - **Memory Usage** : Monitoring et optimisation continue
 
 ## 📝 Changelog
+
+### Version 2.3.0 (7 Janvier 2026) - Feature Contract 07: 100% TERMINÉ 🏆
+- 🎉 **FC-07 COMPLETE** : Tag `fc-07-complete` créé, 427 tests GREEN
+- 📤 **Mini-FC-02 CSV Export** : `GET /api/v1/cras/:id/export` endpoint
+  - ExportService avec UTF-8 BOM pour compatibilité Excel
+  - Option `include_entries` (true/false)
+  - 17 tests service + 9 tests request
+- 🔍 **Mini-FC-01 Filtering** : Filtrage CRAs par year, month, status (16 tests)
+- 📦 **Gem csv ajoutée** : Requise pour Ruby 3.4+ (plus dans default gems)
+- 📖 **Documentation** : Mini-FC-02 documentation complète mise à jour
 
 ### Version 2.2.2 (11 Janvier 2026) - Feature Contract 07: CRA Phase 3A ✅ ACCOMPLIE
 - 🏗️ **Tests de services directs créés** : 4 specs complètes (Create, Update, Destroy, ListService)

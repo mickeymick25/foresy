@@ -20,8 +20,10 @@ RSpec.describe 'CRA Export', type: :request do
 
     before do
       # Create CRA entries
-      entry1 = create(:cra_entry, date: Date.new(2026, 1, 10), quantity: 1.0, unit_price: 50_000, description: 'Dev work')
-      entry2 = create(:cra_entry, date: Date.new(2026, 1, 11), quantity: 0.5, unit_price: 50_000, description: 'Meeting')
+      entry1 = create(:cra_entry, date: Date.new(2026, 1, 10), quantity: 1.0, unit_price: 50_000,
+                                  description: 'Dev work')
+      entry2 = create(:cra_entry, date: Date.new(2026, 1, 11), quantity: 0.5, unit_price: 50_000,
+                                  description: 'Meeting')
 
       create(:cra_entry_cra, cra: cra, cra_entry: entry1)
       create(:cra_entry_cra, cra: cra, cra_entry: entry2)
@@ -63,7 +65,8 @@ RSpec.describe 'CRA Export', type: :request do
 
       context 'with include_entries=false' do
         it 'exports CSV without entry rows' do
-          get "/api/v1/cras/#{cra.id}/export", params: { export_format: 'csv', include_entries: 'false' }, headers: headers
+          get "/api/v1/cras/#{cra.id}/export", params: { export_format: 'csv', include_entries: 'false' },
+                                               headers: headers
 
           expect(response).to have_http_status(:ok)
           # Header + TOTAL only = 2 lines

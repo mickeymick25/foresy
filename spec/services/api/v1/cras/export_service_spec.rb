@@ -17,8 +17,10 @@ RSpec.describe Api::V1::Cras::ExportService do
       let(:cra) { create(:cra, created_by_user_id: user.id, year: 2026, month: 1) }
 
       before do
-        entry1 = create(:cra_entry, date: Date.new(2026, 1, 10), quantity: 1.0, unit_price: 50_000, description: 'Dev work')
-        entry2 = create(:cra_entry, date: Date.new(2026, 1, 11), quantity: 0.5, unit_price: 50_000, description: 'Meeting')
+        entry1 = create(:cra_entry, date: Date.new(2026, 1, 10), quantity: 1.0, unit_price: 50_000,
+                                    description: 'Dev work')
+        entry2 = create(:cra_entry, date: Date.new(2026, 1, 11), quantity: 0.5, unit_price: 50_000,
+                                    description: 'Meeting')
 
         create(:cra_entry_cra, cra: cra, cra_entry: entry1)
         create(:cra_entry_cra, cra: cra, cra_entry: entry2)
@@ -104,21 +106,21 @@ RSpec.describe Api::V1::Cras::ExportService do
       let(:cra) { create(:cra, created_by_user_id: user.id) }
 
       it 'raises InvalidPayloadError for xml format' do
-        expect {
+        expect do
           described_class.new(cra: cra, format: 'xml').call
-        }.to raise_error(CraErrors::InvalidPayloadError, /format must be/)
+        end.to raise_error(CraErrors::InvalidPayloadError, /format must be/)
       end
 
       it 'raises InvalidPayloadError for pdf format (not yet supported)' do
-        expect {
+        expect do
           described_class.new(cra: cra, format: 'pdf').call
-        }.to raise_error(CraErrors::InvalidPayloadError, /format must be/)
+        end.to raise_error(CraErrors::InvalidPayloadError, /format must be/)
       end
 
       it 'raises InvalidPayloadError for nil format' do
-        expect {
+        expect do
           described_class.new(cra: cra, format: nil).call
-        }.to raise_error(CraErrors::InvalidPayloadError, /format must be/)
+        end.to raise_error(CraErrors::InvalidPayloadError, /format must be/)
       end
     end
 

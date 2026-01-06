@@ -2,8 +2,8 @@
 
 **Feature Contract** : FC-07 - CRA (Compte Rendu d'Activité) Management  
 **Status Global** : 🏆 **TDD PLATINUM - 100% TERMINÉ**  
-**Dernière mise à jour** : 6 janvier 2026  
-**État** : ✅ **COMPLET** — Toutes les phases validées, 0 dette technique
+**Dernière mise à jour** : 7 janvier 2026  
+**État** : ✅ **COMPLET** — 427 tests GREEN, taggé `fc-07-complete`
 
 ---
 
@@ -31,6 +31,8 @@ Cette documentation suit notre **méthodologie TDD/DDD stricte** :
 | **Phase 3B.1** | Pagination ListService | ✅ **TDD PLATINUM** | 9/9 ✅ | 100% pagination |
 | **Phase 3B.2** | Unlink Mission DestroyService | ✅ **TDD PLATINUM** | 8/8 ✅ | 100% unlink |
 | **Phase 3C** | Recalcul Totaux (Create/Update/Destroy) | ✅ **TDD PLATINUM** | 24/24 ✅ | 100% totaux |
+| **Mini-FC-01** | Filtrage CRAs (year/month/status) | ✅ **TDD PLATINUM** | 16/16 ✅ | 100% filtrage |
+| **Mini-FC-02** | Export CSV avec include_entries | ✅ **TDD PLATINUM** | 26/26 ✅ | 100% export |
 
 ### 🏁 Résultat Final
 
@@ -41,13 +43,16 @@ FC-07 CRA Management
 ├─ Phase 3A : ✅ DONE (Legacy alignment)              — 9 tests
 ├─ Phase 3B : ✅ DONE (Pagination + Unlink)           — 17 tests
 ├─ Phase 3C : ✅ DONE (Recalcul totaux)               — 24 tests
+├─ Mini-FC-01 : ✅ DONE (Filtrage year/month/status)  — 16 tests
+├─ Mini-FC-02 : ✅ DONE (Export CSV)                  — 26 tests (17 service + 9 request)
 ├─ Legacy : 🗑️ PURGÉ (~60 specs obsolètes)
 └─ Qualité : 🟢 SAINE — 0 dette technique
 
-TOTAL : 50 tests TDD Platinum (services) + 9 tests legacy = 59 tests
+TOTAL : 427 tests GREEN (suite complète)
 ```
 
-**Date de clôture** : 6 janvier 2026  
+**Date de clôture** : 7 janvier 2026  
+**Tag Git** : `fc-07-complete`  
 **Validé par** : Session TDD avec CTO
 
 ---
@@ -95,6 +100,32 @@ app/services/api/v1/cra_entries/
 └── destroy_service.rb  → recalculate_cra_totals!
 ```
 
+### ✅ Mini-FC-01 : Filtrage CRAs
+
+**Achievement** : 🏆 **TDD PLATINUM** (16 tests)
+
+- Filtrage par `year` (seul autorisé)
+- Filtrage par `month` (requiert `year`)
+- Filtrage par `status` (draft/submitted/locked)
+- Combinaison de filtres (AND logique)
+
+### ✅ Mini-FC-02 : Export CSV
+
+**Achievement** : 🏆 **TDD PLATINUM** (26 tests = 17 service + 9 request)
+
+| Aspect | Implémentation |
+|--------|----------------|
+| **Endpoint** | `GET /api/v1/cras/:id/export?export_format=csv` |
+| **Encodage** | UTF-8 avec BOM (compatibilité Excel) |
+| **Option** | `include_entries` (true/false) |
+| **Gem** | `csv ~> 3.3` (requise Ruby 3.4+) |
+
+#### ExportService
+```
+app/services/api/v1/cras/
+└── export_service.rb   → CSV avec UTF-8 BOM
+```
+
 ---
 
 ## 📁 Navigation de la Documentation
@@ -116,7 +147,11 @@ app/services/api/v1/cra_entries/
 - **[Phase 2 Report](./phases/FC07-Phase2-Implementation-Report.md)** - Unicité métier
 - **[Phase 3A Report](./phases/FC07-Phase3A-Accomplishment-Report.md)** - Legacy alignment
 - **[Phase 3B Report](./phases/FC07-Phase3B-Accomplishment-Report.md)** - Pagination + Unlink
-- **[Phase 3C Report](./phases/FC07-Phase3C-Completion-Report.md)** - Recalcul totaux ✨ NEW
+- **[Phase 3C Report](./phases/FC07-Phase3C-Completion-Report.md)** - Recalcul totaux
+
+### 📤 [Enhancements](./enhancements/)
+- **[Mini-FC-01 Filtering](./enhancements/MINI-FC-01-CRA-Filtering.md)** - Filtrage CRAs ✅ TERMINÉ
+- **[Mini-FC-02 Export CSV](./enhancements/MINI-FC-02-CRA-Export.md)** - Export CSV ✅ TERMINÉ ✨ NEW
 
 ### 🔧 [Corrections](./corrections/)
 - **[Namespace Fix](./corrections/2026-01-03-FC07_Concerns_Namespace_Fix.md)**
@@ -163,14 +198,41 @@ end
 
 ## ✅ Commandes de Validation
 
+### Résultats Validés (7 janvier 2026)
+
+| Outil | Résultat | Status |
+|-------|----------|--------|
+| **RSpec** | 427 examples, 0 failures | ✅ |
+| **Rswag** | 128 examples, 0 failures | ✅ |
+| **RuboCop** | 147 files inspected, no offenses detected | ✅ |
+| **Brakeman** | 0 Security Warnings (3 ignored) | ✅ |
+
+### Commandes
+
 ```bash
-# Tests services CRA Entries (41 tests)
-docker compose exec web bundle exec rspec spec/services/cra_entries/ --format progress
+# RSpec - Suite complète
+docker compose exec web bundle exec rspec --format progress
+# Résultat : 427 examples, 0 failures
 
-# Tests legacy (9 tests)
-docker compose exec web bundle exec rspec spec/models/cra_entry_lifecycle_spec.rb spec/models/cra_entry_uniqueness_spec.rb --format progress
+# Rswag - Génération Swagger
+docker compose exec web bundle exec rake rswag:specs:swaggerize
+# Résultat : 128 examples, 0 failures
 
-# Résultat attendu : 50 examples, 0 failures
+# RuboCop - Qualité code
+docker compose exec web bundle exec rubocop --format simple
+# Résultat : 147 files inspected, no offenses detected
+
+# Brakeman - Sécurité
+docker compose exec web bundle exec brakeman -q
+# Résultat : 0 Security Warnings
+
+# Tests Export CSV (Mini-FC-02)
+docker compose exec web bundle exec rspec spec/services/api/v1/cras/export_service_spec.rb spec/requests/api/v1/cras/export_spec.rb --format progress
+# Résultat : 26 examples, 0 failures
+
+# Tests Filtering (Mini-FC-01)
+docker compose exec web bundle exec rspec spec/services/api/v1/cras/list_service_filtering_spec.rb --format progress
+# Résultat : 16 examples, 0 failures
 ```
 
 ---
@@ -183,11 +245,15 @@ docker compose exec web bundle exec rspec spec/models/cra_entry_lifecycle_spec.r
 - **[CreateService](../../../app/services/api/v1/cra_entries/create_service.rb)**
 - **[UpdateService](../../../app/services/api/v1/cra_entries/update_service.rb)**
 - **[DestroyService](../../../app/services/api/v1/cra_entries/destroy_service.rb)**
+- **[ExportService](../../../app/services/api/v1/cras/export_service.rb)** ✨ NEW
 
 ### Fichiers de Test
 - **[Lifecycle Spec](../../../spec/models/cra_entry_lifecycle_spec.rb)**
 - **[Uniqueness Spec](../../../spec/models/cra_entry_uniqueness_spec.rb)**
 - **[Recalculation Spec](../../../spec/services/cra_entries/total_recalculation_service_spec.rb)**
+- **[Export Service Spec](../../../spec/services/api/v1/cras/export_service_spec.rb)** ✨ NEW
+- **[Export Request Spec](../../../spec/requests/api/v1/cras/export_spec.rb)** ✨ NEW
+- **[Filtering Spec](../../../spec/services/api/v1/cras/list_service_filtering_spec.rb)** ✨ NEW
 
 ---
 
@@ -195,7 +261,8 @@ docker compose exec web bundle exec rspec spec/models/cra_entry_lifecycle_spec.r
 
 | Version | Date | Changements |
 |---------|------|-------------|
-| **3.0** | 6 Jan 2026 | **FC-07 COMPLET** - Phase 3C terminée, 50 tests services |
+| **4.0** | 7 Jan 2026 | **FC-07 FINAL** - Mini-FC-01 & Mini-FC-02, 427 tests GREEN, tag `fc-07-complete` |
+| **3.0** | 6 Jan 2026 | Phase 3C terminée, 50 tests services |
 | **2.0** | 5 Jan 2026 | Phases 1-3B validées, specs legacy purgées |
 | **1.2** | 4 Jan 2026 | Phase 2 - Unicité métier |
 | **1.1** | 4 Jan 2026 | Phase 1 - CraMissionLinker canonique |
@@ -204,5 +271,6 @@ docker compose exec web bundle exec rspec spec/models/cra_entry_lifecycle_spec.r
 ---
 
 *FC-07 CRA Management : ✅ 100% TERMINÉ*  
+*427 tests GREEN — Tag: `fc-07-complete`*  
 *Méthodologie TDD/DDD stricte appliquée*  
-*Dernière mise à jour : 6 janvier 2026*
+*Dernière mise à jour : 7 janvier 2026*

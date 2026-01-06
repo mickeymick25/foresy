@@ -66,14 +66,22 @@ Foresy/
 4. **[🔒 Token Revocation](./technical/guides/token_revocation_strategy.md)** - Stratégie de revocation des tokens (sécurité)
 5. **[📮 Postman Collection](./postman/Foresy_API.postman_collection.json)** - Collection pour tester les endpoints
 
-### 🎯 **Feature Contract 07 — CRA (6/01/2026)** 🏆 **100% TERMINÉ - TDD PLATINUM**
+### 🎯 **Feature Contract 07 — CRA (7/01/2026)** 🏆 **100% TERMINÉ - TDD PLATINUM**
 1. **[📋 Documentation Centrale FC-07](./technical/fc07/README.md)** - Vue d'ensemble et navigation complète
 2. **[📚 Méthodologie TDD/DDD](./technical/fc07/methodology/fc07_methodology_tracker.md)** - Suivi méthodologique
 3. **[🔧 Implémentation Technique](./technical/fc07/implementation/fc07_technical_implementation.md)** - Documentation technique
 4. **[🏗️ Phases Complétées](./technical/fc07/phases/)** - Toutes phases terminées
-5. **[🧪 Phase 3C Report](./technical/fc07/phases/FC07-Phase3C-Completion-Report.md)** - Recalcul totaux ✨ NEW
+5. **[📤 Mini-FC-02 CRA Export](./technical/fc07/enhancements/MINI-FC-02-CRA-Export.md)** - Export CSV ✨ NEW
+6. **[🔍 Mini-FC-01 Filtering](./technical/fc07/enhancements/MINI-FC-01-CRA-Filtering.md)** - Filtrage CRAs
 
-**✅ TOUTES LES PHASES TERMINÉES - 59 TESTS TDD PLATINUM**
+**✅ FC-07 100% TERMINÉ** (Tag: `fc-07-complete`)
+
+| Outil | Résultat | Status |
+|-------|----------|--------|
+| **RSpec** | 427 examples, 0 failures | ✅ |
+| **Rswag** | 128 examples, 0 failures | ✅ |
+| **RuboCop** | 147 files, no offenses | ✅ |
+| **Brakeman** | 0 Security Warnings | ✅ |
 
 | Phase | Description | Tests | Status |
 |-------|-------------|-------|--------|
@@ -83,6 +91,8 @@ Foresy/
 | Phase 3B.1 | Pagination ListService | 9/9 ✅ | TDD PLATINUM |
 | Phase 3B.2 | Unlink Mission DestroyService | 8/8 ✅ | TDD PLATINUM |
 | Phase 3C | Recalcul Totaux (Create/Update/Destroy) | 24/24 ✅ | TDD PLATINUM |
+| **Mini-FC-01** | **Filtrage CRAs (year/month/status)** | **16/16 ✅** | **TDD PLATINUM** |
+| **Mini-FC-02** | **Export CSV avec include_entries** | **26/26 ✅** | **TDD PLATINUM** |
 
 **Décision Architecturale Clé (Phase 3C)** :
 - ❌ **Callbacks ActiveRecord** → Rejeté
@@ -108,7 +118,37 @@ docker compose exec web bundle exec rspec spec/services/cra_entries/ spec/models
 # Résultat : 50 examples, 0 failures
 ```
 
-> ✅ **FC-07 peut être mergé, livré et maintenu sans honte.**
+**Mini-FCs Terminés (7 Jan 2026)** :
+| Mini-FC | Fonctionnalité | Tests | Status |
+|---------|----------------|-------|--------|
+| Mini-FC-01 | Filtrage CRAs (year, month, status) | 16 ✅ | TERMINÉ |
+| Mini-FC-02 | Export CSV (`GET /cras/:id/export`) | 17+9 ✅ | TERMINÉ |
+
+**Endpoint Export CSV** :
+```
+GET /api/v1/cras/:id/export?export_format=csv&include_entries=true
+```
+
+**Commandes de Validation (résultats du 7 janvier 2026)** :
+```bash
+# RSpec
+docker compose exec web bundle exec rspec --format progress
+# → 427 examples, 0 failures
+
+# Rswag
+docker compose exec web bundle exec rake rswag:specs:swaggerize
+# → 128 examples, 0 failures
+
+# RuboCop
+docker compose exec web bundle exec rubocop --format simple
+# → 147 files inspected, no offenses detected
+
+# Brakeman
+docker compose exec web bundle exec brakeman -q
+# → 0 Security Warnings
+```
+
+> ✅ **FC-07 TERMINÉ — 427 tests GREEN, taggé `fc-07-complete`, prêt pour production.**
 
 ### 🎯 **Feature Contract 06 — Missions (31/12/2025)** ✅ PR #12 MERGED (1 Jan 2026)
 1. **[📋 Feature Contract 06](./FeatureContract/06_Feature%20Contract%20—%20Missions)** - Contrat source de vérité

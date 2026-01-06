@@ -1,6 +1,12 @@
 # 📋 Backlog - Foresy
 
-**Dernière mise à jour** : 6 janvier 2026 - FC-07 CRA ✅ **100% TERMINÉ**
+**Dernière mise à jour** : 7 janvier 2026 - FC-07 CRA ✅ **100% TERMINÉ**
+
+### Métriques de Qualité (Validé le 7 janvier 2026)
+- **RSpec** : ✅ **427 examples, 0 failures**
+- **Rswag** : ✅ **128 examples, 0 failures** — `swagger.yaml` généré
+- **RuboCop** : ✅ **147 files inspected, no offenses detected**
+- **Brakeman** : ✅ **0 Security Warnings** (3 ignored)
 
 ---
 
@@ -61,20 +67,20 @@ v1.0.0 (MVP Production)
 
 ---
 
-### Feature Contract #07 — CRA (Compte Rendu d'Activité) ✅ TERMINÉ (6 Jan 2026)
+### Feature Contract #07 — CRA (Compte Rendu d'Activité) ✅ TERMINÉ (7 Jan 2026)
 
 🧱 **Fondation métier** — Gestion des déclarations d'activité mensuelles
 
 | Aspect | Détails |
 |--------|---------|
-| **Statut** | ✅ **100% TERMINÉ** - TDD PLATINUM |
-| **Scope fonctionnel** | CRUD CRA + CRA Entries complet |
+| **Statut** | ✅ **100% TERMINÉ** - TDD PLATINUM (Tag: `fc-07-complete`) |
+| **Scope fonctionnel** | CRUD CRA + CRA Entries + Filtering + Export CSV |
 | **Architecture** | Domain-Driven / Service-Oriented (pas de callbacks) |
 | **Lifecycle** | draft → submitted → locked (immutable) |
 | **Modèles** | Cra, CraEntry, CraMission, CraEntryCra, CraEntryMission |
-| **Services** | CreateService, UpdateService, DestroyService, ListService |
-| **Tests** | ✅ **50 tests services + 9 tests legacy = 59 tests TDD Platinum** |
-| **Qualité** | Zeitwerk OK, RuboCop OK, Brakeman 0 vulnérabilité |
+| **Services** | CreateService, UpdateService, DestroyService, ListService, ExportService |
+| **Tests** | ✅ **427 tests GREEN** (suite complète) |
+| **Qualité** | Zeitwerk OK, RuboCop 0 offense, Brakeman 0 vulnérabilité |
 | **Documentation** | `docs/technical/fc07/` - Documentation complète |
 
 **Phases Complétées (3-6 Jan 2026) :**
@@ -87,6 +93,8 @@ v1.0.0 (MVP Production)
 | Phase 3B.1 | Pagination ListService | 9/9 ✅ | TDD PLATINUM |
 | Phase 3B.2 | Unlink Mission DestroyService | 8/8 ✅ | TDD PLATINUM |
 | Phase 3C | Recalcul Totaux (Create/Update/Destroy) | 24/24 ✅ | TDD PLATINUM |
+| **Mini-FC-01** | **Filtrage CRAs (year/month/status)** | **16/16 ✅** | **TDD PLATINUM** |
+| **Mini-FC-02** | **Export CSV avec include_entries** | **26/26 ✅** | **TDD PLATINUM** |
 
 **Décision Architecturale Clé :**
 - ❌ **Callbacks ActiveRecord** → Rejeté
@@ -98,13 +106,34 @@ La logique de recalcul des totaux (`total_days`, `total_amount`) est orchestrée
 1. **Services > Callbacks** pour la logique métier complexe
 2. **RSpec lazy `let`** : toujours forcer l'évaluation avant `reload`
 3. **Montants financiers** : toujours en centimes (integer)
+4. **Ruby 3.4+** : gem `csv` à ajouter explicitement au Gemfile
 
-> ✅ **Feature CRA 100% TERMINÉE — Peut être mergée, livrée et maintenue sans honte**
+**Mini-FCs Terminés (7 Jan 2026) :**
 
-**Commande de validation :**
+| Mini-FC | Fonctionnalité | Endpoint | Tests |
+|---------|----------------|----------|-------|
+| Mini-FC-01 | Filtrage CRAs | `GET /cras?year=&month=&status=` | 16 ✅ |
+| Mini-FC-02 | Export CSV | `GET /cras/:id/export?export_format=csv` | 26 ✅ |
+
+> ✅ **Feature CRA 100% TERMINÉE — 427 tests GREEN, taggé `fc-07-complete`, prêt pour production**
+
+**Commandes de validation (résultats du 7 janvier 2026) :**
 ```bash
-docker compose exec web bundle exec rspec spec/services/cra_entries/ spec/models/cra_entry_lifecycle_spec.rb spec/models/cra_entry_uniqueness_spec.rb --format progress
-# Résultat attendu : 50 examples, 0 failures
+# RSpec - Suite complète
+docker compose exec web bundle exec rspec --format progress
+# Résultat : 427 examples, 0 failures
+
+# Rswag - Génération Swagger
+docker compose exec web bundle exec rake rswag:specs:swaggerize
+# Résultat : 128 examples, 0 failures
+
+# RuboCop - Qualité code
+docker compose exec web bundle exec rubocop --format simple
+# Résultat : 147 files inspected, no offenses detected
+
+# Brakeman - Sécurité
+docker compose exec web bundle exec brakeman -q
+# Résultat : 0 Security Warnings
 ```
 
 ---
@@ -166,7 +195,7 @@ docker compose exec web bundle exec rspec spec/services/cra_entries/ spec/models
 | Feature | Description |
 |---------|-------------|
 | Feature #10 — Versioning CRA avancé | NoSQL ? |
-| Feature #11 — Export PDF | Génération documents |
+| Mini-FC-02.2 — Export PDF | Génération PDF (prawn) - si besoin confirmé |
 | Feature #12 — Historique & audit métier | Traçabilité |
 | Feature #13 — Multi-entreprises / multi-clients | Scale |
 
@@ -249,6 +278,7 @@ docker compose exec web bundle exec rspec spec/services/cra_entries/ spec/models
 | v0.0.3 | 29 Dec 2025 | Rate Limiting (FC-05) - Platinum Level |
 | v0.0.4 | 31 Dec 2025 | Missions (FC-06) - Merged |
 | v0.0.5 | 6 Jan 2026 | CRA (FC-07) - TDD Platinum Complete |
+| v0.0.6 | 7 Jan 2026 | CRA Export CSV (Mini-FC-02) - 427 tests GREEN |
 
 ---
 

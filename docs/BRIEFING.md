@@ -1,7 +1,7 @@
 # BRIEFING.md - Foresy API Project
 
 **For AI Context Understanding - Optimized for Fast Project Comprehension**  
-**Last Updated:** 6 janvier 2026 - FC-07 CRA 100% TERMINÉ
+**Last Updated:** 7 janvier 2026 - FC-07 CRA 100% TERMINÉ (427 tests GREEN)
 
 ---
 
@@ -12,31 +12,31 @@
 - **Primary Function**: User management, Mission management with JWT + OAuth (Google/GitHub)
 - **Ruby Version**: 3.4.8
 - **Environment**: Docker Compose (non-optional, mandatory)
-- **Status**: ✅ FC-07 CRA **100% TERMINÉ** — TDD PLATINUM (6 Jan 2026)
-- **Current Feature**: FC-07 CRA — **COMPLET** — Toutes phases validées, 0 dette technique
+- **Status**: ✅ FC-07 CRA **100% TERMINÉ** — TDD PLATINUM (7 Jan 2026)
+- **Current Feature**: FC-07 CRA — **COMPLET** — 427 tests GREEN, taggé `fc-07-complete`
 - **Previous Feature**: FC-06 Missions (31 Dec 2025) - **PR #12 MERGED** (1 Jan 2026) ✅
 
-### Quality Metrics (Jan 2026)
-- **RSpec Tests**: ✅ All passing (après purge legacy + Phase 3C)
+### Quality Metrics (Jan 2026) — Validé le 7 janvier 2026
+- **RSpec Tests**: ✅ **427 examples, 0 failures** (validé 7 Jan 2026)
+- **Rswag Swagger**: ✅ **128 examples, 0 failures** — `swagger.yaml` généré
+- **RuboCop**: ✅ **147 files inspected, no offenses detected**
+- **Brakeman**: ✅ **0 Security Warnings** (3 ignored)
 - **Missions Tests (FC-06)**: ✅ 30/30 passing
-- **CRA Tests (FC-07)**: ✅ **59 tests TDD Platinum** (50 services + 9 legacy)
+- **CRA Tests (FC-07)**: ✅ **TDD PLATINUM COMPLETE**
   - Phase 1: 6/6 lifecycle ✅
   - Phase 2: 3/3 unicité ✅
   - Phase 3A: 9/9 legacy alignment ✅
   - Phase 3B: 17/17 (pagination + unlink) ✅
   - Phase 3C: 24/24 recalcul totaux ✅
-- **CRA Legacy Specs**: 🗑️ PURGÉES (~60 specs obsolètes supprimées)
-- **CRA Entries Tests (FC-07)**: ✅ 41 tests services (Phase 3B + 3C)
+  - **Mini-FC-01**: 16/16 filtrage (year/month/status) ✅
+  - **Mini-FC-02**: 26/26 export CSV (17 service + 9 request) ✅
 - **OAuth Tests**: ✅ 15/15 acceptance (Feature Contract compliant)
-- **Swagger Specs**: 119 examples generated
-- **Code Quality**: ⚠️ Rubocop à revalider après Phase 3B (pagination)
-- **Security**: ✅ Brakeman validé après corrections Redis
 - **Zeitwerk**: ✅ All files loading correctly
 - **CI/CD**: GitHub Actions CI + Render CD fully functional
 - **Production**: Deployed on Render (https://foresy-api.onrender.com)
 - **Rails Upgrade**: ✅ Successfully migrated from 7.1.5.1 to 8.1.1 (Dec 26, 2025)
 - **FC-06 Missions**: ✅ Fully implemented (Dec 31, 2025)
-- **FC-07 CRA**: ✅ **100% TERMINÉ** — 59 tests TDD Platinum, 0 dette technique (6 Jan 2026)
+- **FC-07 CRA**: ✅ **100% TERMINÉ** — 427 tests GREEN, taggé `fc-07-complete` (7 Jan 2026)
 
 ### Technical Stack
 - **Framework**: Rails 8.1.1 (API-only)
@@ -46,15 +46,22 @@
 - **Containerization**: Docker Compose (web, db, redis services)
 - **Testing**: RSpec + Rubocop + Brakeman
 - **Bundler**: 4.0.3
+- **CSV Gem**: Required for Ruby 3.4+ (Mini-FC-02)
 
 ---
 
 ## 📅 RECENT CHANGES TIMELINE
 
-### Jan 6, 2026 - ✅ Feature Contract 07: CRA **100% TERMINÉ** (TDD PLATINUM)
+### Jan 7, 2026 - ✅ Feature Contract 07: CRA **100% TERMINÉ** (427 tests GREEN)
 - **Feature Contract**: `07_Feature Contract — CRA`
 - **Purpose**: Enable independents to manage CRA (Compte Rendu d'Activité)
-- **Status**: ✅ **100% COMPLETE** - TDD PLATINUM - All phases validated
+- **Status**: ✅ **100% COMPLETE** - TDD PLATINUM - Tag `fc-07-complete`
+
+**Mini-FCs Completed (7 Jan 2026)**:
+| Mini-FC | Fonctionnalité | Endpoint | Tests |
+|---------|----------------|----------|-------|
+| Mini-FC-01 | Filtrage CRAs | `GET /cras?year=&month=&status=` | 16 ✅ |
+| Mini-FC-02 | Export CSV | `GET /cras/:id/export?export_format=csv` | 26 ✅ |
 
 **Phases Completed**:
 | Phase | Description | Tests | Status |

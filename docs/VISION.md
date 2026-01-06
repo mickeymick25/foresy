@@ -179,3 +179,38 @@ Acknowledge this context.
 Summarize the global architecture in your own words.
 Identify the main aggregates and boundaries.
 Confirm readiness to implement Feature Contracts following this vision.
+
+---
+
+## 9. Feature Contracts Status (Updated: 7 Jan 2026)
+
+| FC# | Name | Status | Tests | Notes |
+|-----|------|--------|-------|-------|
+| FC-05 | Rate Limiting | ✅ DONE | - | Protection brute force |
+| FC-06 | Missions | ✅ DONE | 30 | PR #12 merged |
+| FC-07 | CRA (Compte Rendu d'Activité) | ✅ DONE | 427 | TDD PLATINUM, tag `fc-07-complete` |
+| FC-08 | Entreprise Indépendant | 📋 NEXT | - | Base fiscale & légale |
+| FC-09 | Notifications & Alertes | 📋 PLANNED | - | - |
+
+### FC-07 Mini-FCs Completed
+
+| Mini-FC | Feature | Endpoint | Status |
+|---------|---------|----------|--------|
+| Mini-FC-01 | CRA Filtering | `GET /cras?year=&month=&status=` | ✅ DONE (16 tests) |
+| Mini-FC-02 | CRA CSV Export | `GET /cras/:id/export?export_format=csv` | ✅ DONE (26 tests) |
+| Mini-FC-02.2 | CRA PDF Export | - | 📋 BACKLOG (if needed) |
+
+### Current Metrics (Validated: 7 January 2026)
+
+| Tool | Result | Status |
+|------|--------|--------|
+| **RSpec** | 427 examples, 0 failures | ✅ |
+| **Rswag** | 128 examples, 0 failures | ✅ |
+| **RuboCop** | 147 files inspected, no offenses detected | ✅ |
+| **Brakeman** | 0 Security Warnings (3 ignored) | ✅ |
+
+- **Architecture**: Domain-Driven / Relation-Driven (no FK between domains)
+
+---
+
+*Last updated: 7 January 2026*
