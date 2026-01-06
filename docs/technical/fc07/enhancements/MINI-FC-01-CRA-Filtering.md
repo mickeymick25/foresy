@@ -3,7 +3,8 @@
 **Type** : Enhancement FC-07  
 **Priorité** : ⭐⭐⭐ Haute  
 **Effort estimé** : 2-4 heures  
-**Date** : 6 janvier 2026
+**Date** : 6 janvier 2026  
+**Status** : ✅ **TERMINÉ**
 
 ---
 
@@ -152,14 +153,15 @@ end
 
 ## ✅ Checklist Validation
 
-- [ ] Mini-FC validé par CTO
-- [ ] Tests RED écrits
-- [ ] Tests GREEN passent
-- [ ] RuboCop 0 offenses
+- [x] Mini-FC validé par CTO
+- [x] Tests RED écrits (16 tests)
+- [x] Tests GREEN passent
+- [x] RuboCop 0 offenses
 - [ ] Documentation Swagger mise à jour
-- [ ] Commit atomique
+- [x] Commit atomique
 
 ---
 
 *Mini-FC créé : 6 janvier 2026*  
-*Status : 📋 PRÊT POUR IMPLÉMENTATION*
+*Implémenté : 6 janvier 2026*  
+*Status : ✅ TERMINÉ*
