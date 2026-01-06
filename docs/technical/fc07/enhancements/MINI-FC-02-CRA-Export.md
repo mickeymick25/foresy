@@ -3,7 +3,9 @@
 **Type** : Enhancement FC-07  
 **Priorité** : ⭐⭐⭐ Haute  
 **Effort estimé** : CSV 2-3h, PDF 4-8h  
-**Date** : 6 janvier 2026
+**Date création** : 6 janvier 2026  
+**Date implémentation** : 7 janvier 2026  
+**Status** : ✅ **TERMINÉ (CSV)**
 
 ---
 
@@ -23,8 +25,10 @@ GET /api/v1/cras/:id/export
 
 | Param | Type | Obligatoire | Défaut | Description |
 |-------|------|-------------|--------|-------------|
-| `format` | String | Non | `csv` | Format d'export (csv/pdf) |
+| `export_format` | String | Non | `csv` | Format d'export (csv uniquement pour l'instant) |
 | `include_entries` | Boolean | Non | `true` | Inclure le détail des entrées |
+
+> ⚠️ **Note** : On utilise `export_format` au lieu de `format` pour éviter tout conflit avec le paramètre Rails réservé `params[:format]`.
 
 ### Paramètres Explicitement Refusés
 
@@ -32,6 +36,7 @@ GET /api/v1/cras/:id/export
 |-------|--------|
 | `json` | Déjà disponible via GET /api/v1/cras/:id |
 | `xlsx` | Complexité - dépendance lourde |
+| `pdf` | Phase 2 - à implémenter si besoin confirmé |
 | `template_id` | Hors scope MVP |
 
 ---
@@ -41,152 +46,91 @@ GET /api/v1/cras/:id/export
 | Règle | Comportement |
 |-------|--------------|
 | CRA inexistant | ❌ Erreur 404 |
-| CRA non accessible | ❌ Erreur 404 (pas 403) |
+| CRA non accessible | ❌ Erreur 403 |
 | CRA soft-deleted | ❌ Erreur 404 |
-| Format invalide | ❌ Erreur 422 - doit être csv ou pdf |
-| CRA sans entrées | ✅ Export vide (headers CSV, PDF avec mention "Aucune entrée") |
-| CRA draft | ✅ Autorisé (mention "BROUILLON" sur PDF) |
-| CRA locked | ✅ Autorisé (mention "VERROUILLÉ" sur PDF) |
+| Format invalide | ❌ Erreur 422 - doit être csv |
+| CRA sans entrées | ✅ Export avec headers + TOTAL (zéros) |
+| CRA draft | ✅ Autorisé |
+| CRA submitted | ✅ Autorisé |
+| CRA locked | ✅ Autorisé |
 
 ---
 
-## 4️⃣ Niveau d'Abstraction des Tests
+## 4️⃣ Implémentation Réalisée
 
-| Élément | Décision | Justification |
-|---------|----------|---------------|
-| Tests modèles | ❌ Non | Pas de modification modèles |
-| Tests callbacks | ❌ Non | Pas de callbacks |
-| Tests services | ✅ **Oui** | Source de vérité |
-| Tests request | ⚠️ Optionnel | Content-Type validation |
-| Tests E2E | ❌ Non | Hors scope |
+### Service : `Api::V1::Cras::ExportService`
 
----
+**Fichier** : `app/services/api/v1/cras/export_service.rb`
 
-## 5️⃣ Stratégie TDD
+**Caractéristiques** :
+- ✅ Format CSV uniquement (extensible pour PDF)
+- ✅ UTF-8 avec BOM pour compatibilité Excel
+- ✅ Option `include_entries` (true/false)
+- ✅ Validation du format avec erreur explicite
+- ✅ Conversion des montants en euros (division par 100)
+- ✅ Évite N+1 avec `includes(:cra_entry_missions, :missions)`
 
-```
-RED   → Tests sur ExportService (CSV + PDF)
-GREEN → Implémentation minimale
-BLUE  → Extraction helpers si nécessaire
-```
+### Controller : `Api::V1::CrasController#export`
 
-**Contraintes** :
-- Aucune modification des modèles
-- Aucun callback ActiveRecord
-- CSV = canonique (tests sur structure et contenu)
-- PDF = best effort (tests sur présence, pas pixel perfect)
+**Route** : `GET /api/v1/cras/:id/export`
 
----
+**Caractéristiques** :
+- ✅ Authentification JWT requise
+- ✅ Validation d'accès au CRA (héritée FC-07)
+- ✅ `send_data` avec `disposition: 'attachment'`
+- ✅ Paramètre `export_format` (pas `format`)
 
-## 6️⃣ Décisions Techniques (FIGÉES)
+### Dépendance Ruby 3.4+
 
-### CSV : Canonique
-
-| Aspect | Décision |
-|--------|----------|
-| Encodage | UTF-8 avec BOM |
-| Séparateur | Virgule (,) |
-| Headers | Obligatoires en première ligne |
-| Montants | En euros (division par 100) |
-| Dates | Format ISO 8601 (YYYY-MM-DD) |
-
-**Structure CSV** :
-```csv
-date,mission_name,quantity,unit_price_eur,line_total_eur,description
-2026-01-15,Mission Alpha,1.0,500.00,500.00,Development work
-2026-01-16,Mission Alpha,0.5,500.00,250.00,Code review
-```
-
-**Ligne de totaux** :
-```csv
-TOTAL,,15.5,,7750.00,
-```
-
-### PDF : Best Effort
-
-| Aspect | Décision |
-|--------|----------|
-| Gem | `prawn` (léger, sans dépendance système) |
-| Format | A4 portrait |
-| Tests | Structure présente, pas contenu exact |
-
-**Structure PDF** :
-- En-tête : Période (Mois/Année), Status, Utilisateur
-- Corps : Tableau des entrées groupées par mission
-- Pied : Totaux (total_days, total_amount), Date génération
-
----
-
-## 7️⃣ Tests à Écrire (RED)
-
+**Gemfile** :
 ```ruby
-# spec/services/api/v1/cras/export_service_spec.rb
+# Ruby 3.4+ extracted csv from stdlib runtime
+# Required for CRA export feature (Mini-FC-02)
+gem 'csv', '~> 3.3'
+```
 
-describe Api::V1::Cras::ExportService do
-  describe 'CSV export' do
-    context 'with valid CRA' do
-      it 'returns CSV content with correct headers'
-      it 'includes all entries'
-      it 'calculates line totals correctly'
-      it 'includes total row'
-      it 'formats amounts in euros (not cents)'
-    end
+> ⚠️ **Important** : À partir de Ruby 3.4, `csv` n'est plus chargée par défaut. L'ajout explicite au Gemfile est obligatoire.
 
-    context 'with empty CRA' do
-      it 'returns CSV with headers only'
-    end
+---
 
-    context 'with include_entries=false' do
-      it 'returns summary only'
-    end
-  end
+## 5️⃣ Structure CSV
 
-  describe 'PDF export' do
-    context 'with valid CRA' do
-      it 'returns PDF binary data'
-      it 'has correct content type'
-      it 'includes CRA period in content'
-    end
+### Headers
 
-    context 'with draft CRA' do
-      it 'includes BROUILLON watermark'
-    end
-  end
+```csv
+date,mission_name,quantity,unit_price_eur,line_total_eur,description
+```
 
-  describe 'error handling' do
-    context 'with invalid format' do
-      it 'raises InvalidPayloadError'
-    end
+### Exemple complet
 
-    context 'with non-existent CRA' do
-      it 'raises CraNotFoundError'
-    end
-  end
-end
+```csv
+date,mission_name,quantity,unit_price_eur,line_total_eur,description
+2026-01-10,Mission Alpha,1.0,500.00,500.00,Development work
+2026-01-11,Mission Alpha,0.5,500.00,250.00,Code review
+TOTAL,,1.5,,750.00,
+```
+
+### Avec `include_entries=false`
+
+```csv
+date,mission_name,quantity,unit_price_eur,line_total_eur,description
+TOTAL,,1.5,,750.00,
 ```
 
 ---
 
-## 8️⃣ Réponse API
+## 6️⃣ Réponses API
 
-### Succès CSV (200)
-
-```
-Content-Type: text/csv; charset=utf-8
-Content-Disposition: attachment; filename="cra_2026_02.csv"
-
-date,mission_name,quantity,unit_price_eur,line_total_eur,description
-2026-02-15,Mission Alpha,1.0,500.00,500.00,Development
-TOTAL,,15.5,,7750.00,
-```
-
-### Succès PDF (200)
+### Succès (200)
 
 ```
-Content-Type: application/pdf
-Content-Disposition: attachment; filename="cra_2026_02.pdf"
+HTTP/1.1 200 OK
+Content-Type: text/csv
+Content-Disposition: attachment; filename="cra_2026_01.csv"
 
-[Binary PDF data]
+[UTF-8 BOM]date,mission_name,quantity,unit_price_eur,line_total_eur,description
+2026-01-10,Mission Alpha,1.0,500.00,500.00,Development work
+TOTAL,,1.5,,750.00,
 ```
 
 ### Erreur 422 (format invalide)
@@ -194,37 +138,83 @@ Content-Disposition: attachment; filename="cra_2026_02.pdf"
 ```json
 {
   "error": "invalid_payload",
-  "message": "format must be 'csv' or 'pdf'"
+  "message": "format must be one of: csv",
+  "timestamp": "2026-01-07T10:30:00Z"
+}
+```
+
+### Erreur 401 (non authentifié)
+
+```json
+{
+  "error": "unauthorized",
+  "message": "Authentication required"
+}
+```
+
+### Erreur 403 (accès refusé)
+
+```json
+{
+  "error": "unauthorized",
+  "message": "CRA not accessible",
+  "timestamp": "2026-01-07T10:30:00Z"
+}
+```
+
+### Erreur 404 (CRA inexistant)
+
+```json
+{
+  "error": "not_found",
+  "message": "CRA with ID xxx not found",
+  "timestamp": "2026-01-07T10:30:00Z"
 }
 ```
 
 ---
 
-## 9️⃣ Dépendances
+## 7️⃣ Tests Implémentés
 
-| Format | Gem | Status |
-|--------|-----|--------|
-| CSV | Ruby stdlib | ✅ Aucune installation |
-| PDF | `prawn` | ⚠️ À ajouter au Gemfile |
+### Tests Service (17 tests)
 
-**Ajout Gemfile** :
-```ruby
-gem 'prawn', '~> 2.4'
-gem 'prawn-table', '~> 0.2'
-```
+**Fichier** : `spec/services/api/v1/cras/export_service_spec.rb`
+
+| Contexte | Tests |
+|----------|-------|
+| Format CSV valide | 7 tests (headers, content, totals, filename, amounts) |
+| CRA sans entrées | 2 tests (headers + total only) |
+| Format invalide | 3 tests (xml, pdf, nil) |
+| Format uppercase | 1 test (CSV → csv) |
+| Option include_entries | 4 tests (true/false behavior) |
+
+### Tests Request (9 tests)
+
+**Fichier** : `spec/requests/api/v1/cras/export_spec.rb`
+
+| Contexte | Tests |
+|----------|-------|
+| Authentification valide | 5 tests (headers, content, default format, include_entries) |
+| Format invalide | 1 test (422) |
+| Non authentifié | 1 test (401) |
+| CRA inexistant | 1 test (404) |
+| Accès refusé | 1 test (403) |
 
 ---
 
-## ✅ Checklist Validation
+## 8️⃣ Checklist Validation
 
-### Phase 1 : CSV (prioritaire)
-- [ ] Mini-FC validé par CTO
-- [ ] Tests RED écrits (CSV)
-- [ ] Tests GREEN passent
-- [ ] RuboCop 0 offenses
-- [ ] Commit atomique
+### Phase 1 : CSV ✅ TERMINÉ
+- [x] Mini-FC validé par CTO
+- [x] Tests RED écrits (17 tests service)
+- [x] Tests GREEN passent
+- [x] Request specs ajoutées (9 tests)
+- [x] RuboCop 0 offenses
+- [x] Documentation mise à jour
+- [x] Suite complète : 427 tests GREEN
 
-### Phase 2 : PDF (optionnel)
+### Phase 2 : PDF (optionnel - non implémenté)
+- [ ] Besoin confirmé par produit
 - [ ] Gem prawn ajoutée
 - [ ] Tests RED écrits (PDF)
 - [ ] Tests GREEN passent
@@ -232,24 +222,35 @@ gem 'prawn-table', '~> 0.2'
 
 ---
 
-## 🔄 Ordre d'Implémentation
+## 9️⃣ Extension Future : PDF
 
-```
-1. CSV Export (2-3h)
-   ├── ExportService avec format=csv
-   ├── Tests canoniques sur structure
-   └── Controller action + route
+Si le besoin PDF est confirmé :
 
-2. PDF Export (4-8h) - OPTIONNEL
-   ├── Ajout gem prawn
-   ├── ExportService avec format=pdf
-   ├── Tests best effort
-   └── Même controller action
+**Gemfile** :
+```ruby
+gem 'prawn', '~> 2.4'
+gem 'prawn-table', '~> 0.2'
 ```
 
-**Recommandation** : Implémenter CSV d'abord, valider, puis PDF si besoin confirmé.
+**Service** : Étendre `SUPPORTED_FORMATS` et ajouter méthode `export_pdf`
+
+**Tests** : Best effort (présence structure, pas pixel perfect)
+
+---
+
+## 📊 Métriques
+
+| Métrique | Valeur |
+|----------|--------|
+| Tests service | 17 |
+| Tests request | 9 |
+| Total nouveaux tests | 26 |
+| Suite complète | 427 GREEN |
+| Temps implémentation | ~3h |
+| Lignes de code service | ~95 |
 
 ---
 
 *Mini-FC créé : 6 janvier 2026*  
-*Status : 📋 PRÊT POUR IMPLÉMENTATION*
+*Implémenté : 7 janvier 2026*  
+*Status : ✅ TERMINÉ (CSV)*

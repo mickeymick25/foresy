@@ -23,8 +23,8 @@ module Api
       include Common::ResponseFormatter
 
       before_action :authenticate_access_token!
-      before_action :set_cra, only: %i[show update destroy submit lock]
-      before_action :validate_cra_access!, only: %i[show update destroy submit lock]
+      before_action :set_cra, only: %i[show update destroy submit lock export]
+      before_action :validate_cra_access!, only: %i[show update destroy submit lock export]
       before_action :check_rate_limit!, only: %i[create update submit lock]
 
       # FC07 Error Handling - Centralized rescue_from for all CraErrors
@@ -122,6 +122,21 @@ module Api
         render json: Api::V1::Cras::ResponseFormatter.single(result.cra, include_entries: true), status: :ok
       end
 
+      # GET /api/v1/cras/:id/export
+      # Exports CRA as CSV (PDF planned for future)
+      def export
+        result = Api::V1::Cras::ExportService.new(
+          cra: @cra,
+          format: params[:export_format] || 'csv',
+          options: export_options
+        ).call
+
+        send_data result[:data],
+                  filename: result[:filename],
+                  type: result[:content_type],
+                  disposition: 'attachment'
+      end
+
       private
 
       def set_cra
@@ -151,6 +166,13 @@ module Api
       # Strong parameters for CRA creation/update
       def cra_params
         params.permit(:month, :year, :currency, :description, :status)
+      end
+
+      # Options for export
+      def export_options
+        {
+          include_entries: params[:include_entries] != 'false'
+        }
       end
 
       # FC07 Centralized CRA error handler
