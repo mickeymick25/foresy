@@ -64,6 +64,11 @@ module Api
                                                      field: :status)
           end
 
+          # Mini-FC-01: month requires year
+          if filters[:month].present? && filters[:year].blank?
+            raise CraErrors::InvalidPayloadError.new('year is required when month is specified', field: :month)
+          end
+
           if filters[:month].present? && !valid_month?(filters[:month])
             raise CraErrors::InvalidPayloadError.new('Invalid month filter. Must be between 1 and 12', field: :month)
           end
