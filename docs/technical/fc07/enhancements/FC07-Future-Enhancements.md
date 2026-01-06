@@ -17,6 +17,20 @@ Elles ne sont **pas requises** par le Feature Contract mais seraient utiles pour
 
 ---
 
+## 📋 Mini Feature Contracts (Implémentation)
+
+Chaque enhancement dispose d'un **Mini-FC** détaillant les règles d'implémentation :
+
+| Enhancement | Mini-FC | Status | Priorité |
+|-------------|---------|--------|----------|
+| Filtrage CRAs | [MINI-FC-01](./MINI-FC-01-CRA-Filtering.md) | 📋 Prêt | ⭐⭐⭐ |
+| Export CSV/PDF | [MINI-FC-02](./MINI-FC-02-CRA-Export.md) | 📋 Prêt | ⭐⭐⭐ |
+
+> ⚠️ **Règle CTO** : Ne pas implémenter sans Mini-FC validé.
+> Chaque Mini-FC définit : surface API figée, règles métier, niveau de tests, stratégie TDD.
+
+---
+
 ## 📋 Améliorations Proposées
 
 ### 1. Filtrage / Querying CRAs
@@ -209,8 +223,34 @@ Ces features peuvent être implémentées :
 - Tests TDD pour chaque nouvelle feature
 - Documentation Swagger/OpenAPI
 
+### Protocole d'Exécution (CTO)
+
+```
+1. Mini-FC validé (15-30 min)
+2. RED : Tests services uniquement
+3. GREEN : Implémentation minimale
+4. BLUE : Refactor optionnel
+5. Commit atomique
+```
+
+**Interdictions** :
+- ❌ Coder sans Mini-FC validé
+- ❌ Tests sur callbacks ou modèles
+- ❌ Mélanger controller + service + modèle
+- ❌ Improviser les règles métier
+
+---
+
+## 🔗 Références
+
+- [Guide Méthodologique](../../guides/implementation_methodology.md)
+- [FC-07 Methodology](../methodology/fc07_methodology_tracker.md)
+- [Mini-FC-01 Filtrage](./MINI-FC-01-CRA-Filtering.md)
+- [Mini-FC-02 Export](./MINI-FC-02-CRA-Export.md)
+
 ---
 
 *Document créé : 6 janvier 2026*  
+*Mise à jour : 6 janvier 2026 - Ajout Mini-FCs*  
 *Source : CTO Review PR #13*  
-*Status : 📋 BACKLOG*
+*Status : 📋 BACKLOG avec Mini-FCs prêts*
