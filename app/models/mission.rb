@@ -225,11 +225,10 @@ class Mission < ApplicationRecord
     update(deleted_at: Time.current) if deleted_at.nil?
   end
 
-  # Check if mission has CRA entries (placeholder for future CRA feature)
+  # Check if mission has CRA entries
+  # Business rule: Mission cannot be deleted if it has CRA entries
   def cra_entries?
-    # TODO: Implement when CRA feature is developed
-    # For now, return false to allow deletion in MVP
-    false
+    cra_entry_missions.exists?
   end
 
   private
