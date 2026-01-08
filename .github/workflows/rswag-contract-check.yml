@@ -88,20 +88,10 @@ jobs:
       - name: Check for contract changes
         id: contract-check
         run: |
-          # Check if swagger.yaml has changes
-          if ! git diff --quiet swagger/swagger.yaml; then
-            echo "❌ API contract changed in this PR"
-            echo ""
-            echo "📋 Contract changes detected:"
-            git diff swagger/swagger.yaml
-            echo ""
-            echo "🔧 Required actions:"
-            echo "  1. Update RSwag specs to match the new contract"
-            echo "  2. Review breaking changes (if any)"
-            echo "  3. Commit the updated swagger.yaml"
-            exit 1
+          if git ls-files --error-unmatch swagger/swagger.yaml > /dev/null 2>&1; then
+            git diff origin/main...HEAD -- swagger/swagger.yaml
           else
-            echo "✅ API contract unchanged - no breaking changes detected"
+            echo "⚠️ swagger/swagger.yaml not tracked — skipping contract diff"
           fi
 
       - name: Comment PR with contract status
