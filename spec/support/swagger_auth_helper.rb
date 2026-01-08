@@ -31,7 +31,7 @@ module SwaggerAuthHelper
   #
   # @return [String] an obviously invalid token
   def invalid_jwt_token
-    "invalid.token.here"
+    'invalid.token.here'
   end
 
   # Generate a properly formatted but invalid JWT token
@@ -40,7 +40,8 @@ module SwaggerAuthHelper
   # @return [String] malformed JWT token
   def malformed_jwt_token
     # Valid JWT structure but wrong signature/claims
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.' \
+      'SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
   end
 end
 

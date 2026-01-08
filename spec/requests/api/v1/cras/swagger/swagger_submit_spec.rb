@@ -75,7 +75,7 @@ RSpec.describe 'CRA', swagger_doc: 'v1/swagger.yaml', type: :request do
       end
 
       response '401', 'Unauthorized - Missing token' do
-        let(:Authorization) { '' }  # Override shared_context to test missing auth
+        let(:Authorization) { '' } # Override shared_context to test missing auth
         let(:id) { draft_cra_id }
 
         run_test! do |response|
