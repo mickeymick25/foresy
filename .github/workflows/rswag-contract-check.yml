@@ -49,9 +49,9 @@ jobs:
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: .ruby-version
+          ruby-version: "3.4.8"
           bundler-cache: true
-          bundler-version: "2.6.2"
+          bundler: "2.6.2"
 
       - name: Install dependencies
         run: |
