@@ -83,7 +83,7 @@ jobs:
           SECRET_KEY_BASE: test_secret_key_base_minimum_32_characters_required_here
         run: |
           # Run all RSwag specs to validate syntax
-          bundle exec rspec spec/requests/api/v1/**/swagger_*_spec.rb --format documentation
+          bundle exec rspec "spec/requests/api/v1/**/swagger_*_spec.rb" --format documentation
 
       - name: Check for contract changes
         id: contract-check
