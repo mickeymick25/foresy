@@ -1,0 +1,133 @@
+name: RSwag Contract Validation
+
+on:
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - "app/controllers/**/*.rb"
+      - "config/routes.rb"
+      - "spec/requests/**/*.rb"
+
+jobs:
+  contract-check:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: password
+          POSTGRES_USER: postgres
+          POSTGRES_DB: foresy_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+          bundler-version: "2.6.2"
+
+      - name: Install dependencies
+        run: |
+          bundle install --jobs=4 --retry=3 --quiet
+
+      - name: Prepare test database
+        env:
+          DATABASE_URL: postgres://postgres:password@localhost:5432/foresy_test
+          REDIS_URL: redis://localhost:6379/0
+          RAILS_ENV: test
+          SECRET_KEY_BASE: test_secret_key_base_minimum_32_characters_required_here
+        run: |
+          bundle exec rails db:test:prepare
+
+      - name: Generate Swagger documentation
+        env:
+          DATABASE_URL: postgres://postgres:password@localhost:5432/foresy_test
+          REDIS_URL: redis://localhost:6379/0
+          RAILS_ENV: test
+          SECRET_KEY_BASE: test_secret_key_base_minimum_32_characters_required_here
+        run: |
+          bundle exec rake rswag:specs:swaggerize
+
+      - name: Validate RSwag specs syntax
+        env:
+          DATABASE_URL: postgres://postgres:password@localhost:5432/foresy_test
+          REDIS_URL: redis://localhost:6379/0
+          RAILS_ENV: test
+          SECRET_KEY_BASE: test_secret_key_base_minimum_32_characters_required_here
+        run: |
+          # Run all RSwag specs to validate syntax
+          bundle exec rspec spec/requests/api/v1/**/swagger_*_spec.rb --format documentation
+
+      - name: Check for contract changes
+        id: contract-check
+        run: |
+          # Check if swagger.yaml has changes
+          if ! git diff --quiet swagger/swagger.yaml; then
+            echo "❌ API contract changed in this PR"
+            echo ""
+            echo "📋 Contract changes detected:"
+            git diff swagger/swagger.yaml
+            echo ""
+            echo "🔧 Required actions:"
+            echo "  1. Update RSwag specs to match the new contract"
+            echo "  2. Review breaking changes (if any)"
+            echo "  3. Commit the updated swagger.yaml"
+            exit 1
+          else
+            echo "✅ API contract unchanged - no breaking changes detected"
+          fi
+
+      - name: Comment PR with contract status
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const output = `#### ❌ RSwag Contract Validation Failed
+
+            **Contract changes detected** - This PR modifies the API contract without updating the RSwag specs.
+
+            **Required Actions:**
+            1. Update RSwag specs in \`spec/requests/\` to match the new contract
+            2. Review any breaking changes
+            3. Commit the updated \`swagger/swagger.yaml\`
+
+            **Check the workflow logs for detailed diff.**
+
+            ---
+            *This check is required by ADR-002: RSwag vs Request Specs Boundary*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+
+      - name: Success check
+        if: success()
+        run: |
+          echo "🎉 RSwag contract validation passed!"
+          echo "✅ API contract is stable"
+          echo "✅ RSwag specs are up to date"
