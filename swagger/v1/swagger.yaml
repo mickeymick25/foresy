@@ -276,6 +276,35 @@ paths:
               required:
               - refresh_token
         required: true
+  "/api/v1/cras/{id}/submit":
+    post:
+      summary: Submit a CRA
+      tags:
+      - CRA
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        description: Bearer token
+        required: true
+        schema:
+          type: string
+      - name: id
+        in: path
+        schema:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        required: true
+        description: CRA ID
+      responses:
+        '200':
+          description: CRA submitted successfully
+        '401':
+          description: Unauthorized - Malformed token
+        '422':
+          description: CRA without entries
   "/api/v1/missions":
     post:
       summary: Creates a new mission
