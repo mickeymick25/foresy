@@ -173,7 +173,15 @@ module TestSupport
       # afin de simplifier la création de fixtures de test.
       # brakeman:disable:PermitAttributes
       def company_params
-        params.require(:company).permit(:name, :siret, :siren, :role)
+        permitted_params = params.require(:company).permit(:name, :siret, :siren)
+
+        # E2E test support: restrict role to safe values only
+        if params[:company]&.key?(:role)
+          allowed_roles = %w[admin member viewer] # Whitelist for E2E tests
+          permitted_params[:role] = params[:company][:role] if allowed_roles.include?(params[:company][:role])
+        end
+
+        permitted_params
       end
     end
   end
