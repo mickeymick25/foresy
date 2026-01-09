@@ -14,7 +14,7 @@ module OAuthConcern
       return render_unauthorized('OAuth data missing') unless auth
 
       user = find_or_create_user_from_auth(auth)
-      return render_unprocessable_entity('User creation failed') unless user.persisted?
+      return render_unprocessable_content('User creation failed') unless user.persisted?
 
       perform_oauth_login(user)
     end

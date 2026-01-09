@@ -168,13 +168,10 @@ Naming/PredicateMethod:
     - check_creator_and_render
     - check_transition_and_render
     - execute_destroy_link
+    - remove_relation!
 
 # Naming/AccessorMethodName - permettre get_ prefix pour clarté
 Naming/AccessorMethodName:
-  Enabled: false
-
-# Naming/PredicateMethod - désactiver pour les concerns DDD
-Naming/PredicateMethod:
   Enabled: false
 
 # Style/SafeNavigationChainLength - désactiver pour les chaînes de navigation complexes

@@ -56,7 +56,7 @@ module Api
         when :oauth_failed
           render_unauthorized('oauth_failed')
         when :invalid_payload
-          render_unprocessable_entity('invalid_payload')
+          render_unprocessable_content('invalid_payload')
         else
           Rails.logger.error "Unknown validation result: #{result}"
           render json: { error: 'internal_error' }, status: :internal_server_error
@@ -137,8 +137,8 @@ module Api
         render json: { error: error_code }, status: :unauthorized
       end
 
-      def render_unprocessable_entity(error_code)
-        render json: { error: error_code }, status: :unprocessable_entity
+      def render_unprocessable_content(error_code)
+        render json: { error: error_code }, status: :unprocessable_content
       end
     end
   end

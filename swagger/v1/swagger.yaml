@@ -276,6 +276,238 @@ paths:
               required:
               - refresh_token
         required: true
+  "/api/v1/cras":
+    post:
+      summary: Create a new CRA
+      tags:
+      - CRA
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        description: Bearer token
+        required: true
+        schema:
+          type: string
+      responses:
+        '201':
+          description: CRA creation usually succeeds (rate limiting may not trigger
+            with single request)
+        '401':
+          description: Unauthorized - Malformed token
+        '422':
+          description: Validation failed - Nil values
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                month:
+                  type: integer
+                  minimum: 1
+                  maximum: 12
+                  description: Month (1-12)
+                year:
+                  type: integer
+                  minimum: 2020
+                  maximum: 2030
+                  description: Year
+                currency:
+                  type: string
+                  enum:
+                  - EUR
+                  - USD
+                  - GBP
+                  description: Currency code
+                description:
+                  type: string
+                  description: CRA description
+                status:
+                  type: string
+                  enum:
+                  - draft
+                  - submitted
+                  - locked
+                  default: draft
+                  description: CRA status
+              required:
+              - month
+              - year
+              - currency
+        required: true
+    get:
+      summary: Lists CRAs accessible to user
+      tags:
+      - CRA
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        description: Bearer token
+        required: true
+        schema:
+          type: string
+      - name: page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+        required: false
+        description: Page number for pagination
+      - name: per_page
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+        required: false
+        description: Number of items per page
+      - name: status
+        in: query
+        schema:
+          type: string
+          enum:
+          - draft
+          - submitted
+          - locked
+        required: false
+        description: Filter by CRA status
+      - name: month
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 12
+        required: false
+        description: Filter by month (1-12)
+      - name: year
+        in: query
+        schema:
+          type: integer
+          minimum: 2020
+          maximum: 2030
+        required: false
+        description: Filter by year
+      - name: company_id
+        in: query
+        schema:
+          type: string
+          format: uuid
+        required: false
+        description: Filter by company ID
+      responses:
+        '200':
+          description: Returns filtered results by status
+        '401':
+          description: Unauthorized - Malformed token
+  "/api/v1/cras/{id}":
+    get:
+      summary: Show CRA details
+      tags:
+      - CRA
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        description: Bearer token
+        required: true
+        schema:
+          type: string
+      - name: id
+        in: path
+        schema:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        required: true
+        description: CRA ID
+      responses:
+        '200':
+          description: Locked CRA (read-only access)
+        '401':
+          description: Unauthorized - Malformed token
+        '404':
+          description: CRA not found
+        '403':
+          description: CRA not accessible to user
+    patch:
+      summary: Update a CRA
+      tags:
+      - CRA
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        description: Bearer token
+        required: true
+        schema:
+          type: string
+      - name: id
+        in: path
+        schema:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        required: true
+        description: CRA ID
+      responses:
+        '200':
+          description: Update request usually succeeds (rate limiting may not trigger
+            with single request)
+        '401':
+          description: Unauthorized - Malformed token
+        '404':
+          description: CRA not found
+        '403':
+          description: CRA not accessible to user
+        '409':
+          description: Update locked CRA not allowed
+        '422':
+          description: Invalid status transition
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                year:
+                  type: integer
+                  minimum: 2020
+                  maximum: 2030
+                  description: Year for the CRA
+                month:
+                  type: integer
+                  minimum: 1
+                  maximum: 12
+                  description: Month for the CRA (1-12)
+                currency:
+                  type: string
+                  enum:
+                  - EUR
+                  - USD
+                  - GBP
+                  description: Currency for the CRA
+                description:
+                  type: string
+                  description: Optional description for the CRA
+                status:
+                  type: string
+                  enum:
+                  - draft
+                  - submitted
+                  - locked
+                  description: 'CRA status - note: locked CRAs cannot be updated'
+              required: false
+              description: CRA update parameters
+        required: true
+        description: CRA update parameters
   "/api/v1/cras/{id}/submit":
     post:
       summary: Submit a CRA

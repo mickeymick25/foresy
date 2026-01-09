@@ -187,13 +187,13 @@ module Api
             message: exception.message,
             field: exception.respond_to?(:field) ? exception.field : nil,
             timestamp: Time.current.iso8601
-          }.compact, status: :unprocessable_entity
+          }.compact, status: :unprocessable_content
         when CraErrors::InvalidTransitionError
           render json: {
             error: 'invalid_transition',
             message: exception.message,
             timestamp: Time.current.iso8601
-          }, status: :unprocessable_entity
+          }, status: :unprocessable_content
         when CraErrors::CraLockedError
           render json: {
             error: 'cra_locked',
@@ -205,7 +205,7 @@ module Api
             error: 'cra_submitted',
             message: exception.message,
             timestamp: Time.current.iso8601
-          }, status: :unprocessable_entity
+          }, status: :unprocessable_content
         when CraErrors::DuplicateEntryError
           render json: {
             error: 'duplicate_entry',
@@ -248,7 +248,7 @@ module Api
             error: 'cra_error',
             message: exception.message,
             timestamp: Time.current.iso8601
-          }, status: :unprocessable_entity
+          }, status: :unprocessable_content
         end
       end
     end
