@@ -70,8 +70,8 @@ module TestSupport
 
         # 1. CRA Entry Missions (depends on cra_entry_id and mission_id)
         deleted_counts[:cra_entry_missions] = CraEntryMission.joins(:cra_entry)
-                                                            .where(cra_entries: { created_by_user_id: user_ids })
-                                                            .delete_all
+                                                             .where(cra_entries: { created_by_user_id: user_ids })
+                                                             .delete_all
 
         # 2. CRA Entry CRAs (depends on cra_entry_id and cra_id)
         deleted_counts[:cra_entry_cras] = CraEntryCra.joins(:cra_entry)
@@ -80,8 +80,8 @@ module TestSupport
 
         # 3. CRA Missions (depends on cra_id and mission_id)
         deleted_counts[:cra_missions] = CraMission.joins(:cra)
-                                                 .where(cras: { created_by_user_id: user_ids })
-                                                 .delete_all
+                                                  .where(cras: { created_by_user_id: user_ids })
+                                                  .delete_all
 
         # 4. CRA Entries (depends on cra_id)
         deleted_counts[:cra_entries] = CraEntry.unscoped.where(created_by_user_id: user_ids).delete_all
