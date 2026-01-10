@@ -53,7 +53,7 @@ module Api
         )
 
         if result.success?
-          render json: CraEntries::ResponseFormatter.single(result.entry, @cra), status: :created
+          format_cra_entry_creation_response(result.entry, @cra)
         else
           handle_service_error(result)
         end
@@ -186,7 +186,7 @@ module Api
 
       # Extract mission_id from request
       def mission_id
-        params[:mission_id].present? ? params[:mission_id].to_i : nil
+        params[:mission_id].present? ? params[:mission_id] : nil
       end
 
       # FC07 Standard Error Rendering

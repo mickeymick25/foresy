@@ -37,7 +37,7 @@ gem 'turbo-rails'
 gem 'action_text-trix', '>= 2.1.16'
 
 # For Windows compatibility
-gem 'tzinfo-data', platforms: %i[windows jruby]
+gem 'tzinfo-data', platforms: %i[jruby]
 
 # Security & Rate Limiting
 gem 'rack-attack', '~> 6.7.0'

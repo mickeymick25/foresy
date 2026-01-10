@@ -68,24 +68,45 @@ module TestSupport
         # Delete related data in correct FK order
         deleted_counts = {}
 
-        # 1. MissionCompany (depends on Mission)
+        # 1. CRA Entry Missions (depends on cra_entry_id and mission_id)
+        deleted_counts[:cra_entry_missions] = CraEntryMission.joins(:cra_entry)
+                                                            .where(cra_entries: { created_by_user_id: user_ids })
+                                                            .delete_all
+
+        # 2. CRA Entry CRAs (depends on cra_entry_id and cra_id)
+        deleted_counts[:cra_entry_cras] = CraEntryCra.joins(:cra_entry)
+                                                     .where(cra_entries: { created_by_user_id: user_ids })
+                                                     .delete_all
+
+        # 3. CRA Missions (depends on cra_id and mission_id)
+        deleted_counts[:cra_missions] = CraMission.joins(:cra)
+                                                 .where(cras: { created_by_user_id: user_ids })
+                                                 .delete_all
+
+        # 4. CRA Entries (depends on cra_id)
+        deleted_counts[:cra_entries] = CraEntry.unscoped.where(created_by_user_id: user_ids).delete_all
+
+        # 5. CRAs (depends on User via created_by_user_id)
+        deleted_counts[:cras] = Cra.unscoped.where(created_by_user_id: user_ids).delete_all
+
+        # 6. MissionCompany (depends on Mission)
         deleted_counts[:mission_companies] = MissionCompany.joins(:mission)
                                                            .where(missions: { created_by_user_id: user_ids })
                                                            .delete_all
 
-        # 2. Missions (depends on User via created_by_user_id)
+        # 7. Missions (depends on User via created_by_user_id)
         deleted_counts[:missions] = Mission.unscoped.where(created_by_user_id: user_ids).delete_all
 
-        # 3. UserCompany (depends on User and Company)
+        # 8. UserCompany (depends on User and Company)
         deleted_counts[:user_companies] = UserCompany.where(user_id: user_ids).delete_all
 
-        # 4. Sessions (depends on User)
+        # 9. Sessions (depends on User)
         deleted_counts[:sessions] = Session.where(user_id: user_ids).delete_all
 
-        # 5. Users
+        # 10. Users
         deleted_counts[:users] = users.delete_all
 
-        # 6. Companies (now safe, no more FK references)
+        # 11. Companies (now safe, no more FK references)
         deleted_counts[:companies] = Company.unscoped.where(id: company_ids).delete_all
 
         render json: {
@@ -177,7 +198,7 @@ module TestSupport
 
         # E2E test support: restrict role to safe values only
         if params[:company]&.key?(:role)
-          allowed_roles = %w[admin member viewer] # Whitelist for E2E tests
+          allowed_roles = %w[admin member viewer independent] # Whitelist for E2E tests
           permitted_params[:role] = params[:company][:role] if allowed_roles.include?(params[:company][:role])
         end
 
