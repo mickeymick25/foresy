@@ -27,6 +27,7 @@ API_BASE_URL="${API_BASE_URL:-http://localhost:3000}"
 TEST_EMAIL="e2e_test_$(date +%s)@foresy.local"
 TEST_PASSWORD="TestPassword123!"
 LOG_FILE="/tmp/e2e_cra_lifecycle_$(date +%s).log"
+TIMESTAMP="$(date +%s)"
 
 # Colors for output
 RED='\033[0;31m'
@@ -80,10 +81,14 @@ make_request() {
     local http_code
     http_code=$(echo "$response" | tail -n1)
     local body
-    body=$(echo "$response" | head -n -1)
+    # Extract body by removing the last line (HTTP code) using sed
+    # This is more robust than head -n -1 which fails with insufficient lines
+    body=$(echo "$response" | sed '$d')
 
+    # Use a delimiter to separate HTTP code from body
+    # Output HTTP code first, then body (on separate lines for easy parsing)
+    echo "$http_code"
     echo "$body"
-    return $http_code
 }
 
 # JSON helpers (using jq if available, fallback to basic parsing)
@@ -112,14 +117,15 @@ trap cleanup EXIT
 test_step() {
     local step_name=$1
     local expected_code=$2
+    local actual_code=$3
 
     log_info "Executing: $step_name"
 
-    if [[ $3 -eq $expected_code ]]; then
-        log_success "$step_name - HTTP $3 (Expected: $expected_code)"
+    if [[ $actual_code -eq $expected_code ]]; then
+        log_success "$step_name - HTTP $actual_code (Expected: $expected_code)"
         return 0
     else
-        log_error "$step_name - HTTP $3 (Expected: $expected_code)"
+        log_error "$step_name - HTTP $actual_code (Expected: $expected_code)"
         return 1
     fi
 }
@@ -140,73 +146,52 @@ main() {
     local cra_entry_a_id=""
     local cra_entry_b_id=""
 
-    # Step 1: Create test user and authenticate
-    log_info "=== Step 1: User Setup and Authentication ==="
+    # Use E2E setup endpoint for simplified test setup (replaces manual signup/company creation)
+    log_info "=== Step 1: E2E Test Setup ==="
 
-    local signup_response
-    signup_response=$(make_request "POST" "/api/v1/signup" "{
-        \"email\": \"$TEST_EMAIL\",
-        \"password\": \"$TEST_PASSWORD\",
-        \"password_confirmation\": \"$TEST_PASSWORD\"
+
+
+    local full_response
+    full_response=$(make_request "POST" "/__test_support__/e2e/setup" "{
+        \"user\": {
+            \"email\": \"$TEST_EMAIL\",
+            \"password\": \"$TEST_PASSWORD\"
+        },
+        \"company\": {
+            \"name\": \"E2E CRA Test Company $TIMESTAMP\",
+            \"role\": \"independent\"
+        }
     }")
 
-    local signup_code=$?
-    if ! test_step "User Signup" 201 $signup_code; then
-        log_error "Failed to create test user. Response: $signup_response"
+    # Extract HTTP code (first line) and body (remaining lines)
+    local setup_code
+    setup_code=$(echo "$full_response" | head -n 1)
+    local setup_response
+    setup_response=$(echo "$full_response" | tail -n +2)
+
+    if ! test_step "E2E Setup" 201 $setup_code; then
+        log_error "Failed to setup E2E test environment. Response: $setup_response"
         exit 1
     fi
 
-    user_id=$(parse_json "$signup_response" "id")
-    log_success "User created with ID: $user_id"
+    auth_token=$(parse_json "$setup_response" "token")
+    user_id=$(parse_json "$setup_response" "user_id")
+    company_id=$(parse_json "$setup_response" "company_id")
 
-    # Login to get auth token
-    local login_response
-    login_response=$(make_request "POST" "/api/v1/auth/login" "{
-        \"email\": \"$TEST_EMAIL\",
-        \"password\": \"$TEST_PASSWORD\"
-    }")
-
-    local login_code=$?
-    if ! test_step "User Login" 200 $login_code; then
-        log_error "Failed to login. Response: $login_response"
+    if [[ -z "$auth_token" || -z "$user_id" || -z "$company_id" ]]; then
+        log_error "Failed to extract required data from E2E setup response"
+        log_error "Token: ${auth_token:-empty}, User ID: ${user_id:-empty}, Company ID: ${company_id:-empty}"
         exit 1
     fi
 
-    auth_token=$(parse_json "$login_response" "token")
-    log_success "Authentication successful"
-
-    # Step 2: Create company and associate user
-    log_info "=== Step 2: Company Setup ==="
+    log_success "E2E setup successful"
+    log_success "User ID: $user_id, Company ID: $company_id"
+    log_success "Authentication token: ${auth_token:0:40}..."
 
     local headers="Authorization: Bearer $auth_token"
-    local company_response
-    company_response=$(make_request "POST" "/api/v1/companies" "{
-        \"name\": \"E2E Test Company\",
-        \"siret\": \"12345678901234\"
-    }" "$headers")
 
-    local company_code=$?
-    if ! test_step "Create Company" 201 $company_code; then
-        log_error "Failed to create company. Response: $company_response"
-        exit 1
-    fi
-
-    company_id=$(parse_json "$company_response" "id")
-    log_success "Company created with ID: $company_id"
-
-    # Associate user with company as independent
-    local user_company_response
-    user_company_response=$(make_request "POST" "/api/v1/user_companies" "{
-        \"user_id\": \"$user_id\",
-        \"company_id\": \"$company_id\",
-        \"role\": \"independent\"
-    }" "$headers")
-
-    local user_company_code=$?
-    test_step "Associate User with Company" 201 $user_company_code || log_warning "User-company association may already exist"
-
-    # Step 3: Create test missions
-    log_info "=== Step 3: Mission Setup ==="
+    # Step 2: Create test missions
+    log_info "=== Step 2: Mission Setup ==="
 
     local mission_a_response
     mission_a_response=$(make_request "POST" "/api/v1/missions" "{
@@ -219,11 +204,15 @@ main() {
         \"currency\": \"EUR\"
     }" "$headers")
 
-    local mission_a_code=$?
+    # Extract HTTP code and body from response
+    local mission_a_code
+    mission_a_code=$(echo "$mission_a_response" | head -n 1)
+
     if ! test_step "Create Mission A" 201 $mission_a_code; then
         log_error "Failed to create mission A. Response: $mission_a_response"
         exit 1
     fi
+
 
     mission_a_id=$(parse_json "$mission_a_response" "id")
     log_success "Mission A created with ID: $mission_a_id"
@@ -240,17 +229,21 @@ main() {
         \"currency\": \"EUR\"
     }" "$headers")
 
-    local mission_b_code=$?
+    # Extract HTTP code from response
+    local mission_b_code
+    mission_b_code=$(echo "$mission_b_response" | head -n 1)
+
     if ! test_step "Create Mission B" 201 $mission_b_code; then
         log_error "Failed to create mission B. Response: $mission_b_response"
         exit 1
     fi
 
+
     mission_b_id=$(parse_json "$mission_b_response" "id")
     log_success "Mission B created with ID: $mission_b_id"
 
-    # Step 4: Create CRA
-    log_info "=== Step 4: CRA Creation ==="
+    # Step 3: Create CRA
+    log_info "=== Step 3: CRA Creation ==="
 
     local current_month=$(date +%m)
     local current_year=$(date +%Y)
@@ -263,17 +256,21 @@ main() {
         \"description\": \"E2E Test CRA for $(date +%B)\"
     }" "$headers")
 
-    local cra_code=$?
+    # Extract HTTP code from response
+    local cra_code
+    cra_code=$(echo "$cra_response" | head -n 1)
+
     if ! test_step "Create CRA" 201 $cra_code; then
         log_error "Failed to create CRA. Response: $cra_response"
         exit 1
     fi
 
+
     cra_id=$(parse_json "$cra_response" "id")
     log_success "CRA created with ID: $cra_id"
 
-    # Step 5: Add CRA Entry A (Mission A, Date D, Quantity 0.5)
-    log_info "=== Step 5: Add CRA Entry A ==="
+    # Step 4: Add CRA Entry A (Mission A, Date D, Quantity 0.5)
+    log_info "=== Step 4: Add CRA Entry A ==="
 
     local test_date=$(date -u +%Y-%m-%d)
     local entry_a_response
@@ -285,11 +282,15 @@ main() {
         \"mission_id\": \"$mission_a_id\"
     }" "$headers")
 
-    local entry_a_code=$?
+    # Extract HTTP code from response
+    local entry_a_code
+    entry_a_code=$(echo "$entry_a_response" | head -n 1)
+
     if ! test_step "Add CRA Entry A" 201 $entry_a_code; then
         log_error "Failed to create CRA entry A. Response: $entry_a_response"
         exit 1
     fi
+
 
     cra_entry_a_id=$(parse_json "$entry_a_response" "id")
     log_success "CRA Entry A created with ID: $cra_entry_a_id"
@@ -304,8 +305,8 @@ main() {
         exit 1
     fi
 
-    # Step 6: Add CRA Entry B (Mission B, Date D, Quantity 0.5)
-    log_info "=== Step 6: Add CRA Entry B ==="
+    # Step 5: Add CRA Entry B (Mission B, Date D, Quantity 0.5)
+    log_info "=== Step 5: Add CRA Entry B ==="
 
     local entry_b_response
     entry_b_response=$(make_request "POST" "/api/v1/cras/$cra_id/entries" "{
@@ -316,11 +317,15 @@ main() {
         \"mission_id\": \"$mission_b_id\"
     }" "$headers")
 
-    local entry_b_code=$?
+    # Extract HTTP code from response
+    local entry_b_code
+    entry_b_code=$(echo "$entry_b_response" | head -n 1)
+
     if ! test_step "Add CRA Entry B" 201 $entry_b_code; then
         log_error "Failed to create CRA entry B. Response: $entry_b_response"
         exit 1
     fi
+
 
     cra_entry_b_id=$(parse_json "$entry_b_response" "id")
     log_success "CRA Entry B created with ID: $cra_entry_b_id"
@@ -335,14 +340,17 @@ main() {
         exit 1
     fi
 
-    # Step 7: Verify CRA totals
-    log_info "=== Step 7: Verify CRA Totals ==="
+    # Step 6: Verify CRA totals
+    log_info "=== Step 6: Verify CRA Totals ==="
 
     local cra_detail_response
     cra_detail_response=$(make_request "GET" "/api/v1/cras/$cra_id" "" "$headers")
 
-    local cra_detail_code=$?
+    # Extract HTTP code from response
+    local cra_detail_code
+    cra_detail_code=$(echo "$cra_detail_response" | head -n 1)
     test_step "Get CRA Detail" 200 $cra_detail_code || log_warning "Could not retrieve CRA detail"
+
 
     # Expected totals: 0.5 + 0.5 = 1.0 day, (0.5*60000) + (0.5*70000) = 65000 cents
     local expected_total_days=1.0
@@ -359,17 +367,21 @@ main() {
         log_warning "CRA totals calculation may be pending (totals calculated on submit)"
     fi
 
-    # Step 8: Submit CRA (draft → submitted)
-    log_info "=== Step 8: Submit CRA ==="
+    # Step 7: Submit CRA (draft → submitted)
+    log_info "=== Step 7: Submit CRA ==="
 
     local submit_response
     submit_response=$(make_request "POST" "/api/v1/cras/$cra_id/submit" "" "$headers")
 
-    local submit_code=$?
+    # Extract HTTP code from response
+    local submit_code
+    submit_code=$(echo "$submit_response" | head -n 1)
+
     if ! test_step "Submit CRA" 200 $submit_code; then
         log_error "Failed to submit CRA. Response: $submit_response"
         exit 1
     fi
+
 
     local cra_status=$(parse_json "$submit_response" "status")
     if [[ "$cra_status" == "submitted" ]]; then
@@ -390,18 +402,22 @@ main() {
         exit 1
     fi
 
-    # Step 9: Lock CRA (submitted → locked) with Git Ledger
-    log_info "=== Step 9: Lock CRA (Git Ledger) ==="
+    # Step 8: Lock CRA (submitted → locked) with Git Ledger
+    log_info "=== Step 8: Lock CRA (Git Ledger) ==="
 
     local lock_response
     lock_response=$(make_request "POST" "/api/v1/cras/$cra_id/lock" "" "$headers")
 
-    local lock_code=$?
+    # Extract HTTP code from response
+    local lock_code
+    lock_code=$(echo "$lock_response" | head -n 1)
+
     if ! test_step "Lock CRA" 200 $lock_code; then
         log_error "Failed to lock CRA. Response: $lock_response"
         log_error "Git Ledger integration may have failed"
         exit 1
     fi
+
 
     local cra_locked_status=$(parse_json "$lock_response" "status")
     local locked_at=$(parse_json "$lock_response" "locked_at")
@@ -414,27 +430,31 @@ main() {
         exit 1
     fi
 
-    # Step 10: Verify Git Ledger commit exists
-    log_info "=== Step 10: Verify Git Ledger Commit ==="
+    # Step 9: Verify Git Ledger commit exists
+    log_info "=== Step 9: Verify Git Ledger Commit ==="
 
     # Note: In a real implementation, you might check the Git repository directly
     # For now, we verify that the lock operation succeeded, which implies Git commit
     log_success "CRA lock operation completed (Git Ledger commit should exist)"
 
-    # Step 11: Try to modify locked CRA (should fail with 409)
-    log_info "=== Step 11: Verify CRA Lock Protection ==="
+    # Step 10: Try to modify locked CRA (should fail with 409)
+    log_info "=== Step 10: Verify CRA Lock Protection ==="
 
     local modify_response
     modify_response=$(make_request "PATCH" "/api/v1/cras/$cra_id" "{
         \"description\": \"This should fail\"
     }" "$headers")
 
-    local modify_code=$?
+    # Extract HTTP code from response
+    local modify_code
+    modify_code=$(echo "$modify_response" | head -n 1)
+
     if ! test_step "Modify Locked CRA (should fail)" 409 $modify_code; then
         log_error "Expected 409 conflict for modifying locked CRA, got: $modify_code"
         log_error "Response: $modify_response"
         exit 1
     fi
+
 
     local error_message=$(parse_json "$modify_response" "message")
     if [[ "$error_message" == *"Locked CRAs cannot be modified"* ]]; then
@@ -443,30 +463,37 @@ main() {
         log_warning "Unexpected error message: $error_message"
     fi
 
-    # Step 12: Try to modify CRA entry (should fail with 409)
-    log_info "=== Step 12: Verify CRA Entry Lock Protection ==="
+    # Step 11: Try to modify CRA entry (should fail with 409)
+    log_info "=== Step 11: Verify CRA Entry Lock Protection ==="
 
     local modify_entry_response
     modify_entry_response=$(make_request "PATCH" "/api/v1/cras/$cra_id/entries/$cra_entry_a_id" "{
         \"quantity\": 1.0
     }" "$headers")
 
-    local modify_entry_code=$?
+    # Extract HTTP code from response
+    local modify_entry_code
+    modify_entry_code=$(echo "$modify_entry_response" | head -n 1)
+
     if ! test_step "Modify Locked CRA Entry (should fail)" 409 $modify_entry_code; then
         log_error "Expected 409 conflict for modifying locked CRA entry, got: $modify_entry_code"
         exit 1
     fi
 
+
     log_success "CRA entry lock protection working correctly"
 
-    # Step 13: Verify CRA is still accessible
-    log_info "=== Step 13: Verify CRA Accessibility ==="
+    # Step 12: Verify CRA is still accessible
+    log_info "=== Step 12: Verify CRA Accessibility ==="
 
     local final_cra_response
     final_cra_response=$(make_request "GET" "/api/v1/cras/$cra_id" "" "$headers")
 
-    local final_cra_code=$?
+    # Extract HTTP code from response
+    local final_cra_code
+    final_cra_code=$(echo "$final_cra_response" | head -n 1)
     test_step "Get Locked CRA" 200 $final_cra_code || log_warning "Could not retrieve locked CRA"
+
 
     local final_status=$(parse_json "$final_cra_response" "status")
     if [[ "$final_status" == "locked" ]]; then
