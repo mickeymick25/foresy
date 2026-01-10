@@ -43,7 +43,7 @@ json_field() {
 echo "1. Creating new user..."
 SIGNUP_RESPONSE=$(curl -s -X POST "$API_URL/api/v1/signup" \
     -H "Content-Type: application/json" \
-    -d "{\"email\": \"$TEST_EMAIL\", \"password\": \"$TEST_PASSWORD\", \"password_confirmation\": \"$TEST_PASSWORD\"}")
+    -d "{\"user\": {\"email\": \"$TEST_EMAIL\", \"password\": \"$TEST_PASSWORD\", \"password_confirmation\": \"$TEST_PASSWORD\"}}")
 
 TOKEN=$(json_field "$SIGNUP_RESPONSE" '.token')
 REFRESH_TOKEN=$(json_field "$SIGNUP_RESPONSE" '.refresh_token')

@@ -106,7 +106,7 @@ log_step "1. User authenticates and receives tokens"
 
 SIGNUP_RESP=$(curl -s -X POST "${BASE_URL}${SIGNUP_ENDPOINT}" \
     -H "Content-Type: application/json" \
-    -d "{\"email\":\"${TEST_USER_EMAIL}\",\"password\":\"${TEST_USER_PASSWORD}\",\"password_confirmation\":\"${TEST_USER_PASSWORD}\"}" \
+    -d "{\"user\":{\"email\":\"${TEST_USER_EMAIL}\",\"password\":\"${TEST_USER_PASSWORD}\",\"password_confirmation\":\"${TEST_USER_PASSWORD}\"}}" \
     2>/dev/null || echo '{}')
 
 ACCESS_TOKEN=$(echo "$SIGNUP_RESP" | jq -r '.token // empty')
