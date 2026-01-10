@@ -182,7 +182,12 @@ module Api
           sort_direction = validated_sort_direction
 
           if sort_field == 'line_total'
-            query.order(Arel.sql("(quantity * unit_price) #{sort_direction}"))
+            # Eliminate SQL injection risk by avoiding variable interpolation
+            if validated_sort_direction == 'asc'
+              query.order(Arel.sql('(quantity * unit_price) ASC'))
+            else
+              query.order(Arel.sql('(quantity * unit_price) DESC'))
+            end
           else
             query.order(sort_field => sort_direction.to_sym)
           end

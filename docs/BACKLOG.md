@@ -1,6 +1,24 @@
 # 📋 Backlog - Foresy
 
-**Dernière mise à jour** : 7 janvier 2026 - FC-07 CRA ✅ **100% TERMINÉ**
+**Dernière mise à jour** : 8 janvier 2026 - Horizon 1 ✅ **TERMINÉ & GELÉ** + FC08 🚀 **PRIORITÉ IMMÉDIATE**
+
+## 🎯 DÉCISION STRATÉGIQUE CTO (8 Jan 2026)
+
+**Horizon 1** : ✅ **TERMINÉ, VALIDÉ, GELÉ**
+- CI contractuelle fiable (RSwag validation automatique)
+- RSwag devenu source de vérité API
+- Zéro dette de qualité (500 tests verts, Rubocop clean, Brakeman clean)
+- Standards documentés + enforced (ADR-001, ADR-002, Checklist review)
+
+**FC08** : 🚀 **PRIORITÉ IMMÉDIATE** - Meilleur ROI
+- Directement métier (Entreprise indépendánt)
+- Bloquant pour flux CRA, facturation, droits
+- Prérequis produit, pas une optimisation
+
+**Horizon 2** : 📅 **REPORTÉ** - Post-FC08
+- Diff API, versioning, monitoring
+- Multiplicateur de valeur, pas moteur
+- À implémenter après industrialisation de FC08
 
 ### Métriques de Qualité (Validé le 7 janvier 2026)
 - **RSpec** : ✅ **449 examples, 0 failures**
@@ -27,20 +45,20 @@
 v0.1.0 (Fondations métier)
  ├─ Feature Contract #06 — Missions (Projets) ✅ TERMINÉ
  ├─ Feature Contract #07 — CRA mensuel ✅ TERMINÉ
- ├─ Feature Contract #08 — Entreprise de l'indépendant
+ ├─ Feature Contract #08 — Entreprise de l'indépendant 🚀 PRIORITÉ IMMÉDIATE
  └─ Feature Contract #09 — Notifications & alertes
 
 v0.2.x (Extension)
- ├─ Feature Contract #07 — Rôles & visions
- └─ Feature Contract #08 — Pré-facturation
+ ├─ Feature Contract #10 — Rôles & visions
+ └─ Feature Contract #11 — Pré-facturation
 
 v0.3+ (Optimisation)
- ├─ Feature #10 — Versioning CRA avancé
- ├─ Feature #11 — Export PDF
- └─ Feature #12 — Historique & audit métier
+ ├─ Horizon 2 — API Diff & Versioning 📅 REPORTÉ
+ ├─ Feature #12 — Export PDF
+ └─ Feature #13 — Historique & audit métier
 
 v1.0.0 (MVP Production)
- └─ À définir après validation des fondations
+ └─ À définir après FC08 et industrialisation API
 ```
 
 ---

@@ -32,8 +32,12 @@ gem 'sprockets-rails'
 gem 'stimulus-rails'
 gem 'turbo-rails'
 
+# Fix XSS vulnerability in action_text-trix (vulnerable version 2.1.15)
+# https://github.com/basecamp/trix/security/advisories/GHSA-g9jg-w8vm-g96v
+gem 'action_text-trix', '>= 2.1.16'
+
 # For Windows compatibility
-gem 'tzinfo-data', platforms: %i[windows jruby]
+gem 'tzinfo-data', platforms: %i[jruby]
 
 # Security & Rate Limiting
 gem 'rack-attack', '~> 6.7.0'

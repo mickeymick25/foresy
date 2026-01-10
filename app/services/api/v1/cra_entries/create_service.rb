@@ -23,7 +23,11 @@ module Api
       # @raise [CraErrors::MissionNotFoundError] if mission not accessible
       #
       class CreateService
-        Result = Struct.new(:entry, keyword_init: true)
+        Result = Struct.new(:entry, keyword_init: true) do
+          def success?
+            true
+          end
+        end
 
         def self.call(cra:, entry_params:, mission_id:, current_user:)
           new(cra: cra, entry_params: entry_params, mission_id: mission_id, current_user: current_user).call

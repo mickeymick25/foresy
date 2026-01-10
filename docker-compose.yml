@@ -86,6 +86,8 @@ services:
       # Bundle config
       BUNDLE_PATH: /app/vendor/bundle
       BUNDLE_WITHOUT: ""
+      # E2E Testing Support
+      E2E_MODE: "true"
     depends_on:
       db:
         condition: service_healthy
