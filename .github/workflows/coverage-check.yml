@@ -1,0 +1,237 @@
+name: Coverage Check
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  coverage-check:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: foresy_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -h localhost"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4.8'
+          bundler: '4.0.3'
+          bundler-cache: true
+
+      - name: Install dependencies
+        run: bundle install --jobs=4 --retry=3
+
+      - name: Prepare test database
+        env:
+          RAILS_ENV: test
+          DATABASE_URL: postgres://postgres:password@localhost:5432/foresy_test
+          REDIS_URL: redis://localhost:6379/0
+          SECRET_KEY_BASE: test_secret_key_base_minimum_32_characters_required_here
+        run: |
+          bundle exec rails db:drop db:create db:schema:load
+
+      - name: Run tests with coverage
+        env:
+          RAILS_ENV: test
+          DATABASE_URL: postgres://postgres:password@localhost:5432/foresy_test
+          REDIS_URL: redis://localhost:6379/0
+          SECRET_KEY_BASE: test_secret_key_base_minimum_32_characters_required_here
+          CI: true
+        run: |
+          # Run RSpec with coverage tracking
+          bundle exec rspec --format json --out coverage/rspec_results.json
+
+          # Generate SimpleCov coverage report in JSON format
+          bundle exec simplecov --require spec/simplecov_formatter.rb --format SimpleCov::Formatter::JSONFormatter --out coverage/coverage.json
+
+          # Display coverage summary
+          bundle exec simplecov --format progress
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: coverage/coverage.json
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: true
+
+      - name: Check minimum coverage
+        run: |
+          # Parse SimpleCov results and check threshold
+          if [ -f coverage/coverage.json ]; then
+            TOTAL_COVERAGE=$(jq -r '.metrics.covered_percent' coverage/coverage.json)
+            echo "Total coverage: ${TOTAL_COVERAGE}%"
+
+            # Check if coverage meets minimum threshold (90%)
+            if (( $(echo "$TOTAL_COVERAGE < 90.0" | bc -l) )); then
+              echo "❌ COVERAGE FAILURE: ${TOTAL_COVERAGE}% is below minimum 90%"
+              echo "Required: 90.0%, Actual: ${TOTAL_COVERAGE}%, Missing: $(echo "90.0 - $TOTAL_COVERAGE" | bc)%"
+              exit 1
+            else
+              echo "✅ Coverage requirement met: ${TOTAL_COVERAGE}% (>= 90.0%)"
+            fi
+
+            # Check per-file coverage (minimum 80%)
+            FILES_BELOW_THRESHOLD=$(jq -r '.files[] | select(.covered_percent < 80.0) | .filename' coverage/coverage.json | wc -l)
+            if [ "$FILES_BELOW_THRESHOLD" -gt 0 ]; then
+              echo "❌ FILE COVERAGE FAILURE: ${FILES_BELOW_THRESHOLD} files below 80% threshold"
+              echo "Files below threshold:"
+              jq -r '.files[] | select(.covered_percent < 80.0) | "  \(.filename): \(.covered_percent)%"' coverage/coverage.json
+              exit 1
+            else
+              echo "✅ All files meet minimum 80% coverage threshold"
+            fi
+          else
+            echo "❌ Coverage report not found"
+            exit 1
+          fi
+
+      - name: Comment PR with coverage results
+        if: github.event_name == 'pull_request' && failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let coverageData = {};
+
+            try {
+              const coverageContent = fs.readFileSync('coverage/coverage.json', 'utf8');
+              coverageData = JSON.parse(coverageContent);
+            } catch (error) {
+              console.log('Could not read coverage data:', error.message);
+            }
+
+            const totalCoverage = coverageData.metrics?.covered_percent || 0;
+            const filesBelowThreshold = coverageData.files?.filter(f => f.covered_percent < 80.0) || [];
+
+            const output = `#### ❌ Coverage Check Failed
+
+            **Coverage Analysis:**
+            - Overall Coverage: ${totalCoverage.toFixed(2)}% (Required: 90.0%)
+            - Files Below 80% Threshold: ${filesBelowThreshold.length}
+
+            ${filesBelowThreshold.length > 0 ? `
+            **Files Needing More Tests:**
+            ${filesBelowThreshold.slice(0, 5).map(f => `- ${f.filename}: ${f.covered_percent.toFixed(1)}%`).join('\n')}
+            ${filesBelowThreshold.length > 5 ? `... and ${filesBelowThreshold.length - 5} more` : ''}
+            ` : ''}
+
+            **Required Actions:**
+            1. Add more tests to achieve 90% overall coverage
+            2. Focus on files below 80% coverage threshold
+            3. Run \`bundle exec rspec\` to generate detailed coverage report
+            4. Use \`bundle exec simplecov --format progress\` to see coverage breakdown
+
+            ---
+            *This check is required by PR15 Infrastructure Improvement Plan*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            });
+
+      - name: Comment PR with coverage success
+        if: github.event_name == 'pull_request' && success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let coverageData = {};
+
+            try {
+              const coverageContent = fs.readFileSync('coverage/coverage.json', 'utf8');
+              coverageData = JSON.parse(coverageContent);
+            } catch (error) {
+              console.log('Could not read coverage data:', error.message);
+            }
+
+            const totalCoverage = coverageData.metrics?.covered_percent || 0;
+
+            const output = `#### ✅ Coverage Check Passed
+
+            **Coverage Analysis:**
+            - Overall Coverage: ${totalCoverage.toFixed(2)}% ✅
+            - Per-file Coverage: All files ≥ 80% ✅
+
+            **Quality Standards Met:**
+            - ✅ Overall coverage ≥ 90%
+            - ✅ Per-file coverage ≥ 80%
+            - ✅ All quality thresholds passed
+
+            ---
+            *Coverage check by PR15 Infrastructure Improvement Plan*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            });
+
+      - name: Upload coverage artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-reports
+          path: |
+            coverage/coverage.json
+            coverage/rspec_results.json
+          retention-days: 30
+
+  coverage-summary:
+    runs-on: ubuntu-latest
+    needs: coverage-check
+    if: always()
+
+    steps:
+      - name: Download coverage artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-reports
+          path: coverage/
+
+      - name: Generate coverage badge
+        run: |
+          if [ -f coverage/coverage.json ]; then
+            TOTAL_COVERAGE=$(jq -r '.metrics.covered_percent' coverage/coverage.json)
+            echo "coverage_percentage=$TOTAL_COVERAGE" >> $GITHUB_OUTPUT
+
+            # Create simple coverage badge
+            if (( $(echo "$TOTAL_COVERAGE >= 90" | bc -l) )); then
+              echo "coverage_status=passing" >> $GITHUB_OUTPUT
+              echo "coverage_color=brightgreen" >> $GITHUB_OUTPUT
+            else
+              echo "coverage_status=failing" >> $GITHUB_OUTPUT
+              echo "coverage_color=red" >> $GITHUB_OUTPUT
+            fi
+          fi

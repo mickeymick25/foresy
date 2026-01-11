@@ -20,9 +20,9 @@ SimpleCov.start do
   # Configure coverage tracking
   track_files '**/*.rb'
 
-  # Minimum coverage thresholds - TEMPORARILY DISABLED FOR CI
-  # minimum_coverage 30.0 # Overall coverage must be >= 30% (temporarily lowered for CI)
-  # minimum_coverage_by_file 20.0 # Per-file coverage must be >= 20% (temporarily lowered for CI)
+  # Minimum coverage thresholds - ACTIVATED per PR15 Plan
+  minimum_coverage 90.0 # Overall coverage must be >= 90% (PR15 Standard)
+  minimum_coverage_by_file 80.0 # Per-file coverage must be >= 80% (PR15 Standard)
 
   # Use JSON formatter for CI integration
   formatter SimpleCov::Formatter::JSONFormatter
@@ -34,27 +34,45 @@ SimpleCov.start do
   # ignore_errors true  # Removed - not a valid SimpleCov method
 end
 
-# Helper module for coverage validation
+# Helper module for coverage validation - PR15 Implementation
 module CoverageHelper
   def self.ensure_minimum_coverage!
     return unless ENV['CI']
 
-    # Load coverage data if available
-    coverage_file = 'coverage/coverage.json'
-    if File.exist?(coverage_file)
-      coverage_data = JSON.parse(File.read(coverage_file))
-      total_coverage = coverage_data.dig('metrics', 'covered_percent') || 0
+    # Get SimpleCov results directly instead of parsing JSON file
+    if defined?(SimpleCov) && SimpleCov.result
+      result = SimpleCov.result
+      total_coverage = result.covered_percent
 
-      raise "Coverage #{total_coverage}% is below minimum 90%" if total_coverage < 90.0
+      # Check overall coverage
+      if total_coverage < 90.0
+        raise "❌ COVERAGE FAILURE: #{total_coverage.round(2)}% is below minimum 90.0%\n" +
+              "Required: 90.0%, Actual: #{total_coverage.round(2)}%, Missing: #{(90.0 - total_coverage).round(2)}%"
+      end
 
-      puts "✅ Coverage requirement met: #{total_coverage}%"
+      # Check per-file coverage (minimum 80%)
+      files_below_threshold = result.files.select do |file|
+        file.covered_percent < 80.0
+      end
+
+      if files_below_threshold.any?
+        file_list = files_below_threshold.first(5).map { |f| "#{f.filename}: #{f.covered_percent.round(2)}%" }.join(', ')
+        raise "❌ FILE COVERAGE FAILURE: #{files_below_threshold.count} files below 80% threshold\n" +
+              "Examples: #{file_list}..."
+      end
+
+      puts "✅ Coverage requirement met: #{total_coverage.round(2)}% (>= 90.0%)"
+      puts "✅ All files meet minimum 80% coverage threshold"
+
+      # Generate coverage report for CI
+      File.write('coverage/coverage.json', result.to_json)
     else
-      puts '⚠️ Coverage report not found - skipping coverage check'
+      raise "❌ SimpleCov results not available - coverage validation failed"
     end
-  rescue JSON::ParserError => e
-    puts "⚠️ Error parsing coverage report: #{e.message}"
   rescue StandardError => e
-    puts "⚠️ Coverage validation error: #{e.message}"
+    # Always fail CI on coverage issues
+    puts "❌ COVERAGE VALIDATION ERROR: #{e.message}"
+    raise e
   end
 end
 
@@ -75,7 +93,7 @@ RSpec.configure do |config|
   config.order = :random
   Kernel.srand config.seed
 
-  # Validate coverage after test suite completes
+  # Validate coverage after test suite completes - PR15 Critical Validation
   config.after(:suite) do
     CoverageHelper.ensure_minimum_coverage!
   end
