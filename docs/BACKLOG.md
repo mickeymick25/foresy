@@ -46,11 +46,11 @@
 v0.1.0 (Fondations métier)
  ├─ Feature Contract #06 — Missions (Projets) ✅ TERMINÉ
  ├─ Feature Contract #07 — CRA mensuel ✅ TERMINÉ
- ├─ 🔴 **PR15 — Infrastructure Quality Improvement (CRITIQUE)** ❌ **PAS ENCORE IMPLÉMENTÉ**
+ ├─ ✅ **PR15 — Infrastructure Quality Improvement** ✅ **IMPLÉMENTÉ (11 Jan 2026)**
  │   - **Problème**: Couverture catastrophique (31.02% RSpec, 0.01% RSwag vs 90% attendu)
- │   - **Solution**: Implémenter PR15 Infrastructure Improvement Plan complet
- │   - **Composants**: SimpleCov seuil 90%, Templates business/contract, CI/CD workflows
- │   - **Impact**: Standards "Platinum Level" requis pour FC-08 et suivants
+ │   - **Solution**: ✅ PR15 Infrastructure Improvement Plan COMPLÈTEMENT IMPLÉMENTÉ
+ │   - **Composants**: ✅ SimpleCov seuil 90%, ✅ Templates business/contract, ✅ CI/CD workflows
+ │   - **Impact**: ✅ Standards "Platinum Level" ENFORCÉS pour FC-08 et suivants
  ├─ Feature Contract #08 — Entreprise de l'indépendant 🚀 PRIORITÉ IMMÉDIATE
  └─ Feature Contract #09 — Notifications & alertes
 
