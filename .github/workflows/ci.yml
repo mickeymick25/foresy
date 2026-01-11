@@ -48,13 +48,9 @@ jobs:
           RAILS_ENV: test
           DATABASE_URL: postgres://postgres:password@localhost:5432/foresy_test
           REDIS_URL: redis://localhost:6379/0
-          SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          SECRET_KEY_BASE: test_secret_key_base_minimum_32_characters_required_here
+          JWT_SECRET: test_jwt_secret_minimum_32_characters_required_here
         run: |
-          if [[ -z "$SECRET_KEY_BASE" || -z "$JWT_SECRET" ]]; then
-            echo "❌ Error: Required secrets are not configured"
-            exit 1
-          fi
           bundle exec rails db:drop db:create db:schema:load
 
       - name: Run tests
@@ -62,14 +58,14 @@ jobs:
           RAILS_ENV: test
           DATABASE_URL: postgres://postgres:password@localhost:5432/foresy_test
           REDIS_URL: redis://localhost:6379/0
-          SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          SECRET_KEY_BASE: test_secret_key_base_minimum_32_characters_required_here
+          JWT_SECRET: test_jwt_secret_minimum_32_characters_required_here
         run: bundle exec rspec
 
       - name: Security audit
         env:
-          SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          SECRET_KEY_BASE: test_secret_key_base_minimum_32_characters_required_here
+          JWT_SECRET: test_jwt_secret_minimum_32_characters_required_here
         run: |
           # Brakeman: fail on high confidence warnings (critical vulnerabilities)
           bundle exec brakeman --ignore-config=.brakeman.ignore --no-exit-on-warn --confidence-level=2
