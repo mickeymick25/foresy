@@ -21,8 +21,8 @@ SimpleCov.start do
   track_files '**/*.rb'
 
   # Minimum coverage thresholds
-  minimum_coverage 90.0 # Overall coverage must be >= 90%
-  minimum_coverage_by_file 80.0 # Per-file coverage must be >= 80%
+  minimum_coverage 90.0           # Overall coverage must be >= 90%
+  minimum_coverage_by_file 80.0    # Per-file coverage must be >= 80%
 
   # Use JSON formatter for CI integration
   formatter SimpleCov::Formatter::JSONFormatter
@@ -31,7 +31,7 @@ SimpleCov.start do
   enable_coverage :branch
 
   # Ignore errors during coverage generation
-  # ignore_errors true  # Removed - not a valid SimpleCov method
+  ignore_errors true
 end
 
 # Helper module for coverage validation
@@ -45,11 +45,13 @@ module CoverageHelper
       coverage_data = JSON.parse(File.read(coverage_file))
       total_coverage = coverage_data.dig('metrics', 'covered_percent') || 0
 
-      raise "Coverage #{total_coverage}% is below minimum 90%" if total_coverage < 90.0
+      if total_coverage < 90.0
+        raise "Coverage #{total_coverage}% is below minimum 90%"
+      end
 
       puts "✅ Coverage requirement met: #{total_coverage}%"
     else
-      puts '⚠️ Coverage report not found - skipping coverage check'
+      puts "⚠️ Coverage report not found - skipping coverage check"
     end
   rescue JSON::ParserError => e
     puts "⚠️ Error parsing coverage report: #{e.message}"

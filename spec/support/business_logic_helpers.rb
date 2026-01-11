@@ -1,0 +1,476 @@
+# frozen_string_literal: true
+
+# Business Logic Helpers pour les tests de logique métier
+# Fournit des méthodes pour tester les calculs, validations, et règles métier
+# Complémentaire aux ApiContractHelpers pour les tests de contrat API
+
+module BusinessLogicHelpers
+  extend ActiveSupport::Concern
+
+  # ==============================================================================
+  # FINANCIAL CALCULATION HELPERS
+  # ==============================================================================
+
+  # Calcule le total de ligne en centimes
+  def calculate_line_total(quantity, unit_price_cents)
+    # Toujours utiliser des entiers pour éviter les problèmes de précision Float
+    (quantity.to_f * unit_price_cents.to_i).to_i
+  end
+
+  # Vérifie qu'il n'y a pas de problèmes de précision Float
+  def assert_no_float_precision_issues(amount_cents)
+    expect(amount_cents.class).to eq(Integer)
+    expect(amount_cents).to be >= 0
+  end
+
+  # Crée un montant en centimes depuis un montant en euros
+  def euros_to_cents(euros)
+    (euros.to_f * 100).to_i
+  end
+
+  # Convertit des centimes en euros pour l'affichage
+  def cents_to_euros(cents)
+    (cents.to_f / 100.0).round(2)
+  end
+
+  # Teste un cas de calcul financier
+  def test_financial_calculation(quantity, unit_price_cents, expected_total_cents)
+    line_total = calculate_line_total(quantity, unit_price_cents)
+    expect(line_total).to eq(expected_total_cents)
+    assert_no_float_precision_issues(line_total)
+    line_total
+  end
+
+  # ==============================================================================
+  # CRA BUSINESS LOGIC HELPERS
+  # ==============================================================================
+
+  # Crée un CRA avec des entrées pour les tests
+  def create_cra_with_entries(user:, month:, year:, entries_data:)
+    cra = create(:cra, user: user, month: month, year: year, status: 'draft')
+
+    entries_data.each do |entry_data|
+      create(:cra_entry, cra: cra, **entry_data)
+    end
+
+    cra.reload
+    cra
+  end
+
+  # Crée un scénario de test CRA complet
+  def create_complete_cra_scenario(user: nil, month: 1, year: 2025)
+    user ||= create(:user)
+    company = create(:company, user: user)
+    mission = create(:mission, user: user, client_company: company)
+
+    # Créer des entrées typiques
+    entries_data = [
+      {
+        date: "#{year}-#{month.to_s.rjust(2, '0')}-15",
+        quantity: 0.5,
+        unit_price: 60_000,  # 600€ en centimes
+        description: 'Morning work',
+        mission: mission
+      },
+      {
+        date: "#{year}-#{month.to_s.rjust(2, '0')}-20",
+        quantity: 1.0,
+        unit_price: 80_000,  # 800€ en centimes
+        description: 'Full day work',
+        mission: mission
+      }
+    ]
+
+    cra = create_cra_with_entries(user: user, month: month, year: year, entries_data: entries_data)
+
+    {
+      user: user,
+      company: company,
+      mission: mission,
+      cra: cra,
+      entries_data: entries_data,
+      expected_totals: {
+        total_days: 1.5,
+        total_amount: 100_000 # 1000€ en centimes
+      }
+    }
+  end
+
+  # Vérifie les totaux d'un CRA
+  def assert_cra_totals(cra, expected_days, expected_amount_cents)
+    expect(cra.total_days).to eq(expected_days)
+    expect(cra.total_amount).to eq(expected_amount_cents)
+  end
+
+  # Teste le recalcul automatique des totaux
+  def test_cra_recalculation_scenario(cra, &block)
+    # Capturer les totaux avant
+    totals_before = {
+      days: cra.total_days,
+      amount: cra.total_amount
+    }
+
+    # Exécuter l'action de test
+    block.call
+
+    # Recharger le CRA et vérifier le recalcul
+    cra.reload
+    totals_after = {
+      days: cra.total_days,
+      amount: cra.total_amount
+    }
+
+    {
+      before: totals_before,
+      after: totals_after,
+      cra: cra
+    }
+  end
+
+  # ==============================================================================
+  # VALIDATION HELPERS
+  # ==============================================================================
+
+  # Teste la validation d'unicité CRA
+  def test_cra_uniqueness_validation(user, month, year)
+    # Créer un CRA existant
+    existing_cra = create(:cra, user: user, month: month, year: year)
+
+    # Tester qu'on ne peut pas créer un second CRA pour la même période
+    expect do
+      create(:cra, user: user, month: month, year: year)
+    end.to raise_error(ActiveRecord::RecordInvalid)
+
+    existing_cra
+  end
+
+  # Teste les validations de données CRA Entry
+  def test_cra_entry_validations
+    {
+      valid_quantity: -> { build(:cra_entry, quantity: 1.0) },
+      invalid_negative_quantity: -> { build(:cra_entry, quantity: -1.0) },
+      invalid_zero_quantity: -> { build(:cra_entry, quantity: 0.0) },
+      valid_unit_price: -> { build(:cra_entry, unit_price: 60_000) },
+      invalid_negative_price: -> { build(:cra_entry, unit_price: -1000) },
+      valid_date: -> { build(:cra_entry, date: '2025-01-15') },
+      invalid_date: -> { build(:cra_entry, date: 'invalid-date') }
+    }
+  end
+
+  # Vérifie qu'une erreur de validation est levée
+  def assert_validation_error(&)
+    expect(&).to raise_error(ActiveRecord::RecordInvalid)
+  end
+
+  # ==============================================================================
+  # LIFECYCLE HELPERS
+  # ==============================================================================
+
+  # Teste les transitions d'état CRA - Version refactorisée pour réduire complexité ABC
+  def test_cra_lifecycle_transitions(cra)
+    test_draft_state(cra)
+    test_submitted_state(cra)
+    test_locked_state(cra)
+  end
+
+  # Teste l'état draft
+  def test_draft_state(cra)
+    context 'when CRA is draft' do
+      before { cra.update!(status: 'draft') }
+
+      it 'has correct permissions' do
+        expect(cra.may_submit?).to be true
+        expect(cra.may_lock?).to be false
+        expect(cra.may_destroy?).to be true
+      end
+
+      it 'allows transition to submitted' do
+        expect { cra.submit! }.not_to raise_error
+        expect(cra.reload.status).to eq('submitted')
+      end
+    end
+  end
+
+  # Teste l'état submitted
+  def test_submitted_state(cra)
+    context 'when CRA is submitted' do
+      before { cra.update!(status: 'submitted') }
+
+      it 'has correct permissions' do
+        expect(cra.may_submit?).to be false
+        expect(cra.may_lock?).to be true
+        expect(cra.may_destroy?).to be false
+      end
+
+      it 'allows transition to locked' do
+        expect { cra.lock! }.not_to raise_error
+        expect(cra.reload.status).to eq('locked')
+      end
+    end
+  end
+
+  # Teste l'état locked
+  def test_locked_state(cra)
+    context 'when CRA is locked' do
+      before { cra.update!(status: 'locked') }
+
+      it 'has correct permissions' do
+        expect(cra.may_submit?).to be false
+        expect(cra.may_lock?).to be false
+        expect(cra.may_destroy?).to be false
+      end
+    end
+  end
+
+  # Teste les restrictions de modification selon l'état
+  def test_cra_modification_restrictions(cra, &modify_action)
+    states = %w[draft submitted locked]
+
+    states.each do |state|
+      context "when CRA is #{state}" do
+        before { cra.update!(status: state) }
+
+        case state
+        when 'draft'
+          it 'allows modifications' do
+            expect { modify_action.call }.not_to raise_error
+          end
+        when 'submitted'
+          it 'raises CraSubmittedError' do
+            expect { modify_action.call }.to raise_error(CraSubmittedError)
+          end
+        when 'locked'
+          it 'raises CraLockedError' do
+            expect { modify_action.call }.to raise_error(CraLockedError)
+          end
+        end
+      end
+    end
+  end
+
+  # ==============================================================================
+  # DATA CREATION HELPERS
+  # ==============================================================================
+
+  # Crée des données de test réalistes
+  def create_realistic_cra_data
+    {
+      # Données CRA de base
+      cra_data: {
+        month: 1,
+        year: 2025,
+        currency: 'EUR',
+        description: 'January 2025 work'
+      },
+
+      # Données d'entrées réalistes
+      entries_data: [
+        {
+          date: '2025-01-10',
+          quantity: 0.5,
+          unit_price: 60_000,
+          description: 'Morning meeting and planning'
+        },
+        {
+          date: '2025-01-15',
+          quantity: 1.0,
+          unit_price: 60_000,
+          description: 'Full day development'
+        },
+        {
+          date: '2025-01-20',
+          quantity: 0.25,
+          unit_price: 80_000,
+          description: 'Code review session'
+        },
+        {
+          date: '2025-01-25',
+          quantity: 1.0,
+          unit_price: 80_000,
+          description: 'Client presentation'
+        }
+      ],
+
+      # Totaux attendus
+      expected_totals: {
+        total_days: 2.75,
+        total_amount: 220_000 # 2200€ en centimes
+      }
+    }
+  end
+
+  # Crée un utilisateur avec des données complètes
+  def create_complete_user(overrides = {})
+    create(:user, {
+      email: "test+#{SecureRandom.hex(8)}@example.com",
+      password: 'SecurePass123!',
+      first_name: 'Test',
+      last_name: 'User',
+      role: 'independent'
+    }.merge(overrides))
+  end
+
+  # Crée une mission avec des données complètes
+  def create_complete_mission(user, company, overrides = {})
+    create(:mission, {
+      user: user,
+      client_company: company,
+      name: "Test Mission #{SecureRandom.hex(4)}",
+      mission_type: 'time_based',
+      daily_rate: 60_000,
+      currency: 'EUR',
+      status: 'won',
+      start_date: Date.current,
+      description: 'Test mission for business logic validation'
+    }.merge(overrides))
+  end
+
+  # ==============================================================================
+  # ASSERTION HELPERS
+  # ==============================================================================
+
+  # Vérifie la cohérence des données CRA
+  def assert_cra_data_consistency(cra)
+    # Vérifier que les totaux correspondent aux entrées
+    if cra.entries.any?
+      expected_days = cra.entries.sum(&:quantity)
+      expected_amount = cra.entries.sum(&:line_total)
+
+      expect(cra.total_days).to eq(expected_days)
+      expect(cra.total_amount).to eq(expected_amount)
+    else
+      expect(cra.total_days).to eq(0.0)
+      expect(cra.total_amount).to eq(0)
+    end
+
+    # Vérifier la cohérence des devises
+    expect(cra.currency).to be_present
+    cra.entries.each do |entry|
+      expect(entry.currency).to eq(cra.currency)
+    end
+  end
+
+  # Vérifie que les calculs sont corrects
+  def assert_financial_calculations(entries_data)
+    total_days = entries_data.sum { |entry| entry[:quantity] }
+    total_amount = entries_data.sum { |entry| entry[:quantity] * entry[:unit_price] }
+
+    {
+      total_days: total_days,
+      total_amount: total_amount
+    }
+  end
+
+  # ==============================================================================
+  # ERROR HELPERS
+  # ==============================================================================
+
+  # Teste la gestion des erreurs métier
+  def test_business_error_handling
+    {
+      cra_submitted_error: -> { raise CraSubmittedError },
+      cra_locked_error: -> { raise CraLockedError },
+      invalid_state_transition: -> { raise 'Invalid state transition' }
+    }
+  end
+
+  # Vérifie qu'une erreur métier spécifique est levée
+  def assert_business_error(error_class, &)
+    expect(&).to raise_error(error_class)
+  end
+
+  # ==============================================================================
+  # SHARED EXAMPLES FOR BUSINESS LOGIC
+  # ==============================================================================
+
+  # ==============================================================================
+  # INCLUDED MODULE METHODS
+  # ==============================================================================
+
+  included do
+    # Configuration par défaut pour les tests de logique métier
+    before do
+      # S'assurer que l'utilisateur de test existe
+      @test_user ||= create_complete_user
+    end
+  end
+
+  # Méthodes de classe pour le module
+  class_methods do
+    # Crée un scénario de test standard
+    def create_standard_test_scenario
+      user = create_complete_user
+      company = create(:company, user: user)
+      mission = create_complete_mission(user: user, company: company)
+      cra_data = create_realistic_cra_data
+
+      {
+        user: user,
+        company: company,
+        mission: mission,
+        cra_data: cra_data
+      }
+    end
+
+    # Génère des cas de test pour les calculs financiers
+    def generate_financial_test_cases
+      [
+        { quantity: 0.5, unit_price: 60_000, expected: 30_000, description: 'Half day at 600€' },
+        { quantity: 1.0, unit_price: 60_000, expected: 60_000, description: 'Full day at 600€' },
+        { quantity: 1.5, unit_price: 80_000, expected: 120_000, description: '1.5 days at 800€' },
+        { quantity: 0.25, unit_price: 100_000, expected: 25_000, description: 'Quarter day at 1000€' },
+        { quantity: 2.0, unit_price: 50_000, expected: 100_000, description: 'Two days at 500€' }
+      ]
+    end
+  end
+end
+
+# ==============================================================================
+# NOTES POUR LES DÉVELOPPEURS
+# ==============================================================================
+#
+# Ce module fournit tous les helpers nécessaires pour les tests de logique métier :
+#
+# 1. CALCULS FINANCIERS:
+#    - calculate_line_total() : Calcul en centimes, pas de Float
+#    - assert_no_float_precision_issues() : Vérifie l'absence de problèmes de précision
+#    - test_financial_calculation() : Test complet d'un cas de calcul
+#
+# 2. VALIDATION MÉTIER:
+#    - test_cra_uniqueness_validation() : Test d'unicité CRA
+#    - test_cra_entry_validations() : Ensemble de validations
+#    - assert_validation_error() : Vérifie qu'une erreur de validation est levée
+#
+# 3. LIFECYCLE:
+#    - test_cra_lifecycle_transitions() : Test des transitions d'état
+#    - test_cra_modification_restrictions() : Test des restrictions par état
+#
+# 4. CRÉATION DE DONNÉES:
+#    - create_complete_user() : Utilisateur complet
+#    - create_complete_mission() : Mission avec données complètes
+#    - create_realistic_cra_data() : Données réalistes pour tests
+#
+# 5. SHARED EXAMPLES:
+#    - complete CRA creation scenario
+#    - financial calculations
+#    - automatic recalculation
+#    - CRA lifecycle
+#
+# Usage dans les specs :
+#   RSpec.describe "Business Logic Tests", type: :request do
+#     include BusinessLogicHelpers
+#
+#     it_behaves_like "financial calculations"
+#     it_behaves_like "automatic recalculation"
+#
+#     it "calculates custom business logic" do
+#       scenario = create_standard_test_scenario
+#       # Test custom logic here
+#     end
+#   end
+#
+# Références:
+# - FC-07 CRA Feature Contract
+# - Architecture DDD (Domain-Driven Design)
+# - Services applicatifs vs Callbacks ActiveRecord
+# - Tests TDD Platinum Level</parameter>

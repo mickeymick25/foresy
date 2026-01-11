@@ -204,10 +204,10 @@ Confirm readiness to implement Feature Contracts following this vision.
 
 | Tool | Result | Status |
 |------|--------|--------|
-| **RSpec** | 449 examples, 0 failures | ✅ |
-| **Rswag** | 128 examples, 0 failures | ✅ |
-| **RuboCop** | 147 files inspected, no offenses detected | ✅ |
-| **Brakeman** | 0 Security Warnings (3 ignored) | ✅ |
+| **Tests RSpec** | ✅ **500 examples, 0 failures** — ❌ **Couverture SimpleCov : 31.02%** (seuil attendu : 90%) | ⚠️ PARTIAL |
+| **Tests Rswag** | ✅ **201 examples, 0 failures** — ❌ **Couverture SimpleCov : 0.01%** (catastrophique !) | ⚠️ PARTIAL |
+| **RuboCop** | ❌ **1 offense détectée** — `spec/support/business_logic_helpers.rb:170` - Complexité trop élevée | ❌ FAIL |
+| **Brakeman** | ❌ **Erreur de parsing** — `bin/templates/quality_metrics.rb:528` - Syntaxe Ruby incorrecte | ❌ FAIL |
 
 - **Architecture**: Domain-Driven / Relation-Driven (no FK between domains)
 

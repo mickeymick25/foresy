@@ -20,11 +20,12 @@
 - Multiplicateur de valeur, pas moteur
 - À implémenter après industrialisation de FC08
 
-### Métriques de Qualité (Validé le 7 janvier 2026)
-- **RSpec** : ✅ **449 examples, 0 failures**
-- **Rswag** : ✅ **128 examples, 0 failures** — `swagger.yaml` généré
-- **RuboCop** : ✅ **147 files inspected, no offenses detected**
-- **Brakeman** : ✅ **0 Security Warnings** (3 ignored)
+### 🚨 État Réel de la Qualité (11 Janvier 2026) - PROBLÈME CRITIQUE
+- **Tests RSpec** : ✅ **500 examples, 0 failures** — ❌ **Couverture SimpleCov : 31.02%** (seuil attendu : 90%)
+- **Tests Rswag** : ✅ **201 examples, 0 failures** — ❌ **Couverture SimpleCov : 0.01%** (catastrophique !)
+- **RuboCop** : ❌ **1 offense détectée** — `spec/support/business_logic_helpers.rb:170` - Complexité trop élevée
+- **Brakeman** : ❌ **Erreur de parsing** — `bin/templates/quality_metrics.rb:528` - Syntaxe Ruby incorrecte
+- **⚠️ ALERTE** : Le projet n'est PAS aux standards attendus !
 
 ---
 
@@ -45,6 +46,11 @@
 v0.1.0 (Fondations métier)
  ├─ Feature Contract #06 — Missions (Projets) ✅ TERMINÉ
  ├─ Feature Contract #07 — CRA mensuel ✅ TERMINÉ
+ ├─ 🔴 **PR15 — Infrastructure Quality Improvement (CRITIQUE)** ❌ **PAS ENCORE IMPLÉMENTÉ**
+ │   - **Problème**: Couverture catastrophique (31.02% RSpec, 0.01% RSwag vs 90% attendu)
+ │   - **Solution**: Implémenter PR15 Infrastructure Improvement Plan complet
+ │   - **Composants**: SimpleCov seuil 90%, Templates business/contract, CI/CD workflows
+ │   - **Impact**: Standards "Platinum Level" requis pour FC-08 et suivants
  ├─ Feature Contract #08 — Entreprise de l'indépendant 🚀 PRIORITÉ IMMÉDIATE
  └─ Feature Contract #09 — Notifications & alertes
 
@@ -153,6 +159,36 @@ docker compose exec web bundle exec rubocop --format simple
 docker compose exec web bundle exec brakeman -q
 # Résultat : 0 Security Warnings
 ```
+
+---
+
+## 🔴 CRITIQUE — PRÉREQUIS QUALITÉ INFRASTRUCTURE
+
+### PR15 — Infrastructure Quality Improvement
+
+🏗️ **Standards & Infrastructure** — Qualité de code et tests critiques pour tous les Feature Contracts
+
+| Aspect | Détails |
+|--------|---------|
+| **Problème identifié** | Couverture de tests catastrophique (31.02% RSpec, 0.01% RSwag vs 90% attendu) |
+| **Impact** | Projet NON conforme aux standards "Platinum Level" attendus |
+| **Composants requis** | SimpleCov seuil 90%, Templates business/contract separation, CI/CD workflows |
+| **Scope technique** | Configuration SimpleCov, Templates RSpec, Workflows GitHub Actions, Documentation |
+| **Tests actuels** | ✅ 500 RSpec + 201 RSwag passent — ❌ Couverture insuffisante |
+| **Qualité code** | ❌ 1 infraction RuboCop + ❌ 1 erreur parsing Brakeman |
+| **PR15 Plan** | Plan complet documenté dans `docs/rswag/PR15_Infrastructure_Improvement_Plan.md` |
+| **Priorité** | CRITIQUE - Bloque tous les autres Feature Contracts (FC-08+) |
+| **Estimation** | 2-3 sprints pour implémentation complète |
+| **Prérequis** | Résolution avant démarrage FC-08 Entreprise |
+
+**Composants techniques à implémenter :**
+1. **SimpleCov Configuration** : Seuil 90% minimum + blocage build CI
+2. **Templates Structurels** : Séparation tests contrat API vs logique métier  
+3. **CI/CD Workflows** : Coverage check + E2E contract validation
+4. **Documentation Workflows** : Guide développement + patterns corrections
+5. **Helpers & Tools** : Génération templates + validation automatique
+
+> 🔴 **BLOQUANT** : Impossible de livrer FC-08 sans standards qualité respectés
 
 ---
 

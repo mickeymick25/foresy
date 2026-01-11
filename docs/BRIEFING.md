@@ -17,10 +17,10 @@
 - **Previous Feature**: FC-06 Missions (31 Dec 2025) - **PR #12 MERGED** (1 Jan 2026) ✅
 
 ### Quality Metrics (Jan 2026) — Validé le 7 janvier 2026
-- **RSpec Tests**: ✅ **449 examples, 0 failures** (validé 7 Jan 2026)
-- **Rswag Swagger**: ✅ **128 examples, 0 failures** — `swagger.yaml` généré
-- **RuboCop**: ✅ **147 files inspected, no offenses detected**
-- **Brakeman**: ✅ **0 Security Warnings** (3 ignored)
+- **Tests RSpec**: ✅ **500 examples, 0 failures** — ❌ **Couverture SimpleCov : 31.02%** (seuil attendu : 90%)
+- **Tests Rswag**: ✅ **201 examples, 0 failures** — ❌ **Couverture SimpleCov : 0.01%** (catastrophique !)
+- **RuboCop**: ❌ **1 offense détectée** — `spec/support/business_logic_helpers.rb:170` - Complexité trop élevée
+- **Brakeman**: ❌ **Erreur de parsing** — `bin/templates/quality_metrics.rb:528` - Syntaxe Ruby incorrecte
 - **Missions Tests (FC-06)**: ✅ 30/30 passing
 - **CRA Tests (FC-07)**: ✅ **TDD PLATINUM COMPLETE**
   - Phase 1: 6/6 lifecycle ✅
@@ -555,7 +555,21 @@ Foresy/
 ## ✅ NEXT STEPS & TODO LIST
 
 ### Immediate Actions (High Priority)
-1. **Sprint 3 Completion - E2E Testing Infrastructure ✅ COMPLETED**
+1. **🚨 CRITICAL: PR15 Infrastructure Improvement Plan Implementation (11 Janvier 2026)**
+   - **Problem**: Test coverage is catastrophic (31.02% for RSpec, 0.01% for RSwag) instead of expected 90% minimum
+   - **Current Status**: Tests pass (500 RSpec + 201 RSwag) but coverage is far below standards
+   - **Additional Issues**: 1 Rubocop offense detected, 1 Brakeman parsing error
+   - **Required Actions**: Implement complete PR15 Infrastructure Improvement Plan
+     - Add SimpleCov with 90% minimum threshold and build blocking
+     - Create templates for API contract vs business logic test separation
+     - Fix Rubocop offense (business_logic_helpers.rb:170 complexity)
+     - Fix Brakeman parsing error (quality_metrics.rb:528 syntax)
+     - Implement CI/CD workflows for coverage checking and E2E validation
+   - **Impact**: Project is NOT at "Platinum Level" standards - needs immediate attention
+   - **Priority**: CRITICAL - All other features should be blocked until this is resolved
+   - **Status**: ❌ NOT IMPLEMENTED - Plan exists but solutions not deployed
+
+2. **Sprint 3 Completion - E2E Testing Infrastructure ✅ COMPLETED**
    - **Task**: Finalize E2E staging tests (scripts + documentation)
    - **Completed**: Smoke tests (15 endpoints) + E2E auth flow (8 tests) + E2E revocation (5 tests - Platinum Level) in bin/e2e/
    - **Impact**: Full CI/CD staging test coverage, automated end-to-end validation

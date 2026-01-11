@@ -1,0 +1,234 @@
+🏢 FEATURE CONTRACT 08 — ACTIVITÉ & CADRE ENTREPRISE
+
+Configuration de l’Entreprise, des Établissements et des Activités
+
+⚠️ DOCUMENT CONTRACTUEL — SOURCE DE VÉRITÉ
+⚠️ Toute ambiguïté DOIT être signalée avant implémentation
+⚠️ Aucune déviation autorisée
+
+1️⃣ Feature Name
+
+Enterprise & Activity Configuration (FC08)
+
+2️⃣ Business Goal
+
+Permettre à un Indépendant de :
+
+rattacher son compte à une Société existante
+
+récupérer automatiquement les données légales officielles (INSEE)
+
+déclarer les Activités réellement exercées
+
+associer à chaque Activité un cadre fiscal déclaratif
+
+fournir le socle structurel nécessaire à :
+
+la lecture correcte des CRA (FC07)
+
+la facturation future
+
+les simulations fiscales (hors MVP)
+
+👉 FC08 ne calcule rien
+👉 FC08 ne valide rien fiscalement
+👉 FC08 décrit le cadre, sans se substituer à un expert-comptable
+
+3️⃣ Actors
+Primary Actor
+
+Authenticated User (JWT)
+
+Pré-requis métier
+
+L’utilisateur a le rôle independent
+
+Un utilisateur peut :
+
+soit disposer d’une société existante
+
+soit ne pas encore avoir d’entreprise (cas simulation, hors MVP)
+
+⚠️ MVP : priorité donnée aux utilisateurs avec société existante
+
+4️⃣ Domain Boundaries (INVARIANTS DDD — NON NÉGOCIABLES)
+Domaine	Responsabilité
+Société	Existence juridique
+Établissement	Localisation d’exercice
+Activité	Métier exercé
+RégimeFiscal	Cadre fiscal applicable à UNE activité
+
+❌ Aucune logique fiscale dans Société
+❌ Aucune TVA dans CRA
+❌ Aucune règle métier transverse entre domaines
+
+5️⃣ Architectural Principles (STRICT)
+
+🧱 Domain-Driven & Relation-Driven
+
+❌ Aucun FK métier dans les Domain Models
+✅ Relations explicites via Relation Models
+✅ Auditabilité totale
+✅ Versionnable
+✅ Déterminisme absolu
+
+6️⃣ Domain Models (PURS)
+🏢 Company (Société)
+Champ	Type	Required	Notes
+id	UUID	Yes
+siren	String	Yes	INSEE
+legal_name	String	Yes
+legal_form	String	Yes
+status	Enum	Yes	A | C
+created_at	DateTime	Yes
+updated_at	DateTime	Yes
+
+⚠️ Aucun régime fiscal
+⚠️ Aucun calcul
+
+🏬 Establishment (Établissement)
+Champ	Type	Required	Notes
+id	UUID	Yes
+siret	String	Yes
+is_head_office	Boolean	Yes
+address	JSON	Yes
+created_at	DateTime	Yes
+updated_at	DateTime	Yes
+🧑‍💼 Activity (Activité)
+Champ	Type	Required	Notes
+id	UUID	Yes
+naf_code	String	Yes
+label	String	Yes
+is_primary	Boolean	Yes
+regulated_profession	Boolean	Yes	Informatif uniquement
+created_at	DateTime	Yes
+updated_at	DateTime	Yes
+
+⚠️ Aucun régime fiscal ici
+⚠️ Aucune TVA
+
+💰 FiscalRegime (attaché à Activity)
+Champ	Type	Required	Notes
+id	UUID	Yes
+income_tax_type	Enum	Yes	IR | IS
+vat_regime	Enum	Yes	franchise | réel
+declaration_mode	Enum	No	contrôlée / micro
+valid_from	Date	Yes
+valid_to	Date	No
+tax_profile	JSON	No	Réservé futur
+created_at	DateTime	Yes
+
+⚠️ Déclaratif
+⚠️ Aucun calcul
+⚠️ Peut évoluer dans le temps
+
+7️⃣ Relation Models (OBLIGATOIRES)
+CompanyEstablishment
+
+(company ↔ establishment)
+
+EstablishmentActivity
+
+(establishment ↔ activity)
+
+ActivityFiscalRegime
+
+(activity ↔ fiscal_regime)
+
+🔒 Contraintes :
+
+Une activité peut avoir plusieurs régimes dans le temps
+
+Un seul régime actif à un instant T
+
+8️⃣ Intégration INSEE (MVP)
+
+Input : SIREN ou SIRET
+
+API officielle INSEE
+
+Snapshot à la création
+
+Vérification mensuelle du statut (A / C)
+
+❌ Pas de synchronisation temps réel
+❌ Pas d’édition manuelle des données INSEE
+
+9️⃣ Ce que FC08 NE FAIT PAS (IMPORTANT)
+
+❌ Ne détermine pas si une activité est réglementée
+❌ Ne bloque pas une activité réglementée
+❌ Ne calcule ni TVA ni impôt
+❌ Ne valide pas un régime fiscal
+❌ Ne remplace pas un comptable
+
+👉 FC08 décrit, il ne juge pas.
+
+🔟 API Scope
+Société
+
+POST /api/v1/company/link
+
+GET /api/v1/company
+
+Établissements
+
+GET /api/v1/establishments
+
+Activités
+
+POST /api/v1/activities
+
+GET /api/v1/activities
+
+Régime fiscal
+
+POST /api/v1/activities/:id/fiscal_regimes
+
+GET /api/v1/activities/:id/fiscal_regimes
+
+1️⃣1️⃣ Errors
+Status	Code
+401	unauthorized
+403	forbidden
+404	not_found
+409	invalid_relation
+422	invalid_payload
+500	insee_unavailable
+1️⃣2️⃣ Acceptance Criteria (Gherkin)
+Scenario: Attach an activity with a fiscal regime
+  Given I am authenticated as independent
+  And my company is linked via INSEE
+  When I declare an activity
+  And I attach a fiscal regime
+  Then the activity is usable in CRA
+
+1️⃣3️⃣ Definition of Done
+
+Domain specs verts
+
+Relations auditables
+
+INSEE snapshot OK
+
+Swagger documenté
+
+Aucun calcul fiscal
+
+FC07 compatible
+
+🧠 Invariants DDD (À NE JAMAIS VIOLER)
+
+1️⃣ Le régime fiscal appartient à l’Activité
+2️⃣ Le CRA ne connaît pas la fiscalité
+3️⃣ Société ≠ Fiscalité
+4️⃣ Toute relation est explicite
+5️⃣ Aucune “intelligence comptable” dans le backend
+
+✅ ÉTAT FINAL
+Axe	Statut
+Modélisation	🟢 Verrouillée
+Séparation des domaines	🟢 Exemplaire
+Extensibilité	🟢 Long terme
+Compatibilité FC07	🟢 Totale
+Vision produit	🟢 Claire

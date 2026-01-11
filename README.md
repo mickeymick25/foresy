@@ -105,30 +105,138 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 
 ## 🧪 Tests & Qualité
 
-### Statistiques Actuelles (Janvier 2026) — Validé le 7 janvier 2026
-- **Tests RSpec** : ✅ **449 examples, 0 failures**
-- **Tests Rswag** : ✅ **128 examples, 0 failures** — `swagger.yaml` généré
-- **RuboCop** : ✅ **147 files inspected, no offenses detected**
-- **Brakeman** : ✅ **0 Security Warnings** (3 ignored warnings)
+### Statistiques Actuelles (11 Janvier 2026) — État Réel Découvert
+- **Tests RSpec** : ✅ **500 examples, 0 failures** — ❌ **Couverture SimpleCov : 31.02%** (seuil attendu : 90%)
+- **Tests Rswag** : ✅ **201 examples, 0 failures** — ❌ **Couverture SimpleCov : 0.01%** (catastrophique !)
+- **RuboCop** : ❌ **1 offense détectée** — `spec/support/business_logic_helpers.rb:170` - Complexité trop élevée
+- **Brakeman** : ❌ **Erreur de parsing** — `bin/templates/quality_metrics.rb:528` - Syntaxe Ruby incorrecte
 - **Tests Missions (FC-06)** : ✅ 30/30 passent
 - **Tests CRA Services (FC-07)** : ✅ 17 tests ExportService + 16 tests ListService filtering
 - **Tests CRA Request (FC-07)** : ✅ 9 tests export endpoint
 - **Tests d'acceptation OAuth** : ✅ 15/15 passent
+- **🚨 ALERTE QUALITÉ** : Le projet n'est PAS aux standards attendus !
 
-### Couverture de Tests
-- **Authentication** : Login, logout, token refresh, revocation ✅
-- **Rate Limiting** : Login (5/min), Signup (3/min), Refresh (10/min), Missions, CRAs ✅
-- **OAuth Integration** : Google OAuth2, GitHub ✅
-- **Session Management** : Création, expiration, invalidation ✅
-- **Missions (FC-06)** : CRUD complet, lifecycle, access control ✅
-- **CRA (FC-07) Modèle** : ✅ Tests de modèle 100% verts (Phases 1-3C TDD PLATINUM)
-- **CRA (FC-07) Services** : ✅ Create, Update, Destroy, List, Export (17+16 tests)
-- **CRA (FC-07) Filtering** : ✅ Mini-FC-01 - Filtrage year/month/status (16 tests)
-- **CRA (FC-07) Export** : ✅ Mini-FC-02 - CSV export avec include_entries (17+9 tests)
-- **CRA (FC-07) API** : ✅ 100% opérationnel - 449 tests GREEN
-- **API Endpoints** : Tous les endpoints testés ✅
-- **Models** : User, Session, Mission, Company, Cra, CraEntry, relations ✅
-- **Error Handling** : Gestion d'erreurs robuste testée ✅
+### ⚠️ État Réel de la Couverture de Tests
+- **Problème critique** : La couverture SimpleCov est catastrophique !
+  - RSpec couverture : **31.02%** (seuil attendu 90%)
+  - RSwag couverture : **0.01%** (catastrophique !)
+- **Tests fonctionnels** : ✅ Tous les tests passent (500 RSpec + 201 RSwag)
+- **Problèmes de qualité** : 
+  - ❌ 1 infraction RuboCop (complexité trop élevée)
+  - ❌ 1 erreur de parsing Brakeman (syntaxe Ruby incorrecte)
+- **Impact** : Le projet n'est PAS aux standards "Platinum Level" attendus
+- **Action requise** : Implémentation urgente du PR15 Infrastructure Improvement Plan
+
+## 🔄 CI/CD et Infrastructure de Tests
+
+### Validation Contractuelle Automatisée
+Notre CI/CD intègre une validation contractuelle automatique qui garantit la cohérence entre les tests et la documentation API :
+
+```bash
+# Workflow principal
+bundle exec rswag:specs:generate
+bundle exec rubocop
+bundle exec brakeman  
+bundle exec rspec
+```
+
+### Tests E2E Integration
+Les tests E2E CRA lifecycle servent de référence contractuelle pour valider les workflows complets :
+
+```bash
+# Test de référence complet
+bin/e2e/e2e_cra_lifecycle_fc07.sh
+
+# Validation contractuelle
+E2E_DEBUG=true bin/e2e/e2e_cra_lifecycle_fc07.sh
+```
+
+### Architecture de Tests
+Notre infrastructure de tests suit une architecture claire et séparée :
+
+1. **Request Specs** : Logique métier pure (calculs, validations)
+2. **RSwag Specs** : Contrats API (schémas, endpoints)  
+3. **E2E Tests** : Scénarios bout en bout (utilisateur final)
+4. **Integration Specs** : Intégrations entre composants
+
+### Templates de Tests Standardisés
+
+#### Création d'un Nouveau Test RSwag
+```bash
+# Utiliser le template API Contract
+cp spec/templates/api_contract_spec_template.rb spec/requests/my_feature_contract_spec.rb
+
+# Personnaliser :
+# - Changer la description de l'endpoint
+# - Définir les paramètres
+# - Ajouter les réponses attendues
+```
+
+#### Création d'un Nouveau Test de Logique Métier  
+```bash
+# Utiliser le template Business Logic
+cp spec/templates/business_logic_spec_template.rb spec/requests/my_feature_logic_spec.rb
+
+# Personnaliser :
+# - Définir les factories nécessaires
+# - Implémenter les tests de règles métier
+# - Vérifier les calculs et validations
+```
+
+### Patterns de Corrections Documentés
+
+#### Format de Dates
+```bash
+# ❌ Erreur
+current_month=$(date +%m)  # Donne "01"
+
+# ✅ Correction
+current_month=$(date +%-m)  # Donne "1"
+```
+
+#### Parsing JSON
+```bash
+# ❌ Erreur
+id=$(parse_json "$response" "id")
+
+# ✅ Correction
+id=$(parse_json "$response" "data.entry.id")
+```
+
+#### Comparaison de Floats
+```bash
+# ❌ Erreur  
+if [[ "$actual" == "$expected" ]]; then
+
+# ✅ Correction
+expected_int=$((expected))
+actual_int=$(echo "$actual" | cut -d'.' -f1)
+if [[ "$actual_int" == "$expected_int" ]]; then
+```
+
+#### Gestion des UUIDs
+```ruby
+# ❌ Erreur
+params[:mission_id].to_i  # Convertit UUID en entier
+
+# ✅ Correction
+params[:mission_id]  # Conserve l'UUID
+```
+
+### Workflow de Développement
+1. **TDD** : Commencer par les tests (contract ou business logic)
+2. **Implémentation** : Écrire le code minimum pour faire passer les tests
+3. **Refactoring** : Améliorer le code en gardant les tests verts
+4. **Documentation** : Mettre à jour Swagger et ADRs si nécessaire
+5. **CI/CD** : Valider automatiquement tous les aspects
+
+### Standards de Qualité
+- **Couverture de code** : ≥ 90% (seuil minimum configuré)
+- **Tests RSpec** : 100% verts requis pour merge
+- **Tests RSwag** : 100% verts requis pour merge
+- **RuboCop** : 0 violations requises
+- **Brakeman** : 0 vulnérabilités critiques requises
+- **Templates** : 100% des nouveaux tests utilisent les templates standardisés
 
 ## 🔧 Améliorations Récentes (Décembre 2025)
 

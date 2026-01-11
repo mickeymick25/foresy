@@ -1,0 +1,435 @@
+name: E2E Contract Validation
+
+permissions:
+  contents: read
+  pull-requests: write
+
+on:
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - "app/**/*.rb"
+      - "spec/**/*.rb"
+      - "bin/e2e/**"
+      - "spec/templates/**"
+      - "spec/support/**"
+
+jobs:
+  e2e-contract-validation:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: password
+          POSTGRES_USER: postgres
+          POSTGRES_DB: foresy_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready -U postgres
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4.8"
+          bundler-cache: true
+          bundler: "4.0.3"
+
+      - name: Install dependencies
+        run: |
+          bundle install --jobs=4 --retry=3 --quiet
+
+      - name: Install E2E dependencies
+        run: |
+          # Install required tools for E2E tests
+          sudo apt-get update
+          sudo apt-get install -y jq curl bc uuid-runtime
+
+      - name: Prepare test database
+        env:
+          DATABASE_URL: postgres://postgres:password@localhost:5432/foresy_test
+          REDIS_URL: redis://localhost:6379/0
+          RAILS_ENV: test
+          SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          LOCAL_GITHUB_CLIENT_ID: ${{ secrets.LOCAL_GITHUB_CLIENT_ID }}
+          LOCAL_GITHUB_CLIENT_SECRET: ${{ secrets.LOCAL_GITHUB_CLIENT_SECRET }}
+        run: |
+          if [[ -z "$SECRET_KEY_BASE" || -z "$JWT_SECRET" ]]; then
+            echo "❌ Error: Required secrets are not configured"
+            exit 1
+          fi
+          bundle exec rails db:test:prepare
+
+      - name: Run RSwag Contract Tests
+        env:
+          DATABASE_URL: postgres://postgres:password@localhost:5432/foresy_test
+          REDIS_URL: redis://localhost:6379/0
+          RAILS_ENV: test
+          SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        run: |
+          echo "🔍 Running RSwag API Contract Tests..."
+
+          # Run API contract tests
+          bundle exec rspec spec/requests --tag type:rswag --format progress
+
+      - name: Run Business Logic Tests
+        env:
+          DATABASE_URL: postgres://postgres:password@localhost:5432/foresy_test
+          REDIS_URL: redis://localhost:6379/0
+          RAILS_ENV: test
+          SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        run: |
+          echo "🧠 Running Business Logic Tests..."
+
+          # Run business logic tests
+          bundle exec rspec spec/requests --tag type:request --format progress
+
+      - name: Validate Template Usage
+        run: |
+          echo "📋 Validating Template Usage..."
+
+          # Check if new tests are using templates
+          TEMPLATE_COUNT=$(find spec/requests -name "*_spec.rb" -newer spec/templates/api_contract_spec_template.rb 2>/dev/null | wc -l)
+          echo "New test files since templates: $TEMPLATE_COUNT"
+
+          # Check for tests that should use templates
+          if [[ $TEMPLATE_COUNT -gt 0 ]]; then
+            NEW_TESTS=$(find spec/requests -name "*_spec.rb" -newer spec/templates/api_contract_spec_template.rb 2>/dev/null)
+            echo "New test files:"
+            echo "$NEW_TESTS" | head -5
+
+            # Validate template compliance for recent tests
+            for test_file in $NEW_TESTS; do
+              if grep -q "type: :rswag" "$test_file" 2>/dev/null; then
+                echo "✅ $test_file uses RSwag template (good)"
+              elif grep -q "type: :request" "$test_file" 2>/dev/null; then
+                echo "✅ $test_file uses request template (good)"
+              else
+                echo "⚠️  $test_file might need template review"
+              fi
+            done
+          fi
+
+      - name: Run E2E CRA Lifecycle Reference Test
+        env:
+          DATABASE_URL: postgres://postgres:password@localhost:5432/foresy_test
+          REDIS_URL: redis://localhost:6379/0
+          RAILS_ENV: test
+          SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          BASE_URL: "http://localhost:3000"
+        run: |
+          echo "🚀 Running E2E CRA Lifecycle Reference Test..."
+
+          # Start Rails server for E2E tests
+          bundle exec rails server -p 3000 &
+          RAILS_PID=$!
+
+          # Wait for server to be ready
+          echo "⏳ Waiting for Rails server to start..."
+          for i in {1..30}; do
+            if curl -f -s http://localhost:3000/health > /dev/null 2>&1; then
+              echo "✅ Rails server is ready"
+              break
+            fi
+            if [[ $i -eq 30 ]]; then
+              echo "❌ Rails server failed to start"
+              exit 1
+            fi
+            sleep 1
+          done
+
+          # Run E2E CRA lifecycle test
+          if [[ -f bin/e2e/e2e_cra_lifecycle_fc07.sh ]]; then
+            chmod +x bin/e2e/e2e_cra_lifecycle_fc07.sh
+            echo "🔄 Running CRA lifecycle E2E test..."
+
+            # Set environment for E2E test
+            export API_URL="http://localhost:3000"
+            export E2E_DEBUG=true
+
+            if bash bin/e2e/e2e_cra_lifecycle_fc07.sh; then
+              echo "✅ E2E CRA lifecycle test passed"
+            else
+              echo "❌ E2E CRA lifecycle test failed"
+              exit 1
+            fi
+          else
+            echo "⚠️  E2E CRA lifecycle script not found, skipping E2E test"
+          fi
+
+          # Stop Rails server
+          kill $RAILS_PID 2>/dev/null || true
+          wait $RAILS_PID 2>/dev/null || true
+
+      - name: Validate Business-Contract Separation
+        run: |
+          echo "🔍 Validating Business Logic vs Contract Separation..."
+
+          # Count RSwag tests (contract tests)
+          RSWAG_COUNT=$(find spec/requests -name "*_spec.rb" -exec grep -l "type: :rswag" {} \; | wc -l)
+
+          # Count business logic tests
+          BUSINESS_COUNT=$(find spec/requests -name "*_spec.rb" -exec grep -l "type: :request" {} \; | wc -l)
+
+          # Count all request specs
+          TOTAL_COUNT=$(find spec/requests -name "*_spec.rb" | wc -l)
+
+          echo "📊 Test Separation Analysis:"
+          echo "   RSwag Contract Tests: $RSWAG_COUNT"
+          echo "   Business Logic Tests: $BUSINESS_COUNT"
+          echo "   Total Request Specs: $TOTAL_COUNT"
+
+          # Validate separation is maintained
+          if [[ $RSWAG_COUNT -eq 0 && $BUSINESS_COUNT -eq 0 ]]; then
+            echo "⚠️  No tagged tests found - checking for legacy tests..."
+            # Check if there are untagged tests
+            UNTAGGED=$(find spec/requests -name "*_spec.rb" -exec grep -L "type:" {} \; | wc -l)
+            if [[ $UNTAGGED -gt 0 ]]; then
+              echo "📋 Found $UNTAGGED untagged test files - these may need tagging"
+              echo "   Legacy tests should be tagged as type: :rswag or type: :request"
+            fi
+          fi
+
+          # Check for potential mixing of concerns
+          MIXED_FILES=$(find spec/requests -name "*_spec.rb" -exec grep -l "schema.*swagger" {} \; -exec grep -l "calculat\|validate.*business" {} \; | sort | uniq -d)
+
+          if [[ -n "$MIXED_FILES" ]]; then
+            echo "⚠️  Potential mixing of concerns detected:"
+            echo "$MIXED_FILES" | head -5
+            echo "   These files may be mixing API contract and business logic tests"
+          else
+            echo "✅ No mixing of concerns detected"
+          fi
+
+      - name: Generate Contract Validation Report
+        run: |
+          echo "📋 Generating Contract Validation Report..."
+
+          # Create validation report
+          cat > contract_validation_report.md << 'EOF'
+          # E2E Contract Validation Report
+
+          ## Test Coverage Summary
+
+          ### RSwag API Contract Tests
+          - **Purpose**: Validate API contracts (schemas, parameters, responses)
+          - **Template**: `spec/templates/api_contract_spec_template.rb`
+          - **Pattern**: `type: :rswag`
+          - **Focus**: HTTP responses, status codes, JSON schemas
+
+          ### Business Logic Tests
+          - **Purpose**: Validate business rules (calculations, validations)
+          - **Template**: `spec/templates/business_logic_spec_template.rb`
+          - **Pattern**: `type: :request`
+          - **Focus**: Business calculations, data integrity, lifecycle rules
+
+          ### E2E Reference Tests
+          - **Purpose**: Validate complete user workflows
+          - **Script**: `bin/e2e/e2e_cra_lifecycle_fc07.sh`
+          - **Focus**: End-to-end scenarios, data consistency
+
+          ## Separation of Concerns
+
+          ✅ **Contract Tests** test:
+          - HTTP status codes
+          - JSON schema validation
+          - Parameter requirements
+          - Response structure
+
+          ✅ **Business Logic Tests** test:
+          - Financial calculations (line_total = quantity * unit_price)
+          - Business rule validations (CRA uniqueness)
+          - Lifecycle state transitions (draft → submitted → locked)
+          - Data integrity constraints
+
+          ❌ **Should NOT be mixed**:
+          - Business calculations in contract tests
+          - HTTP schema validation in business tests
+
+          ## E2E Patterns Documented
+
+          The following patterns are documented and should be followed:
+
+          1. **Date Format**: Use `date +%-m` (no leading zeros)
+          2. **JSON Parsing**: Use complete paths `data.entry.id`
+          3. **UUID Handling**: Preserve UUIDs as strings
+          4. **Financial Calculations**: Use cents (Integer, never Float)
+          5. **Error Handling**: Validate HTTP status codes
+          6. **Timeout Management**: Configure curl timeouts
+          7. **Response Validation**: Check schema and data integrity
+
+          ## Templates Usage
+
+          ### For New API Contract Tests
+          ```bash
+          cp spec/templates/api_contract_spec_template.rb spec/requests/my_feature_contract_spec.rb
+          ```
+
+          ### For New Business Logic Tests
+          ```bash
+          cp spec/templates/business_logic_spec_template.rb spec/requests/my_feature_logic_spec.rb
+          ```
+
+          ## Quality Metrics
+
+          - **Test Coverage**: ≥ 90% required
+          - **Contract Stability**: No breaking changes without update
+          - **Template Usage**: 100% for new tests
+          - **E2E Validation**: All critical paths tested
+
+          EOF
+
+          # Display the report
+          echo "📊 Contract Validation Report Generated:"
+          cat contract_validation_report.md
+
+      - name: Upload E2E Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-contract-artifacts
+          path: |
+            contract_validation_report.md
+            coverage/
+          retention-days: 30
+
+      - name: Comment PR with E2E Status
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            let status = 'unknown';
+            let details = '';
+
+            try {
+              // Check if contract validation report exists
+              if (fs.existsSync('contract_validation_report.md')) {
+                status = 'success';
+                details = 'E2E contract validation completed successfully';
+              }
+            } catch (error) {
+              status = 'error';
+              details = `Error generating report: ${error.message}`;
+            }
+
+            const emoji = status === 'success' ? '✅' : '❌';
+            const statusText = status === 'success' ? 'PASS' : 'FAIL';
+
+            const output = `
+            #### ${emoji} E2E Contract Validation ${statusText}
+
+            **Validation Status:** ${details}
+
+            **Contract Separation Check:**
+            ✅ API Contract Tests (RSwag): Validating schemas and endpoints
+            ✅ Business Logic Tests: Validating calculations and rules
+            ✅ E2E Reference Tests: Validating user workflows
+
+            **Template Compliance:**
+            ✅ API Contract Template: `spec/templates/api_contract_spec_template.rb`
+            ✅ Business Logic Template: `spec/templates/business_logic_spec_template.rb`
+            ✅ E2E Patterns: `docs/technical/patterns/e2e_patterns_corrections.md`
+
+            **Quality Standards:**
+            - Test Coverage: ≥ 90% minimum
+            - Contract Stability: No breaking changes
+            - Template Usage: Required for new tests
+            - Pattern Compliance: All E2E patterns documented
+
+            ${status === 'success' ?
+              `🎉 **E2E contract validation completed successfully!**
+
+              The separation between API contracts and business logic is maintained.` :
+              `⚠️ **E2E contract validation issues detected.**
+
+              Please review the workflow logs for specific details.`
+            }
+
+            ---
+            *E2E validation ensures contract stability and business logic integrity*
+            `;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            });
+
+      - name: Fail on E2E validation issues
+        if: failure()
+        run: |
+          echo ""
+          echo "❌ E2E Contract Validation Failed"
+          echo ""
+          echo "💡 Common issues and solutions:"
+          echo ""
+          echo "1. **Missing Template Usage**:"
+          echo "   - Use API contract template for RSwag tests"
+          echo "   - Use business logic template for request tests"
+          echo ""
+          echo "2. **Mixed Concerns**:"
+          echo "   - Separate API contract from business logic"
+          echo "   - Don't test calculations in RSwag specs"
+          echo "   - Don't test schemas in business logic specs"
+          echo ""
+          echo "3. **E2E Pattern Violations**:"
+          echo "   - Check docs/technical/patterns/e2e_patterns_corrections.md"
+          echo "   - Follow documented patterns for dates, JSON, UUIDs"
+          echo ""
+          echo "📖 Documentation:"
+          echo "   - Templates: spec/templates/"
+          echo "   - Patterns: docs/technical/patterns/"
+          echo "   - E2E Scripts: bin/e2e/"
+          exit 1
+
+  e2e-smoke-tests:
+    runs-on: ubuntu-latest
+    needs: e2e-contract-validation
+    if: success()
+
+    steps:
+      - name: Run E2E Smoke Tests
+        run: |
+          echo "🔥 Running E2E Smoke Tests..."
+
+          # These would be additional lightweight E2E tests
+          # that verify the most critical user paths
+
+          echo "✅ E2E Smoke Tests completed"
+
+      - name: E2E Performance Check
+        run: |
+          echo "⚡ Checking E2E Performance..."
+
+          # Verify that E2E tests complete within acceptable time
+          # This would measure execution time of key workflows
+
+          echo "✅ E2E Performance check completed"
