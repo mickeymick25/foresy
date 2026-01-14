@@ -335,13 +335,92 @@ Result.success(
 
 ---
 
-## 🟡 PHASE 2 — QUALITÉ STRUCTURELLE (🟡 READY TO START)
+## 🔴 PHASE 2.0 — STABILISATION CRA ENTRIES (GATE BLOQUANT) ⏸️ NOT STARTED
 
 ### Objectif
-Qualité code après CRA restauré
+Stabiliser l'architecture CRA Entries pour établir une baseline saine avant migration Result
 
-### État : 🟡 READY TO START (libérée par PHASE 1 DONE + validation externe)
+### État : ⏸️ NOT STARTED (Décision CTO 14 Jan 2026 - Gate bloquant Phase 2)
+**LIBÉRÉE OFFICIELLEMENT PAR DIRECTIVE CTO — INCIDENT TECHNIQUE**
+
+### 🔍 Découverte Critique (14 Jan 2026)
+**Problème identifié** : Tests CRA Entries défaillants (~35 échecs) même avant migration
+**Impact** : Baseline instable pour Phase 2.1 Shared::Result → ApplicationResult
+**Directive** : Stabilisation obligatoire avant toute migration Result
+
+### 🎯 Objectif Unique
+**100% des tests CRA Entries passent sur le code rollbacké**
+- AVANT toute migration Shared::Result / Struct
+- Baseline saine et prouvée contractuellement
+- Zéro régression due à la migration
+
+### 🔍 Axes de Correction Autorisés (CTO Contractuels)
+#### 1️⃣ Authentification / Autorisation (PRIORITÉ 1)
+**Symptômes** : 403 Forbidden au lieu de 422 / 404 / 201
+**Actions** :
+- Vérifier before_action :authenticate_user!
+- Corriger policies (Pundit / custom)
+- Corriger setup tests si invalide
+- Corriger contrôleur si code HTTP incorrect
+**Règle CTO** : 403 = autorisation, 422 = validation, 404 = ressource absente
+
+#### 2️⃣ Codes HTTP Contractuels (PRIORITÉ 2)
+**Règle CTO (non négociable)** :
+| Cas | Code attendu |
+|-----|-------------|
+| Création OK | 201 |
+| Validation KO | 422 |
+| Non autorisé | 403 |
+| Introuvable | 404 |
+| DELETE OK | 204 ou 200 |
+**Action** : Contrôleurs CRA Entries doivent forcer ces codes
+
+#### 3️⃣ DELETE → 500 (PRIORITÉ 3)
+**Hypothèses** : Exception non capturée, destroy! sans rescue, policy non vérifiée
+**Action** : Corriger le service - Le contrôleur ne doit jamais lever
+
+### 🧪 Checklist Exécutable Phase 2.0
+**Étape 1 — État initial** :
+```bash
+bundle exec rspec spec/requests/api/v1/cras/entries_spec.rb
+```
+➡️ Confirmer les ~35 failures baseline
+
+**Étape 2 — Auth** :
+- Corriger setup tests OU contrôleur
+- Aucun changement métier autorisé
+```bash
+bundle exec rspec spec/requests/api/v1/cras/entries_spec.rb
+```
+
+**Étape 3 — Status codes** :
+- Forcer 422 / 201 / 204 dans le contrôleur
+```bash
+bundle exec rspec spec/requests/api/v1/cras/entries_spec.rb
+```
+
+### 🎯 Critère de Sortie Phase 2.0
+```
+✅ spec/requests/api/v1/cras/entries_spec.rb → 0 failures
+✅ AUCUNE migration Result effectuée
+✅ ZÉRO modification sur Missions
+✅ Baseline CRA Entries stable et auditée
+```
+
+### 🚦 Transition vers Phase 2.1
+**Condition obligatoire** : Phase 2.0 = DONE
+**Reprise** : Migration Shared::Result → ApplicationResult avec baseline saine
+
+---
+
+## 🟡 PHASE 2 — QUALITÉ STRUCTURELLE (⏸️ NOT STARTED)
+
+### Objectif
+Qualité code après CRA restauré + baseline CRA Entries stable
+
+### État : ⏸️ NOT STARTED (attend P2.0 DONE + P2.1 + P2.2)
 **LIBÉRÉE OFFICIELLEMENT PAR CTO LE 14 JANVIER 2026**
+**BLOQUÉE PAR** : Phase 2.0 (Gate CRA Entries) + Phase 2.1 (Shared::Result) + Phase 2.2 (Structs ad-hoc)
 
 ### P2.1 — Réduction Complexité
 **Durée**: 2 jours  
@@ -515,6 +594,13 @@ DATE: [14 Jan 2026 - PHASE 1 OFFICIELLEMENT VALIDÉE]
 ├── P1.3 Use-Cases: ✅ DONE (TOUS LES SERVICES FC07 IMPLÉMENTÉS)
 ├── P1.4 Intégration: ✅ DONE (VALIDATION OFFICIELLE CTO)
 └── État: ✅ LIBÈRE TOUTES les autres phases
+
+🔴 PHASE 2.0: Stabilisation CRA Entries - ⏸️ NOT STARTED
+├── Découverte: Tests CRA Entries défaillants (~35 échecs) avant migration
+├── Directive: Gate bloquant pour baseline saine
+├── Axes: Authentification + Codes HTTP contractuels + DELETE 500
+├── État: ⏸️ NOT STARTED (Décision CTO 14 Jan 2026)
+└── Condition: OBLIGATOIRE avant Phase 2.1
 ```
 
 ✅ CORRECTIONS TESTS CRA LIFECYCLE (12 Jan 2026):
@@ -543,11 +629,18 @@ DATE: [14 Jan 2026 - PHASE 1 OFFICIELLEMENT VALIDÉE]
 ├── Adaptation Missions ResponseFormatter pour supporter ApplicationResult
 └── Élimination définitive des NoMethodError architecturales
 
-🟡 PHASE 2: Qualité Structurelle - READY TO START
-└── Libérée par: PHASE 1 DONE + validation externe ✅
+🔴 PHASE 2.0: Stabilisation CRA Entries - ⏸️ NOT STARTED
+├── Découverte: Tests CRA Entries défaillants (~35 échecs) avant migration
+├── Directive: Gate bloquant pour baseline saine
+├── Axes: Authentification + Codes HTTP contractuels + DELETE 500
+└── Condition: OBLIGATOIRE avant Phase 2.1
+
+🟡 PHASE 2: Qualité Structurelle - ⏸️ NOT STARTED
+├── Bloquée par: Phase 2.0 (Gate CRA Entries) + Phase 2.1 (Shared::Result) + Phase 2.2 (Structs ad-hoc)
+└── Libérée par: P2.0 DONE + P2.1 DONE + P2.2 DONE
 
 ⏸️ PHASE 3: TDD Contractuel FC07 - NOT STARTED
-└── Attent: PHASE 1 DONE + PHASE 2 DONE
+└── Attent: PHASE 1 DONE + PHASE 2.0 DONE + PHASE 2 DONE
 ```
 
 ⏸️ PHASE 4: Bonus Non-Bloquants - NOT STARTED
@@ -556,7 +649,7 @@ DATE: [14 Jan 2026 - PHASE 1 OFFICIELLEMENT VALIDÉE]
 ⏸️ PHASE 5: Validation Platinum - NOT STARTED
 └── Bloquée par: PHASE 1,2,3 DONE
 
-OVERALL: ✅ PHASE 1 DONE - TRANSITION VERS PHASE 2 AUTORISÉE (P1.1 DONE + P1.2 TERMINÉE + P1.3 TERMINÉE + P1.4 TERMINÉE)
+OVERALL: ✅ PHASE 1 DONE - TRANSITION VERS PHASE 2.0 AUTORISÉE (Gate bloquant CRA Entries) (P1.1 DONE + P1.2 TERMINÉE + P1.3 TERMINÉE + P1.4 TERMINÉE)
 ```
 
 ---
@@ -568,14 +661,15 @@ OVERALL: ✅ PHASE 1 DONE - TRANSITION VERS PHASE 2 AUTORISÉE (P1.1 DONE + P1.2
 
 **Condition Déblocage Contractuelle**:
 - ✅ PHASE 1 DONE (CRA 100% fonctionnel)
-- 🔄 PHASE 2 EN COURS (Qualité - READY TO START)
+- 🔄 PHASE 2.0 EN COURS (Stabilisation CRA Entries - Gate bloquant)
+- ⏸️ PHASE 2 NOT STARTED (Qualité Structurelle)
 - ⏸️ PHASE 3 NOT STARTED (TDD)
 - ⏸️ PHASE 5 NOT STARTED (Certification)
 
-**PROCHAINE ÉTAPE**: PHASE 2 doit être terminée pour permettre le développement FC-08
+**PROCHAINE ÉTAPE**: PHASE 2.0 doit être terminée pour permettre le développement FC-08
 
 ### 🛡️ Règle Ultra-Clean FC-08 Restart
-**FC-08 peut être développée après PHASE 2 DONE**
+**FC-08 peut être développée après PHASE 2.0 DONE + PHASE 2 DONE**
 
 ---
 
