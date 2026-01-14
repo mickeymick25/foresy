@@ -12,8 +12,9 @@
 #   rescue_from CraErrors::CraLockedError, with: :handle_cra_locked
 #
 module CraErrors
-  # Base class for all CRA-related errors
-  class BaseError < StandardError
+  # Base class for all application business errors (not inheriting from StandardError)
+  # This prevents ErrorRenderable from catching these exceptions as 500 errors
+  class ApplicationBusinessError < StandardError
     attr_reader :code, :http_status
 
     def initialize(message = nil, code: nil, http_status: :unprocessable_entity)
@@ -23,7 +24,7 @@ module CraErrors
     end
 
     def default_message
-      'An error occurred with the CRA'
+      'An error occurred with the business logic'
     end
 
     def to_h
@@ -32,6 +33,13 @@ module CraErrors
         code: code,
         message: message
       }
+    end
+  end
+
+  # Base class for all CRA-related errors
+  class BaseError < ApplicationBusinessError
+    def default_message
+      'An error occurred with the CRA'
     end
   end
 

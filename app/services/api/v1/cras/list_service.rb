@@ -1,10 +1,23 @@
 # frozen_string_literal: true
 
+# app/services/api/v1/cras/list_service.rb
+# Migration vers ApplicationResult - Étape 2 du plan de migration
+# Contrat unique : tous les services retournent ApplicationResult
+# Aucune exception métier levée - tout via Result.fail
+
+require_relative '../../../../../lib/application_result'
+
 module Api
   module V1
     module Cras
       # Service for listing CRAs with pagination and filtering
-      # Uses FC07-compliant business exceptions instead of Result monads
+      # Uses ApplicationResult contract for consistent Service → Controller communication
+      #
+      # CONTRACT:
+      # - Returns ApplicationResult exclusively
+      # - No business exceptions raised
+      # - No HTTP concerns in service
+      # - Single source of truth for business rules
       #
       # @example
       #   result = ListService.call(
@@ -13,15 +26,10 @@ module Api
       #     per_page: 20,
       #     filters: { status: 'draft' }
       #   )
-      #   result.cras # => [Cra, ...]
-      #   result.pagination # => { total: 10, page: 1, ... }
-      #
-      # @raise [CraErrors::InvalidPayloadError] if user not provided or filters invalid
-      # @raise [CraErrors::InternalError] if query fails
+      #   result.ok? # => true/false
+      #   result.data # => { items: [...], meta: {...} }
       #
       class ListService
-        Result = Struct.new(:cras, :pagination, keyword_init: true)
-
         def self.call(current_user:, page: nil, per_page: nil, filters: {})
           new(current_user: current_user, page: page, per_page: per_page, filters: filters).call
         end
@@ -34,14 +42,31 @@ module Api
         end
 
         def call
-          Rails.logger.info "[Cras::ListService] Listing CRAs for user #{@current_user&.id}"
+          # Input validation
+          validation_result = validate_inputs
+          return validation_result unless validation_result.nil?
 
-          validate_inputs!
-          cras, pagination = fetch_cras
+          # Build query
+          query_result = build_base_query
+          return query_result unless query_result.nil?
 
-          Rails.logger.info "[Cras::ListService] Successfully fetched #{cras.count} CRAs"
-          Result.new(cras: cras, pagination: pagination)
-        end
+          # Apply filters
+          filtered_query = apply_filters(query_result)
+          return filtered_query if filtered_query.is_a?(ApplicationResult)
+
+          # Fetch CRAs
+          fetch_result = fetch_cras(filtered_query)
+          return fetch_result unless fetch_result.nil?
+
+          # Success response
+          Result.ok(
+            data: {
+              items: serialize_cras(fetch_result[:cras]),
+              meta: fetch_result[:pagination]
+            },
+            status: :ok
+          )
+        # No rescue StandardError - let exceptions bubble up for debugging
 
         private
 
@@ -49,61 +74,73 @@ module Api
 
         # === Validation ===
 
-        def validate_inputs!
+        def validate_inputs
+          # Current user validation
           unless current_user.present?
-            raise CraErrors::InvalidPayloadError.new('Current user is required',
-                                                     field: :current_user)
+            return Result.fail(
+              error: :bad_request,
+              status: :bad_request,
+              message: "Current user is required"
+            )
           end
 
-          validate_filters! if filters.present?
+          # Filters validation
+          filter_validation_result = validate_filters
+          return filter_validation_result unless filter_validation_result.nil?
+
+          nil # All validations passed
         end
 
-        def validate_filters!
+        def validate_filters
+          # Status validation
           if filters[:status].present? && !valid_status?(filters[:status])
-            raise CraErrors::InvalidPayloadError.new('Invalid status filter. Must be: draft, submitted, or locked',
-                                                     field: :status)
+            return Result.fail(
+              error: :bad_request,
+              status: :bad_request,
+              message: "Invalid status filter. Must be: draft, submitted, or locked"
+            )
           end
 
           # Mini-FC-01: month requires year
           if filters[:month].present? && filters[:year].blank?
-            raise CraErrors::InvalidPayloadError.new('year is required when month is specified', field: :month)
+            return Result.fail(
+              error: :bad_request,
+              status: :bad_request,
+              message: "Year is required when month is specified"
+            )
           end
 
+          # Month validation
           if filters[:month].present? && !valid_month?(filters[:month])
-            raise CraErrors::InvalidPayloadError.new('Invalid month filter. Must be between 1 and 12', field: :month)
+            return Result.fail(
+              error: :bad_request,
+              status: :bad_request,
+              message: "Invalid month filter. Must be between 1 and 12"
+            )
           end
 
+          # Year validation
           if filters[:year].present? && !valid_year?(filters[:year])
-            raise CraErrors::InvalidPayloadError.new('Invalid year filter. Must be 2000 or later', field: :year)
+            return Result.fail(
+              error: :bad_request,
+              status: :bad_request,
+              message: "Invalid year filter. Must be 2000 or later"
+            )
           end
 
+          # Currency validation
           if filters[:currency].present? && !valid_currency?(filters[:currency])
-            raise CraErrors::InvalidPayloadError.new('Invalid currency filter. Must be a valid ISO 4217 code',
-                                                     field: :currency)
+            return Result.fail(
+              error: :bad_request,
+              status: :bad_request,
+              message: "Invalid currency filter. Must be a valid ISO 4217 code"
+            )
           end
+
+          nil # All filter validations passed
         end
 
-        # === Query ===
-
-        def fetch_cras
-          query = build_base_query
-          query = apply_filters(query)
-          pagy, paginated_cras = paginate_query(query)
-
-          pagination = {
-            total: pagy.count,
-            page: pagy.page,
-            per_page: pagy.limit,
-            pages: pagy.pages,
-            prev: pagy.prev,
-            next: pagy.next
-          }
-
-          [paginated_cras, pagination]
-        rescue StandardError => e
-          Rails.logger.error "[Cras::ListService] Query failed: #{e.message}"
-          raise CraErrors::InternalError, 'Failed to query CRAs'
-        end
+        # === Query Building ===
 
         def build_base_query
           Cra.accessible_to(current_user)
@@ -116,23 +153,54 @@ module Api
         end
 
         def apply_filters(query)
-          query = query.where(status: filters[:status]) if filters[:status].present?
-          query = query.where(month: filters[:month]) if filters[:month].present?
-          query = query.where(year: filters[:year]) if filters[:year].present?
-          query = query.where(currency: filters[:currency]) if filters[:currency].present?
+          # Status filter
+          if filters[:status].present?
+            query = query.where(status: filters[:status])
+          end
 
-          query = query.where('description ILIKE ?', "%#{filters[:description]}%") if filters[:description].present?
+          # Month filter
+          if filters[:month].present?
+            query = query.where(month: filters[:month])
+          end
+
+          # Year filter
+          if filters[:year].present?
+            query = query.where(year: filters[:year])
+          end
+
+          # Currency filter
+          if filters[:currency].present?
+            query = query.where(currency: filters[:currency])
+          end
+
+          # Description filter
+          if filters[:description].present?
+            query = query.where('description ILIKE ?', "%#{filters[:description]}%")
+          end
 
           query
         end
 
-        def paginate_query(query)
-          page_num = [page&.to_i || 1, 1].max
-          per_page_num = (per_page&.to_i || 20).clamp(1, 100)
+        # === Fetch ===
 
-          Pagy.new(count: query.count, page: page_num, limit: per_page_num).then do |pagy|
-            [pagy, query.offset(pagy.offset).limit(pagy.limit)]
-          end
+        def fetch_cras(query)
+          begin
+            page_num = [page&.to_i || 1, 1].max
+            per_page_num = (per_page&.to_i || 20).clamp(1, 100)
+
+            pagy = Pagy.new(count: query.count, page: page_num, limit: per_page_num)
+            paginated_cras = query.offset(pagy.offset).limit(pagy.limit).to_a
+
+            pagination = {
+              total: pagy.count,
+              page: pagy.page,
+              per_page: pagy.limit,
+              pages: pagy.pages,
+              prev: pagy.prev,
+              next: pagy.next
+            }
+
+            { cras: paginated_cras, pagination: pagination }
         end
 
         # === Validators ===
@@ -151,6 +219,29 @@ module Api
 
         def valid_currency?(currency)
           currency.to_s.match?(/\A[A-Z]{3}\z/)
+        end
+
+        # === Serialization ===
+
+        def serialize_cras(cras)
+          {
+            data: cras.map { |cra| serialize_cra(cra) }
+          }
+        end
+
+        def serialize_cra(cra)
+          {
+            id: cra.id,
+            month: cra.month,
+            year: cra.year,
+            description: cra.description,
+            currency: cra.currency,
+            status: cra.status,
+            total_days: cra.total_days,
+            total_amount: cra.total_amount,
+            created_at: cra.created_at,
+            updated_at: cra.updated_at
+          }
         end
       end
     end

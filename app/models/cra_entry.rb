@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+
+
 # CRAEntry (CRA Entry)
 #
 # Pure domain model representing an individual activity entry within a CRA.
@@ -62,16 +64,13 @@ class CraEntry < ApplicationRecord
   validates :unit_price, presence: true, numericality: { only_integer: true, greater_than: 0 }
   validates :description, length: { maximum: 500 }, allow_blank: true
 
-  # Business rule validations
-  validate :validate_quantity_granularity
+  # Business rule validations (simplified for pure domain model)
   validate :validate_date_format
-  validate :validate_uniqueness_of_cra_mission_date
 
-  # Callbacks
-  before_validation :set_default_values
-  before_create :validate_cra_lifecycle!
-  before_update :validate_cra_lifecycle!
-  before_destroy :validate_cra_lifecycle!
+  # Lifecycle validations - Check CRA status before allowing operations
+  before_create :validate_cra_modifiable_for_create
+  before_update :validate_cra_modifiable_for_update
+  before_destroy :validate_cra_modifiable_for_destroy
 
   # Transient attribute writers for TDD compatibility (preserves DDD architecture)
   attr_writer :cra, :mission
@@ -99,100 +98,68 @@ class CraEntry < ApplicationRecord
     "#{date} - #{quantity} days @ #{unit_price}c"
   end
 
-  # Business rule: Calculate line total
+  # Calculate line total (quantity * unit_price)
+  # Used by ResponseFormatter for displaying entry totals
   def line_total
     quantity * unit_price
   end
 
-  # Business rule: Check if entry can be modified
-  def modifiable?
-    active? && cra&.draft?
-  end
-
-  # Business rule: Get associated CRA (through relation) + transient support for TDD
-  def cra
-    @cra || cra_entry_cras.first&.cra
-  end
-
-  # Business rule: Get associated mission (through relation) + transient support for TDD
-  def mission
-    @mission || cra_entry_missions.first&.mission
-  end
-
-  # Business rule: Check if date is in the future
-  def future_date?
-    date > Date.current
-  end
-
-  # Business rule: Check if entry is for current month
-  def current_month?
-    date.month == Date.current.month && date.year == Date.current.year
-  end
-
-  # Soft delete with cascade logic
+  # Simple soft delete method (business logic moved to services)
   def discard
-    validate_cra_lifecycle!
-    update!(deleted_at: Time.current) if deleted_at.nil?
+    update(deleted_at: Time.current) if deleted_at.nil?
   end
 
   private
 
-  def validate_quantity_granularity
-    # Business rule: Free granularity allowed (0.25, 0.5, 1.0, 2.0, etc.)
-    # No restrictions on granularity - business decision
-    # This validation is intentionally minimal
-  end
-
   def validate_date_format
-    # Business rule: Date must be valid
+    # Simple validation for date format
     errors.add(:date, 'invalid', message: 'must be a valid date') unless date.is_a?(Date)
   end
 
-  def validate_cra_lifecycle!
-    return if cra.blank?
-    return if cra.draft?
+  # CRA lifecycle validation methods
+  def validate_cra_modifiable_for_create
+    # Try to get CRA from association, but also check if passed as attribute
+    cra = cras.first
+    cra ||= @cra if defined?(@cra) && @cra.present?
 
-    raise CraErrors::CraSubmittedError, 'Cannot modify entries of submitted CRA' if cra.submitted?
+    return if cra.nil? # Skip if no CRA found
 
-    raise CraErrors::CraLockedError, 'Cannot modify entries of locked CRA' if cra.locked?
-  end
-
-  def set_default_values
-    # Set any default values if needed
-  end
-
-  def validate_uniqueness_of_cra_mission_date
-    return unless cra && mission && date.present?
-
-    # Business rule: Uniqueness invariant (cra, mission, date)
-    # Uses a gradated approach to handle both associated and transient CRA/Mission references
-    existing = CraEntry.where(date: date)
-
-    # Filter by CRA ID if available through associations
-    if cra_entry_cras.any?
-      existing = existing.joins(:cra_entry_cras).where(cra_entry_cras: { cra_id: cra_entry_cras.first.cra_id })
+    if cra.locked?
+      errors.add(:base, 'Cannot add entries to locked CRA')
+      raise CraErrors::CraLockedError, 'Cannot add entries to locked CRA'
+    elsif cra.submitted?
+      errors.add(:base, 'Cannot add entries to submitted CRA')
+      raise CraErrors::CraSubmittedError, 'Cannot add entries to submitted CRA'
     end
-
-    # Filter by Mission ID if available through associations
-    if cra_entry_missions.any?
-      mission_id = cra_entry_missions.first.mission_id
-      existing = existing.joins(:cra_entry_missions)
-                         .where(cra_entry_missions: { mission_id: mission_id })
-    end
-
-    # Exclude current record
-    existing = existing.where.not(id: id)
-
-    raise CraErrors::DuplicateEntryError if existing.exists?
   end
 
-  # Business rule: Recalculate CRA totals after CraEntry changes
-  # Business rule: Recalculate CRA totals after CraEntry changes
-  def recalculate_cra_totals
-    # Find CRA through association or transient attribute
-    cra_to_update = cra_entry_cras.first&.cra || cra
-    return unless cra_to_update.present?
+  def validate_cra_modifiable_for_update
+    # Reload associations to ensure we have the latest data
+    cras.reload
+    cra = cras.first
+    return if cra.nil? # Skip if no CRA associated
 
-    cra_to_update.recalculate_totals
+    if cra.locked?
+      errors.add(:base, 'Cannot modify entries in locked CRA')
+      raise CraErrors::CraLockedError, 'Cannot modify entries in locked CRA'
+    elsif cra.submitted?
+      errors.add(:base, 'Cannot modify entries in submitted CRA')
+      raise CraErrors::CraSubmittedError, 'Cannot modify entries in submitted CRA'
+    end
+  end
+
+  def validate_cra_modifiable_for_destroy
+    # Reload associations to ensure we have the latest data
+    cras.reload
+    cra = cras.first
+    return if cra.nil? # Skip if no CRA associated
+
+    if cra.locked?
+      errors.add(:base, 'Cannot delete entries from locked CRA')
+      raise CraErrors::CraLockedError, 'Cannot delete entries from locked CRA'
+    elsif cra.submitted?
+      errors.add(:base, 'Cannot delete entries from submitted CRA')
+      raise CraErrors::CraSubmittedError, 'Cannot delete entries from submitted CRA'
+    end
   end
 end

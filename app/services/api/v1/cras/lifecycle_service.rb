@@ -1,28 +1,36 @@
 # frozen_string_literal: true
 
+# app/services/api/v1/cras/lifecycle_service.rb
+# Migration vers ApplicationResult - Étape 2 du plan de migration
+# Contrat unique : tous les services retournent ApplicationResult
+# Aucune exception métier levée - tout via Result.fail
+
+require_relative '../../../../../lib/application_result'
+require_relative '../../../../../app/services/git_ledger_service'
+
 module Api
   module V1
     module Cras
       # Service for managing CRA lifecycle transitions (submit, lock) with Git Ledger integration
-      # Uses FC07-compliant business exceptions instead of Result monads
+      # Uses ApplicationResult contract for consistent Service → Controller communication
+      #
+      # CONTRACT:
+      # - Returns ApplicationResult exclusively
+      # - No business exceptions raised
+      # - No HTTP concerns in service
+      # - Single source of truth for business rules
       #
       # @example Submit a CRA
       #   result = LifecycleService.submit!(cra: cra, current_user: user)
-      #   result.cra # => Cra (submitted)
+      #   result.ok? # => true/false
+      #   result.data # => { item: { ... } }
       #
       # @example Lock a CRA
       #   result = LifecycleService.lock!(cra: cra, current_user: user)
-      #   result.cra # => Cra (locked with Git Ledger)
-      #
-      # @raise [CraErrors::CraLockedError] if CRA is already locked
-      # @raise [CraErrors::CraSubmittedError] if CRA is already submitted (for submit action)
-      # @raise [CraErrors::InvalidTransitionError] if status transition is invalid
-      # @raise [CraErrors::InvalidPayloadError] if CRA has no entries
-      # @raise [CraErrors::UnauthorizedError] if user is not the creator
+      #   result.ok? # => true/false
+      #   result.data # => { item: { ... } }
       #
       class LifecycleService
-        Result = Struct.new(:cra, keyword_init: true)
-
         class << self
           def submit!(cra:, current_user:)
             new(cra: cra, current_user: current_user).submit!
@@ -39,26 +47,48 @@ module Api
         end
 
         def submit!
-          Rails.logger.info "[Cras::LifecycleService] Submitting CRA #{@cra&.id}"
+          # Input validation
+          validation_result = validate_inputs
+          return validation_result unless validation_result.nil?
 
-          validate_inputs!
-          validate_submit_permissions!
-          perform_submit_transition!
+          # Permission validation
+          permission_result = validate_submit_permissions
+          return permission_result unless permission_result.nil?
 
-          Rails.logger.info "[Cras::LifecycleService] Successfully submitted CRA #{@cra.id}"
-          Result.new(cra: @cra)
-        end
+          # Perform submit transition
+          transition_result = perform_submit_transition
+          return transition_result unless transition_result.nil?
+
+          # Success response
+          Result.ok(
+            data: {
+              item: serialize_cra(@cra)
+            },
+            status: :ok
+          )
+        # No rescue StandardError - let exceptions bubble up for debugging
 
         def lock!
-          Rails.logger.info "[Cras::LifecycleService] Locking CRA #{@cra&.id}"
+          # Input validation
+          validation_result = validate_inputs
+          return validation_result unless validation_result.nil?
 
-          validate_inputs!
-          validate_lock_permissions!
-          perform_lock_transition!
+          # Permission validation
+          permission_result = validate_lock_permissions
+          return permission_result unless permission_result.nil?
 
-          Rails.logger.info "[Cras::LifecycleService] Successfully locked CRA #{@cra.id}"
-          Result.new(cra: @cra)
-        end
+          # Perform lock transition
+          transition_result = perform_lock_transition
+          return transition_result unless transition_result.nil?
+
+          # Success response
+          Result.ok(
+            data: {
+              item: serialize_cra(@cra)
+            },
+            status: :ok
+          )
+        # No rescue StandardError - let exceptions bubble up for debugging
 
         private
 
@@ -66,119 +96,234 @@ module Api
 
         # === Validation ===
 
-        def validate_inputs!
-          raise CraErrors::CraNotFoundError unless cra.present?
-
-          unless current_user.present?
-            raise CraErrors::InvalidPayloadError.new('Current user is required',
-                                                     field: :current_user)
+        def validate_inputs
+          # CRA validation
+          unless cra.present?
+            return Result.fail(
+              error: :not_found,
+              status: :not_found,
+              message: "CRA not found"
+            )
           end
+
+          # Current user validation
+          unless current_user.present?
+            return Result.fail(
+              error: :bad_request,
+              status: :bad_request,
+              message: "Current user is required"
+            )
+          end
+
+          nil # All validations passed
         end
 
-        def validate_submit_permissions!
-          check_ownership!
-          check_draft_status!
-          check_has_entries!
+        def validate_submit_permissions
+          # Ownership validation
+          ownership_result = validate_ownership
+          return ownership_result unless ownership_result.nil?
+
+          # Draft status validation
+          draft_result = validate_draft_status
+          return draft_result unless draft_result.nil?
+
+          # Has entries validation
+          entries_result = validate_has_entries
+          return entries_result unless entries_result.nil?
+
+          nil # All permissions validated
         end
 
-        def validate_lock_permissions!
-          check_ownership!
-          check_submitted_status!
-          check_not_locked!
+        def validate_lock_permissions
+          # Ownership validation
+          ownership_result = validate_ownership
+          return ownership_result unless ownership_result.nil?
+
+          # Submitted status validation
+          submitted_result = validate_submitted_status
+          return submitted_result unless submitted_result.nil?
+
+          # Not locked validation
+          locked_result = validate_not_locked
+          return locked_result unless locked_result.nil?
+
+          nil # All permissions validated
         end
 
-        def check_ownership!
-          return if cra.created_by_user_id == current_user.id
-
-          raise CraErrors::UnauthorizedError, 'Only the CRA creator can perform this action'
+        def validate_ownership
+          unless cra.created_by_user_id == current_user.id
+            return Result.fail(
+              error: :unauthorized,
+              status: :unauthorized,
+              message: "Only the CRA creator can perform this action"
+            )
+          end
+          nil
         end
 
-        def check_draft_status!
-          return if cra.draft?
-
-          raise CraErrors::InvalidTransitionError.new(cra.status, 'submitted')
+        def validate_draft_status
+          unless cra.draft?
+            return Result.fail(
+              error: :validation_error,
+              status: :validation_error,
+              message: "CRA must be in draft status to submit"
+            )
+          end
+          nil
         end
 
-        def check_submitted_status!
-          return if cra.submitted?
-
-          raise CraErrors::InvalidTransitionError.new(cra.status, 'locked')
+        def validate_submitted_status
+          unless cra.submitted?
+            return Result.fail(
+              error: :validation_error,
+              status: :validation_error,
+              message: "CRA must be in submitted status to lock"
+            )
+          end
+          nil
         end
 
-        def check_not_locked!
-          return unless cra.locked?
-
-          raise CraErrors::CraLockedError, 'CRA is already locked'
+        def validate_not_locked
+          if cra.locked?
+            return Result.fail(
+              error: :conflict,
+              status: :conflict,
+              message: "CRA is already locked"
+            )
+          end
+          nil
         end
 
-        def check_has_entries!
-          return if cra.cra_entries.active.any?
-
-          raise CraErrors::InvalidPayloadError, 'CRA must have at least one entry to be submitted'
+        def validate_has_entries
+          unless cra.cra_entries.active.any?
+            return Result.fail(
+              error: :validation_error,
+              status: :validation_error,
+              message: "CRA must have at least one entry to be submitted"
+            )
+          end
+          nil
         end
 
         # === Transitions ===
 
-        def perform_submit_transition!
-          ActiveRecord::Base.transaction do
-            Rails.logger.info "[Cras::LifecycleService] Recalculating totals for CRA #{cra.id}"
-            cra.recalculate_totals
+        def perform_submit_transition
+          begin
+            ActiveRecord::Base.transaction do
+              Rails.logger.info "[Cras::LifecycleService] Recalculating totals for CRA #{cra.id}"
+              cra.recalculate_totals
 
-            handle_submit_error unless cra.submit!
+              unless cra.submit!
+                return handle_submit_error
+              end
 
-            cra.reload
-            Rails.logger.info "[Cras::LifecycleService] CRA #{cra.id} submitted successfully"
+              cra.reload
+              Rails.logger.info "[Cras::LifecycleService] CRA #{cra.id} submitted successfully"
+            end
+            nil # Success
+          rescue ActiveRecord::RecordInvalid => e
+            Rails.logger.error "[Cras::LifecycleService] Submit transition failed: #{e.message}"
+            handle_submit_error(e.record)
           end
-        rescue ActiveRecord::RecordInvalid => e
-          Rails.logger.error "[Cras::LifecycleService] Submit transition failed: #{e.message}"
-          raise CraErrors::InvalidPayloadError, e.record.errors.full_messages.join(', ')
         end
 
-        def perform_lock_transition!
-          ActiveRecord::Base.transaction do
-            Rails.logger.info "[Cras::LifecycleService] Recalculating totals for CRA #{cra.id}"
-            cra.recalculate_totals
+        def perform_lock_transition
+          begin
+            ActiveRecord::Base.transaction do
+              Rails.logger.info "[Cras::LifecycleService] Recalculating totals for CRA #{cra.id}"
+              cra.recalculate_totals
 
-            Rails.logger.info "[Cras::LifecycleService] Creating Git Ledger commit for CRA #{cra.id}"
-            cra.lock!
+              Rails.logger.info "[Cras::LifecycleService] Creating Git Ledger commit for CRA #{cra.id}"
 
-            handle_lock_error unless cra.locked?
+              # Commit CRA to Git Ledger for immutability (FC-07 requirement)
+              GitLedgerService.commit_cra_lock!(cra)
 
-            cra.reload
-            Rails.logger.info "[Cras::LifecycleService] CRA #{cra.id} locked successfully with Git Ledger"
+              unless cra.lock!
+                return handle_lock_error
+              end
+
+              cra.reload
+              Rails.logger.info "[Cras::LifecycleService] CRA #{cra.id} locked successfully with Git Ledger"
+            end
+            nil # Success
+          rescue GitLedgerService::CommitError => e
+            Rails.logger.error "[Cras::LifecycleService] Git Ledger commit failed: #{e.message}"
+            Result.fail(
+              error: :internal_error,
+              status: :internal_error,
+              message: "Failed to create Git Ledger commit"
+            )
+          rescue ActiveRecord::RecordInvalid => e
+            Rails.logger.error "[Cras::LifecycleService] Lock transition failed: #{e.message}"
+            handle_lock_error(e.record)
           end
-        rescue GitLedgerService::CommitError => e
-          Rails.logger.error "[Cras::LifecycleService] Git Ledger commit failed: #{e.message}"
-          raise CraErrors::InternalError, 'Failed to create Git Ledger commit'
-        rescue ActiveRecord::RecordInvalid => e
-          Rails.logger.error "[Cras::LifecycleService] Lock transition failed: #{e.message}"
-          raise CraErrors::InvalidPayloadError, e.record.errors.full_messages.join(', ')
         end
 
         # === Error Handlers ===
 
-        def handle_submit_error
-          errors = cra.errors.full_messages
+        def handle_submit_error(record = nil)
+          errors = (record&.errors&.full_messages || cra.errors.full_messages)
 
-          if cra.errors[:base]&.any? { |msg| msg.include?('Only draft') }
-            raise CraErrors::InvalidTransitionError.new(cra.status, 'submitted')
-          elsif cra.errors[:base]&.any? { |msg| msg.include?('entries') }
-            raise CraErrors::InvalidPayloadError, 'CRA must have entries to submit'
+          if errors.any? { |msg| msg.include?('Only draft') }
+            return Result.fail(
+              error: :validation_error,
+              status: :validation_error,
+              message: "CRA must be in draft status to submit"
+            )
+          elsif errors.any? { |msg| msg.include?('entries') }
+            return Result.fail(
+              error: :validation_error,
+              status: :validation_error,
+              message: "CRA must have entries to submit"
+            )
           else
-            raise CraErrors::InvalidPayloadError, errors.join(', ')
+            return Result.fail(
+              error: :validation_error,
+              status: :validation_error,
+              message: errors.join(', ')
+            )
           end
         end
 
-        def handle_lock_error
-          errors = cra.errors.full_messages
+        def handle_lock_error(record = nil)
+          errors = (record&.errors&.full_messages || cra.errors.full_messages)
 
-          if cra.errors[:base]&.any? { |msg| msg.include?('Only submitted') }
-            raise CraErrors::InvalidTransitionError.new(cra.status, 'locked')
-          elsif cra.errors[:base]&.any? { |msg| msg.include?('already locked') }
-            raise CraErrors::CraLockedError, 'CRA is already locked'
+          if errors.any? { |msg| msg.include?('Only submitted') }
+            return Result.fail(
+              error: :validation_error,
+              status: :validation_error,
+              message: "CRA must be in submitted status to lock"
+            )
+          elsif errors.any? { |msg| msg.include?('already locked') }
+            return Result.fail(
+              error: :conflict,
+              status: :conflict,
+              message: "CRA is already locked"
+            )
           else
-            raise CraErrors::InvalidPayloadError, errors.join(', ')
+            return Result.fail(
+              error: :validation_error,
+              status: :validation_error,
+              message: errors.join(', ')
+            )
           end
+        end
+
+        # === Serialization ===
+
+        def serialize_cra(cra)
+          {
+            id: cra.id,
+            month: cra.month,
+            year: cra.year,
+            description: cra.description,
+            currency: cra.currency,
+            status: cra.status,
+            total_days: cra.total_days,
+            total_amount: cra.total_amount,
+            created_at: cra.created_at,
+            updated_at: cra.updated_at
+          }
         end
       end
     end

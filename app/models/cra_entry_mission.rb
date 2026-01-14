@@ -31,8 +31,7 @@ class CraEntryMission < ApplicationRecord
   # Ensure unique relationships
   validates :mission_id, uniqueness: { scope: :cra_entry_id, message: 'can only be linked once to a CRAEntry' }
 
-  # Custom validations for business rules
-  validate :ensure_business_rule_compliance
+  # Basic validations only (business logic moved to services)
 
   # Scopes
   scope :by_cra_entry, ->(cra_entry_id) { where(cra_entry_id: cra_entry_id) }
@@ -43,27 +42,9 @@ class CraEntryMission < ApplicationRecord
     "CRAEntry #{cra_entry_id} ↔ Mission #{mission_id}"
   end
 
-  # Business rule: Get associated CRA through CRAEntry
-  def cra
-    cra_entry.cra
-  end
-
-  # Business rule: Get the date of the CRAEntry
-  def entry_date
-    cra_entry.date
-  end
+  # Note: Complex business logic moved to CRA services
 
   private
 
-  def ensure_business_rule_compliance
-    # Business Rule: A CRAEntry can only be linked to one mission
-    if cra_entry_id.present? && mission_id.present?
-      existing_link = CraEntryMission.where(cra_entry_id: cra_entry_id,
-                                            mission_id: mission_id).where.not(id: id).exists?
-      if existing_link
-        errors.add(:mission_id, 'already_linked',
-                   message: 'This CRAEntry is already linked to this mission')
-      end
-    end
-  end
+  # Business rule validation logic moved to CRA services
 end

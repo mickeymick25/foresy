@@ -69,4 +69,6 @@ Rails.application.configure do
 
   # éviter des erreurs liées aux contraintes SQL lors du rake db:fixtures:load
   config.active_record.verify_foreign_keys_for_fixtures = false
+
+
 end

@@ -1,6 +1,9 @@
 You are acting as a Senior Product Architect + CTO.
 Your responsibility is to understand, reason about, and enforce a long-term, production-grade backend architecture.
 
+⚠️ **SYNCHRONISATION DOCUMENTAIRE - 11 JANVIER 2026** :
+Ce document présente la vision produit et les principes architecturaux du projet Foresy. Pour l'état actuel et les informations techniques vérifiées (notamment après l'investigation du 11 janvier 2026), le README.md du 11 janvier 2026 est la source de vérité officielle.
+
 ## 1. Product Vision
 
 We are building a backend-first SaaS product for independent professionals (freelancers / contractors).
@@ -182,13 +185,16 @@ Confirm readiness to implement Feature Contracts following this vision.
 
 ---
 
-## 9. Feature Contracts Status (Updated: 7 Jan 2026)
+## 9. Feature Contracts Status (Updated: 11 Jan 2026)
+
+⚠️ **IMPORTANT - INVESTIGATION 11 JANVIER 2026** :
+Les claims précédents de "FC-07 ✅ DONE" étaient INCORRECTS. L'investigation technique du 11 janvier 2026 a révélé que l'API CRA était complètement non-fonctionnelle (400 Bad Request pour toutes requêtes valides). L'API a été restaurée après corrections architecturales majeures.
 
 | FC# | Name | Status | Tests | Notes |
 |-----|------|--------|-------|-------|
 | FC-05 | Rate Limiting | ✅ DONE | - | Protection brute force |
 | FC-06 | Missions | ✅ DONE | 30 | PR #12 merged |
-| FC-07 | CRA (Compte Rendu d'Activité) | ✅ DONE | 427 | TDD PLATINUM, tag `fc-07-complete` |
+| FC-07 | CRA (Compte Rendu d'Activité) | ⚠️ RESTAURÉE | - | API non-fonctionnelle → corrections appliquées (11 Jan 2026) |
 | FC-08 | Entreprise Indépendant | 📋 NEXT | - | Base fiscale & légale |
 | FC-09 | Notifications & Alertes | 📋 PLANNED | - | - |
 
@@ -200,14 +206,16 @@ Confirm readiness to implement Feature Contracts following this vision.
 | Mini-FC-02 | CRA CSV Export | `GET /cras/:id/export?export_format=csv` | ✅ DONE (26 tests) |
 | Mini-FC-02.2 | CRA PDF Export | - | 📋 BACKLOG (if needed) |
 
-### Current Metrics (Validated: 7 January 2026)
+### Current Metrics (Updated: 11 January 2026)
+
+⚠️ **LEÇON APPRISE** : Tests unitaires verts ≠ API fonctionnelle. Validation d'intégration obligatoire avant claims de completion.
 
 | Tool | Result | Status |
 |------|--------|--------|
-| **Tests RSpec** | ✅ **500 examples, 0 failures** — ❌ **Couverture SimpleCov : 31.02%** (seuil attendu : 90%) | ⚠️ PARTIAL |
-| **Tests Rswag** | ✅ **201 examples, 0 failures** — ❌ **Couverture SimpleCov : 0.01%** (catastrophique !) | ⚠️ PARTIAL |
-| **RuboCop** | ❌ **1 offense détectée** — `spec/support/business_logic_helpers.rb:170` - Complexité trop élevée | ❌ FAIL |
-| **Brakeman** | ❌ **Erreur de parsing** — `bin/templates/quality_metrics.rb:528` - Syntaxe Ruby incorrecte | ❌ FAIL |
+| **Tests RSpec** | ✅ **500 examples, 0 failures** — ❌ **Couverture SimpleCov : 31.02%** (seuil attendu : 90%) | ❌ COVERAGE FAIL |
+| **Tests Rswag** | ✅ **201 examples, 0 failures** — ❌ **Couverture SimpleCov : 0.01%** (catastrophique !) | ❌ COVERAGE FAIL |
+| **RuboCop** | ❌ **1 offense détectée** — `spec/support/business_logic_helpers.rb:170` - Complexité trop élevée | ❌ QUALITY FAIL |
+| **Brakeman** | ❌ **Erreur de parsing** — `bin/templates/quality_metrics.rb:528` - Syntaxe Ruby incorrecte | ❌ SECURITY FAIL |
 
 - **Architecture**: Domain-Driven / Relation-Driven (no FK between domains)
 

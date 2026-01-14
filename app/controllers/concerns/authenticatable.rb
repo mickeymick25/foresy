@@ -156,4 +156,15 @@ module Authenticatable
   def session_id_from(payload)
     payload['session_id'] || payload[:session_id]
   end
+
+  # Renders JSON response for authentication failures
+  #
+  # @param message [String] Error message to include in response
+  # @return [void] Renders JSON response with 401 status
+  def render_unauthorized(message = 'Unauthorized')
+    render json: {
+      error: 'unauthorized',
+      message: message
+    }, status: :unauthorized
+  end
 end

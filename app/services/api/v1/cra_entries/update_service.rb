@@ -4,273 +4,325 @@ module Api
   module V1
     module CraEntries
       # Service for updating CRA entries with comprehensive business rule validation
-      # Uses FC07-compliant business exceptions instead of Result monads
+      # Uses Shared::Result contract for consistent Service → Controller communication
+      #
+      # CONTRACT:
+      # - Returns Shared::Result::ResultObject exclusively
+      # - No business exceptions raised
+      # - No HTTP concerns in service
+      # - Single source of truth for business rules
       #
       # @example
       #   result = UpdateService.call(
-      #     entry: entry,
+      #     cra_entry: entry,
       #     entry_params: { quantity: 2, unit_price: 60000 },
-      #     mission_id: mission.id,
       #     current_user: user
       #   )
-      #   result.entry # => CraEntry
-      #
-      # @raise [CraErrors::CraLockedError] if CRA is locked
-      # @raise [CraErrors::CraSubmittedError] if CRA is submitted
-      # @raise [CraErrors::InvalidPayloadError] if parameters are invalid
-      # @raise [CraErrors::DuplicateEntryError] if entry already exists for mission/date
-      # @raise [CraErrors::UnauthorizedError] if user lacks access
-      # @raise [CraErrors::EntryNotFoundError] if entry not found
+      #   result.success? # => true/false
+      #   result.data # => { item: { ... }, cra: { ... } }
       #
       class UpdateService
-        Result = Struct.new(:entry, keyword_init: true)
+        Result = Api::V1::CraEntries::Shared::Result
 
-        def self.call(entry:, entry_params:, mission_id:, current_user:)
-          new(entry: entry, entry_params: entry_params, mission_id: mission_id, current_user: current_user).call
+        def self.call(cra_entry:, entry_params:, current_user:)
+          new(cra_entry: cra_entry, entry_params: entry_params, current_user: current_user).call
         end
 
-        def initialize(entry:, entry_params:, mission_id:, current_user:)
-          @entry = entry
+        def initialize(cra_entry:, entry_params:, current_user:)
+          @cra_entry = cra_entry
           @entry_params = entry_params
-          @mission_id = mission_id
           @current_user = current_user
         end
 
         def call
-          Rails.logger.info "[CraEntries::UpdateService] Updating entry #{@entry&.id}"
+          # Input validation
+          validation_result = validate_inputs
+          return validation_result if validation_result
 
-          validate_inputs!
-          check_permissions!
-          validate_entry_params!
-          check_duplicate!
-          perform_update!
+          # Permission validation
+          permission_result = validate_permissions
+          return permission_result if permission_result
 
-          # Recalculate CRA totals after updating the entry
-          recalculate_cra_totals!
+          # CRA lifecycle validation
+          lifecycle_result = check_cra_modifiable
+          return lifecycle_result if lifecycle_result
 
-          Rails.logger.info "[CraEntries::UpdateService] Successfully updated entry #{@entry.id}"
-          Result.new(entry: @entry)
+          # Validate entry params
+          params_validation_result = validate_entry_params
+          return params_validation_result if params_validation_result
+
+          # Duplicate check
+          duplicate_result = check_duplicate
+          return duplicate_result if duplicate_result
+
+          # Perform update
+          update_result = perform_update
+          return update_result if update_result
+
+          # Recalculate CRA totals
+          recalculate_cra_totals
+
+          # Success response
+          Result.success_entry(@cra_entry, cra.reload)
+        rescue StandardError => e
+          Rails.logger.error "[CraEntries::UpdateService] Unexpected error: #{e.class} - #{e.message}"
+          Rails.logger.error e.backtrace.first(10).join("\n")
+          Result.failure(["An unexpected error occurred: #{e.message}"], :internal_error)
         end
 
         private
 
-        attr_reader :entry, :entry_params, :mission_id, :current_user
+        attr_reader :cra_entry, :entry_params, :current_user
 
-        # === Validation ===
+        # === Input Validation ===
 
-        def validate_inputs!
-          raise CraErrors::EntryNotFoundError unless entry.present?
+        def validate_inputs
+          unless cra_entry.present?
+            return Result.failure(["CRA entry not found"], :not_found)
+          end
 
           unless entry_params.present?
-            raise CraErrors::InvalidPayloadError.new('Entry parameters are required',
-                                                     field: :entry_params)
+            return Result.failure(["Entry parameters are required"], :bad_request)
           end
+
           unless current_user.present?
-            raise CraErrors::InvalidPayloadError.new('Current user is required',
-                                                     field: :current_user)
+            return Result.failure(["Current user is required"], :bad_request)
           end
-        end
 
-        def check_permissions!
-          check_cra_exists!
-          check_cra_access!
-          check_cra_modifiable!
-          check_entry_modifiable!
-          check_mission_access! if mission_id_changed?
-        end
-
-        def check_cra_exists!
-          raise CraErrors::CraNotFoundError, 'Entry is not associated with a valid CRA' unless cra.present?
-        end
-
-        def check_cra_access!
-          accessible_cras = Cra.accessible_to(current_user)
-          return if accessible_cras.exists?(id: cra.id)
-
-          raise CraErrors::UnauthorizedError, 'User does not have access to this CRA'
-        end
-
-        def check_cra_modifiable!
-          raise CraErrors::CraLockedError if cra.locked?
-          raise CraErrors::CraSubmittedError, 'Cannot modify entries in submitted CRAs' if cra.submitted?
-        end
-
-        def check_entry_modifiable!
-          return if entry.modifiable?
-
-          raise CraErrors::InvalidPayloadError, 'Entry cannot be modified'
-        end
-
-        def check_mission_access!
-          return unless mission_id.present?
-          return if user_has_mission_access?
-
-          raise CraErrors::MissionNotFoundError, 'User does not have access to the specified mission'
-        end
-
-        def validate_entry_params!
-          validate_date! if entry_params[:date].present?
-          validate_quantity! if entry_params[:quantity].present?
-          validate_unit_price! if entry_params[:unit_price].present?
-          validate_description! if entry_params[:description].present?
-        end
-
-        def validate_date!
-          date = Date.parse(entry_params[:date].to_s)
-          raise CraErrors::InvalidPayloadError.new('Date cannot be in the future', field: :date) if date > Date.current
-
-          if date < 2.years.ago.to_date
-            raise CraErrors::InvalidPayloadError.new('Date cannot be more than 2 years in the past',
-                                                     field: :date)
+          # At least one field should be provided for update
+          updatable_fields = [:date, :quantity, :unit_price, :description, :mission_id]
+          has_updates = updatable_fields.any? { |field| entry_params[field].present? }
+          unless has_updates
+            return Result.failure(["At least one field must be provided for update"], :validation_error)
           end
-        rescue ArgumentError
-          raise CraErrors::InvalidPayloadError.new('Date must be a valid date', field: :date)
+
+          nil
         end
 
-        def validate_quantity!
-          quantity = entry_params[:quantity].to_d
-          unless quantity.positive?
-            raise CraErrors::InvalidPayloadError.new('Quantity must be greater than 0',
-                                                     field: :quantity)
+        def validate_permissions
+          # Check CRA ownership
+          unless cra.created_by_user_id == current_user.id
+            return Result.failure(["Only the CRA creator can modify entries"], :unauthorized)
           end
-          if quantity > 365
-            raise CraErrors::InvalidPayloadError.new('Quantity cannot exceed 365 days',
-                                                     field: :quantity)
-          end
+
+          nil
         end
 
-        def validate_unit_price!
-          unit_price = entry_params[:unit_price].to_i
-          unless unit_price.positive?
-            raise CraErrors::InvalidPayloadError.new('Unit price must be greater than 0',
-                                                     field: :unit_price)
+        def check_cra_modifiable
+          if cra.locked?
+            return Result.failure(["Locked CRAs cannot be modified"], :conflict)
           end
-          if unit_price > 100_000_000
-            raise CraErrors::InvalidPayloadError.new('Unit price cannot exceed 1,000,000 EUR',
-                                                     field: :unit_price)
+
+          if cra.submitted?
+            return Result.failure(["Submitted CRAs cannot be modified"], :conflict)
           end
+
+          nil
         end
 
-        def validate_description!
-          description = entry_params[:description].to_s
-          if description.length > 500
-            raise CraErrors::InvalidPayloadError.new('Description cannot exceed 500 characters',
-                                                     field: :description)
+        def validate_entry_params
+          # Date validation
+          if entry_params[:date].present?
+            parsed_date = parse_date(entry_params[:date])
+            unless parsed_date
+              return Result.failure(["Date must be in a valid format"], :validation_error)
+            end
+
+            if parsed_date > Date.current
+              return Result.failure(["Date cannot be in the future"], :validation_error)
+            end
           end
+
+          # Quantity validation
+          if entry_params[:quantity].present?
+            quantity = entry_params[:quantity].to_d
+            if quantity.negative?
+              return Result.failure(["Quantity cannot be negative"], :validation_error)
+            end
+            if quantity > 1000
+              return Result.failure(["Quantity cannot exceed 1000"], :validation_error)
+            end
+          end
+
+          # Unit price validation
+          if entry_params[:unit_price].present?
+            unit_price = entry_params[:unit_price].to_i
+            if unit_price.negative?
+              return Result.failure(["Unit price cannot be negative"], :validation_error)
+            end
+            if unit_price > 1_000_000_000
+              return Result.failure(["Unit price cannot exceed 1 billion cents"], :validation_error)
+            end
+          end
+
+          # Description validation
+          if entry_params[:description].present?
+            description = entry_params[:description].to_s
+            if description.length > 1000
+              return Result.failure(["Description cannot exceed 1000 characters"], :validation_error)
+            end
+          end
+
+          # Mission validation (if provided)
+          if entry_params[:mission_id].present?
+            mission = Mission.find_by(id: entry_params[:mission_id])
+            unless mission
+              return Result.failure(["Mission not found"], :not_found)
+            end
+
+            # Check if mission is accessible to user
+            accessible_missions = Mission.accessible_to(current_user)
+            unless accessible_missions.exists?(id: mission.id)
+              return Result.failure(["Mission not accessible"], :unauthorized)
+            end
+          end
+
+          nil
         end
 
         # === Duplicate Check ===
 
-        def check_duplicate!
-          return unless mission_id_changed? || date_changed?
+        def check_duplicate
+          return nil unless mission_id_changed? || date_changed?
 
-          new_date = entry_params[:date].present? ? parse_date(entry_params[:date]) : entry.date
+          new_date = entry_params[:date].present? ? parse_date(entry_params[:date]) : cra_entry.date
           new_mission_id = mission_id || current_mission_id
 
-          return unless duplicate_entry_exists?(new_mission_id, new_date)
+          if duplicate_entry_exists?(new_mission_id, new_date)
+            return Result.failure(
+              ["An entry already exists for this mission and date in this CRA"],
+              :conflict
+            )
+          end
 
-          raise CraErrors::DuplicateEntryError
+          nil
         end
 
         def duplicate_entry_exists?(check_mission_id, date)
           return false unless check_mission_id && date
 
-          CraEntry.joins(:cra_entry_cras, :cra_entry_missions)
-                  .where(cra_entry_cras: { cra_id: cra.id })
-                  .where(cra_entry_missions: { mission_id: check_mission_id })
-                  .where(date: date)
-                  .where(deleted_at: nil)
-                  .where.not(id: entry.id)
-                  .exists?
+          CraEntry
+            .joins(:cra_entry_cras, :cra_entry_missions)
+            .where(cra_entry_cras: { cra_id: cra.id })
+            .where(cra_entry_missions: { mission_id: check_mission_id })
+            .where(date: date)
+            .where(deleted_at: nil)
+            .where.not(id: cra_entry.id)
+            .exists?
         end
 
-        # === Update ===
+        # === Update Operation ===
 
-        def perform_update!
+        def perform_update
           ActiveRecord::Base.transaction do
-            entry.assign_attributes(build_update_attributes)
-            handle_mission_association_update!
-            entry.save!
-            entry.reload
+            # Update entry attributes
+            update_attributes
+
+            # Update mission association if needed
+            update_mission_association if mission_id_changed?
+
+            # Save entry
+            unless @cra_entry.save
+              return Result.failure(@cra_entry.errors.full_messages, :validation_error)
+            end
+
+            @cra_entry.reload
           end
+
+          nil
         rescue ActiveRecord::RecordInvalid => e
-          Rails.logger.warn "[CraEntries::UpdateService] Validation failed: #{e.record.errors.full_messages.join(', ')}"
-          raise CraErrors::InvalidPayloadError, e.record.errors.full_messages.join(', ')
+          Rails.logger.error "[CraEntries::UpdateService] Update failed: #{e.message}"
+          Result.failure([e.record.errors.full_messages.join(', ')], :validation_error)
         end
 
-        def build_update_attributes
-          attributes = {}
-          attributes[:date] = parse_date(entry_params[:date]) if entry_params[:date].present?
-          attributes[:quantity] = entry_params[:quantity].to_d if entry_params[:quantity].present?
-          attributes[:unit_price] = entry_params[:unit_price].to_i if entry_params[:unit_price].present?
-          attributes[:description] = entry_params[:description].to_s.strip if entry_params[:description].present?
-          attributes
-        end
-
-        def handle_mission_association_update!
-          return if current_mission_id == mission_id
-
-          entry.cra_entry_missions.destroy_all if current_mission_id.present?
-
-          if mission_id.present?
-            entry.cra_entry_missions.create!(mission_id: mission_id)
-            CraMissionLinker.link_cra_to_mission!(cra.id, mission_id)
+        def update_attributes
+          # Update date
+          if entry_params[:date].present?
+            parsed_date = parse_date(entry_params[:date])
+            @cra_entry.date = parsed_date if parsed_date
           end
+
+          # Update quantity
+          if entry_params[:quantity].present?
+            @cra_entry.quantity = entry_params[:quantity].to_d
+          end
+
+          # Update unit_price
+          if entry_params[:unit_price].present?
+            @cra_entry.unit_price = entry_params[:unit_price].to_i
+          end
+
+          # Update description
+          if entry_params[:description].present?
+            @cra_entry.description = entry_params[:description].to_s
+          end
+        end
+
+        def update_mission_association
+          # Remove old association
+          cra_entry.cra_entry_missions.destroy_all if current_mission_id.present?
+
+          # Create new association
+          if mission_id.present?
+            CraEntryMission.create!(
+              cra_entry_id: cra_entry.id,
+              mission_id: mission_id
+            )
+
+            # Link CRA to mission if not already linked
+            unless CraMission.exists?(cra_id: cra.id, mission_id: mission_id)
+              CraMission.create!(
+                cra_id: cra.id,
+                mission_id: mission_id
+              )
+            end
+          end
+        end
+
+        # === Recalculate Totals ===
+
+        def recalculate_cra_totals
+          entries = CraEntry.joins(:cra_entry_cras).where(cra_entry_cras: { cra_id: cra.id })
+
+          total_days = entries.sum(:quantity)
+          total_amount = entries.sum('quantity * unit_price')
+
+          cra.update_columns(
+            total_days: total_days,
+            total_amount: total_amount.to_i,
+            updated_at: Time.current
+          )
         end
 
         # === Helpers ===
 
         def cra
-          @cra ||= entry.cra
+          @cra ||= Cra.find_by!(id: cra_entry.cra_entry_cras.first.cra_id)
         end
 
         def current_mission_id
-          @current_mission_id ||= entry.cra_entry_missions.first&.mission_id
+          @current_mission_id ||= cra_entry.cra_entry_missions.first&.mission_id
         end
 
         def mission_id_changed?
-          mission_id.present? && current_mission_id != mission_id
+          entry_params[:mission_id].present? && entry_params[:mission_id] != current_mission_id
         end
 
         def date_changed?
           return false unless entry_params[:date].present?
 
-          parse_date(entry_params[:date]) != entry.date
+          parse_date(entry_params[:date]) != cra_entry.date
         end
 
-        def parse_date(date_param)
-          return nil if date_param.blank?
+        def mission_id
+          @mission_id ||= entry_params[:mission_id]
+        end
 
-          Date.parse(date_param.to_s)
+        def parse_date(date_value)
+          return date_value if date_value.is_a?(Date)
+          Date.parse(date_value.to_s)
         rescue ArgumentError
           nil
-        end
-
-        def user_has_mission_access?
-          Mission.joins(:mission_companies)
-                 .joins('INNER JOIN user_companies ON user_companies.company_id = mission_companies.company_id')
-                 .where(id: mission_id)
-                 .where(user_companies: { user_id: current_user.id, role: %w[independent client] })
-                 .exists?
-        end
-
-        def recalculate_cra_totals!
-          # Get all active (non-deleted) entries for this CRA
-          active_entries = CraEntry.joins(:cra_entry_cras)
-                                   .where(cra_entry_cras: { cra_id: cra.id })
-                                   .where(deleted_at: nil)
-
-          # Calculate total days (sum of quantities)
-          total_days = active_entries.sum(:quantity)
-
-          # Calculate total amount (sum of quantity * unit_price)
-          total_amount = active_entries.sum { |entry| entry.quantity * entry.unit_price }
-
-          # Update CRA with new totals
-          cra.update!(total_days: total_days, total_amount: total_amount)
-
-          Rails.logger.info "[CraEntries::UpdateService] Recalculated totals for CRA #{cra.id}: " \
-                            "#{total_days} days, #{total_amount} amount"
         end
       end
     end

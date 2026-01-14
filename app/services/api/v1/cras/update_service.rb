@@ -1,10 +1,23 @@
 # frozen_string_literal: true
 
+# app/services/api/v1/cras/update_service.rb
+# Migration vers ApplicationResult - Étape 2 du plan de migration
+# Contrat unique : tous les services retournent ApplicationResult
+# Aucune exception métier levée - tout via Result.fail
+
+require_relative '../../../../../lib/application_result'
+
 module Api
   module V1
     module Cras
       # Service for updating CRAs with comprehensive business rule validation
-      # Uses FC07-compliant business exceptions instead of Result monads
+      # Uses ApplicationResult contract for consistent Service → Controller communication
+      #
+      # CONTRACT:
+      # - Returns ApplicationResult exclusively
+      # - No business exceptions raised
+      # - No HTTP concerns in service
+      # - Single source of truth for business rules
       #
       # @example
       #   result = UpdateService.call(
@@ -12,17 +25,10 @@ module Api
       #     cra_params: { description: 'Updated description' },
       #     current_user: user
       #   )
-      #   result.cra # => Cra
-      #
-      # @raise [CraErrors::CraLockedError] if CRA is locked
-      # @raise [CraErrors::CraSubmittedError] if CRA is submitted
-      # @raise [CraErrors::InvalidPayloadError] if parameters are invalid
-      # @raise [CraErrors::InvalidTransitionError] if status transition is invalid
-      # @raise [CraErrors::UnauthorizedError] if user is not the creator
+      #   result.ok? # => true/false
+      #   result.data # => { item: { ... } }
       #
       class UpdateService
-        Result = Struct.new(:cra, keyword_init: true)
-
         def self.call(cra:, cra_params:, current_user:)
           new(cra: cra, cra_params: cra_params, current_user: current_user).call
         end
@@ -34,15 +40,26 @@ module Api
         end
 
         def call
-          Rails.logger.info "[Cras::UpdateService] Updating CRA #{@cra&.id} for user #{@current_user&.id}"
+          # Input validation
+          validation_result = validate_inputs
+          return validation_result unless validation_result.nil?
 
-          validate_inputs!
-          check_permissions!
-          perform_update!
+          # Permission validation
+          permission_result = validate_permissions
+          return permission_result unless permission_result.nil?
 
-          Rails.logger.info "[Cras::UpdateService] Successfully updated CRA #{@cra.id}"
-          Result.new(cra: @cra)
-        end
+          # Perform update
+          update_result = perform_update
+          return update_result unless update_result.nil?
+
+          # Success response
+          Result.ok(
+            data: {
+              item: serialize_cra(@cra)
+            },
+            status: :ok
+          )
+        # No rescue StandardError - let exceptions bubble up for debugging
 
         private
 
@@ -50,87 +67,158 @@ module Api
 
         # === Validation ===
 
-        def validate_inputs!
-          raise CraErrors::CraNotFoundError unless cra.present?
+        def validate_inputs
+          # CRA validation
+          unless cra.present?
+            return Result.fail(
+              error: :not_found,
+              status: :not_found,
+              message: "CRA not found"
+            )
+          end
 
+          # CRA params validation
           unless cra_params.present?
-            raise CraErrors::InvalidPayloadError.new('CRA parameters are required',
-                                                     field: :cra_params)
+            return Result.fail(
+              error: :bad_request,
+              status: :bad_request,
+              message: "CRA parameters are required"
+            )
           end
+
+          # Current user validation
           unless current_user.present?
-            raise CraErrors::InvalidPayloadError.new('Current user is required',
-                                                     field: :current_user)
+            return Result.fail(
+              error: :bad_request,
+              status: :bad_request,
+              message: "Current user is required"
+            )
           end
+
+          nil # All validations passed
         end
 
         # === Permissions ===
 
-        def check_permissions!
-          check_ownership!
-          check_cra_modifiable!
-          check_status_transition! if cra_params[:status].present?
+        def validate_permissions
+          # Ownership validation
+          ownership_result = validate_ownership
+          return ownership_result unless ownership_result.nil?
+
+          # CRA modifiable validation
+          modifiable_result = validate_cra_modifiable
+          return modifiable_result unless modifiable_result.nil?
+
+          # Status transition validation (if status is being updated)
+          if cra_params[:status].present?
+            transition_result = validate_status_transition
+            return transition_result unless transition_result.nil?
+          end
+
+          nil # All permissions validated
         end
 
-        def check_ownership!
-          return if cra.created_by_user_id == current_user.id
-
-          raise CraErrors::UnauthorizedError, 'Only the CRA creator can modify this CRA'
+        def validate_ownership
+          unless cra.created_by_user_id == current_user.id
+            return Result.fail(
+              error: :unauthorized,
+              status: :unauthorized,
+              message: "Only the CRA creator can modify this CRA"
+            )
+          end
+          nil
         end
 
-        def check_cra_modifiable!
-          raise CraErrors::CraLockedError if cra.locked?
-          raise CraErrors::CraSubmittedError, 'Submitted CRAs cannot be modified' if cra.submitted?
+        def validate_cra_modifiable
+          if cra.locked?
+            return Result.fail(
+              error: :conflict,
+              status: :conflict,
+              message: "Locked CRAs cannot be modified"
+            )
+          elsif cra.submitted?
+            return Result.fail(
+              error: :conflict,
+              status: :conflict,
+              message: "Submitted CRAs cannot be modified"
+            )
+          end
+          nil
         end
 
-        def check_status_transition!
+        def validate_status_transition
           new_status = cra_params[:status].to_s
-          return if new_status == cra.status
-          return if cra.can_transition_to?(new_status)
+          return nil if new_status == cra.status
 
-          raise CraErrors::InvalidTransitionError.new(cra.status, new_status)
+          unless cra.can_transition_to?(new_status)
+            return Result.fail(
+              error: :validation_error,
+              status: :validation_error,
+              message: "Invalid status transition from #{cra.status} to #{new_status}"
+            )
+          end
+          nil
         end
 
         # === Update ===
 
-        def perform_update!
-          ActiveRecord::Base.transaction do
-            update_attributes = build_update_attributes
+        def perform_update
+          begin
+            ActiveRecord::Base.transaction do
+              update_attributes = build_update_attributes
 
-            handle_update_error unless cra.update(update_attributes)
+              unless cra.update(update_attributes)
+                return handle_update_error
+              end
 
-            cra.reload
+              cra.reload
+            end
+            nil # Success
+          rescue ActiveRecord::RecordInvalid => e
+            Rails.logger.warn "[Cras::UpdateService] Validation failed: #{e.record.errors.full_messages.join(', ')}"
+            handle_record_invalid(e.record)
           end
-        rescue ActiveRecord::RecordInvalid => e
-          Rails.logger.warn "[Cras::UpdateService] Validation failed: #{e.record.errors.full_messages.join(', ')}"
-          handle_record_invalid(e.record)
         end
 
         def build_update_attributes
           attributes = {}
 
+          # Month validation
           if cra_params[:month].present?
             month = cra_params[:month].to_i
-            attributes[:month] = month if month.between?(1, 12)
+            if month.between?(1, 12)
+              attributes[:month] = month
+            end
           end
 
+          # Year validation
           if cra_params[:year].present?
             year = cra_params[:year].to_i
-            attributes[:year] = year if year >= 2000
+            if year >= 2000
+              attributes[:year] = year
+            end
           end
 
+          # Status validation
           if cra_params[:status].present?
             new_status = cra_params[:status].to_s
-            attributes[:status] = new_status if Cra::VALID_STATUSES.include?(new_status)
+            if Cra::VALID_STATUSES.include?(new_status)
+              attributes[:status] = new_status
+            end
           end
 
+          # Description validation
           if cra_params[:description].present?
             description = cra_params[:description].to_s.strip
             attributes[:description] = description[0..2000]
           end
 
+          # Currency validation
           if cra_params[:currency].present?
             currency = cra_params[:currency].to_s.upcase
-            attributes[:currency] = currency if currency.match?(/\A[A-Z]{3}\z/)
+            if currency.match?(/\A[A-Z]{3}\z/)
+              attributes[:currency] = currency
+            end
           end
 
           attributes
@@ -140,22 +228,65 @@ module Api
           errors = cra.errors.full_messages
 
           if cra.errors[:status]&.any? { |msg| msg.include?('invalid_transition') }
-            raise CraErrors::InvalidTransitionError.new(cra.status, cra_params[:status])
+            return Result.fail(
+              error: :validation_error,
+              status: :validation_error,
+              message: "Invalid status transition"
+            )
           elsif errors.any? { |msg| msg.include?('already exists') }
-            raise CraErrors::DuplicateEntryError, 'A CRA already exists for this period'
+            return Result.fail(
+              error: :conflict,
+              status: :conflict,
+              message: "A CRA already exists for this period"
+            )
           else
-            raise CraErrors::InvalidPayloadError, errors.join(', ')
+            return Result.fail(
+              error: :validation_error,
+              status: :validation_error,
+              message: errors.join(', ')
+            )
           end
         end
 
         def handle_record_invalid(record)
+          errors = record.errors.full_messages
+
           if record.errors[:status]&.any? { |msg| msg.include?('invalid_transition') }
-            raise CraErrors::InvalidTransitionError.new(cra.status, cra_params[:status])
-          elsif record.errors.full_messages.any? { |msg| msg.include?('already exists') }
-            raise CraErrors::DuplicateEntryError, 'A CRA already exists for this period'
+            Result.fail(
+              error: :validation_error,
+              status: :validation_error,
+              message: "Invalid status transition"
+            )
+          elsif errors.any? { |msg| msg.include?('already exists') }
+            Result.fail(
+              error: :conflict,
+              status: :conflict,
+              message: "A CRA already exists for this period"
+            )
           else
-            raise CraErrors::InvalidPayloadError, record.errors.full_messages.join(', ')
+            Result.fail(
+              error: :validation_error,
+              status: :validation_error,
+              message: errors.join(', ')
+            )
           end
+        end
+
+        # === Serialization ===
+
+        def serialize_cra(cra)
+          {
+            id: cra.id,
+            month: cra.month,
+            year: cra.year,
+            description: cra.description,
+            currency: cra.currency,
+            status: cra.status,
+            total_days: cra.total_days,
+            total_amount: cra.total_amount,
+            created_at: cra.created_at,
+            updated_at: cra.updated_at
+          }
         end
       end
     end

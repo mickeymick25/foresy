@@ -9,14 +9,31 @@ module Api
 
         private
 
+        # Override format_cra_entry to include cra_id field for CRA entries
+        def format_cra_entry(entry)
+          {
+            id: entry.id,
+            cra_id: entry.cra_entry_cras.first&.cra_id,
+            date: entry.date.iso8601,
+            quantity: entry.quantity,
+            unit_price: entry.unit_price,
+            line_total: entry.line_total,
+            description: entry.description,
+            created_at: entry.created_at.iso8601,
+            updated_at: entry.updated_at.iso8601
+          }
+        end
+
         def format_cra_entry_response(entry, status = :ok)
-          data = format_cra_entry(entry)
+          data = {
+            cra_entry: format_cra_entry(entry)
+          }
           format_response(data, status)
         end
 
-        def format_cra_entry_collection_response(entries)
+        def format_cra_entry_collection_response(entries, pagination_meta = nil)
           data = format_collection(entries, :format_cra_entry)
-          format_response(data, :ok)
+          format_response({ entries: data }, :ok, pagination_meta)
         end
 
         def format_cra_entry_with_mission_response(entry)

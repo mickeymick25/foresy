@@ -31,8 +31,7 @@ class CraMission < ApplicationRecord
   # Ensure unique relationships
   validates :mission_id, uniqueness: { scope: :cra_id, message: 'can only appear once in a CRA' }
 
-  # Custom validations for business rules
-  validate :ensure_business_rule_compliance
+  # Basic validations only (business logic moved to services)
 
   # Scopes
   scope :by_cra, ->(cra_id) { where(cra_id: cra_id) }
@@ -45,14 +44,5 @@ class CraMission < ApplicationRecord
 
   private
 
-  def ensure_business_rule_compliance
-    # Business Rule: A mission can only appear once in a CRA
-    if cra_id.present? && mission_id.present?
-      existing_link = CraMission.where(cra_id: cra_id, mission_id: mission_id).where.not(id: id).exists?
-      if existing_link
-        errors.add(:mission_id, 'already_linked',
-                   message: 'This mission is already linked to this CRA')
-      end
-    end
-  end
+  # Business rule validation logic moved to CRA services
 end

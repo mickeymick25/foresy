@@ -1,33 +1,39 @@
 # frozen_string_literal: true
 
+# app/services/api/v1/cra_entries/list_service.rb
+# Migration vers ApplicationResult - Étape 2 du plan de migration
+# Contrat unique : tous les services retournent ApplicationResult
+# Aucune exception métier levée - tout via Result.fail
+
+require_relative '../../../../../lib/application_result'
+
 module Api
   module V1
     module CraEntries
       # Service for listing CRA entries with filtering, sorting and pagination
-      # Uses FC07-compliant business exceptions instead of Result monads
+      # Uses ApplicationResult contract for consistent Service → Controller communication
+      #
+      # CONTRACT:
+      # - Returns ApplicationResult exclusively
+      # - No business exceptions raised
+      # - No HTTP concerns in service
+      # - Single source of truth for business rules
       #
       # @example
-      #   result = ListService.call(cra: cra, page: 1, per_page: 20)
-      #   result.entries # => [CraEntry, ...]
-      #   result.total_count # => 100
-      #
-      # @raise [CraErrors::CraNotFoundError] if CRA not provided
-      # @raise [CraErrors::InternalError] if query fails
+      #   result = ListService.call(
+      #     cra: cra,
+      #     page: 1,
+      #     per_page: 20
+      #   )
+      #   result.ok? # => true/false
+      #   result.data # => { items: [...], cra: {...} }
       #
       class ListService
         DEFAULT_PAGE = 1
         DEFAULT_PER_PAGE = 20
 
-        Result = Struct.new(:items, :total_count, keyword_init: true)
-
-        # Options hash for optional parameters to reduce parameter count
-        # @option options [Integer] :page (1) Page number
-        # @option options [Integer] :per_page (20) Items per page
-        # @option options [Boolean] :include_associations (true) Eager load associations
-        # @option options [Hash] :filters ({}) Filter criteria
-        # @option options [Hash] :sort_options ({}) Sort criteria
-        def self.call(cra:, current_user: nil, **)
-          new(cra: cra, current_user: current_user, **).call
+        def self.call(cra:, current_user: nil, **options)
+          new(cra: cra, current_user: current_user, **options).call
         end
 
         def initialize(cra:, current_user: nil, **options)
@@ -41,27 +47,43 @@ module Api
         end
 
         def call
-          Rails.logger.info "[CraEntries::ListService] Listing entries for CRA #{@cra&.id}"
+          # Input validation
+          unless cra.present?
+            return Result.fail(
+              error: :bad_request,
+              status: :bad_request,
+              message: "CRA is required"
+            )
+          end
 
-          validate_inputs!
+          # Build query
+          query_result = build_entry_query
+          return query_result unless query_result.nil?
 
-          base_query = build_entry_query
-          total_count = base_query.count
-          entries = apply_pagination(base_query)
+          # Get total count
+          total_count = query_result.count
 
-          Rails.logger.info "[CraEntries::ListService] Retrieved #{entries.size} entries (total: #{total_count})"
-          Result.new(items: entries, total_count: total_count)
-        end
+          # Apply pagination
+          entries = apply_pagination(query_result)
+
+          # Success response
+          Result.ok(
+            data: {
+              items: serialize_entries(entries),
+              cra: serialize_cra(cra),
+              meta: {
+                total_count: total_count,
+                page: @page,
+                per_page: @per_page
+              }
+            },
+            status: :ok
+          )
+        # No rescue StandardError - let exceptions bubble up for debugging
 
         private
 
         attr_reader :cra, :current_user, :page, :per_page, :include_associations, :filters, :sort_options
-
-        # === Validation ===
-
-        def validate_inputs!
-          raise CraErrors::CraNotFoundError, 'CRA is required' unless cra.present?
-        end
 
         # === Query Building ===
 
@@ -70,9 +92,6 @@ module Api
           base_query = apply_eager_loading(base_query)
           base_query = apply_filters(base_query)
           apply_sorting(base_query)
-        rescue StandardError => e
-          Rails.logger.error "[CraEntries::ListService] Query building failed: #{e.message}"
-          raise CraErrors::InternalError, 'Failed to build query'
         end
 
         # === Pagination ===
@@ -191,12 +210,10 @@ module Api
           else
             query.order(sort_field => sort_direction.to_sym)
           end
-        rescue StandardError => e
-          Rails.logger.warn "[CraEntries::ListService] Sorting failed: #{e.message}, using default sorting"
-          query.order(date: :desc)
+        # No rescue StandardError - let exceptions bubble up for debugging
         end
 
-        # === Helpers ===
+        # === Validation Helpers ===
 
         def validated_sort_field
           sort_field = sort_options[:field]&.to_s || 'date'
@@ -217,6 +234,34 @@ module Api
           Date.parse(date_param.to_s)
         rescue ArgumentError
           nil
+        end
+
+        # === Serialization ===
+
+        def serialize_entries(entries)
+          entries.map { |entry| serialize_entry(entry) }
+        end
+
+        def serialize_entry(entry)
+          {
+            id: entry.id,
+            date: entry.date,
+            quantity: entry.quantity,
+            unit_price: entry.unit_price,
+            description: entry.description,
+            created_at: entry.created_at,
+            updated_at: entry.updated_at
+          }
+        end
+
+        def serialize_cra(cra)
+          {
+            id: cra.id,
+            total_days: cra.total_days,
+            total_amount: cra.total_amount,
+            currency: cra.currency,
+            status: cra.status
+          }
         end
       end
     end

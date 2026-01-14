@@ -46,7 +46,7 @@ module CoverageHelper
 
       # Check overall coverage
       if total_coverage < 90.0
-        raise "❌ COVERAGE FAILURE: #{total_coverage.round(2)}% is below minimum 90.0%\n" +
+        raise "❌ COVERAGE FAILURE: #{total_coverage.round(2)}% is below minimum 90.0%\n" \
               "Required: 90.0%, Actual: #{total_coverage.round(2)}%, Missing: #{(90.0 - total_coverage).round(2)}%"
       end
 
@@ -56,18 +56,20 @@ module CoverageHelper
       end
 
       if files_below_threshold.any?
-        file_list = files_below_threshold.first(5).map { |f| "#{f.filename}: #{f.covered_percent.round(2)}%" }.join(', ')
-        raise "❌ FILE COVERAGE FAILURE: #{files_below_threshold.count} files below 80% threshold\n" +
+        file_list = files_below_threshold.first(5).map do |f|
+          "#{f.filename}: #{f.covered_percent.round(2)}%"
+        end.join(', ')
+        raise "❌ FILE COVERAGE FAILURE: #{files_below_threshold.count} files below 80% threshold\n" \
               "Examples: #{file_list}..."
       end
 
       puts "✅ Coverage requirement met: #{total_coverage.round(2)}% (>= 90.0%)"
-      puts "✅ All files meet minimum 80% coverage threshold"
+      puts '✅ All files meet minimum 80% coverage threshold'
 
       # Generate coverage report for CI
       File.write('coverage/coverage.json', result.to_json)
     else
-      raise "❌ SimpleCov results not available - coverage validation failed"
+      raise '❌ SimpleCov results not available - coverage validation failed'
     end
   rescue StandardError => e
     # Always fail CI on coverage issues

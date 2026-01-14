@@ -46,7 +46,8 @@ gem 'rack-attack', '~> 6.7.0'
 group :development, :test do
   gem 'brakeman'
   gem 'bundler-audit'
-  gem 'debug', platforms: %i[mri windows]
+  #gem 'debug', platforms: %i[mri windows]
+  gem 'debug'
   gem 'dotenv-rails'
   gem 'factory_bot_rails'
   gem 'rspec' # <- sécurité si RSpec core non inclus

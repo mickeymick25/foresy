@@ -14,6 +14,13 @@
 
 Cette documentation centralisée regroupe toutes les informations techniques, historiques et de référence du projet Foresy. Elle a été réorganisée le 18 décembre 2025 pour rassembler les documents dispersés dans plusieurs endroits du projet.
 
+⚠️ **SYNCHRONISATION DOCUMENTAIRE IMPORTANTE - 11 JANVIER 2026** :
+Suite à l'investigation technique du 11 janvier 2026 qui a révélé des incohérences majeures dans la documentation, **le README.md du 11 janvier 2026 est maintenant la source de vérité officielle** pour l'état actuel du projet. Tous les autres documents de ce répertoire doivent être alignés sur les informations contenues dans ce README.
+
+**État FC-07 CRA** : Les claims précédents de "100% TERMINÉ" étaient incorrects. L'API CRA était non-fonctionnelle (400 Bad Request) et a été restaurée après corrections architecturales majeures.
+
+**Action requise** : Cette documentation sera progressivement synchronisée avec le README.md pour assurer la cohérence.
+
 ### 📁 Structure de la Documentation
 
 ```
@@ -66,22 +73,29 @@ Foresy/
 4. **[🔒 Token Revocation](./technical/guides/token_revocation_strategy.md)** - Stratégie de revocation des tokens (sécurité)
 5. **[📮 Postman Collection](./postman/Foresy_API.postman_collection.json)** - Collection pour tester les endpoints
 
-### 🎯 **Feature Contract 07 — CRA (7/01/2026)** 🏆 **100% TERMINÉ - TDD PLATINUM**
+### 🎯 **Feature Contract 07 — CRA (7/01/2026)** ⚠️ **MISE À JOUR POST-INVESTIGATION**
+
+⚠️ **IMPORTANT - MISE À JOUR 11 JANVIER 2026** :
+Les claims précédents de "FC-07 100% TERMINÉ" étaient INCORRECTS. Une investigation technique du 11 janvier 2026 a révélé que l'API CRA était complètement non-fonctionnelle (400 Bad Request pour toutes requêtes valides). Des corrections majeures ont été appliquées pour restaurer la fonctionnalité.
+
+**🎯 État Actuel (11 Jan 2026)** : API CRA **FONCTIONNELLE** après corrections architecturales majeures
+
 1. **[📋 Documentation Centrale FC-07](./technical/fc07/README.md)** - Vue d'ensemble et navigation complète
 2. **[📚 Méthodologie TDD/DDD](./technical/fc07/methodology/fc07_methodology_tracker.md)** - Suivi méthodologique
 3. **[🔧 Implémentation Technique](./technical/fc07/implementation/fc07_technical_implementation.md)** - Documentation technique
 4. **[🏗️ Phases Complétées](./technical/fc07/phases/)** - Toutes phases terminées
 5. **[📤 Mini-FC-02 CRA Export](./technical/fc07/enhancements/MINI-FC-02-CRA-Export.md)** - Export CSV ✨ NEW
 6. **[🔍 Mini-FC-01 Filtering](./technical/fc07/enhancements/MINI-FC-01-CRA-Filtering.md)** - Filtrage CRAs
+7. **[🔧 Corrections Critiques API](./technical/corrections/2026-01-11-FC07_CRA_Entries_API_Critical_Fix.md)** - Résolution problème 400/500
 
-**✅ FC-07 100% TERMINÉ** (Tag: `fc-07-complete`)
+**⚠️ MISE À JOUR POST-INVESTIGATION** : API maintenant fonctionnelle après corrections appliquées
 
 | Outil | Résultat | Status |
 |-------|----------|--------|
-| **Tests RSpec** | ✅ **500 examples, 0 failures** — ❌ **Couverture SimpleCov : 31.02%** (seuil attendu : 90%) | ⚠️ PARTIAL |
-| **Tests Rswag** | ✅ **201 examples, 0 failures** — ❌ **Couverture SimpleCov : 0.01%** (catastrophique !) | ⚠️ PARTIAL |
-| **RuboCop** | ❌ **1 offense détectée** — `spec/support/business_logic_helpers.rb:170` - Complexité trop élevée | ❌ FAIL |
-| **Brakeman** | ❌ **Erreur de parsing** — `bin/templates/quality_metrics.rb:528` - Syntaxe Ruby incorrecte | ❌ FAIL |
+| **Tests RSpec** | ✅ **500 examples, 0 failures** — ❌ **Couverture SimpleCov : 31.02%** (seuil attendu : 90%) | ❌ COVERAGE FAIL |
+| **Tests Rswag** | ✅ **201 examples, 0 failures** — ❌ **Couverture SimpleCov : 0.01%** (catastrophique !) | ❌ COVERAGE FAIL |
+| **RuboCop** | ❌ **1 offense détectée** — `spec/support/business_logic_helpers.rb:170` - Complexité trop élevée | ❌ QUALITY FAIL |
+| **Brakeman** | ❌ **Erreur de parsing** — `bin/templates/quality_metrics.rb:528` - Syntaxe Ruby incorrecte | ❌ SECURITY FAIL |
 
 | Phase | Description | Tests | Status |
 |-------|-------------|-------|--------|
@@ -93,6 +107,8 @@ Foresy/
 | Phase 3C | Recalcul Totaux (Create/Update/Destroy) | 24/24 ✅ | TDD PLATINUM |
 | **Mini-FC-01** | **Filtrage CRAs (year/month/status)** | **16/16 ✅** | **TDD PLATINUM** |
 | **Mini-FC-02** | **Export CSV avec include_entries** | **26/26 ✅** | **TDD PLATINUM** |
+
+**⚠️ NOTE IMPORTANTE** : Les tests unitaires ci-dessus sont verts, mais l'investigation du 11 janvier 2026 a révélé que les tests d'intégration étaient manquants, leading à une API non-fonctionnelle malgré les tests unitaires verts.
 
 **Décision Architecturale Clé (Phase 3C)** :
 - ❌ **Callbacks ActiveRecord** → Rejeté
@@ -129,26 +145,22 @@ docker compose exec web bundle exec rspec spec/services/cra_entries/ spec/models
 GET /api/v1/cras/:id/export?export_format=csv&include_entries=true
 ```
 
-**Commandes de Validation (résultats du 7 janvier 2026)** :
+**Commandes de Validation (résultats du 11 janvier 2026)** :
 ```bash
 # RSpec
 docker compose exec web bundle exec rspec --format progress
-# → 449 examples, 0 failures
+# → 500 examples, 0 failures (tests unitaires)
 
-# Rswag
-docker compose exec web bundle exec rake rswag:specs:swaggerize
-# → 128 examples, 0 failures
+# RSwag  
+docker compose exec web bundle exec rswag:specs:swaggerize
+# → 201 examples, 0 failures (tests d'intégration)
 
-# RuboCop
-docker compose exec web bundle exec rubocop --format simple
-# → 147 files inspected, no offenses detected
-
-# Brakeman
-docker compose exec web bundle exec brakeman -q
-# → 0 Security Warnings
+# Couverture
+docker compose exec web bundle exec rspec --coverage
+# → 31.02% (critique, seuil attendu : 90%)
 ```
 
-> ✅ **FC-07 TERMINÉ — 449 tests GREEN, taggé `fc-07-complete`, prêt pour production.**
+> ⚠️ **API RESTAURÉE** — L'API CRA est maintenant fonctionnelle après corrections architecturales majeures du 11 janvier 2026. Voir README.md pour les détails complets.
 
 ### 🎯 **Feature Contract 06 — Missions (31/12/2025)** ✅ PR #12 MERGED (1 Jan 2026)
 1. **[📋 Feature Contract 06](./FeatureContract/06_Feature%20Contract%20—%20Missions)** - Contrat source de vérité

@@ -87,9 +87,7 @@ class Cra < ApplicationRecord
   # Uniqueness validation (user, month, year)
   validate :validate_uniqueness
 
-  # Callbacks
-  before_validation :set_default_currency
-  before_validation :set_default_status
+
 
   # Associations via relation tables (Domain-Driven Architecture)
   has_many :cra_missions
@@ -150,121 +148,58 @@ class Cra < ApplicationRecord
     draft? || submitted?
   end
 
+  # Transition methods for CRA lifecycle
+  def submit!
+    raise CraErrors::InvalidTransitionError.new(status, 'submitted') unless can_transition_to?('submitted')
+    update!(status: 'submitted')
+  end
+
+  def lock!
+    raise CraErrors::InvalidTransitionError.new(status, 'locked') unless can_transition_to?('locked')
+    update!(status: 'locked')
+  end
+
+  def can_transition_to?(new_status)
+    case new_status.to_s
+    when 'submitted'
+      draft?
+    when 'locked'
+      submitted?
+    else
+      false
+    end
+  end
+
   def display_name
     "#{month}/#{year} (#{status.humanize})"
   end
 
-  # Business rule: Check if CRA can be modified by user
-  def modifiable_by?(user)
-    return false unless user.present?
-    return false if locked?
-
-    created_by_user_id == user.id
-  end
-
-  # Business rule: Check if status transition is valid
-  def can_transition_to?(new_status)
-    valid_transitions = {
-      'draft' => %w[submitted],
-      'submitted' => %w[locked]
-    }
-
-    valid_transitions[status]&.include?(new_status) || false
-  end
-
-  # Business rule: Transition CRA status
-  def transition_to!(new_status)
-    unless can_transition_to?(new_status)
-      errors.add(:status, "Cannot transition from #{status} to #{new_status}")
-      return false
-    end
-
-    update!(status: new_status)
-  end
-
-  # Business rule: Calculate total days from CRA entries
-  def calculate_total_days
-    cra_entries.active.sum(:quantity) || 0
-  end
-
-  # Business rule: Calculate total amount from CRA entries
-  def calculate_total_amount
-    # total_amount = sum(quantity * unit_price)
-    cra_entries.active.sum('quantity * unit_price') || 0
-  end
-
-  # Business rule: Recalculate totals (server-side only)
-  def recalculate_totals
-    new_total_days = calculate_total_days
-    new_total_amount = calculate_total_amount
-
-    # Only save if values have actually changed
-    if total_days != new_total_days || total_amount != new_total_amount
-      self.total_days = new_total_days
-      self.total_amount = new_total_amount
-      save(validate: false)
-    end
-  end
-
-  # Business rule: Submit CRA (draft → submitted)
-  def submit!
-    unless draft?
-      errors.add(:base, 'Only draft CRAs can be submitted')
-      return false
-    end
-
-    # Recalculate totals before submission
-    recalculate_totals
-
-    update!(status: 'submitted')
-  end
-
-  # Business rule: Lock CRA (submitted → locked) with Git versioning
-  # Implements FC-07 PLATINUM contract: Atomic transaction with Git Ledger
-  #
-  # Contract Requirements:
-  # - CRA lock, totals recalculation and Git commit executed in single DB transaction
-  # - Any Git failure triggers complete rollback
-  # - Git error → 500 internal_error, CRA remains unlocked
-  def lock!
-    unless submitted?
-      errors.add(:base, 'Only submitted CRAs can be locked')
-      return false
-    end
-
-    # Atomic transaction as per FC-07 PLATINUM contract
-    # This ensures: lock + recalcul + Git commit are all-or-nothing
-    transaction do
-      # Step 1: Recalculate totals (server-side only, never trusted from client)
-      recalculate_totals
-
-      # Step 2: Lock the CRA (status change)
-      update!(status: 'locked', locked_at: Time.current)
-
-      # Step 3: Commit to Git Ledger (FC-07 PLATINUM requirement)
-      # If this fails, entire transaction rolls back (including CRA lock)
-      GitLedgerService.commit_cra_lock!(self)
-    end
-  rescue GitLedgerService::GitLedgerError => e
-    Rails.logger.error "[CRA::lock!] Git Ledger commit failed for CRA #{id}: #{e.message}"
-    errors.add(:base, 'Failed to create immutable audit trail - CRA remains unlocked')
-    # Re-raise as StandardError to trigger 500 response in controller
-    raise StandardError, "Git Ledger commit failed: #{e.message}"
-  rescue StandardError => e
-    Rails.logger.error "[CRA::lock!] Transaction failed for CRA #{id}: #{e.message}"
-    errors.add(:base, "Failed to lock CRA: #{e.message}")
-    raise
-  end
-
-  # Soft delete with business logic
+  # Simple soft delete method (business logic moved to services)
   def discard
-    # Check if CRA is submitted or locked (business rule)
-    if submitted? || locked?
-      errors.add(:base, 'Submitted or locked CRAs cannot be deleted')
-      return false
-    end
-
     update(deleted_at: Time.current) if deleted_at.nil?
+  end
+
+  # Recalculate total_days and total_amount based on associated CRA entries
+  # Used by LifecycleService for submit/lock operations
+  def recalculate_totals
+    # Calculate totals from active (non-deleted) entries associated with this CRA
+    active_entries = CraEntry.joins(:cra_entry_cras)
+                           .where(cra_entry_cras: { cra_id: id })
+                           .where(deleted_at: nil)
+
+    # Calculate total days (sum of quantities)
+    total_days = active_entries.sum(:quantity)
+
+    # Calculate total amount (sum of quantity * unit_price)
+    total_amount = active_entries.sum { |entry| entry.quantity * entry.unit_price }
+
+    # Update the CRA with new totals
+    update!(
+      total_days: total_days,
+      total_amount: total_amount
+    )
+
+    Rails.logger.info "[Cra] Recalculated totals for CRA #{id}: #{total_days} days, #{total_amount} amount"
   end
 
   private
@@ -284,17 +219,13 @@ class Cra < ApplicationRecord
     errors.add(:base, 'A CRA already exists for this user, month, and year') if scope.exists?
   end
 
-  def set_default_currency
-    self.currency = 'EUR' if currency.nil?
-  end
 
-  def set_default_status
-    self.status = 'draft' if status.nil?
-  end
 
+  # Simple validation for enum values
   def validate_enum_values
-    # Validate status before it reaches PostgreSQL
-    if status.present? && !VALID_STATUSES.include?(status.to_s)
+    return unless status.present?
+
+    unless VALID_STATUSES.include?(status.to_s)
       errors.add(:status, :invalid, message: "must be one of: #{VALID_STATUSES.join(', ')}")
     end
   end

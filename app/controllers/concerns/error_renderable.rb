@@ -13,6 +13,7 @@ module ErrorRenderable
 
     rescue_from StandardError, with: :render_conditional_server_error
     rescue_from ApplicationError, with: :render_internal_server_error
+    rescue_from CraErrors::ApplicationBusinessError, with: :render_business_error
   end
 
   private
@@ -37,7 +38,21 @@ module ErrorRenderable
     render_error(message, :unprocessable_entity)
   end
 
+  def render_business_error(exception = nil)
+    if exception&.is_a?(ApplicationBusinessError)
+      # Use the specific HTTP status from the business exception
+      status = exception.http_status || :unprocessable_entity
+      render_error(exception.message, status)
+    else
+      # Fallback for non-business exceptions
+      render_unprocessable_entity('Business logic error')
+    end
+  end
+
   def render_conditional_server_error(exception = nil)
+  # Redirect ApplicationBusinessError to business error handler
+  return render_business_error(exception) if exception.is_a?(CraErrors::ApplicationBusinessError)
+
     # Re-raise in development for better debugging, but render JSON in test/production
     raise exception if Rails.env.development?
 
@@ -45,6 +60,9 @@ module ErrorRenderable
   end
 
   def render_internal_server_error(exception = nil)
+  # Redirect ApplicationBusinessError to business error handler
+  return render_business_error(exception) if exception.is_a?(CraErrors::ApplicationBusinessError)
+
     Rails.logger.error "Internal server error: #{exception.message}" if exception
     Rails.logger.error exception.backtrace.join("\n") if exception
 

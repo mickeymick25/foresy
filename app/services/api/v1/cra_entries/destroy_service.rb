@@ -1,22 +1,34 @@
 # frozen_string_literal: true
 
+# app/services/api/v1/cra_entries/destroy_service.rb
+# Migration vers ApplicationResult - Étape 2 du plan de migration
+# Contrat unique : tous les services retournent ApplicationResult
+# Aucune exception métier levée - tout via Result.fail
+
+require_relative '../../../../../lib/application_result'
+
 module Api
   module V1
     module CraEntries
-      # Service for soft-deleting CRA entries with business rule validation
-      # Uses FC07-compliant business exceptions instead of Result monads
+      # Service for soft-deleting CRA entries with comprehensive business rule validation
+      # Uses ApplicationResult contract for consistent Service → Controller communication
+      #
+      # CONTRACT:
+      # - Returns ApplicationResult exclusively
+      # - No business exceptions raised
+      # - No HTTP concerns in service
+      # - Single source of truth for business rules
       #
       # @example
-      #   result = DestroyService.call(entry: entry, current_user: user)
-      #   result.entry # => CraEntry (soft deleted)
-      #
-      # @raise [CraErrors::CraLockedError] if CRA is locked
-      # @raise [CraErrors::CraSubmittedError] if CRA is submitted
-      # @raise [CraErrors::EntryNotFoundError] if entry not found or already deleted
-      # @raise [CraErrors::UnauthorizedError] if user lacks access
+      #   result = DestroyService.call(
+      #     entry: entry,
+      #     current_user: user
+      #   )
+      #   result.ok? # => true/false
+      #   result.data # => { item: { ... }, cra: { ... } }
       #
       class DestroyService
-        Result = Struct.new(:entry, keyword_init: true)
+        include Api::V1::CraEntries::Shared::ValidationHelpers
 
         def self.call(entry:, current_user:)
           new(entry: entry, current_user: current_user).call
@@ -28,21 +40,37 @@ module Api
         end
 
         def call
-          Rails.logger.info "[CraEntries::DestroyService] Deleting entry #{@entry&.id}"
+          # Input validation
+          validation_result = validate_inputs
+          return validation_result unless validation_result.nil?
 
-          validate_inputs!
-          check_permissions!
-          perform_soft_delete!
+          # Permission validation
+          permission_result = validate_permissions
+          return permission_result unless permission_result.nil?
+
+          # CRA lifecycle validation - Check if CRA can be modified
+          lifecycle_result = check_cra_modifiable!(@entry.cra)
+          return lifecycle_result unless lifecycle_result.nil?
+
+          # Perform soft delete
+          delete_result = perform_soft_delete
+          return delete_result unless delete_result.nil?
 
           # Unlink mission if this was the last active entry for it
           unlink_mission_if_last_entry!
 
-          # Recalculate CRA totals after deleting the entry
+          # Recalculate CRA totals
           recalculate_cra_totals!
 
-          Rails.logger.info "[CraEntries::DestroyService] Successfully deleted entry #{@entry.id}"
-          Result.new(entry: @entry)
-        end
+          # Success response
+          Result.ok(
+            data: {
+              item: serialize_entry(@entry),
+              cra: serialize_cra(cra)
+            },
+            status: :ok
+          )
+        # No rescue StandardError - let exceptions bubble up for debugging
 
         private
 
@@ -50,60 +78,126 @@ module Api
 
         # === Validation ===
 
-        def validate_inputs!
-          raise CraErrors::EntryNotFoundError unless entry.present?
-
-          unless current_user.present?
-            raise CraErrors::InvalidPayloadError.new('Current user is required',
-                                                     field: :current_user)
+        def validate_inputs
+          # Entry validation
+          unless entry.present?
+            return Result.fail(
+              error: :not_found,
+              status: :not_found,
+              message: "CRA entry not found"
+            )
           end
+
+          # Current user validation
+          unless current_user.present?
+            return Result.fail(
+              error: :bad_request,
+              status: :bad_request,
+              message: "Current user is required"
+            )
+          end
+
+          nil # All validations passed
         end
 
-        def check_permissions!
-          check_entry_not_deleted!
-          check_cra_exists!
-          check_cra_access!
-          check_cra_modifiable!
-          check_entry_modifiable!
+        def validate_permissions
+          # Entry not deleted validation
+          if entry.discarded?
+            return Result.fail(
+              error: :not_found,
+              status: :not_found,
+              message: "Entry is already deleted"
+            )
+          end
+
+          # CRA existence validation
+          unless entry.present? && entry.cra.present?
+            return Result.fail(
+              error: :not_found,
+              status: :not_found,
+              message: "Entry is not associated with a valid CRA"
+            )
+          end
+
+          # CRA access validation
+          access_result = validate_cra_access
+          return access_result unless access_result.nil?
+
+          # CRA modifiable validation
+          modifiable_result = validate_cra_modifiable
+          return modifiable_result unless modifiable_result.nil?
+
+          # Entry modifiable validation
+          entry_modifiable_result = validate_entry_modifiable
+          return entry_modifiable_result unless entry_modifiable_result.nil?
+
+          nil # All permissions validated
         end
 
-        def check_entry_not_deleted!
-          raise CraErrors::EntryNotFoundError, 'Entry is already deleted' if entry.discarded?
-        end
-
-        def check_cra_exists!
-          raise CraErrors::CraNotFoundError, 'Entry is not associated with a valid CRA' unless cra.present?
-        end
-
-        def check_cra_access!
+        def validate_cra_access
           accessible_cras = Cra.accessible_to(current_user)
-          return if accessible_cras.exists?(id: cra.id)
-
-          raise CraErrors::UnauthorizedError, 'User does not have access to this CRA'
+          unless accessible_cras.exists?(id: cra.id)
+            return Result.fail(
+              error: :unauthorized,
+              status: :unauthorized,
+              message: "User does not have access to this CRA"
+            )
+          end
+          nil
         end
 
-        def check_cra_modifiable!
-          raise CraErrors::CraLockedError if cra.locked?
-          raise CraErrors::CraSubmittedError, 'Cannot delete entries from submitted CRAs' if cra.submitted?
+        def validate_cra_modifiable
+          if cra.locked?
+            return Result.fail(
+              error: :conflict,
+              status: :conflict,
+              message: "Cannot delete entries from locked CRAs"
+            )
+          elsif cra.submitted?
+            return Result.fail(
+              error: :conflict,
+              status: :conflict,
+              message: "Cannot delete entries from submitted CRAs"
+            )
+          end
+          nil
         end
 
-        def check_entry_modifiable!
-          return if entry.modifiable?
-
-          raise CraErrors::InvalidPayloadError, 'Entry cannot be deleted (CRA is submitted or locked)'
+        def validate_entry_modifiable
+          unless entry.modifiable?
+            return Result.fail(
+              error: :validation_error,
+              status: :validation_error,
+              message: "Entry cannot be deleted (CRA is submitted or locked)"
+            )
+          end
+          nil
         end
 
         # === Delete ===
 
-        def perform_soft_delete!
-          ActiveRecord::Base.transaction do
-            raise CraErrors::InternalError, 'Failed to delete entry' unless entry.discard
+        def perform_soft_delete
+          begin
+            ActiveRecord::Base.transaction do
+              unless entry.discard
+                return Result.fail(
+                  error: :internal_error,
+                  status: :internal_error,
+                  message: "Failed to delete entry"
+                )
+              end
 
-            entry.reload
+              entry.reload
+            end
+            nil # Success
+          rescue ActiveRecord::RecordInvalid => e
+            Rails.logger.error "[CraEntries::DestroyService] Soft delete failed: #{e.message}"
+            Result.fail(
+              error: :internal_error,
+              status: :internal_error,
+              message: "Failed to delete entry"
+            )
           end
-        rescue ActiveRecord::RecordInvalid => e
-          Rails.logger.error "[CraEntries::DestroyService] Soft delete failed: #{e.message}"
-          raise CraErrors::InternalError, 'Failed to delete entry'
         end
 
         # === Helpers ===
@@ -149,6 +243,30 @@ module Api
 
           Rails.logger.info "[CraEntries::DestroyService] Recalculated totals for CRA #{cra.id}: " \
                             "#{total_days} days, #{total_amount} amount"
+        end
+
+        # === Serialization ===
+
+        def serialize_entry(entry)
+          {
+            id: entry.id,
+            date: entry.date,
+            quantity: entry.quantity,
+            unit_price: entry.unit_price,
+            description: entry.description,
+            created_at: entry.created_at,
+            updated_at: entry.updated_at
+          }
+        end
+
+        def serialize_cra(cra)
+          {
+            id: cra.id,
+            total_days: cra.total_days,
+            total_amount: cra.total_amount,
+            currency: cra.currency,
+            status: cra.status
+          }
         end
       end
     end

@@ -31,10 +31,7 @@ class CraEntryCra < ApplicationRecord
   # Ensure unique relationships
   validates :cra_entry_id, uniqueness: { scope: :cra_id, message: 'can only belong to one CRA' }
 
-  # Custom validations for business rules
-  validate :ensure_business_rule_compliance
-
-  # Business rule: Recalculate CRA totals when link is created or destroyed
+  # Basic validations only (business logic moved to services)
 
   # Scopes
   scope :by_cra, ->(cra_id) { where(cra_id: cra_id) }
@@ -45,18 +42,5 @@ class CraEntryCra < ApplicationRecord
     "CRA #{cra_id} ↔ CRAEntry #{cra_entry_id}"
   end
 
-  private
-
-  def ensure_business_rule_compliance
-    # Business Rule: A CRAEntry can only belong to one CRA
-    if cra_id.present? && cra_entry_id.present?
-      existing_link = CraEntryCra.where(cra_id: cra_id, cra_entry_id: cra_entry_id).where.not(id: id).exists?
-      if existing_link
-        errors.add(:cra_entry_id, 'already_linked',
-                   message: 'This CRAEntry is already linked to this CRA')
-      end
-    end
-  end
-
-  # Business rule: Recalculate CRA totals when link is created or destroyed
+  # Note: Complex business logic moved to CRA services
 end

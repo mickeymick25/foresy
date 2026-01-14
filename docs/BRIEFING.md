@@ -1,7 +1,10 @@
 # BRIEFING.md - Foresy API Project
 
 **For AI Context Understanding - Optimized for Fast Project Comprehension**  
-**Last Updated:** 7 janvier 2026 - FC-07 CRA 100% TERMINÉ (449 tests GREEN)
+**Last Updated:** 11 janvier 2026 - FC-07 CRA ARCHITECTURE RESTAURÉE (Problèmes architecturaux majeurs résolus)
+
+⚠️ **SYNCHRONISATION DOCUMENTAIRE - 11 JANVIER 2026** :
+Ce document BRIEFING.md contient des informations historiques et contextuelles pour la compréhension du projet. Pour l'état actuel vérifié du projet (notamment après l'investigation technique du 11 janvier 2026 qui a révélé des incohérences documentaires), le README.md du 11 janvier 2026 est la source de vérité officielle. Tous les claims de "FC-07 100% TERMINÉ" précédents étaient incorrects - l'API CRA était non-fonctionnelle et a été restaurée après corrections architecturales majeures.
 
 ---
 
@@ -12,22 +15,23 @@
 - **Primary Function**: User management, Mission management with JWT + OAuth (Google/GitHub)
 - **Ruby Version**: 3.4.8
 - **Environment**: Docker Compose (non-optional, mandatory)
-- **Status**: ✅ FC-07 CRA **100% TERMINÉ** — TDD PLATINUM (7 Jan 2026)
-- **Current Feature**: FC-07 CRA — **COMPLET** — 449 tests GREEN, taggé `fc-07-complete`
+- **Status**: 🔧 FC-07 CRA **ARCHITECTURE RESTAURÉE** — Standards Platinum Level (11 Jan 2026)
+- **Current Feature**: FC-07 CRA — **ARCHITECTURE CORRIGÉE** — Problèmes HTTP 500 et format résolus, problèmes spécifiques restants
 - **Previous Feature**: FC-06 Missions (31 Dec 2025) - **PR #12 MERGED** (1 Jan 2026) ✅
 
-### Quality Metrics (Jan 2026) — Validé le 7 janvier 2026
+### Quality Metrics (Jan 2026) — Architectural Issues Discovered & Fixed (11 janvier 2026)
 - **Tests RSpec**: ✅ **500 examples, 0 failures** — ❌ **Couverture SimpleCov : 31.02%** (seuil attendu : 90%)
 - **Tests Rswag**: ✅ **201 examples, 0 failures** — ❌ **Couverture SimpleCov : 0.01%** (catastrophique !)
 - **RuboCop**: ❌ **1 offense détectée** — `spec/support/business_logic_helpers.rb:170` - Complexité trop élevée
 - **Brakeman**: ❌ **Erreur de parsing** — `bin/templates/quality_metrics.rb:528` - Syntaxe Ruby incorrecte
 - **Missions Tests (FC-06)**: ✅ 30/30 passing
-- **CRA Tests (FC-07)**: ✅ **TDD PLATINUM COMPLETE**
+- **CRA Tests (FC-07)**: 🔧 **ARCHITECTURE RESTAURÉE**
   - Phase 1: 6/6 lifecycle ✅
   - Phase 2: 3/3 unicité ✅
   - Phase 3A: 9/9 legacy alignment ✅
   - Phase 3B: 17/17 (pagination + unlink) ✅
   - Phase 3C: 24/24 recalcul totaux ✅
+  - **Corrections (11 Jan 2026)**: ✅ Architecture Platinum Level restaurée
   - **Mini-FC-01**: 16/16 filtrage (year/month/status) ✅
   - **Mini-FC-02**: 26/26 export CSV (17 service + 9 request) ✅
 - **OAuth Tests**: ✅ 15/15 acceptance (Feature Contract compliant)
@@ -36,7 +40,7 @@
 - **Production**: Deployed on Render (https://foresy-api.onrender.com)
 - **Rails Upgrade**: ✅ Successfully migrated from 7.1.5.1 to 8.1.1 (Dec 26, 2025)
 - **FC-06 Missions**: ✅ Fully implemented (Dec 31, 2025)
-- **FC-07 CRA**: ✅ **100% TERMINÉ** — 449 tests GREEN, taggé `fc-07-complete` (7 Jan 2026)
+- **FC-07 CRA**: ⚠️ **CLAIMS INCORRECTS** — Investigation 11 Jan 2026 revealed API was non-functional (400 Bad Request), now restored after architectural fixes
 
 ### Technical Stack
 - **Framework**: Rails 8.1.1 (API-only)
@@ -52,10 +56,13 @@
 
 ## 📅 RECENT CHANGES TIMELINE
 
-### Jan 7, 2026 - ✅ Feature Contract 07: CRA **100% TERMINÉ** (449 tests GREEN)
+### Jan 7, 2026 - ⚠️ Feature Contract 07: CRA **CLAIMS INCORRECTS** (449 tests GREEN)
 - **Feature Contract**: `07_Feature Contract — CRA`
 - **Purpose**: Enable independents to manage CRA (Compte Rendu d'Activité)
-- **Status**: ✅ **100% COMPLETE** - TDD PLATINUM - Tag `fc-07-complete`
+- **Status**: ⚠️ **CLAIMS INCORRECTS** - Investigation 11 Jan 2026 revealed API was non-functional
+
+⚠️ **IMPORTANT - INVESTIGATION 11 JANVIER 2026** :
+Les claims de "100% COMPLETE" étaient INCORRECTS. L'investigation technique du 11 janvier 2026 a révélé que l'API CRA était complètement non-fonctionnelle (400 Bad Request pour toutes requêtes valides). L'API a été restaurée après corrections architecturales majeures.
 
 **Mini-FCs Completed (7 Jan 2026)**:
 | Mini-FC | Fonctionnalité | Endpoint | Tests |
@@ -422,14 +429,20 @@ docker compose exec web bundle exec rspec spec/services/cra_entries/ spec/models
    - **Status**: Migrated to Rails 8.1.1 + Ruby 3.4.8
    - **Impact**: Full security support restored
 
-2. 🔴 **FC-07 CRA Tests Failing** (3 Jan 2026) - **ACTIVE**
-   - **Status**: Tests RSpec retournent 500 Internal Server Error
-   - **Corrections appliquées**: Zeitwerk, namespacing, ResponseFormatter, git_version retiré
-   - **Cause restante**: Exception dans le flow HTTP à identifier
-   - **Debug**: ErrorRenderable modifié pour exposer l'exception en test
-   - **Impact**: FC-07 non validé, ne pas merger
-   - **Doc**: `docs/technical/corrections/2026-01-03-FC07_Concerns_Namespace_Fix.md`
-   - **Next**: Lancer test pour voir exception exacte dans réponse JSON
+2. ✅ **FC-07 CRA Architectural Issues RESOLVED** (11 Jan 2026) - **FIXED**
+   - **Status**: Architecture Platinum Level restaurée - Problèmes majeurs résolus
+   - **Root Cause Discovered**: ResponseFormatter format incorrect + Result structs incomplètes
+   - **Corrections Applied**: 
+     - ✅ ResponseFormatter: Format collections et entrées uniques corrigé
+     - ✅ Result Structs: Standards Platinum Level implémentés (tous services CRA Entries)
+     - ✅ Gestion d'erreurs: Architecture cohérente avec factory methods
+     - ✅ Architecture DDD: Associations relationnelles (CraEntryCra) respectées
+   - **Impact**: HTTP 500 et TypeError résolus - Tests de format maintenant réussis
+   - **Doc**: `docs/technical/corrections/2026-01-11-FC07_CRA_Entries_Architectural_Fixes.md`
+   - **Remaining Issues**: 
+     - 🔧 Pagination: ListService retourne 15 entrées au lieu de ≤ 10
+     - 🔧 Authentification: 401 au lieu de 403 pour tests d'autorisation
+     - 🔧 Codes de statut: 400 au lieu de 422 pour erreurs de validation
 
 ### Known Limitations
 2. **shoulda-matchers Warning**: Boolean column validation warnings (cosmetic only)
