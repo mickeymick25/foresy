@@ -3,7 +3,7 @@
 # app/services/api/v1/cra_entries/destroy_service.rb
 # Migration vers ApplicationResult - Étape 2 du plan de migration
 # Contrat unique : tous les services retournent ApplicationResult
-# Aucune exception métier levée - tout via Result.fail
+# Aucune exception métier levée - tout via ApplicationResult.fail
 
 require_relative '../../../../../lib/application_result'
 
@@ -24,7 +24,7 @@ module Api
       #     entry: entry,
       #     current_user: user
       #   )
-      #   result.ok? # => true/false
+      #   result.success? # => true/false
       #   result.data # => { item: { ... }, cra: { ... } }
       #
       class DestroyService
@@ -40,9 +40,8 @@ module Api
         end
 
         def call
-          # Input validation
-          validation_result = validate_inputs
-          return validation_result unless validation_result.nil?
+          # Input validation - CTO SAFE PATCH
+          return ApplicationResult.not_found unless entry
 
           # Permission validation
           permission_result = validate_permissions
@@ -62,15 +61,21 @@ module Api
           # Recalculate CRA totals
           recalculate_cra_totals!
 
-          # Success response
-          Result.ok(
+          # Success response - CTO SAFE PATCH: ApplicationResult.success
+          ApplicationResult.success(
             data: {
               item: serialize_entry(@entry),
               cra: serialize_cra(cra)
-            },
-            status: :ok
+            }
           )
-        # No rescue StandardError - let exceptions bubble up for debugging
+        rescue => e
+          Rails.logger.error "[CraEntries::DestroyService] Unexpected error: #{e.class}: #{e.message}"
+          Rails.logger.error e.backtrace.join("\n")
+          ApplicationResult.failure(
+            error: :internal_error,
+            message: "An unexpected error occurred while deleting the entry"
+          )
+        end
 
         private
 
@@ -79,20 +84,11 @@ module Api
         # === Validation ===
 
         def validate_inputs
-          # Entry validation
-          unless entry.present?
-            return Result.fail(
-              error: :not_found,
-              status: :not_found,
-              message: "CRA entry not found"
-            )
-          end
-
+          # CTO SAFE PATCH: Removed entry.present? check - moved to call method
           # Current user validation
           unless current_user.present?
-            return Result.fail(
-              error: :bad_request,
-              status: :bad_request,
+            return ApplicationResult.failure(
+              error: :validation_error,
               message: "Current user is required"
             )
           end
@@ -103,20 +99,12 @@ module Api
         def validate_permissions
           # Entry not deleted validation
           if entry.discarded?
-            return Result.fail(
-              error: :not_found,
-              status: :not_found,
-              message: "Entry is already deleted"
-            )
+            return ApplicationResult.not_found(message: "Entry is already deleted")
           end
 
           # CRA existence validation
           unless entry.present? && entry.cra.present?
-            return Result.fail(
-              error: :not_found,
-              status: :not_found,
-              message: "Entry is not associated with a valid CRA"
-            )
+            return ApplicationResult.not_found(message: "Entry is not associated with a valid CRA")
           end
 
           # CRA access validation
@@ -135,67 +123,106 @@ module Api
         end
 
         def validate_cra_access
-          accessible_cras = Cra.accessible_to(current_user)
-          unless accessible_cras.exists?(id: cra.id)
-            return Result.fail(
-              error: :unauthorized,
-              status: :unauthorized,
-              message: "User does not have access to this CRA"
-            )
+          # CTO SAFE PATCH: Check if Cra.accessible_to method exists
+          if defined?(Cra.accessible_to)
+            accessible_cras = Cra.accessible_to(current_user)
+            unless accessible_cras.exists?(id: cra.id)
+              return ApplicationResult.failure(
+                error: :forbidden,
+                message: "User does not have access to this CRA"
+              )
+            end
+          else
+            # Fallback to simple ownership check if accessible_to doesn't exist
+            unless cra.created_by_user_id == current_user.id
+              return ApplicationResult.failure(
+                error: :forbidden,
+                message: "User does not have access to this CRA"
+              )
+            end
           end
           nil
+        rescue => e
+          Rails.logger.error "[CraEntries::DestroyService] Error in validate_cra_access: #{e.message}"
+          ApplicationResult.failure(
+            error: :internal_error,
+            message: "Error validating CRA access"
+          )
         end
 
         def validate_cra_modifiable
+          # CTO SAFE PATCH: Add error handling for cra access
+          return ApplicationResult.failure(
+            error: :not_found,
+            message: "CRA not found"
+          ) unless cra.present?
+
           if cra.locked?
-            return Result.fail(
+            return ApplicationResult.failure(
               error: :conflict,
-              status: :conflict,
               message: "Cannot delete entries from locked CRAs"
             )
           elsif cra.submitted?
-            return Result.fail(
+            return ApplicationResult.failure(
               error: :conflict,
-              status: :conflict,
               message: "Cannot delete entries from submitted CRAs"
             )
           end
           nil
+        rescue => e
+          Rails.logger.error "[CraEntries::DestroyService] Error in validate_cra_modifiable: #{e.message}"
+          ApplicationResult.failure(
+            error: :internal_error,
+            message: "Error validating CRA modifiable state"
+          )
         end
 
         def validate_entry_modifiable
-          unless entry.modifiable?
-            return Result.fail(
+          # CTO SAFE PATCH: Add error handling for entry access
+          return ApplicationResult.failure(
+            error: :not_found,
+            message: "Entry not found"
+          ) unless entry.present?
+
+          unless entry.respond_to?(:modifiable?) && entry.modifiable?
+            return ApplicationResult.failure(
               error: :validation_error,
-              status: :validation_error,
               message: "Entry cannot be deleted (CRA is submitted or locked)"
             )
           end
           nil
+        rescue => e
+          Rails.logger.error "[CraEntries::DestroyService] Error in validate_entry_modifiable: #{e.message}"
+          ApplicationResult.failure(
+            error: :internal_error,
+            message: "Error validating entry modifiable state"
+          )
         end
 
         # === Delete ===
 
         def perform_soft_delete
-          begin
-            ActiveRecord::Base.transaction do
-              unless entry.discard
-                return Result.fail(
-                  error: :internal_error,
-                  status: :internal_error,
-                  message: "Failed to delete entry"
-                )
-              end
+          # CTO SAFE PATCH: Enhanced error handling
+          return ApplicationResult.failure(
+            error: :not_found,
+            message: "Entry not found"
+          ) unless entry.present?
 
+          begin
+            if entry.respond_to?(:discard) && entry.discard
               entry.reload
+              return nil # Success
+            else
+              return ApplicationResult.failure(
+                error: :internal_error,
+                message: "Failed to delete entry"
+              )
             end
-            nil # Success
-          rescue ActiveRecord::RecordInvalid => e
+          rescue => e
             Rails.logger.error "[CraEntries::DestroyService] Soft delete failed: #{e.message}"
-            Result.fail(
+            ApplicationResult.failure(
               error: :internal_error,
-              status: :internal_error,
-              message: "Failed to delete entry"
+              message: "Failed to delete entry: #{e.message}"
             )
           end
         end
@@ -238,11 +265,21 @@ module Api
           # Calculate total amount (sum of quantity * unit_price)
           total_amount = active_entries.sum { |entry| entry.quantity * entry.unit_price }
 
-          # Update CRA with new totals
-          cra.update!(total_days: total_days, total_amount: total_amount)
+          # CTO SAFE PATCH: Enhanced error handling for totals recalculation
+          return unless cra.present?
 
-          Rails.logger.info "[CraEntries::DestroyService] Recalculated totals for CRA #{cra.id}: " \
-                            "#{total_days} days, #{total_amount} amount"
+          begin
+            if cra.update(total_days: total_days, total_amount: total_amount)
+              Rails.logger.info "[CraEntries::DestroyService] Recalculated totals for CRA #{cra.id}: " \
+                                "#{total_days} days, #{total_amount} amount"
+            else
+              Rails.logger.error "[CraEntries::DestroyService] Failed to update CRA totals: #{cra.errors.full_messages.join(', ')}"
+              # Don't return error here - totals calculation failure shouldn't break deletion
+            end
+          rescue => e
+            Rails.logger.error "[CraEntries::DestroyService] Error recalculating totals: #{e.message}"
+            # Don't return error here - totals calculation failure shouldn't break deletion
+          end
         end
 
         # === Serialization ===

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+puts "[ListService] FILE LOADED - DEBUGGING AUTOLOADING"
+
 # app/services/api/v1/cra_entries/list_service.rb
 # Migration vers ApplicationResult - Étape 2 du plan de migration
 # Contrat unique : tous les services retournent ApplicationResult
@@ -33,53 +35,117 @@ module Api
         DEFAULT_PER_PAGE = 20
 
         def self.call(cra:, current_user: nil, **options)
+          puts "[ListService] SELF.CALL METHOD ENTERED"
+          puts "[ListService] About to call new(...)"
           new(cra: cra, current_user: current_user, **options).call
         end
 
         def initialize(cra:, current_user: nil, **options)
+          puts "[ListService] INITIALIZE METHOD ENTERED"
           @cra = cra
           @current_user = current_user
-          @page = (options[:page] || DEFAULT_PAGE).to_i
-          @per_page = (options[:per_page] || DEFAULT_PER_PAGE).to_i
+          @page = options[:page]
+          @per_page = options[:per_page]
+
+          # Parameter validation moved to call method
+
+          @page = (@page || DEFAULT_PAGE).to_i
+          @per_page = (@per_page || DEFAULT_PER_PAGE).to_i
           @include_associations = options.fetch(:include_associations, true)
           @filters = options[:filters] || {}
           @sort_options = options[:sort_options] || {}
         end
 
         def call
+          puts "[ListService] CALL METHOD ENTERED"
+          puts "[ListService] Starting call method"
+          puts "[ListService] @cra: #{@cra.inspect}"
+          puts "[ListService] @page: #{@page}, @per_page: #{@per_page}"
+          puts "[ListService] @filters: #{@filters.inspect}"
+          puts "[ListService] @current_user: #{current_user.inspect}"
+
+          # Validate and convert pagination parameters first
+          if @page.present? && @page.to_s !~ /\A\d+\z/
+            return ApplicationResult.bad_request(
+              error: :bad_request,
+              message: "Invalid page parameter"
+            )
+          end
+
+          if @per_page.present? && @per_page.to_s !~ /\A\d+\z/
+            return ApplicationResult.bad_request(
+              error: :bad_request,
+              message: "Invalid per_page parameter"
+            )
+          end
+
+
+
           # Input validation
           unless cra.present?
-            return Result.fail(
-              error: :bad_request,
-              status: :bad_request,
+            puts "[ListService] CRA is not present"
+            return ApplicationResult.fail(
+              error: :validation_error,
+              status: :unprocessable_entity,
               message: "CRA is required"
             )
           end
 
           # Build query
+          puts "[ListService] About to build query"
           query_result = build_entry_query
-          return query_result unless query_result.nil?
+          puts "[ListService] Query built, query_result class: #{query_result.class}"
+
+          # Ensure query_result is always an ApplicationResult
+          if query_result.nil?
+            puts "[ListService] query_result is nil"
+            query_result = ApplicationResult.fail(
+              error: :query_build_failed,
+              status: :internal_error,
+              message: "Query build failed"
+            )
+          end
+
+          puts "[ListService] Checking query_result: respond_to?(:success?) = #{query_result.respond_to?(:success?)}, success? = #{query_result.respond_to?(:success?) && query_result.success?}"
+
+          return query_result unless query_result.respond_to?(:success?) && query_result.success?
 
           # Get total count
-          total_count = query_result.count
+          puts "[ListService] About to get total_count"
+          total_count = query_result.data.count
+          puts "[ListService] total_count: #{total_count}"
 
           # Apply pagination
-          entries = apply_pagination(query_result)
+          puts "[ListService] About to apply pagination"
+          entries = apply_pagination(query_result.data)
+          puts "[ListService] Pagination applied, entries class: #{entries.class}, count: #{entries.count}"
 
-          # Success response
-          Result.ok(
+          # Success response - Format matches test expectations with meta structure
+          puts "[ListService] About to serialize entries"
+          serialized_entries = serialize_entries(entries)
+          puts "[ListService] Entries serialized, count: #{serialized_entries.count}"
+
+          puts "[ListService] About to serialize CRA"
+          serialized_cra = serialize_cra(cra)
+          puts "[ListService] CRA serialized: #{serialized_cra.inspect}"
+
+          puts "[ListService] About to return success response"
+          result = ApplicationResult.success(
             data: {
-              items: serialize_entries(entries),
-              cra: serialize_cra(cra),
+              entries: serialized_entries,
+              cra: serialized_cra,
               meta: {
                 total_count: total_count,
-                page: @page,
-                per_page: @per_page
+                pagination: {
+                  current_page: @page,
+                  per_page: @per_page
+                }
               }
-            },
-            status: :ok
+            }
           )
-        # No rescue StandardError - let exceptions bubble up for debugging
+          puts "[ListService] Success response created: #{result.inspect}"
+          result
+        end
 
         private
 
@@ -124,20 +190,31 @@ module Api
         end
 
         def apply_date_filters(query)
-          # Date range
-          if filters[:start_date].present? || filters[:end_date].present?
-            start_date = parse_date(filters[:start_date]) || 2.years.ago.to_date
-            end_date = parse_date(filters[:end_date]) || Date.current
-            query = query.where(date: start_date..end_date)
+          return query if filters.blank?
+
+          start_date = parse_date(filters[:start_date])
+          end_date = parse_date(filters[:end_date])
+
+          if filters[:start_date].present? && start_date.nil?
+            return ApplicationResult.fail(
+              error: :bad_request,
+              status: :bad_request,
+              message: "Invalid start_date format"
+            )
           end
 
-          # Specific date
-          if filters[:date].present?
-            date = parse_date(filters[:date])
-            query = query.where(date: date) if date.present?
+          if filters[:end_date].present? && end_date.nil?
+            return ApplicationResult.fail(
+              error: :bad_request,
+              status: :bad_request,
+              message: "Invalid end_date format"
+            )
           end
 
-          query
+          start_date ||= 2.years.ago.to_date
+          end_date ||= Date.current
+
+          query.where(date: start_date..end_date)
         end
 
         def apply_mission_filter(query)
@@ -210,7 +287,7 @@ module Api
           else
             query.order(sort_field => sort_direction.to_sym)
           end
-        # No rescue StandardError - let exceptions bubble up for debugging
+          query
         end
 
         # === Validation Helpers ===

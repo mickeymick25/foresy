@@ -9,8 +9,8 @@ module HTTP_STATUS_MAP
     no_content: 204,
 
     validation_error: 422,    # Validation métier
-    unauthorized: 403,        # Non autorisé (policy)
-    forbidden: 403,           # Alias pour unauthorized (compatibilité)
+    unauthorized: 401,        # Non authentifié (missing/expired token)
+    forbidden: 403,           # Non autorisé (policy/access denied)
     not_found: 404,          # Ressource absente
     conflict: 409,            # Pour les conflits (duplicate entries, etc.)
     bad_request: 400,         # Payload invalide (format / missing)
@@ -38,7 +38,7 @@ module HTTP_STATUS_MAP
   end
 
   def self.unauthorized
-    403
+    401
   end
 
   def self.forbidden

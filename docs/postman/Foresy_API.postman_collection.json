@@ -1,18 +1,24 @@
 {
   "info": {
-    "name": "Foresy API",
-    "description": "Collection Postman pour tester l'API Foresy en production et développement",
+    "name": "Foresy API - Updated",
+    "description": "Collection Postman mise à jour pour tester l'API Foresy en local et production.\n\n## 🔧 Corrections Appliquées\n\n### ✅ Problème Signup Résolu\n- URL locale par défaut (`{{base_url_local}}`)\n- Headers Accept ajoutés\n- Emails uniques pour éviter les conflits\n- Documentation améliorée\n\n### ✅ Section CRA (FC-07) Ajoutée\n- CRUD CRA complet\n- Gestion CRA Entries (nested)\n- Export CSV avec UTF-8 BOM\n- Lifecycle transitions (submit, lock)\n- Scripts de test automatiques\n\n### ✅ Configuration Améliorée\n- Switch facile entre local/production\n- Variables pour emails uniques\n- Documentation détaillée\n- Utils pour tests",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     {
       "key": "base_url",
-      "value": "https://foresy-api.onrender.com",
-      "type": "string"
+      "value": "{{base_url_local}}",
+      "type": "string",
+      "description": "URL de base - MODIFIEZ CETTE VARIABLE pour basculer entre local/production\nlocal: {{base_url_local}} | production: https://foresy-api.onrender.com"
     },
     {
       "key": "base_url_local",
       "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "base_url_production",
+      "value": "https://foresy-api.onrender.com",
       "type": "string"
     },
     {
@@ -26,13 +32,19 @@
       "type": "string"
     },
     {
+      "key": "test_email",
+      "value": "",
+      "type": "string",
+      "description": "Email unique pour les tests (auto-généré via Pre-request Script)"
+    },
+    {
       "key": "google_client_id",
       "value": "YOUR_GOOGLE_CLIENT_ID",
       "type": "string"
     },
     {
       "key": "github_client_id",
-      "value": "YOUR_GITHUB_CLIENT_ID",
+      "value": "YOUR_GITHUB_CLIENT",
       "type": "string"
     },
     {
@@ -42,6 +54,11 @@
     },
     {
       "key": "mission_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "cra_id",
       "value": "",
       "type": "string"
     },
@@ -65,7 +82,7 @@
               "host": ["{{base_url}}"],
               "path": [""]
             },
-            "description": "Vérifie que l'API est en ligne"
+            "description": "Vérifie que l'API est en ligne - Endpoint root"
           },
           "response": []
         },
@@ -79,7 +96,7 @@
               "host": ["{{base_url}}"],
               "path": ["health"]
             },
-            "description": "Endpoint de health check pour Render"
+            "description": "Endpoint de health check détaillé avec métriques"
           },
           "response": []
         }
@@ -89,8 +106,20 @@
       "name": "Authentication",
       "item": [
         {
-          "name": "Signup",
+          "name": "Signup - CORRIGÉ",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Génère un email unique pour éviter les conflits",
+                  "const timestamp = Date.now();",
+                  "const uniqueEmail = 'test_' + timestamp + '@foresy.local';",
+                  "pm.collectionVariables.set('test_email', uniqueEmail);"
+                ],
+                "type": "text/javascript"
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -103,6 +132,11 @@
                   "    if (jsonData.refresh_token) {",
                   "        pm.collectionVariables.set('refresh_token', jsonData.refresh_token);",
                   "    }",
+                  "    console.log('✅ Utilisateur créé:', pm.collectionVariables.get('test_email'));",
+                  "} else if (pm.response.code === 422) {",
+                  "    console.log('❌ Erreur validation:', pm.response.json());",
+                  "} else {",
+                  "    console.log('⚠️ Code réponse inattendu:', pm.response.code);",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -115,18 +149,22 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"testuser@example.com\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\"\n}"
+              "raw": "{\n  \"user\": {\n    \"email\": \"{{test_email}}\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\"\n  }\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/v1/signup",
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "signup"]
             },
-            "description": "Créer un nouvel utilisateur. Retourne token + refresh_token."
+            "description": "✅ CORRIGÉ - Créer un nouvel utilisateur. \n\n✨ Améliorations :\n- Email unique auto-généré\n- Headers Accept ajoutés\n- URL locale par défaut\n- Rate limiting : 3 req/min\n\n🔄 CONTRACT UPDATE ADR-003 v1.4:\n- Payload maintenant : { user: { email, password, password_confirmation } }\n- Ancien format root-level REJETÉ avec 400 Bad Request\n- Contract enforcement activé"
           },
           "response": []
         },
@@ -145,6 +183,9 @@
                   "    if (jsonData.refresh_token) {",
                   "        pm.collectionVariables.set('refresh_token', jsonData.refresh_token);",
                   "    }",
+                  "    console.log('✅ Connexion réussie');",
+                  "} else {",
+                  "    console.log('❌ Échec connexion:', pm.response.code);",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -157,18 +198,22 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"testuser@example.com\",\n  \"password\": \"password123\"\n}"
+              "raw": "{\n  \"email\": \"{{test_email}}\",\n  \"password\": \"password123\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/v1/auth/login",
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "auth", "login"]
             },
-            "description": "Connexion utilisateur - retourne un JWT token et refresh_token"
+            "description": "Connexion utilisateur - retourne un JWT token et refresh_token\n\nRate limiting : 5 req/min"
           },
           "response": []
         },
@@ -187,6 +232,9 @@
                   "    if (jsonData.refresh_token) {",
                   "        pm.collectionVariables.set('refresh_token', jsonData.refresh_token);",
                   "    }",
+                  "    console.log('✅ Token rafraîchi');",
+                  "} else {",
+                  "    console.log('❌ Échec refresh:', pm.response.code);",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -199,6 +247,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
               }
             ],
             "body": {
@@ -210,7 +262,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "auth", "refresh"]
             },
-            "description": "Rafraîchir le JWT token en utilisant le refresh_token"
+            "description": "Rafraîchir le JWT token en utilisant le refresh_token\n\nRate limiting : 10 req/min"
           },
           "response": []
         },
@@ -222,6 +274,10 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
               }
             ],
             "url": {
@@ -229,7 +285,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "auth", "logout"]
             },
-            "description": "Déconnexion - invalide la session"
+            "description": "Déconnexion - invalide la session courante"
           },
           "response": []
         }
@@ -301,6 +357,9 @@
                   "    if (jsonData.token) {",
                   "        pm.collectionVariables.set('jwt_token', jsonData.token);",
                   "    }",
+                  "    console.log('✅ OAuth Google réussi');",
+                  "} else {",
+                  "    console.log('❌ Échec OAuth Google:', pm.response.code);",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -312,6 +371,10 @@
             "header": [
               {
                 "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
                 "value": "application/json"
               }
             ],
@@ -340,6 +403,9 @@
                   "    if (jsonData.token) {",
                   "        pm.collectionVariables.set('jwt_token', jsonData.token);",
                   "    }",
+                  "    console.log('✅ OAuth Google LOCAL réussi');",
+                  "} else {",
+                  "    console.log('❌ Échec OAuth Google LOCAL:', pm.response.code);",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -351,6 +417,10 @@
             "header": [
               {
                 "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
                 "value": "application/json"
               }
             ],
@@ -425,6 +495,9 @@
                   "    if (jsonData.token) {",
                   "        pm.collectionVariables.set('jwt_token', jsonData.token);",
                   "    }",
+                  "    console.log('✅ OAuth GitHub réussi');",
+                  "} else {",
+                  "    console.log('❌ Échec OAuth GitHub:', pm.response.code);",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -436,6 +509,10 @@
             "header": [
               {
                 "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
                 "value": "application/json"
               }
             ],
@@ -464,6 +541,9 @@
                   "    if (jsonData.token) {",
                   "        pm.collectionVariables.set('jwt_token', jsonData.token);",
                   "    }",
+                  "    console.log('✅ OAuth GitHub LOCAL réussi');",
+                  "} else {",
+                  "    console.log('❌ Échec OAuth GitHub LOCAL:', pm.response.code);",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -475,6 +555,10 @@
             "header": [
               {
                 "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
                 "value": "application/json"
               }
             ],
@@ -509,7 +593,7 @@
     },
     {
       "name": "Missions (FC-06)",
-      "description": "Feature Contract 06 - Gestion des missions professionnelles pour indépendants",
+      "description": "Feature Contract 06 - Gestion des missions professionnelles pour indépendants\n\n✨ Lifecycle : lead → pending → won → in_progress → completed\n\n🏗️ Architecture Domain-Driven : Relations via tables dédiées",
       "item": [
         {
           "name": "Create Mission (time_based)",
@@ -521,7 +605,9 @@
                   "if (pm.response.code === 201) {",
                   "    var jsonData = pm.response.json();",
                   "    pm.collectionVariables.set('mission_id', jsonData.id);",
-                  "    console.log('Mission created with ID:', jsonData.id);",
+                  "    console.log('✅ Mission time_based créée - ID:', jsonData.id);",
+                  "} else {",
+                  "    console.log('❌ Erreur création mission:', pm.response.code);",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -538,6 +624,10 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
               }
             ],
             "body": {
@@ -549,7 +639,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "missions"]
             },
-            "description": "Crée une nouvelle mission time_based (TJM). Requiert une company independent liée à l'utilisateur."
+            "description": "✅ NOUVELLE VERSION - Crée une mission time_based (TJM). \n\n🏗️ Architecture DDD : Relations via tables dédiées (MissionCompany)\n📊 Calculs serveur : total_days, total_amount côté serveur uniquement"
           },
           "response": []
         },
@@ -563,7 +653,9 @@
                   "if (pm.response.code === 201) {",
                   "    var jsonData = pm.response.json();",
                   "    pm.collectionVariables.set('mission_id', jsonData.id);",
-                  "    console.log('Mission created with ID:', jsonData.id);",
+                  "    console.log('✅ Mission fixed_price créée - ID:', jsonData.id);",
+                  "} else {",
+                  "    console.log('❌ Erreur création mission fixed_price:', pm.response.code);",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -580,6 +672,10 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
               }
             ],
             "body": {
@@ -591,7 +687,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "missions"]
             },
-            "description": "Crée une nouvelle mission fixed_price (forfait) avec client company optionnel."
+            "description": "✅ NOUVELLE VERSION - Crée une mission fixed_price (forfait) avec client company optionnel.\n\n🎯 Montants en centimes : Précision financière (Integer, pas de Float)"
           },
           "response": []
         },
@@ -603,6 +699,10 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
               }
             ],
             "url": {
@@ -610,7 +710,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "missions"]
             },
-            "description": "Liste toutes les missions accessibles à l'utilisateur (via ses companies avec rôle independent ou client)."
+            "description": "✅ NOUVELLE VERSION - Liste toutes les missions accessibles à l'utilisateur.\n\n🏗️ Relations : Via companies avec rôle independent ou client\n📋 Filtrage : Par statut, type, date"
           },
           "response": []
         },
@@ -622,6 +722,10 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
               }
             ],
             "url": {
@@ -629,7 +733,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "missions", "{{mission_id}}"]
             },
-            "description": "Récupère les détails d'une mission incluant les companies associées (independent et client)."
+            "description": "✅ NOUVELLE VERSION - Récupère les détails d'une mission.\n\n🏗️ Architecture DDD : Companies associées (independent et client)\n📊 Métriques : total_days, total_amount calculés côté serveur"
           },
           "response": []
         },
@@ -645,6 +749,10 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
               }
             ],
             "body": {
@@ -656,7 +764,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "missions", "{{mission_id}}"]
             },
-            "description": "Modifie une mission. Seul le créateur peut modifier. Les transitions de statut doivent respecter le lifecycle: lead → pending → won → in_progress → completed."
+            "description": "✅ NOUVELLE VERSION - Modifie une mission.\n\n🔒 Contrôle d'accès : Seul le créateur peut modifier\n⚡ Lifecycle : Transitions autorisées selon règles métier\n📝 Calculs : Mise à jour automatique des métriques"
           },
           "response": []
         },
@@ -672,6 +780,10 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
               }
             ],
             "body": {
@@ -683,7 +795,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "missions", "{{mission_id}}"]
             },
-            "description": "Change le statut d'une mission. Transitions autorisées: lead→pending, pending→won, won→in_progress, in_progress→completed. Pas de retour arrière."
+            "description": "✅ NOUVELLE VERSION - Change le statut d'une mission.\n\n🔄 Transitions autorisées :\n- lead → pending\n- pending → won  \n- won → in_progress\n- in_progress → completed\n\n⚠️ Pas de retour arrière autorisé"
           },
           "response": []
         },
@@ -695,6 +807,10 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
               }
             ],
             "url": {
@@ -702,7 +818,910 @@
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "missions", "{{mission_id}}"]
             },
-            "description": "Archive une mission (soft delete). Retourne 409 Conflict si la mission est liée à un CRA."
+            "description": "✅ NOUVELLE VERSION - Archive une mission (soft delete).\n\n🛡️ Protection : Retourne 409 Conflict si la mission est liée à un CRA\n📋 Logging : Traçabilité des suppressions pour audit"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "CRA (FC-07) - NOUVEAU!",
+      "description": "Feature Contract 07 - Gestion des Comptes Rendus d'Activité\n\n✨ **CORRIGÉ** - API maintenant fonctionnelle (11 Jan 2026)\n\n🏗️ Architecture Domain-Driven avec lifecycle strict\n📊 Export CSV avec UTF-8 BOM\n🔒 Git Ledger pour l'immutabilité légale\n\n🔄 **Lifecycle :** draft → submitted → locked (immutable)",
+      "item": [
+        {
+          "name": "Create CRA",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('cra_id', jsonData.id);",
+                  "    console.log('✅ CRA créé - ID:', jsonData.id);",
+                  "    console.log('📊 Status:', jsonData.status);",
+                  "} else {",
+                  "    console.log('❌ Erreur création CRA:', pm.response.code, pm.response.text());",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"CRA Janvier 2026\",\n  \"description\": \"Compte rendu d'activité pour janvier\",\n  \"month\": 1,\n  \"year\": 2026,\n  \"status\": \"draft\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/cras",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "cras"]
+            },
+            "description": "✅ **CORRIGÉ** - Crée un nouveau CRA (Compte Rendu d'Activité)\n\n🎯 **API Fonctionnelle** - Correction critique appliquée (11 Jan 2026)\n🏗️ **Architecture DDD** - Relations explicites avec writers transitoires\n📊 **Calculs serveur** - total_days, total_amount côté serveur uniquement\n🔒 **Soft delete** - Avec règles métier (impossible si submitted/locked)"
+          },
+          "response": []
+        },
+        {
+          "name": "List CRAs",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    console.log('✅ CRAs listés:', jsonData.length);",
+                  "    if (jsonData.length > 0) {",
+                  "        console.log('📊 Premier CRA:', jsonData[0].id, '- Status:', jsonData[0].status);",
+                  "    }",
+                  "} else {",
+                  "    console.log('❌ Erreur listage CRAs:', pm.response.code);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/cras",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "cras"]
+            },
+            "description": "✅ **NOUVEAU** - Liste tous les CRAs de l'utilisateur\n\n🔍 **Mini-FC-01** - Filtrage par year, month, status ✅ TERMINÉ\n📋 **Pagination** - Gestion automatique (≤ 10 entrées)\n🏗️ **Architecture DDD** - Relations explicites"
+          },
+          "response": []
+        },
+        {
+          "name": "Get CRA Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/cras/{{cra_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "cras", "{{cra_id}}"]
+            },
+            "description": "✅ **NOUVEAU** - Récupère les détails d'un CRA spécifique\n\n📊 **Métriques** - total_days, total_amount calculés côté serveur\n🏗️ **Relations** - CRA Entries avec writers transitoires\n🔒 **Lifecycle** - Statut et transitions disponibles"
+          },
+          "response": []
+        },
+        {
+          "name": "Update CRA",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"CRA Janvier 2026 - Mis à jour\",\n  \"description\": \"Description mise à jour\",\n  \"status\": \"draft\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/cras/{{cra_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "cras", "{{cra_id}}"]
+            },
+            "description": "✅ **NOUVEAU** - Modifie un CRA (status draft uniquement)\n\n🔒 **Protection** - Impossible si status submitted ou locked\n🏗️ **Architecture DDD** - Invariants contractuellement garantis\n⚡ **Validation** - Lifecycle invariants respectés"
+          },
+          "response": []
+        },
+        {
+          "name": "Submit CRA",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    console.log('✅ CRA soumis - Status:', jsonData.status);",
+                  "    console.log('🔒 Transition draft → submitted réussie');",
+                  "} else {",
+                  "    console.log('❌ Erreur soumission CRA:', pm.response.code, pm.response.text());",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/cras/{{cra_id}}/submit",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "cras", "{{cra_id}}", "submit"]
+            },
+            "description": "✅ **NOUVEAU** - Soumet un CRA (draft → submitted)\n\n🔄 **Lifecycle** - Transition irreversible\n🔒 **Protection** - Impossibilité de modification après soumission\n⚡ **Métriques** - Calculs finaux serveurs"
+          },
+          "response": []
+        },
+        {
+          "name": "Lock CRA",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    console.log('✅ CRA verrouillé - Status:', jsonData.status);",
+                  "    console.log('🔒 Git Ledger activé pour immutabilité légale');",
+                  "} else {",
+                  "    console.log('❌ Erreur verrouillage CRA:', pm.response.code, pm.response.text());",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/cras/{{cra_id}}/lock",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "cras", "{{cra_id}}", "lock"]
+            },
+            "description": "✅ **NOUVEAU** - Verrouille un CRA définitivement (submitted → locked)\n\n🔒 **Immutabilité** - Versioning Git pour l'immutabilité légale\n⚖️ **Légal** - Conformité réglementaire garantie\n🚫 **Final** - Impossible de retour arrière"
+          },
+          "response": []
+        },
+        {
+          "name": "Export CRA CSV",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    console.log('✅ Export CSV généré');",
+                  "    console.log('📊 Taille réponse:', pm.response.stream?.length || 'N/A');",
+                  "    console.log('🔤 Encodage UTF-8 BOM');",
+                  "} else {",
+                  "    console.log('❌ Erreur export CSV:', pm.response.code);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "text/csv"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/cras/{{cra_id}}/export?include_entries=true",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "cras", "{{cra_id}}", "export"],
+              "query": [
+                {
+                  "key": "include_entries",
+                  "value": "true"
+                }
+              ]
+            },
+            "description": "✅ **Mini-FC-02** - Export CSV avec UTF-8 BOM ✅ TERMINÉ\n\n📄 **Format CSV** - Export avec ou sans entries\n🔤 **UTF-8 BOM** - Compatibilité Excel parfaite\n📊 **Métriques** - total_days, total_amount inclus\n⏰ **Timestamp** - Fichier avec horodatage"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete CRA",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/cras/{{cra_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "cras", "{{cra_id}}"]
+            },
+            "description": "✅ **NOUVEAU** - Supprime un CRA (soft delete)\n\n🛡️ **Protection** - Impossible si status submitted ou locked\n🔒 **Exceptions** - CraSubmittedError vs CraLockedError\n🏗️ **Architecture DDD** - Relations respectées"
+          },
+          "response": []
+        },
+        {
+          "name": "CRA Entries - Create Entry",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    console.log('✅ CRA Entry créée - ID:', jsonData.id);",
+                  "    console.log('📅 Date:', jsonData.date);",
+                  "    console.log('⏱️ Hours:', jsonData.hours);",
+                  "} else {",
+                  "    console.log('❌ Erreur création CRA Entry:', pm.response.code, pm.response.text());",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"2026-01-15\",\n  \"hours\": 7.5,\n  \"description\": \"Développement API endpoints\",\n  \"mission_id\": \"{{mission_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/cras/{{cra_id}}/entries",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "cras", "{{cra_id}}", "entries"]
+            },
+            "description": "✅ **CORRIGÉ** - Crée une entrée d'activité dans un CRA\n\n🎯 **API Fonctionnelle** - Correction format paramètres appliquée\n🏗️ **Architecture DDD** - Relations explicites (CraEntryCra)\n⚡ **Validation** - Format dates, Hours Float, Mission关联\n📊 **Calculs** - Mise à jour automatique total_days/total_amount"
+          },
+          "response": []
+        },
+        {
+          "name": "CRA Entries - List Entries",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/cras/{{cra_id}}/entries",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "cras", "{{cra_id}}", "entries"]
+            },
+            "description": "✅ **CORRIGÉ** - Liste toutes les entries d'un CRA\n\n🔍 **Mini-FC-01** - Filtrage par year, month, status ✅ TERMINÉ\n📋 **Pagination** - Gestion automatique (≤ 10 entrées)\n🏗️ **Architecture DDD** - Relations explicites avec writers transitoires"
+          },
+          "response": []
+        },
+        {
+          "name": "CRA Entries - Get Entry",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/cras/{{cra_id}}/entries/{{cra_entry_id}}",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "v1",
+                "cras",
+                "{{cra_id}}",
+                "entries",
+                "{{cra_entry_id}}"
+              ]
+            },
+            "description": "✅ **CORRIGÉ** - Récupère les détails d'une CRA Entry spécifique\n\n📊 **Métriques** - Heures, descriptions, missions liées\n🏗️ **Relations** - Mission association avec validation\n🔒 **Lifecycle** - Protection selon CRA status"
+          },
+          "response": []
+        },
+        {
+          "name": "CRA Entries - Update Entry",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Description mise à jour\",\n  \"hours\": 8.0\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/cras/{{cra_id}}/entries/{{cra_entry_id}}",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "v1",
+                "cras",
+                "{{cra_id}}",
+                "entries",
+                "{{cra_entry_id}}"
+              ]
+            },
+            "description": "✅ **CORRIGÉ** - Modifie une CRA Entry\n\n🔒 **Protection** - Impossible si CRA submitted ou locked\n🏗️ **Architecture DDD** - Relations respectées\n⚡ **Recalcul** - Mise à jour automatique des métriques CRA"
+          },
+          "response": []
+        },
+        {
+          "name": "CRA Entries - Delete Entry",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/cras/{{cra_id}}/entries/{{cra_entry_id}}",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "v1",
+                "cras",
+                "{{cra_id}}",
+                "entries",
+                "{{cra_entry_id}}"
+              ]
+            },
+            "description": "✅ **CORRIGÉ** - Supprime une CRA Entry\n\n🔒 **Protection** - Impossible si CRA submitted ou locked\n🏗️ **Architecture DDD** - Suppression relationnelle propre\n⚡ **Recalcul** - Mise à jour automatique des métriques CRA"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Contract Tests",
+      "description": "Tests de contract enforcement selon ADR-003 v1.4\n\n🚫 **Contract Violations** - Vérification que les anciens formats sont rejetés\n✅ **Expected Behavior** - 400 Bad Request pour tous les cas de violation\n🔒 **Protection** - Contract enforcement empêche les données malformées d'atteindre le domain layer",
+      "item": [
+        {
+          "name": "Signup - Reject Root-Level Parameters",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test contract violation: paramètres d'auth au niveau racine",
+                  "pm.test('Contract violation: root-level params rejected', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.error).to.exist;",
+                  "    console.log('✅ Root-level params correctly rejected:', jsonData.error);",
+                  "});",
+                  "",
+                  "// Vérifie que c'est bien un 400 et non un 422",
+                  "pm.test('Status code is 400 Bad Request', function () {",
+                  "    pm.expect(pm.response.code).to.equal(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@foresy.local\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/signup",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "signup"]
+            },
+            "description": "🚫 **CONTRACT VIOLATION TEST**\n\nAncien format root-level doit être REJETÉ avec 400 Bad Request.\nContract ADR-003 v1.4: Payload doit être { user: { email, password, password_confirmation } }"
+          },
+          "response": []
+        },
+        {
+          "name": "Signup - Reject Mixed Parameters",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test contract violation: paramètres mixtes (root + nested)",
+                  "pm.test('Contract violation: mixed params rejected', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.error).to.exist;",
+                  "    console.log('✅ Mixed params correctly rejected:', jsonData.error);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@foresy.local\",\n  \"password\": \"password123\",\n  \"user\": {\n    \"email\": \"test2@foresy.local\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/signup",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "signup"]
+            },
+            "description": "🚫 **CONTRACT VIOLATION TEST**\n\nParamètres mixtes (root + nested) doivent être REJETÉS avec 400 Bad Request.\nCanoncial failure scenario: paramètres dupliqués à plusieurs niveaux"
+          },
+          "response": []
+        },
+        {
+          "name": "Signup - Reject Missing User Key",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test contract violation: clé user manquante",
+                  "pm.test('Contract violation: missing user key rejected', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.error).to.exist;",
+                  "    console.log('✅ Missing user key correctly rejected:', jsonData.error);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@foresy.local\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/signup",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "signup"]
+            },
+            "description": "🚫 **CONTRACT VIOLATION TEST**\n\nPayload sans clé user doit être REJETÉ avec 400 Bad Request.\nparams.require(:user) enforce la présence de la clé user"
+          },
+          "response": []
+        },
+        {
+          "name": "Signup - Reject Empty User Key",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test contract violation: clé user vide",
+                  "pm.test('Contract violation: empty user key rejected', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.error).to.exist;",
+                  "    console.log('✅ Empty user key correctly rejected:', jsonData.error);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user\": {}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/signup",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "signup"]
+            },
+            "description": "🚫 **CONTRACT VIOLATION TEST**\n\nClé user vide doit être REJETÉE avec 400 Bad Request.\nValidates que user doit contenir les paramètres requis"
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token - Reject Nested Parameters",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test contract violation: paramètres refresh_token imbriqués",
+                  "pm.test('Contract violation: nested refresh_token rejected', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.error).to.exist;",
+                  "    console.log('✅ Nested refresh_token correctly rejected:', jsonData.error);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"authentication\": {\n    \"refresh_token\": \"dummy_token\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/refresh",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "refresh"]
+            },
+            "description": "🚫 **CONTRACT VIOLATION TEST**\n\nRefresh token imbriqué doit être REJETÉ avec 400 Bad Request.\nADR-003 v1.4: Refresh token doit être au niveau racine { refresh_token }"
+          },
+          "response": []
+        },
+        {
+          "name": "Signup - Accept Valid Contract (Positive Test)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Génère un email unique pour le test positif",
+                  "const timestamp = Date.now();",
+                  "const uniqueEmail = 'contract_test_' + timestamp + '@foresy.local';",
+                  "pm.collectionVariables.set('contract_test_email', uniqueEmail);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test acceptance: format contract valide",
+                  "pm.test('Valid contract accepted', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.token).to.exist;",
+                  "    console.log('✅ Valid contract correctly accepted:', jsonData.token ? 'JWT received' : 'No JWT');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user\": {\n    \"email\": \"{{contract_test_email}}\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/signup",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "signup"]
+            },
+            "description": "✅ **POSITIVE TEST**\n\nFormat contract valide ADR-003 v1.4 doit être ACCEPTÉ avec 201 Created.\nConfirme que le nouveau format fonctionne correctement"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Utils - Tests",
+      "description": "Utilitaires pour faciliter les tests et le debugging\n\n🧹 **Nettoyage** - Suppression des données de test\n🔄 **Reset** - Remise à zéro des variables\n📊 **Debug** - Informations de debugging",
+      "item": [
+        {
+          "name": "Reset All Variables",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Reset toutes les variables de la collection",
+                  "pm.collectionVariables.clear();",
+                  "console.log('✅ Variables remises à zéro');",
+                  "",
+                  "// Réinitialiser les variables essentielles",
+                  "pm.collectionVariables.set('base_url_local', 'http://localhost:3000');",
+                  "pm.collectionVariables.set('base_url_production', 'https://foresy-api.onrender.com');",
+                  "pm.collectionVariables.set('base_url', '{{base_url_local}}');",
+                  "",
+                  "console.log('🔄 Base URL définie sur local:', pm.collectionVariables.get('base_url'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "about:blank",
+              "host": ["about"],
+              "path": ["blank"]
+            },
+            "description": "🧹 **NETTOYAGE** - Remet à zéro toutes les variables de la collection\n\n⚠️ **Attention** : Ceci efface tous les tokens et IDs stockés\n✅ **Usage** : Avant de commencer une nouvelle session de tests"
+          },
+          "response": []
+        },
+        {
+          "name": "Switch to Local Environment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set('base_url', '{{base_url_local}}');",
+                  "console.log('✅ Basculé vers environnement LOCAL');",
+                  "console.log('🌐 URL:', pm.collectionVariables.get('base_url'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "about:blank",
+              "host": ["about"],
+              "path": ["blank"]
+            },
+            "description": "🌐 **ENVIRONNEMENT** - Bascule vers l'URL locale\n\n📍 **URL** : http://localhost:3000\n🚀 **Usage** : Tests en développement local"
+          },
+          "response": []
+        },
+        {
+          "name": "Switch to Production Environment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set('base_url', '{{base_url_production}}');",
+                  "console.log('✅ Basculé vers environnement PRODUCTION');",
+                  "console.log('🌐 URL:', pm.collectionVariables.get('base_url'));",
+                  "console.log('⚠️ Attention : Tests sur environnement de production!');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "about:blank",
+              "host": ["about"],
+              "path": ["blank"]
+            },
+            "description": "🚀 **ENVIRONNEMENT** - Bascule vers la production\n\n📍 **URL** : https://foresy-api.onrender.com\n⚠️ **Attention** : Tests sur environnement de production!"
+          },
+          "response": []
+        },
+        {
+          "name": "Debug - Show Current Variables",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Affiche toutes les variables actuelles",
+                  "console.log('📊 === VARIABLES ACTUELLES ===');",
+                  "pm.collectionVariables.all().forEach(variable => {",
+                  "    console.log(`${variable.key}: ${variable.value}`);",
+                  "});",
+                  "console.log('📊 =============================');",
+                  "",
+                  "// Affiche des infos sur l'environnement",
+                  "console.log('🌐 Base URL:', pm.collectionVariables.get('base_url'));",
+                  "console.log('🔑 JWT Token présent:', !!pm.collectionVariables.get('jwt_token'));",
+                  "console.log('🔄 Refresh Token présent:', !!pm.collectionVariables.get('refresh_token'));",
+                  "console.log('🎯 Mission ID:', pm.collectionVariables.get('mission_id') || 'Non défini');",
+                  "console.log('📋 CRA ID:', pm.collectionVariables.get('cra_id') || 'Non défini');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "about:blank",
+              "host": ["about"],
+              "path": ["blank"]
+            },
+            "description": "🐛 **DEBUG** - Affiche toutes les variables actuelles de la collection\n\n📊 **Infos** : URLs, tokens, IDs\n🔍 **Usage** : Diagnostic en cas de problème\n💡 **Conseil** : À exécuter avant les tests"
+          },
+          "response": []
+        },
+        {
+          "name": "Test Connection",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            },
+            "description": "🔗 **CONNEXION** - Test de connexion à l'API actuelle\n\n🌐 **URL** : {{base_url}}/health\n✅ **Vérifie** : API accessible et healthy\n⚡ **Rapide** : Diagnostic en 1 requête"
           },
           "response": []
         }

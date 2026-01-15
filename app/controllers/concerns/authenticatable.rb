@@ -35,6 +35,7 @@ module Authenticatable
   # @return [void] Sets @current_user and @current_session on success
   # @return [JSON] Renders 401 unauthorized on failure
   def authenticate_access_token!
+
     token = bearer_token
     return render_unauthorized('Missing token') unless token
 

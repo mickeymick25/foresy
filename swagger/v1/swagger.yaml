@@ -9,16 +9,16 @@ paths:
     post:
       summary: Test Redis unavailable - fail closed (HTTP 429)
       tags:
-      - Authentication
+        - Authentication
       parameters: []
       responses:
-        '200':
+        "200":
           description: user authenticated
-        '401':
+        "401":
           description: handles missing X-Forwarded-For by using remote_ip
-        '403':
+        "403":
           description: inactive user
-        '429':
+        "429":
           description: fail closed when Redis is down
           content:
             application/json:
@@ -40,8 +40,8 @@ paths:
                     type: integer
                     example: 42
                 required:
-                - error
-                - retry_after
+                  - error
+                  - retry_after
       requestBody:
         content:
           application/json:
@@ -55,52 +55,53 @@ paths:
                   type: string
                   format: password
               required:
-              - email
-              - password
+                - email
+                - password
         required: true
     get:
       summary: GET login endpoint - not rate-limited (endpoint does not exist)
       tags:
-      - Authentication
+        - Authentication
       responses:
-        '404':
+        "404":
           description: get login endpoint does not exist (not rate-limited)
   "/api/v1/auth/logout":
     delete:
       summary: DELETE logout endpoint - not rate-limited (only POST is rate-limited)
       tags:
-      - Authentication
+        - Authentication
       parameters:
-      - name: Authorization
-        in: header
-        required: false
-        schema:
-          type: string
+        - name: Authorization
+          in: header
+          required: false
+          schema:
+            type: string
       responses:
-        '200':
+        "200":
           description: user logged out
-        '401':
+        "401":
           description: delete logout unauthorized (not rate-limited)
   "/api/v1/auth/{provider}/callback":
     post:
       summary: OAuth callback for provider authentication
       tags:
-      - OAuth
-      description: Authenticates a user via OAuth provider (Google or GitHub). Returns
+        - OAuth
+      description:
+        Authenticates a user via OAuth provider (Google or GitHub). Returns
         a JWT token on success.
       parameters:
-      - name: provider
-        in: path
-        type: string
-        required: true
-        description: OAuth provider (google_oauth2 or github)
-        schema:
+        - name: provider
+          in: path
           type: string
-          enum:
-          - google_oauth2
-          - github
+          required: true
+          description: OAuth provider (google_oauth2 or github)
+          schema:
+            type: string
+            enum:
+              - google_oauth2
+              - github
       responses:
-        '200':
+        "200":
           description: successful OAuth authentication with GitHub
           content:
             application/json:
@@ -127,14 +128,14 @@ paths:
                         type: string
                         description: User unique identifier from OAuth provider
                     required:
-                    - id
-                    - email
-                    - provider
-                    - provider_uid
+                      - id
+                      - email
+                      - provider
+                      - provider_uid
                 required:
-                - token
-                - user
-        '400':
+                  - token
+                  - user
+        "400":
           description: invalid provider - provider not supported
           content:
             application/json:
@@ -146,8 +147,8 @@ paths:
                     example: invalid_provider
                     description: Error code
                 required:
-                - error
-        '401':
+                  - error
+        "401":
           description: OAuth authentication failed - provider returns error
           content:
             application/json:
@@ -159,8 +160,8 @@ paths:
                     example: oauth_failed
                     description: Error code
                 required:
-                - error
-        '422':
+                  - error
+        "422":
           description: invalid payload - missing UID from provider
           content:
             application/json:
@@ -172,8 +173,8 @@ paths:
                     example: invalid_payload
                     description: Error code
                 required:
-                - error
-        '500':
+                  - error
+        "500":
           description: internal server error - token generation failed
           content:
             application/json:
@@ -185,7 +186,7 @@ paths:
                     example: internal_error
                     description: Error code
                 required:
-                - error
+                  - error
       requestBody:
         content:
           application/json:
@@ -200,19 +201,20 @@ paths:
                   format: uri
                   description: Redirect URI used in OAuth flow
               required:
-              - code
-              - redirect_uri
+                - code
+                - redirect_uri
         required: true
         description: OAuth authorization code and redirect URI
   "/api/v1/auth/failure":
     get:
       summary: OAuth failure endpoint - not rate-limited
       tags:
-      - OAuth
-      description: Endpoint called when OAuth authentication fails at the provider
+        - OAuth
+      description:
+        Endpoint called when OAuth authentication fails at the provider
         level
       responses:
-        '401':
+        "401":
           description: oauth failure (not rate-limited)
           content:
             application/json:
@@ -228,20 +230,20 @@ paths:
                     example: OAuth authentication failed
                     description: Error message
                 required:
-                - error
-                - message
+                  - error
+                  - message
   "/api/v1/auth/refresh":
     post:
       summary: Refreshes authentication token with rate limiting
       tags:
-      - Authentication
+        - Authentication
       parameters: []
       responses:
-        '200':
+        "200":
           description: token refreshed
-        '401':
+        "401":
           description: token refreshed (under rate limit)
-        '429':
+        "429":
           description: rate limit exceeded - too many refresh attempts
           content:
             application/json:
@@ -263,8 +265,8 @@ paths:
                     type: integer
                     example: 35
                 required:
-                - error
-                - retry_after
+                  - error
+                  - retry_after
       requestBody:
         content:
           application/json:
@@ -274,29 +276,30 @@ paths:
                 refresh_token:
                   type: string
               required:
-              - refresh_token
+                - refresh_token
         required: true
   "/api/v1/cras":
     post:
       summary: Create a new CRA
       tags:
-      - CRA
+        - CRA
       security:
-      - bearerAuth: []
+        - bearerAuth: []
       parameters:
-      - name: Authorization
-        in: header
-        description: Bearer token
-        required: true
-        schema:
-          type: string
+        - name: Authorization
+          in: header
+          description: Bearer token
+          required: true
+          schema:
+            type: string
       responses:
-        '201':
-          description: CRA creation usually succeeds (rate limiting may not trigger
+        "201":
+          description:
+            CRA creation usually succeeds (rate limiting may not trigger
             with single request)
-        '401':
+        "401":
           description: Unauthorized - Malformed token
-        '422':
+        "422":
           description: Validation failed - Nil values
       requestBody:
         content:
@@ -317,9 +320,9 @@ paths:
                 currency:
                   type: string
                   enum:
-                  - EUR
-                  - USD
-                  - GBP
+                    - EUR
+                    - USD
+                    - GBP
                   description: Currency code
                 description:
                   type: string
@@ -327,149 +330,150 @@ paths:
                 status:
                   type: string
                   enum:
-                  - draft
-                  - submitted
-                  - locked
+                    - draft
+                    - submitted
+                    - locked
                   default: draft
                   description: CRA status
               required:
-              - month
-              - year
-              - currency
+                - month
+                - year
+                - currency
         required: true
     get:
       summary: Lists CRAs accessible to user
       tags:
-      - CRA
+        - CRA
       security:
-      - bearerAuth: []
+        - bearerAuth: []
       parameters:
-      - name: Authorization
-        in: header
-        description: Bearer token
-        required: true
-        schema:
-          type: string
-      - name: page
-        in: query
-        schema:
-          type: integer
-          minimum: 1
-          default: 1
-        required: false
-        description: Page number for pagination
-      - name: per_page
-        in: query
-        schema:
-          type: integer
-          minimum: 1
-          maximum: 100
-          default: 20
-        required: false
-        description: Number of items per page
-      - name: status
-        in: query
-        schema:
-          type: string
-          enum:
-          - draft
-          - submitted
-          - locked
-        required: false
-        description: Filter by CRA status
-      - name: month
-        in: query
-        schema:
-          type: integer
-          minimum: 1
-          maximum: 12
-        required: false
-        description: Filter by month (1-12)
-      - name: year
-        in: query
-        schema:
-          type: integer
-          minimum: 2020
-          maximum: 2030
-        required: false
-        description: Filter by year
-      - name: company_id
-        in: query
-        schema:
-          type: string
-          format: uuid
-        required: false
-        description: Filter by company ID
+        - name: Authorization
+          in: header
+          description: Bearer token
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          required: false
+          description: Page number for pagination
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          required: false
+          description: Number of items per page
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum:
+              - draft
+              - submitted
+              - locked
+          required: false
+          description: Filter by CRA status
+        - name: month
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+          required: false
+          description: Filter by month (1-12)
+        - name: year
+          in: query
+          schema:
+            type: integer
+            minimum: 2020
+            maximum: 2030
+          required: false
+          description: Filter by year
+        - name: company_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+          required: false
+          description: Filter by company ID
       responses:
-        '200':
+        "200":
           description: Returns filtered results by status
-        '401':
+        "401":
           description: Unauthorized - Malformed token
   "/api/v1/cras/{id}":
     get:
       summary: Show CRA details
       tags:
-      - CRA
+        - CRA
       security:
-      - bearerAuth: []
+        - bearerAuth: []
       parameters:
-      - name: Authorization
-        in: header
-        description: Bearer token
-        required: true
-        schema:
-          type: string
-      - name: id
-        in: path
-        schema:
-          type: string
-          format: uuid
-          example: 550e8400-e29b-41d4-a716-446655440000
-        required: true
-        description: CRA ID
+        - name: Authorization
+          in: header
+          description: Bearer token
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          schema:
+            type: string
+            format: uuid
+            example: 550e8400-e29b-41d4-a716-446655440000
+          required: true
+          description: CRA ID
       responses:
-        '200':
+        "200":
           description: Locked CRA (read-only access)
-        '401':
+        "401":
           description: Unauthorized - Malformed token
-        '404':
+        "404":
           description: CRA not found
-        '403':
+        "403":
           description: CRA not accessible to user
     patch:
       summary: Update a CRA
       tags:
-      - CRA
+        - CRA
       security:
-      - bearerAuth: []
+        - bearerAuth: []
       parameters:
-      - name: Authorization
-        in: header
-        description: Bearer token
-        required: true
-        schema:
-          type: string
-      - name: id
-        in: path
-        schema:
-          type: string
-          format: uuid
-          example: 550e8400-e29b-41d4-a716-446655440000
-        required: true
-        description: CRA ID
+        - name: Authorization
+          in: header
+          description: Bearer token
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          schema:
+            type: string
+            format: uuid
+            example: 550e8400-e29b-41d4-a716-446655440000
+          required: true
+          description: CRA ID
       responses:
-        '200':
-          description: Update request usually succeeds (rate limiting may not trigger
+        "200":
+          description:
+            Update request usually succeeds (rate limiting may not trigger
             with single request)
-        '401':
+        "401":
           description: Unauthorized - Malformed token
-        '404':
+        "404":
           description: CRA not found
-        '403':
+        "403":
           description: CRA not accessible to user
-        '409':
+        "409":
           description: Update locked CRA not allowed
-        '422':
+        "422":
           description: Invalid status transition
       requestBody:
         content:
@@ -490,9 +494,9 @@ paths:
                 currency:
                   type: string
                   enum:
-                  - EUR
-                  - USD
-                  - GBP
+                    - EUR
+                    - USD
+                    - GBP
                   description: Currency for the CRA
                 description:
                   type: string
@@ -500,10 +504,10 @@ paths:
                 status:
                   type: string
                   enum:
-                  - draft
-                  - submitted
-                  - locked
-                  description: 'CRA status - note: locked CRAs cannot be updated'
+                    - draft
+                    - submitted
+                    - locked
+                  description: "CRA status - note: locked CRAs cannot be updated"
               required: false
               description: CRA update parameters
         required: true
@@ -512,47 +516,47 @@ paths:
     post:
       summary: Submit a CRA
       tags:
-      - CRA
+        - CRA
       security:
-      - bearerAuth: []
+        - bearerAuth: []
       parameters:
-      - name: Authorization
-        in: header
-        description: Bearer token
-        required: true
-        schema:
-          type: string
-      - name: id
-        in: path
-        schema:
-          type: string
-          format: uuid
-          example: 550e8400-e29b-41d4-a716-446655440000
-        required: true
-        description: CRA ID
+        - name: Authorization
+          in: header
+          description: Bearer token
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          schema:
+            type: string
+            format: uuid
+            example: 550e8400-e29b-41d4-a716-446655440000
+          required: true
+          description: CRA ID
       responses:
-        '200':
+        "200":
           description: CRA submitted successfully
-        '401':
+        "401":
           description: Unauthorized - Malformed token
-        '422':
+        "422":
           description: CRA without entries
   "/api/v1/missions":
     post:
       summary: Creates a new mission
       tags:
-      - Missions
+        - Missions
       parameters: []
       responses:
-        '201':
+        "201":
           description: Mission created with client company
-        '401':
+        "401":
           description: Unauthorized - No token
-        '403':
+        "403":
           description: Forbidden - No independent company access
-        '422':
+        "422":
           description: Validation failed - Fixed-price mission without fixed_price
-        '429':
+        "429":
           description: Rate limit exceeded
       requestBody:
         content:
@@ -574,52 +578,52 @@ paths:
     get:
       summary: Lists missions accessible to user
       tags:
-      - Missions
+        - Missions
       responses:
-        '200':
+        "200":
           description: Returns empty list when no missions
-        '401':
+        "401":
           description: Unauthorized
   "/api/v1/missions/{id}":
     get:
       summary: Shows a specific mission
       tags:
-      - Missions
+        - Missions
       parameters:
-      - name: id
-        in: path
-        format: uuid
-        required: true
-        schema:
-          type: string
+        - name: id
+          in: path
+          format: uuid
+          required: true
+          schema:
+            type: string
       responses:
-        '200':
+        "200":
           description: Mission found and accessible
-        '401':
+        "401":
           description: Unauthorized
-        '404':
+        "404":
           description: Mission not found or not accessible
     patch:
       summary: Updates a mission
       tags:
-      - Missions
+        - Missions
       parameters:
-      - name: id
-        in: path
-        format: uuid
-        required: true
-        schema:
-          type: string
+        - name: id
+          in: path
+          format: uuid
+          required: true
+          schema:
+            type: string
       responses:
-        '200':
+        "200":
           description: Mission updated successfully
-        '401':
+        "401":
           description: Unauthorized
-        '403':
+        "403":
           description: Forbidden - User is not the creator
-        '422':
+        "422":
           description: Invalid status transition
-        '404':
+        "404":
           description: Mission not accessible
       requestBody:
         content:
@@ -634,11 +638,11 @@ paths:
                 status:
                   type: string
                   enum:
-                  - lead
-                  - pending
-                  - won
-                  - in_progress
-                  - completed
+                    - lead
+                    - pending
+                    - won
+                    - in_progress
+                    - completed
                 end_date:
                   type: string
                   format: date
@@ -646,35 +650,35 @@ paths:
     delete:
       summary: Archives a mission
       tags:
-      - Missions
+        - Missions
       parameters:
-      - name: id
-        in: path
-        format: uuid
-        required: true
-        schema:
-          type: string
+        - name: id
+          in: path
+          format: uuid
+          required: true
+          schema:
+            type: string
       responses:
-        '200':
+        "200":
           description: Mission archived successfully
-        '401':
+        "401":
           description: Unauthorized
-        '403':
+        "403":
           description: Forbidden - User is not the creator
-        '409':
+        "409":
           description: Mission in use (has CRA entries)
-        '404':
+        "404":
           description: Mission not accessible
   "/api/v1/signup":
     post:
       summary: Crée un nouvel utilisateur
       tags:
-      - Users
+        - Users
       parameters: []
       responses:
-        '422':
+        "422":
           description: Création échouée
-        '429':
+        "429":
           description: rate limit exceeded - too many signup attempts
           content:
             application/json:
@@ -696,30 +700,30 @@ paths:
                     type: integer
                     example: 55
                 required:
-                - error
-                - retry_after
-        '201':
+                  - error
+                  - retry_after
+        "201":
           description: Utilisateur créé
       requestBody:
         content:
           application/json:
             schema:
-              "$ref": "#/components/schemas/user"
+              "$ref": "#/components/schemas/signup_request"
         required: true
   "/health":
     get:
       summary: Health check endpoint - not rate-limited
       tags:
-      - Health
+        - Health
       responses:
-        '200':
+        "200":
           description: health check (not rate-limited)
 servers:
-- url: http://{defaultHost}
-  description: Serveur local de développement
-  variables:
-    defaultHost:
-      default: localhost:3000
+  - url: http://{defaultHost}
+    description: Serveur local de développement
+    variables:
+      defaultHost:
+        default: localhost:3000
 components:
   securitySchemes:
     bearer_auth:
@@ -740,9 +744,16 @@ components:
           type: string
           format: password
       required:
-      - email
-      - password
-      - password_confirmation
+        - email
+        - password
+        - password_confirmation
+    signup_request:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/user"
+      required:
+        - user
     login:
       type: object
       properties:
@@ -753,7 +764,7 @@ components:
           type: string
           format: password
       required:
-      - email
-      - password
+        - email
+        - password
 security:
-- bearer_auth: []
+  - bearer_auth: []

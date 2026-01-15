@@ -29,7 +29,7 @@ RSpec.describe 'API V1 Users', type: :request do
         end
       end
 
-      response '422', 'Création échouée' do
+      response '400', 'Contract violation - root-level parameters rejected' do
         let(:user_params) do
           {
             email: 'invalid',
@@ -40,9 +40,8 @@ RSpec.describe 'API V1 Users', type: :request do
 
         run_test! do |response|
           data = JSON.parse(response.body)
-          expect(data['error']).to eq('Validation Failed')
-          expect(data['message']).to be_an(Array)
-          expect(data['message']).not_to be_empty
+          expect(data['error']).to eq('Bad Request')
+          expect(data['message']).to be_present
         end
       end
     end

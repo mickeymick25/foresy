@@ -82,11 +82,11 @@ module Api
           end
 
           unless entry_params.present?
-            return Result.failure(["Entry parameters are required"], :bad_request)
+            return Result.failure(["Entry parameters are required"], :validation_error)
           end
 
           unless current_user.present?
-            return Result.failure(["Current user is required"], :bad_request)
+            return Result.failure(["Current user is required"], :validation_error)
           end
 
           # At least one field should be provided for update

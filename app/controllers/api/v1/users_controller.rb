@@ -23,14 +23,25 @@ module Api
         else
           render json: { error: 'Validation Failed', message: user.errors.full_messages }, status: :unprocessable_entity
         end
+      rescue ActionController::ParameterMissing => e
+        render json: { error: 'Bad Request', message: e.message }, status: :bad_request
       end
 
       private
 
       def user_params
-        # Handle both parameter structures: nested under 'user' key or at root level
-        user_params = params[:user].present? ? params[:user] : params
-        user_params.permit(:email, :password, :password_confirmation)
+        # ADR-003 v1.4 Contract Enforcement
+        # Only accept the single defined payload structure: { user: { email, password, password_confirmation } }
+
+        # Contract validation: reject mixed parameters (root level + nested)
+        if params.key?(:email) || params.key?(:password) || params.key?(:password_confirmation)
+          raise ActionController::ParameterMissing.new("Mixed authentication parameters not allowed")
+        end
+
+        # Enforce single contract: only nested structure under :user key
+        permitted_params = params.require(:user).permit(:email, :password, :password_confirmation)
+
+        permitted_params
       end
 
       # Rate limiting check for signup endpoint

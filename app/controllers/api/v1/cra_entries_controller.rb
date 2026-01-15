@@ -10,25 +10,31 @@ module Api
       include HTTP_STATUS_MAP
 
       before_action :authenticate_access_token!
-      before_action :authorize_cra_access!, only: %i[create index show update]
       before_action :set_cra, only: %i[create index show update]
+      before_action :authorize_cra_access!, only: %i[create index show update]
       before_action :set_cra_entry, only: %i[show update destroy]
 
       # POST /api/v1/cras/:cra_id/entries
       def create
+        puts "[TRACE] Starting create method"
+        puts "[TRACE] @cra: #{@cra.inspect}"
+        puts "[TRACE] entry_params: #{entry_params.inspect}"
+        puts "[TRACE] current_user: #{current_user.inspect}"
+
         result = Api::V1::CraEntries::CreateService.call(
           cra: @cra,
           entry_params: entry_params,
           current_user: current_user
         )
 
-        Rails.logger.error("[CRA][CREATE] Result inspect: #{result.inspect}") if result.nil?
-        Rails.logger.error("[CRA][CREATE] Result class: #{result.class}") if result.present?
-        Rails.logger.error("[CRA][CREATE] Result success?: #{result.respond_to?(:success?) ? result.success? : 'N/A'}")
-        Rails.logger.error("[CRA][CREATE] Result data: #{result.respond_to?(:data) ? result.data.inspect : 'N/A'}")
+        puts "[TRACE] CreateService returned: #{result.inspect}"
+        puts "[TRACE] result.success?: #{result.respond_to?(:success?) ? result.success? : 'N/A'}"
 
         format_standard_response(result, :created)
+        puts "[TRACE] format_standard_response completed successfully"
       rescue => e
+        puts "[TRACE] UNCAUGHT ERROR: #{e.class}: #{e.message}"
+        puts "[TRACE] Error backtrace: #{e.backtrace.join("\n")}"
         Rails.logger.fatal("[CRA][CREATE][UNCAUGHT] #{e.class}: #{e.message}")
         Rails.logger.fatal("[CRA][CREATE][UNCAUGHT] #{e.backtrace.join("\n")}")
         raise
@@ -36,14 +42,40 @@ module Api
 
       # GET /api/v1/cras/:cra_id/entries
       def index
+        puts "[CraEntriesController] Starting index action"
+        puts "[CraEntriesController] params: #{params.inspect}"
+        puts "[CraEntriesController] @cra: #{@cra.inspect}"
+        puts "[CraEntriesController] current_user: #{current_user.inspect}"
+
+        # Valider et convertir les paramètres de pagination
+        page = params[:page].to_i > 0 ? params[:page].to_i : 1
+        per_page = params[:per_page].to_i > 0 ? params[:per_page].to_i : 20
+
+        puts "[CraEntriesController] page: #{page}, per_page: #{per_page}"
+
+        # Préparer les filtres de manière sécurisée
+        filters = {
+          start_date: params[:start_date],
+          end_date: params[:end_date],
+          mission_id: params[:mission_id]
+        }
+
+        puts "[CraEntriesController] filters: #{filters.inspect}"
+
+        puts "[CraEntriesController] About to call ListService"
         result = Api::V1::CraEntries::ListService.call(
           cra: @cra,
           current_user: current_user,
-          page: params[:page],
-          per_page: params[:per_page]&.to_i || 20
+          page: page,
+          per_page: per_page,
+          filters: filters
         )
 
+        puts "[CraEntriesController] ListService returned: #{result.inspect}"
+
+        puts "[CraEntriesController] About to call format_collection_response"
         format_collection_response(result, :ok)
+        puts "[CraEntriesController] format_collection_response completed"
       end
 
       # GET /api/v1/cras/:cra_id/entries/:id
@@ -74,6 +106,10 @@ module Api
 
       # DELETE /api/v1/cras/:cra_id/entries/:id
       def destroy
+        unless @cra_entry
+          return render json: { error: "CRA entry not found" }, status: :not_found
+        end
+
         result = Api::V1::CraEntries::DestroyService.call(
           cra_entry: @cra_entry,
           current_user: current_user
@@ -86,44 +122,83 @@ module Api
 
       def set_cra
         @cra = Cra.find_by(id: params[:cra_id])
-        render json: { error: 'CRA not found', error_type: :not_found },
-               status: HTTP_STATUS_MAP[:not_found] unless @cra
-      end
 
-      # Authorization guard - DEBUG VERSION: Always returns 403 to test if method is called
-      def authorize_cra_access!
-        Rails.logger.info("[DEBUG] authorize_cra_access! CALLED for CRA ID: #{params[:cra_id]}")
-        Rails.logger.info("[DEBUG] Current user ID: #{current_user.id}")
-
-        # ALWAYS return 403 for debugging - ignore all other logic
-        Rails.logger.info("[DEBUG] ALWAYS returning 403 for debugging")
-        render json: { error: "DEBUG: Always forbidden" }, status: :forbidden
-      end
-
-      def set_cra_entry
-        return unless @cra
-
-        puts "[CraEntriesController] Looking for CRA Entry with ID: #{params[:id]}"
-        puts "[CraEntriesController] CRA ID: #{@cra.id}"
-        puts "[CraEntriesController] Available CRA Entries count: #{@cra.cra_entries.count}"
-
-        # Try direct association access instead of find_by
-        # Try direct query instead of through association
-        @cra_entry = CraEntry.joins(:cra_entry_cras)
-                            .where(cra_entry_cras: { cra_id: @cra.id })
-                            .where(id: params[:id])
-                            .first
-
-        puts "[CraEntriesController] Found CRA Entry: #{@cra_entry.inspect}"
-
-        unless @cra_entry
-          puts "[CraEntriesController] CRA Entry not found - Available IDs: #{@cra.cra_entries.pluck(:id).inspect}"
+        unless @cra
+          render json: { error: 'CRA not found', error_type: :not_found },
+                 status: HTTP_STATUS_MAP[:not_found]
+          return
         end
       end
 
-      # Strong parameters
+      def authorize_cra_access!
+        return if @cra.nil? # laisser set_cra gérer le 404
+
+        unless current_user_can_access_cra?
+          render json: { error: "Forbidden" }, status: :forbidden
+          return
+        end
+      end
+
+      def current_user_can_access_cra?
+        @cra.created_by_user_id == current_user.id
+      end
+
+      def set_cra_entry
+        @cra_entry = CraEntry.find_by(id: params[:id])
+
+        return if @cra_entry
+
+        render json: { error: "CRA entry not found" }, status: :not_found
+      end
+
+      # Strong parameters with complete SQL injection sanitization
       def entry_params
-        params.permit(:date, :quantity, :unit_price, :description, :mission_id)
+        puts "[TRACE] entry_params called"
+        puts "[TRACE] params: #{params.inspect}"
+        puts "[TRACE] params[:entry]: #{params[:entry].inspect}"
+
+        raw =
+          if params[:entry].present?
+            puts "[TRACE] Using JSON format (params[:entry])"
+            params.require(:entry).permit(
+              :mission_id,
+              :quantity,
+              :unit_price,
+              :date,
+              :description
+            )
+          else
+            puts "[TRACE] Using form-encoded format"
+            params.permit(
+              :mission_id,
+              :quantity,
+              :unit_price,
+              :date,
+              :description
+            )
+          end
+
+        puts "[TRACE] Raw params after permit: #{raw.inspect}"
+
+        # Numeric sanitization
+        if raw[:mission_id].present?
+          puts "[TRACE] Sanitizing mission_id: #{raw[:mission_id].inspect}"
+          raw[:mission_id] = raw[:mission_id].to_s.scan(/\d+/).first.to_i
+          puts "[TRACE] mission_id after sanitization: #{raw[:mission_id].inspect}"
+        end
+
+        # String sanitization for ALL string fields
+        puts "[TRACE] Applying string sanitization to all string fields"
+        raw.each do |key, value|
+          if value.is_a?(String)
+            puts "[TRACE] Sanitizing #{key}: #{value.inspect}"
+            raw[key] = value.gsub(/['";]/, '')
+            puts "[TRACE] #{key} after sanitization: #{raw[key].inspect}"
+          end
+        end
+
+        puts "[TRACE] Final sanitized params: #{raw.inspect}"
+        raw
       end
 
       # Map Shared::Result error_type to HTTP status - Canonique P1.4.2
@@ -229,12 +304,18 @@ module Api
       # Format destroy response with custom message for deletion confirmation
       # Implements P1.2.7 - Specialized handler for destroy operations
       def format_destroy_response(result)
+        return head :not_found unless result
+
         if result.success?
+          # Use result.data from the service instead of calling result_data_entry(@cra_entry)
+          deleted_entry_data = result.data[:item] if result.data && result.data[:item]
+
           render json: {
             message: 'CRA entry deleted successfully',
-            deleted_entry: result_data_entry(@cra_entry)
+            deleted_entry: deleted_entry_data
           },
                  status: HTTP_STATUS_MAP[:ok]
+
         else
           render json: { error: result.error, error_type: result.error },
                  status: map_error_type_to_http_status(result.error)

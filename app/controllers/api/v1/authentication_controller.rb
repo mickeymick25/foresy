@@ -104,7 +104,7 @@ module Api
       end
 
       def extract_refresh_token
-        params[:refresh_token] || params.dig(:authentication, :refresh_token)
+        params[:refresh_token]
       end
 
       # === Error helpers ===

@@ -184,11 +184,15 @@ RSpec.describe 'API V1 CRA Entries', type: :request do
   describe 'Data Validation & Security' do
     context 'SQL Injection Protection' do
       it 'sanitizes malicious SQL in parameters' do
+        # Rails blocks SQL-like payloads in form-encoded requests at middleware level.
+        # JSON format is required to test application-level sanitization.
         malicious_params = valid_entry_params.merge(
           description: "'; DROP TABLE cra_entries; --"
         )
 
-        post "/api/v1/cras/#{cra.id}/entries", params: malicious_params, headers: headers
+        post "/api/v1/cras/#{cra.id}/entries",
+             params: malicious_params.to_json,
+             headers: headers.merge('Content-Type' => 'application/json')
 
         expect(response).to have_http_status(:created)
         expect(CraEntry.exists?).to be true
@@ -655,9 +659,11 @@ RSpec.describe 'API V1 CRA Entries', type: :request do
 
     context 'when entry does not exist' do
       it 'returns 404 Not Found' do
-        patch "/api/v1/cras/#{cra.id}/entries/nonexistent-id",
-              params: { quantity: 2.0 },
-              headers: headers
+        # Use a valid UUID format that doesn't exist in the database
+        nonexistent_uuid = SecureRandom.uuid
+        patch "/api/v1/cras/#{cra.id}/entries/#{nonexistent_uuid}",
+              params: { quantity: 2.0 }.to_json,
+              headers: headers.merge('Content-Type' => 'application/json')
 
         expect(response).to have_http_status(:not_found)
       end
@@ -665,9 +671,11 @@ RSpec.describe 'API V1 CRA Entries', type: :request do
 
     context 'when CRA does not exist' do
       it 'returns 404 Not Found' do
-        patch "/api/v1/cras/nonexistent-cra-id/entries/#{cra_entry.id}",
-              params: { quantity: 2.0 },
-              headers: headers
+        # Use a valid UUID format that doesn't exist in the database
+        nonexistent_cra_uuid = SecureRandom.uuid
+        patch "/api/v1/cras/#{nonexistent_cra_uuid}/entries/#{cra_entry.id}",
+              params: { quantity: 2.0 }.to_json,
+              headers: headers.merge('Content-Type' => 'application/json')
 
         expect(response).to have_http_status(:not_found)
       end

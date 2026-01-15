@@ -112,8 +112,21 @@ class CraEntry < ApplicationRecord
   private
 
   def validate_date_format
-    # Simple validation for date format
-    errors.add(:date, 'invalid', message: 'must be a valid date') unless date.is_a?(Date)
+    # Accept both Date objects and date strings
+    return if date.is_a?(Date)
+
+    # Try to convert string to date
+    if date.is_a?(String)
+      begin
+        # Try to parse the date string - if it fails, we'll let the database validation handle it
+        Date.parse(date)
+      rescue ArgumentError
+        # If parsing fails, add error
+        errors.add(:date, 'invalid', message: 'must be a valid date')
+      end
+    else
+      errors.add(:date, 'invalid', message: 'must be a valid date')
+    end
   end
 
   # CRA lifecycle validation methods

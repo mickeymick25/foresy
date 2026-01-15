@@ -266,6 +266,7 @@ docker compose exec web bundle exec brakeman -q
 | CSRF protection | ✅ | Terminé | State validation |
 | Rate limiting | ✅ | Terminé | Feature Contract 05 - Protection brute force implémentée (/login: 5/min, /signup: 3/min, /refresh: 10/min) |
 | Refresh-token revocation E2E | 🟠 | Important | Extension script revocation actuel |
+| Refresh Token OAuth (Google/GitHub) | 🟠 | À faire | Implémenter refresh token pour OAuth Google et GitHub (actuellement seulement access token 15min) |
 | Audit logs | 🟢 | Plus tard | Traçabilité actions (quand produit vit) |
 
 ---

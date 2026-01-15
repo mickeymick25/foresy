@@ -7,6 +7,19 @@
 # Authentication is provided by the Authenticatable concern.
 # Error rendering is provided by the ErrorRenderable concern.
 class ApplicationController < ActionController::API
+  before_action :force_json_format
+  rescue_from ActionDispatch::Http::Parameters::ParseError, with: :handle_parse_error
+
   include Authenticatable
   include ErrorRenderable
+
+  private
+
+  def force_json_format
+    request.format = :json
+  end
+
+  def handle_parse_error
+    render json: { error: 'Invalid parameters' }, status: :bad_request
+  end
 end
