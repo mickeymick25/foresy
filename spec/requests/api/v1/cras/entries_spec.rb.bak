@@ -130,7 +130,7 @@ RSpec.describe 'API V1 CRA Entries', type: :request do
 
         post "/api/v1/cras/#{cra.id}/entries", params: invalid_params.to_json, headers: headers
 
-        expect(response).to have_http_status(:bad_request)
+        expect(response).to have_http_status(:unprocessable_entity)
         json_response = JSON.parse(response.body)
         expect(json_response['errors']).to include(/mission.*company/i)
       end
@@ -143,7 +143,7 @@ RSpec.describe 'API V1 CRA Entries', type: :request do
 
         post "/api/v1/cras/#{cra.id}/entries", params: invalid_date_params, headers: headers
 
-        expect(response).to have_http_status(:bad_request)
+        expect(response).to have_http_status(:unprocessable_entity)
         json_response = JSON.parse(response.body)
         expect(json_response['errors']).to include(/date.*period/)
       end
@@ -205,7 +205,7 @@ RSpec.describe 'API V1 CRA Entries', type: :request do
              headers: headers
 
         # Assertions métier (le cœur)
-        expect(response).to have_http_status(:bad_request)
+        expect(response).to have_http_status(:unprocessable_entity)
         expect(cra.cra_entries.count).to eq(1)  # invariant métier
 
         # Vérification message d'erreur (optionnel mais utile)

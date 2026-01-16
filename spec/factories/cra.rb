@@ -16,17 +16,18 @@ FactoryBot.define do
     total_amount { nil }
     locked_at { nil }
 
-    # Callback to handle calculated fields
-    after(:build) do |cra|
-      cra.total_days = 0 if cra.total_days.nil?
-      cra.total_amount = 0 if cra.total_amount.nil?
-    end
-
     # Timestamps
     created_at { Time.current }
     updated_at { Time.current }
 
-    # Traits for different CRA statuses (lifecycle testing)
+    # ⚡ Set created_by_user_id based on associated user
+    after(:build) do |cra|
+      cra.total_days ||= 0
+      cra.total_amount ||= 0
+      cra.created_by_user_id ||= cra.user.id if cra.user
+    end
+
+    # Traits for different CRA statuses
     trait :draft do
       status { 'draft' }
       locked_at { nil }
@@ -42,7 +43,7 @@ FactoryBot.define do
       locked_at { Time.current }
     end
 
-    # Trait for soft delete (discarded) - ADDED for CraMissionLinker tests
+    # Trait for soft delete (discarded)
     trait :discarded do
       deleted_at { Time.current }
     end
@@ -63,7 +64,7 @@ FactoryBot.define do
       year { (Date.current - 1.month).year }
     end
 
-    # Trait for different currencies
+    # Traits for different currencies
     trait :eur_currency do
       currency { 'EUR' }
     end
@@ -94,7 +95,7 @@ FactoryBot.define do
     # Trait for CRAs with calculated totals
     trait :with_calculated_totals do
       total_days { Faker::Number.decimal(l_digits: 1, r_digits: 2) }
-      total_amount { Faker::Number.between(from: 10_000, to: 1_000_000) } # In cents
+      total_amount { Faker::Number.between(from: 10_000, to: 1_000_000) }
     end
 
     # Factory for creating CRAs with associated entries for testing calculations
@@ -104,7 +105,6 @@ FactoryBot.define do
       end
 
       after(:create) do |cra, evaluator|
-        # Create CRA entries and associate them to this CRA
         evaluator.entries_count.times do
           entry = create(:cra_entry)
           create(:cra_entry_cra, cra: cra, cra_entry: entry)

@@ -35,17 +35,23 @@ module Authenticatable
   # @return [void] Sets @current_user and @current_session on success
   # @return [JSON] Renders 401 unauthorized on failure
   def authenticate_access_token!
+    Rails.logger.info "[AUTH] Starting authenticate_access_token!"
+    Rails.logger.info "[AUTH] Request headers: #{request.headers.inspect}"
 
     token = bearer_token
+    Rails.logger.info "[AUTH] Bearer token extracted: #{token.present? ? 'present' : 'missing'}"
     return render_unauthorized('Missing token') unless token
 
     payload = decode_token(token)
+    Rails.logger.info "[AUTH] Decode token result: #{payload.inspect}"
     return handle_invalid_payload(payload) unless valid_payload?(payload)
 
     assign_current_user_and_session(payload)
+    Rails.logger.info "[AUTH] User and session assigned - user: #{@current_user.present?}, session: #{@current_session.present?}"
     return handle_invalid_session unless valid_session?
 
     current_session.refresh!
+    Rails.logger.info "[AUTH] Session refreshed successfully - authentication complete"
   end
 
   # Extracts the JWT token from the Authorization header
@@ -117,8 +123,17 @@ module Authenticatable
   # @param payload [Hash] Decoded JWT payload with user_id and session_id
   # @return [void] Sets @current_user and @current_session
   def assign_current_user_and_session(payload)
-    @current_user = User.find_by(id: user_id_from(payload))
-    @current_session = Session.find_by(id: session_id_from(payload))
+    Rails.logger.info "[AUTH] Assigning user and session from payload: #{payload.inspect}"
+
+    user_id = user_id_from(payload)
+    session_id = session_id_from(payload)
+    Rails.logger.info "[AUTH] Extracted user_id: #{user_id}, session_id: #{session_id}"
+
+    @current_user = User.find_by(id: user_id)
+    Rails.logger.info "[AUTH] User find_by result: #{@current_user.present? ? "found (id: #{@current_user.id})" : 'not found'}"
+
+    @current_session = Session.find_by(id: session_id)
+    Rails.logger.info "[AUTH] Session find_by result: #{@current_session.present? ? "found (id: #{@current_session.id})" : 'not found'}"
   end
 
   # Validates that session exists and is active

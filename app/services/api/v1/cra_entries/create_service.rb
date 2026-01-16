@@ -44,8 +44,10 @@ module Api
         def call
           # Input validation - CTO SAFE PATCH
           return ApplicationResult.not_found unless cra
-          return ApplicationResult.failure(error: :validation_error, message: "Entry parameters are required") unless entry_params
-          return ApplicationResult.failure(error: :validation_error, message: "Current user is required") unless current_user
+          return ApplicationResult.fail(error: :validation_error, status: :validation_error, message: "Entry parameters are required") unless entry_params
+          return ApplicationResult.fail(error: :validation_error, status: :validation_error, message: "Current user is required") unless current_user
+
+
 
           # Permission validation
           permission_result = validate_permissions
@@ -57,11 +59,15 @@ module Api
 
           # Build entry
           @entry = build_entry
-          return ApplicationResult.failure(error: :validation_error, message: "Failed to build entry") unless @entry
+          return ApplicationResult.fail(error: :validation_error, status: :validation_error, message: "Failed to build entry") unless @entry
 
           # Validate entry
           entry_validation = validate_entry
           return entry_validation unless entry_validation.nil?
+
+          # Mission company validation - Business rule
+          mission_company_validation = validate_mission_company
+          return mission_company_validation unless mission_company_validation.nil?
 
           # Check for duplicates
           duplicate_result = check_duplicate
@@ -89,8 +95,9 @@ module Api
         rescue => e
           Rails.logger.error "[CraEntries::CreateService] Unexpected error: #{e.class} - #{e.message}"
           Rails.logger.error e.backtrace.first(10).join("\n")
-          ApplicationResult.failure(
+          ApplicationResult.fail(
             error: :internal_error,
+            status: :internal_error,
             message: "An unexpected error occurred: #{e.message}"
           )
         end
@@ -111,8 +118,9 @@ module Api
           missing_fields << 'mission_id' unless entry_params[:mission_id].present?
 
           if missing_fields.any?
-            return ApplicationResult.failure(
+            return ApplicationResult.fail(
               error: :validation_error,
+              status: :validation_error,
               message: "Missing required fields: #{missing_fields.join(', ')}"
             )
           end
@@ -122,8 +130,9 @@ module Api
 
         def validate_permissions
           unless cra.created_by_user_id == current_user.id
-            return ApplicationResult.failure(
+            return ApplicationResult.fail(
               error: :unauthorized,
+              status: :unauthorized,
               message: "Only the CRA creator can add entries to this CRA"
             )
           end
@@ -133,15 +142,17 @@ module Api
 
         def check_cra_modifiable
           if cra.locked?
-            return ApplicationResult.failure(
+            return ApplicationResult.fail(
               error: :conflict,
+              status: :conflict,
               message: "Locked CRAs cannot be modified"
             )
           end
 
           if cra.submitted?
-            return ApplicationResult.failure(
+            return ApplicationResult.fail(
               error: :conflict,
+              status: :conflict,
               message: "Submitted CRAs cannot be modified"
             )
           end
@@ -169,43 +180,74 @@ module Api
 
         def validate_entry
           unless @entry.valid?
-            return ApplicationResult.failure(
+            return ApplicationResult.fail(
               error: :validation_error,
+              status: :validation_error,
               message: @entry.errors.full_messages.join(', ')
             )
           end
 
           # Additional business validations
           if @entry.quantity.negative?
-            return ApplicationResult.failure(
+            return ApplicationResult.fail(
               error: :validation_error,
+              status: :validation_error,
               message: "Quantity cannot be negative"
             )
           end
 
           if @entry.unit_price.negative?
-            return ApplicationResult.failure(
+            return ApplicationResult.fail(
               error: :validation_error,
+              status: :validation_error,
               message: "Unit price cannot be negative"
             )
           end
 
           if @entry.date.nil?
-            return ApplicationResult.failure(
+            return ApplicationResult.fail(
               error: :validation_error,
+              status: :validation_error,
               message: "Date is invalid"
             )
           end
 
           if @entry.date > Date.current
-            return ApplicationResult.failure(
+            return ApplicationResult.fail(
               error: :validation_error,
+              status: :validation_error,
               message: "Date cannot be in the future"
             )
           end
 
           nil
         end
+
+        # === Mission Company Validation ===
+
+        def validate_mission_company
+          mission = Mission.find_by(id: mission_id)
+          return ApplicationResult.fail(
+            error: :validation_error,
+            status: :unprocessable_entity,
+            message: "Mission not found"
+          ) unless mission
+
+          user_company_ids = current_user.user_companies.pluck(:company_id)
+          mission_company_ids = mission.mission_companies.pluck(:company_id)
+
+          unless (user_company_ids & mission_company_ids).any?
+            return ApplicationResult.fail(
+              error: :validation_error,
+              status: :unprocessable_entity,
+              message: "Mission does not belong to user's company"
+            )
+          end
+
+          nil
+        end
+
+
 
         # === Duplicate Check ===
 
@@ -219,8 +261,9 @@ module Api
             .exists?
 
           if existing
-            return ApplicationResult.failure(
+            return ApplicationResult.fail(
               error: :conflict,
+              status: :conflict,
               message: "An entry already exists for this mission and date in this CRA"
             )
           end

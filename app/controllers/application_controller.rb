@@ -16,6 +16,7 @@ class ApplicationController < ActionController::API
   private
 
   def force_json_format
+    Rails.logger.info "[APPLICATION_CONTROLLER] force_json_format reached"
     request.format = :json
   end
 

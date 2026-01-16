@@ -35,36 +35,61 @@ module Api
         end
 
         def call
+          Rails.logger.info "[TRACE][UPDATE] Starting UpdateService.call"
+          Rails.logger.info "[TRACE][UPDATE] @cra_entry: #{@cra_entry.inspect}"
+          Rails.logger.info "[TRACE][UPDATE] @entry_params: #{@entry_params.inspect}"
+          Rails.logger.info "[TRACE][UPDATE] @current_user: #{@current_user.inspect}"
+
           # Input validation
+          Rails.logger.info "[TRACE][UPDATE] Before validate_inputs"
           validation_result = validate_inputs
+          Rails.logger.info "[TRACE][UPDATE] After validate_inputs: #{validation_result.inspect}"
           return validation_result if validation_result
 
           # Permission validation
+          Rails.logger.info "[TRACE][UPDATE] Before validate_permissions"
           permission_result = validate_permissions
+          Rails.logger.info "[TRACE][UPDATE] After validate_permissions: #{permission_result.inspect}"
           return permission_result if permission_result
 
           # CRA lifecycle validation
+          Rails.logger.info "[TRACE][UPDATE] Before check_cra_modifiable"
           lifecycle_result = check_cra_modifiable
+          Rails.logger.info "[TRACE][UPDATE] After check_cra_modifiable: #{lifecycle_result.inspect}"
           return lifecycle_result if lifecycle_result
 
           # Validate entry params
+          Rails.logger.info "[TRACE][UPDATE] Before validate_entry_params"
           params_validation_result = validate_entry_params
+          Rails.logger.info "[TRACE][UPDATE] After validate_entry_params: #{params_validation_result.inspect}"
           return params_validation_result if params_validation_result
 
           # Duplicate check
+          Rails.logger.info "[TRACE][UPDATE] Before check_duplicate"
           duplicate_result = check_duplicate
+          Rails.logger.info "[TRACE][UPDATE] After check_duplicate: #{duplicate_result.inspect}"
           return duplicate_result if duplicate_result
 
           # Perform update
+          Rails.logger.info "[TRACE][UPDATE] Before perform_update"
           update_result = perform_update
+          Rails.logger.info "[TRACE][UPDATE] After perform_update: #{update_result.inspect}"
           return update_result if update_result
 
           # Recalculate CRA totals
+          Rails.logger.info "[TRACE][UPDATE] Before recalculate_cra_totals"
           recalculate_cra_totals
+          Rails.logger.info "[TRACE][UPDATE] After recalculate_cra_totals"
 
           # Success response
-          Result.success_entry(@cra_entry, cra.reload)
+          Rails.logger.info "[TRACE][UPDATE] Before success response"
+          success_result = Result.success_entry(@cra_entry, cra.reload)
+          Rails.logger.info "[TRACE][UPDATE] Success result: #{success_result.inspect}"
+          Rails.logger.info "[TRACE][UPDATE] UpdateService.call completed successfully"
+          success_result
         rescue StandardError => e
+          Rails.logger.info "[TRACE][UPDATE] EXCEPTION CAUGHT: #{e.class}: #{e.message}"
+          Rails.logger.info "[TRACE][UPDATE] Exception backtrace: #{e.backtrace.join("\n")}"
           Rails.logger.error "[CraEntries::UpdateService] Unexpected error: #{e.class} - #{e.message}"
           Rails.logger.error e.backtrace.first(10).join("\n")
           Result.failure(["An unexpected error occurred: #{e.message}"], :internal_error)
@@ -297,7 +322,10 @@ module Api
         # === Helpers ===
 
         def cra
-          @cra ||= Cra.find_by!(id: cra_entry.cra_entry_cras.first.cra_id)
+          cra_id = cra_entry.cra_entry_cras.first&.cra_id
+          raise ActiveRecord::RecordNotFound, "CRA not linked to entry" unless cra_id
+
+          @cra ||= Cra.find(cra_id)
         end
 
         def current_mission_id

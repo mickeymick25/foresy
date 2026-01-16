@@ -71,8 +71,9 @@ module Api
         rescue => e
           Rails.logger.error "[CraEntries::DestroyService] Unexpected error: #{e.class}: #{e.message}"
           Rails.logger.error e.backtrace.join("\n")
-          ApplicationResult.failure(
+          ApplicationResult.fail(
             error: :internal_error,
+            status: :internal_error,
             message: "An unexpected error occurred while deleting the entry"
           )
         end
@@ -87,8 +88,9 @@ module Api
           # CTO SAFE PATCH: Removed entry.present? check - moved to call method
           # Current user validation
           unless current_user.present?
-            return ApplicationResult.failure(
+            return ApplicationResult.fail(
               error: :validation_error,
+              status: :validation_error,
               message: "Current user is required"
             )
           end
@@ -127,16 +129,18 @@ module Api
           if defined?(Cra.accessible_to)
             accessible_cras = Cra.accessible_to(current_user)
             unless accessible_cras.exists?(id: cra.id)
-              return ApplicationResult.failure(
+              return ApplicationResult.fail(
                 error: :forbidden,
+                status: :forbidden,
                 message: "User does not have access to this CRA"
               )
             end
           else
             # Fallback to simple ownership check if accessible_to doesn't exist
             unless cra.created_by_user_id == current_user.id
-              return ApplicationResult.failure(
+              return ApplicationResult.fail(
                 error: :forbidden,
+                status: :forbidden,
                 message: "User does not have access to this CRA"
               )
             end
@@ -144,57 +148,65 @@ module Api
           nil
         rescue => e
           Rails.logger.error "[CraEntries::DestroyService] Error in validate_cra_access: #{e.message}"
-          ApplicationResult.failure(
+          ApplicationResult.fail(
             error: :internal_error,
+            status: :internal_error,
             message: "Error validating CRA access"
           )
         end
 
         def validate_cra_modifiable
           # CTO SAFE PATCH: Add error handling for cra access
-          return ApplicationResult.failure(
+          return ApplicationResult.fail(
             error: :not_found,
+            status: :not_found,
             message: "CRA not found"
           ) unless cra.present?
 
           if cra.locked?
-            return ApplicationResult.failure(
+            return ApplicationResult.fail(
               error: :conflict,
+              status: :conflict,
               message: "Cannot delete entries from locked CRAs"
             )
           elsif cra.submitted?
-            return ApplicationResult.failure(
+            return ApplicationResult.fail(
               error: :conflict,
+              status: :conflict,
               message: "Cannot delete entries from submitted CRAs"
             )
           end
           nil
         rescue => e
           Rails.logger.error "[CraEntries::DestroyService] Error in validate_cra_modifiable: #{e.message}"
-          ApplicationResult.failure(
+          ApplicationResult.fail(
             error: :internal_error,
+            status: :internal_error,
             message: "Error validating CRA modifiable state"
           )
         end
 
         def validate_entry_modifiable
           # CTO SAFE PATCH: Add error handling for entry access
-          return ApplicationResult.failure(
+          return ApplicationResult.fail(
             error: :not_found,
+            status: :not_found,
             message: "Entry not found"
           ) unless entry.present?
 
           unless entry.respond_to?(:modifiable?) && entry.modifiable?
-            return ApplicationResult.failure(
+            return ApplicationResult.fail(
               error: :validation_error,
+              status: :validation_error,
               message: "Entry cannot be deleted (CRA is submitted or locked)"
             )
           end
           nil
         rescue => e
           Rails.logger.error "[CraEntries::DestroyService] Error in validate_entry_modifiable: #{e.message}"
-          ApplicationResult.failure(
+          ApplicationResult.fail(
             error: :internal_error,
+            status: :internal_error,
             message: "Error validating entry modifiable state"
           )
         end
@@ -203,8 +215,9 @@ module Api
 
         def perform_soft_delete
           # CTO SAFE PATCH: Enhanced error handling
-          return ApplicationResult.failure(
+          return ApplicationResult.fail(
             error: :not_found,
+            status: :not_found,
             message: "Entry not found"
           ) unless entry.present?
 
@@ -213,15 +226,17 @@ module Api
               entry.reload
               return nil # Success
             else
-              return ApplicationResult.failure(
+              return ApplicationResult.fail(
                 error: :internal_error,
+                status: :internal_error,
                 message: "Failed to delete entry"
               )
             end
           rescue => e
             Rails.logger.error "[CraEntries::DestroyService] Soft delete failed: #{e.message}"
-            ApplicationResult.failure(
+            ApplicationResult.fail(
               error: :internal_error,
+              status: :internal_error,
               message: "Failed to delete entry: #{e.message}"
             )
           end
