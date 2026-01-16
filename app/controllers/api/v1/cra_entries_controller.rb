@@ -21,16 +21,14 @@ module Api
 
       # POST /api/v1/cras/:cra_id/entries
       def create
-        puts "[TRACE] Starting create method"
-        puts "[TRACE] entry_params: #{entry_params.inspect}"
-        puts "[TRACE] current_user: #{current_user.inspect}"
+
 
         # Phase 2.0: Load CRA in action, then authorize
         cra = Cra.find_by(id: params[:cra_id])
         return render json: { error: 'CRA not found', error_type: :not_found },
                       status: http_status(:not_found) unless cra
 
-        puts "[TRACE] CRA loaded: #{cra.inspect}"
+
 
         # Phase 2.0: Authorize AFTER business loading
         return unless authorize_cra!(cra)
@@ -41,14 +39,13 @@ module Api
           current_user: current_user
         )
 
-        puts "[TRACE] CreateService returned: #{result.inspect}"
-        puts "[TRACE] result.success?: #{result.respond_to?(:success?) ? result.success? : 'N/A'}"
+
 
         format_standard_response(result, :created)
-        puts "[TRACE] format_standard_response completed successfully"
+
       rescue => e
-        puts "[TRACE] UNCAUGHT ERROR: #{e.class}: #{e.message}"
-        puts "[TRACE] Error backtrace: #{e.backtrace.join("\n")}"
+
+
         Rails.logger.fatal("[CRA][CREATE][UNCAUGHT] #{e.class}: #{e.message}")
         Rails.logger.fatal("[CRA][CREATE][UNCAUGHT] #{e.backtrace.join("\n")}")
         render json: { error: "Internal server error", error_type: :internal_error },
@@ -57,16 +54,10 @@ module Api
 
       # GET /api/v1/cras/:cra_id/entries
       def index
-            puts "[CraEntriesController] Starting index action"
-        puts "[CraEntriesController] params: #{params.inspect}"
-        puts "[CraEntriesController] current_user: #{current_user.inspect}"
-
-        # Phase 2.0: Load CRA in action, then authorize
-        cra = Cra.find_by(id: params[:cra_id])
-        return render json: { error: 'CRA not found', error_type: :not_found },
-                      status: http_status(:not_found) unless cra
-
-        puts "[CraEntriesController] CRA loaded: #{cra.inspect}"
+            # Phase 2.0: Load CRA in action, then authorize
+            cra = Cra.find_by(id: params[:cra_id])
+            return render json: { error: 'CRA not found', error_type: :not_found },
+                          status: http_status(:not_found) unless cra
 
         # Phase 2.0: Authorize AFTER business loading
         return unless authorize_cra!(cra)
@@ -75,7 +66,7 @@ module Api
             page = params[:page].to_i > 0 ? params[:page].to_i : 1
             per_page = params[:per_page].to_i > 0 ? params[:per_page].to_i : 20
 
-            puts "[CraEntriesController] page: #{page}, per_page: #{per_page}"
+
 
             # Préparer les filtres de manière sécurisée
             filters = {
@@ -84,9 +75,9 @@ module Api
               mission_id: params[:mission_id]
             }
 
-            puts "[CraEntriesController] filters: #{filters.inspect}"
 
-            puts "[CraEntriesController] About to call ListService"
+
+
             result = Api::V1::CraEntries::ListService.call(
               cra: cra,
               current_user: current_user,
@@ -95,11 +86,11 @@ module Api
               filters: filters
             )
 
-            puts "[CraEntriesController] ListService returned: #{result.inspect}"
 
-            puts "[CraEntriesController] About to call format_collection_response"
+
+
             format_collection_response(result, :ok)
-            puts "[CraEntriesController] format_collection_response completed"
+
           end
 
       # GET /api/v1/cras/:cra_id/entries/:id
@@ -241,13 +232,8 @@ module Api
 
       # Strong parameters with complete SQL injection sanitization
       def entry_params
-        puts "[TRACE] entry_params called"
-        puts "[TRACE] params: #{params.inspect}"
-        puts "[TRACE] params[:entry]: #{params[:entry].inspect}"
-
         raw =
           if params[:entry].present?
-            puts "[TRACE] Using JSON format (params[:entry])"
             params.require(:entry).permit(
               :mission_id,
               :quantity,
@@ -256,7 +242,6 @@ module Api
               :description
             )
           else
-            puts "[TRACE] Using form-encoded format"
             params.permit(
               :mission_id,
               :quantity,
@@ -266,34 +251,25 @@ module Api
             )
           end
 
-        puts "[TRACE] Raw params after permit: #{raw.inspect}"
-
         # UUID sanitization - preserve UUID format, validate format
         if raw[:mission_id].present?
-          puts "[TRACE] Sanitizing mission_id: #{raw[:mission_id].inspect}"
           mission_id_str = raw[:mission_id].to_s
           # Check if it's a valid UUID format (basic validation)
           if mission_id_str.match?(/\A[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\z/i)
             raw[:mission_id] = mission_id_str
-            puts "[TRACE] mission_id preserved as UUID: #{raw[:mission_id].inspect}"
           else
             # Fallback to integer conversion for backward compatibility
             raw[:mission_id] = mission_id_str.to_i
-            puts "[TRACE] mission_id converted to integer: #{raw[:mission_id].inspect}"
           end
         end
 
         # String sanitization for ALL string fields
-        puts "[TRACE] Applying string sanitization to all string fields"
         raw.each do |key, value|
           if value.is_a?(String)
-            puts "[TRACE] Sanitizing #{key}: #{value.inspect}"
             raw[key] = value.gsub(/['";]/, '')
-            puts "[TRACE] #{key} after sanitization: #{raw[key].inspect}"
           end
         end
 
-        puts "[TRACE] Final sanitized params: #{raw.inspect}"
         raw
       end
 
@@ -376,9 +352,7 @@ module Api
       def format_standard_response(result, status_key)
         if result.success?
           # DEBUG: Show the result structure being processed
-          puts "[CraEntriesController::format_standard_response] result.data: #{result.data.inspect}"
-          puts "[CraEntriesController::format_standard_response] result.data[:item]: #{result.data&.dig(:item)&.inspect}"
-          puts "[CraEntriesController::format_standard_response] result.data[:item][:data]: #{result.data&.dig(:item, :data)&.inspect}"
+
 
           # Adapt Shared::Result format to expected test format
           # Service returns: { item: { data: {...} }, cra: { data: {...} } }
@@ -386,22 +360,22 @@ module Api
           entry_data = result.data[:item][:data] if result.data[:item]
           cra_data = result.data[:cra][:data] if result.data[:cra]
 
-          puts "[CraEntriesController::format_standard_response] entry_data: #{entry_data.inspect}"
-          puts "[CraEntriesController::format_standard_response] cra_data: #{cra_data.inspect}"
 
-          # Flatten JSON API structure to match test expectations
-          # Extract attributes from JSON API format and put them directly under cra_entry
+
+          # Keep JSON API structure to match test expectations
+          # Preserve attributes nested under cra_entry as per JSON:API standard
           if entry_data && entry_data[:attributes]
-            # Extract attributes and flatten them - entry_data is already the complete structure
-            flattened_entry = entry_data[:attributes].merge(
+            # Keep the JSON:API structure with attributes nested under cra_entry
+            flattened_entry = {
               id: entry_data[:id],
-              type: entry_data[:type]
-            )
+              type: entry_data[:type],
+              attributes: entry_data[:attributes]
+            }
           else
             flattened_entry = entry_data || {}
           end
 
-          puts "[CraEntriesController::format_standard_response] flattened_entry: #{flattened_entry.inspect}"
+
 
           render json: {
             data: {
@@ -409,9 +383,9 @@ module Api
             }.compact
           }, status: http_status(status_key)
         else
-          # Format error response to match test expectations (errors array)
+          # Format error response to match test expectations (single error)
           error_message = result.respond_to?(:message) ? result.message : result.error.to_s
-          render json: { errors: [error_message] },
+          render json: { error: error_message },
                  status: map_error_type_to_http_status(result.error)
         end
       end

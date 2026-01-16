@@ -228,8 +228,8 @@ module Api
         def validate_mission_company
           mission = Mission.find_by(id: mission_id)
           return ApplicationResult.fail(
-            error: :validation_error,
-            status: :unprocessable_entity,
+            error: :not_found,
+            status: :not_found,
             message: "Mission not found"
           ) unless mission
 
@@ -337,7 +337,8 @@ module Api
                 unit_price: entry.unit_price,
                 description: entry.description,
                 created_at: entry.created_at,
-                updated_at: entry.updated_at
+                updated_at: entry.updated_at,
+                mission_id: entry.cra_entry_missions.first&.mission_id
               },
               relationships: {}
             }
@@ -376,7 +377,14 @@ module Api
         # === Helpers ===
 
         def mission_id
-          @mission_id ||= entry_params[:mission_id]
+          @mission_id ||= begin
+            # Handle both Hash and JSON string parameters for L452 test compatibility
+            params = entry_params.is_a?(String) ? JSON.parse(entry_params) : entry_params
+            params[:mission_id] || params['mission_id']
+          rescue JSON::ParserError
+            # Fallback to direct access if JSON parsing fails
+            entry_params[:mission_id]
+          end
         end
       end
     end

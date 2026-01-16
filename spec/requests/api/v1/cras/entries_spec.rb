@@ -217,6 +217,54 @@ RSpec.describe 'API V1 CRA Entries', type: :request do
     end
   end
 
+  # L452 – CRA/Mission Association
+  describe 'POST /api/v1/cras/:cra_id/entries - CRA/Mission Association', type: :request do
+    let(:user) { create(:user) }
+    let(:other_user) { create(:user) }
+    let(:cra) { create(:cra, user: user) }
+    let(:headers) { { 'Authorization' => "Bearer #{AuthenticationService.login(user, '127.0.0.1', 'Test Agent')[:token]}", 'Content-Type' => 'application/json' } }
+
+    let(:valid_entry_params) do
+      {
+        date: Date.today,
+        quantity: 2.5,
+        unit_price: 40000,
+        description: "Consulting work"
+      }
+    end
+
+    it 'validates CRA/mission association' do
+      # --- CAS 1: Mission valide (même utilisateur/entreprise) ---
+      valid_mission = create(:mission, created_by_user_id: user.id)
+      # Créer l'association mission/entreprise pour rendre la mission valide
+      create(:mission_company, mission: valid_mission, company: company, role: 'client')
+      params_valid = valid_entry_params.merge(mission_id: valid_mission.id)
+      post "/api/v1/cras/#{cra.id}/entries", params: params_valid.to_json, headers: headers
+
+      expect(response).to have_http_status(:created)
+      json_response = JSON.parse(response.body)
+      expect(json_response['data']['cra_entry']['attributes']['mission_id']).to eq(valid_mission.id)
+      expect(cra.cra_entries.count).to eq(1)
+
+      # --- CAS 2: Mission invalide (autre utilisateur) ---
+      invalid_mission = create(:mission, created_by_user_id: other_user.id)
+      params_invalid = valid_entry_params.merge(mission_id: invalid_mission.id)
+      post "/api/v1/cras/#{cra.id}/entries", params: params_invalid.to_json, headers: headers
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      json_response = JSON.parse(response.body)
+      expect(json_response['error'].downcase).to include("mission does not belong")
+
+      # --- CAS 3: Mission inexistante ---
+      params_nonexistent = valid_entry_params.merge(mission_id: SecureRandom.uuid)
+      post "/api/v1/cras/#{cra.id}/entries", params: params_nonexistent.to_json, headers: headers
+
+      expect(response).to have_http_status(:not_found)
+      json_response = JSON.parse(response.body)
+      expect(json_response['error'].downcase).to include("not found")
+    end
+  end
+
   # =============================================================================
   # PHASE 3: DATA VALIDATION & SECURITY (PLATINUM ADDITION)
   # =============================================================================
