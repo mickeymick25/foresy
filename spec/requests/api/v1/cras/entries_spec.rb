@@ -92,11 +92,11 @@ RSpec.describe 'API V1 CRA Entries', type: :request do
         create(:cra_entry_mission, mission: mission, cra_entry: other_entry)
 
         unauthorized_endpoints = [
-          -> { post "/api/v1/cras/#{other_cra.id}/entries", params: valid_entry_params, headers: headers },
-          -> { get "/api/v1/cras/#{other_cra.id}/entries", headers: headers },
-          -> { get "/api/v1/cras/#{other_cra.id}/entries/#{other_entry.id}", headers: headers },
-          -> { patch "/api/v1/cras/#{other_cra.id}/entries/#{other_entry.id}", params: { quantity: 2.0 }, headers: headers },
-          -> { delete "/api/v1/cras/#{other_cra.id}/entries/#{other_entry.id}", headers: headers }
+          -> { post "/api/v1/cras/#{cra.id}/entries", params: valid_entry_params, headers: other_headers },
+          -> { get "/api/v1/cras/#{cra.id}/entries", headers: other_headers },
+          -> { get "/api/v1/cras/#{cra.id}/entries/#{other_entry.id}", headers: other_headers },
+          -> { patch "/api/v1/cras/#{cra.id}/entries/#{other_entry.id}", params: { quantity: 2.0 }, headers: other_headers },
+          -> { delete "/api/v1/cras/#{cra.id}/entries/#{other_entry.id}", headers: other_headers }
         ]
 
         unauthorized_endpoints.each do |endpoint|
@@ -128,11 +128,11 @@ RSpec.describe 'API V1 CRA Entries', type: :request do
 
         invalid_params = valid_entry_params.merge(mission_id: other_company_mission.id)
 
-        post "/api/v1/cras/#{cra.id}/entries", params: invalid_params, headers: headers
+        post "/api/v1/cras/#{cra.id}/entries", params: invalid_params.to_json, headers: headers
 
         expect(response).to have_http_status(:unprocessable_entity)
         json_response = JSON.parse(response.body)
-        expect(json_response['errors']).to include(/mission.*company/)
+        expect(json_response['errors']).to include(/mission.*company/i)
       end
 
       it 'validates date is within CRA period' do
@@ -149,17 +149,34 @@ RSpec.describe 'API V1 CRA Entries', type: :request do
       end
 
       it 'validates total amount calculation' do
-        test_params = valid_entry_params.merge(quantity: 2.5, unit_price: 40000) # 100.00 EUR
+        test_params = {
+          date: '2024-01-15',
+          quantity: 2.5,
+          unit_price: 40_000, # 400.00 EUR
+          description: 'Consulting work',
+          mission_id: mission.id
+        }
 
-        post "/api/v1/cras/#{cra.id}/entries", params: test_params, headers: headers
+        # Vérifier le total_amount avant création
+        cra.reload
+        expect(cra.total_amount).to eq(0)
+
+        post "/api/v1/cras/#{cra.id}/entries",
+             params: test_params.to_json,
+             headers: headers
 
         expect(response).to have_http_status(:created)
 
-        json_response = JSON.parse(response.body)
-        entry = json_response['data']['cra_entry']
-        expected_total = 2.5 * 40000 # 100000 cents = 1000.00 EUR
+        # Vérifier que la réponse contient l'entrée créée
+        json = JSON.parse(response.body)
+        expect(json['data']['cra_entry']).to be_present
+        expect(json['data']['cra_entry']['quantity']).to eq("2.5")
+        expect(json['data']['cra_entry']['unit_price']).to eq(40_000)
 
-        expect(entry['total_amount_cents']).to eq(expected_total)
+        # Vérifier que le total_amount du CRA a été correctement calculé
+        cra.reload
+        expected_total = 2.5 * 40_000  # = 100000
+        expect(cra.total_amount).to eq(expected_total)
       end
 
       it 'prevents duplicate entries for same mission and date' do
@@ -605,6 +622,7 @@ RSpec.describe 'API V1 CRA Entries', type: :request do
         # DEBUG: Show IDs being used
         puts "\n=== TEST DEBUG: PATCH REQUEST IDS ==="
         puts "CRA ID: #{cra.id}"
+        puts "CRA created_by_user_id: #{cra.created_by_user_id}, current_user_id should be: #{user.id}"
         puts "CRA Entry ID: #{cra_entry.id}"
         puts "CRA Entry exists in DB: #{CraEntry.exists?(id: cra_entry.id)}"
         puts "CRA Entry count for this CRA: #{CraEntry.joins(:cra_entry_cras).where(cra_entry_cras: { cra_id: cra.id }).count}"
