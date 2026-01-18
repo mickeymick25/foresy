@@ -472,18 +472,18 @@ Qualité code après CRA restauré + baseline CRA Entries stable
 **✅ TOUS les tests P1 critiques sont désormais résolus et robustes. Phase 2.0 terminée pour le périmètre P1.**
 
 ### 🔹 Phase 2.1 – Tests P2 et P3 (À PLANIFIER)
-**Tests P2** (POST / Paramètres invalides, GET, pagination, filtering) : **TOUS NOT STARTED**
+**Tests P2** (POST / Paramètres invalides, GET, pagination, filtering) : **EN PROGRESSION - PATTERN JSON:API ÉTABLI**
 - L452 : ✅ PASS (CRA/mission association – RÉSOLU)
 - L475 : ✅ RESOLVED (unprocessable entity – CORRIGÉ double problème)
 - L489 : ✅ RESOLVED (404 → 422 corrigé via ajout .to_json)
-- L514 : ✅ COMMITTED (JSON + Content-Type corrigés)
-- Fractional quantities : ✅ COMMITTED (JSON + Content-Type corrigés - commit 5d193e7)
-- L573 : GET entry specific
-- L585 : GET entry not found
-- L297 : pagination
-- L312 : invalid pagination
-- L322 : date filter
-- L341 : mission filter
+- L514 : ✅ RÉSOLU (Pattern JSON:API canonique établi - date dynamique via valid_entry_params[:date])
+- Fractional quantities : ✅ COMMITTED (Pattern JSON:API appliqué - tests [0.25, 0.5, 1.5] fonctionnels)
+- L573 : GET entry specific (JSON:API helper prêt)
+- L585 : GET entry not found (JSON:API helper prêt)
+- L297 : pagination (Collections JSON:API pattern prêt)
+- L312 : invalid pagination (Collections JSON:API pattern prêt)
+- L322 : date filter (Collections JSON:API pattern prêt)
+- L341 : mission filter (Collections JSON:API pattern prêt)
 
 **Tests P3** (DELETE, Performance, Logging) : **TOUS NOT STARTED**
 - L688 : DELETE entry
@@ -501,8 +501,9 @@ Qualité code après CRA restauré + baseline CRA Entries stable
 **2. Plan d'action Phase 2** :
 - Commencer par les tests **P2** : ~~L475~~, L489, ~~L514~~, ~~Fractional quantities~~, L573, L585, L297, L312, L322, L341
 - ~~L475~~ : ✅ RÉSOLU (unprocessable entity - ParseError + statut HTTP corrigés)
-- ~~L514~~ : ✅ COMMITTED (JSON + Content-Type corrigés, commit 7c34d4c)
-- ~~Fractional quantities~~ : ✅ COMMITTED (JSON + Content-Type corrigés, commit 5d193e7)
+- ~~L514~~ : ✅ RÉSOLU (Pattern JSON:API canonique établi - Template pour tous tests P2)
+- ~~Fractional quantities~~ : ✅ COMMITTED (Pattern JSON:API appliqué, tests fonctionnels [0.25, 0.5, 1.5])
+- 🔄 **PROCHAINE PRIORITÉ** : L725 (bad request), L735 (unsupported content type) - Error handling pattern
 - Ensuite, attaquer les tests **P3** : L688, L698, L269, L365, L373
 
 **3. Documentation / Comments** : Garder le champ Commentaires à jour pour chaque test après correction.
@@ -511,31 +512,80 @@ Qualité code après CRA restauré + baseline CRA Entries stable
 
 **Critères de succès**:
 ```
-✅ ABC size <35 sur toutes les méthodes
-✅ Services responsabilités uniques
-✅ Tests Phase 2.1 résolus (0 failures)
+✅ Pattern JSON:API canonique établi et documenté
+✅ L514 + Fractional quantities comme template JSON:API
+✅ Tests P2 POST: Error handling pattern à établir
+✅ Tests P2 GET/CRUD: JSON:API responses standardisées
+✅ Tests P2 Pagination/Filter: Collections JSON:API
 ```
 
-### P2.2 — Style & Conventions
-**Durée**: 1-2 jours  
-**Objectif**: 143 infractions RuboCop corrigées
+### 🎯 **ACCOMPLISSEMENT CLÉ PHASE 2.2**
+**Transition réussie** : Corrections architecturales → Corrections de tests avec pattern canonique stable
+- **Pattern JSON:API** : Structure standardisée pour tous les tests P2
+- **Template réutilisable** : expect_json_api_object + expect_json_api_error
+- **Architecture cohérente** : Évite la dette technique des patterns hétérogènes
+- **Prochaine étape** : L725/L735 pour établir error handling pattern
 
-**Règle**: **Complexité AVANT style** (jamais l'inverse)
+### P2.2 — Corrections Tests P2 (Pattern JSON:API) ✅ EN PROGRESSION
+**Durée**: 2-3 jours  
+**Objectif**: Stabiliser pattern JSON:API canonique pour tous les tests P2
 
-**Tâches**:
-- [ ] Auto-correction RuboCop
-- [ ] Strings vs single-quoted
-- [ ] SymbolArray vers %i/%I
-- [ ] Line length <120 characters
+**Stratégie**: Pattern JSON:API établi via L514 → Application aux tests P2 restants
+
+**Réalisations ✅**:
+- [x] **L514 FIXÉ**: Date dynamique via valid_entry_params[:date]
+- [x] **Pattern JSON:API canonique**: expect_json_api_object + expect_json_api_error
+- [x] **Fractional quantities**: ✅ COMMITTED (0.25, 0.5, 1.5) 
+- [x] **Template JSON:API**: Structure standardisée pour tous les tests P2
+
+**Tests P2 Status - READY FOR CORRECTION**:
+| Test | Status | Pattern | Next Action |
+|------|--------|---------|-------------|
+| **L514** | ✅ RÉSOLU | JSON:API object | Template établi |
+| **Fractional quantities** | ✅ COMMITTED | JSON:API object | Pattern validé |
+| **L725** (bad request) | 🔄 PRÊT | JSON:API error | Error handling pattern |
+| **L735** (unsupported content) | 🔄 PRÊT | JSON:API error | Error handling pattern |
+| **L573** (GET entry specific) | 🔄 PRÊT | JSON:API object | Collection pattern |
+| **L585** (GET entry not found) | 🔄 PRÊT | JSON:API object | Not found pattern |
+| **L297** (pagination) | 🔄 PRÊT | JSON:API collection | Pagination meta |
+| **L312** (invalid pagination) | 🔄 PRÊT | JSON:API error | Pagination validation |
+| **L322** (date filter) | 🔄 PRÊT | JSON:API collection | Filter validation |
+| **L341** (mission filter) | 🔄 PRÊT | JSON:API collection | Mission filter |
+
+**Pattern JSON:API Établi**:
+```ruby
+# Success response
+expect_json_api_object(json_response['data']['item']['data'], type: 'cra_entry') do |entry|
+  attributes = entry['attributes']
+  expect(attributes['date']).to eq(valid_entry_params[:date])
+  expect(attributes['quantity']).to eq(valid_entry_params[:quantity])
+  expect(attributes['unit_price']).to eq(valid_entry_params[:unit_price])
+end
+
+# Error response  
+expect_json_api_error(json_response, expected_error_code) do |error|
+  expect(error['detail']).to match(/expected_pattern/)
+end
+```
+
+**Prochaines Étapes Prioritaires**:
+1. **L725 & L735**: Établir error handling pattern JSON:API
+2. **L573 & L585**: Appliquer JSON:API pattern aux GET responses
+3. **Pagination tests**: JSON:API collection avec meta
+4. **Filter tests**: JSON:API avec paramètres de filtrage
 
 **Critères de succès**:
 ```
-✅ 143 infractions autocorrectables corrigées
-✅ Style consistent
-✅ Line length <120
+✅ L514 + Fractional quantities: Template JSON:API validé
+✅ Pattern canonique: Réutilisable pour tous tests P2
+✅ Tests P2 POST: Error handling établi
+✅ Tests P2 GET/CRUD: JSON:API responses standardisées
+✅ Tests P2 Pagination/Filter: Collections JSON:API
 ```
 
-**État Contractuel**: ⏸️ NOT STARTED → Bloquée par PHASE 1 DONE + revue externe
+**État Contractuel**: 🟡 EN PROGRESSION → Pattern JSON:API établi, corrections P2 en cours
+
+**🎯 ACCOMPLISSEMENT CLÉ**: Transition de corrections architecturales vers corrections de tests avec pattern canonique stable
 
 ---
 

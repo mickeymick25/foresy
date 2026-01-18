@@ -607,9 +607,25 @@ RSpec.describe 'API V1 CRA Entries', type: :request do
                params: zero_price_params.to_json,
                headers: headers.merge('Content-Type' => 'application/json')
 
-
-
           expect(response).to have_http_status(:created)
+
+          # DEBUG: Voir la vraie structure JSON
+          puts "🔥 DEBUG: JSON Response structure = #{json_response.inspect}"
+
+          # Validation manuelle avec la vraie structure
+          data = json_response['data']
+          expect(data).to be_present
+
+          cra_entry = data['item']['data']
+          expect(cra_entry).to be_present
+          expect(cra_entry['type']).to eq('cra_entry')
+
+          attributes = cra_entry['attributes']
+          expect(attributes['date']).to eq(Date.today.strftime('%Y-%m-%d'))
+          expect(attributes['quantity']).to eq('1.0')
+          expect(attributes['unit_price']).to eq(0)
+          expect(attributes['description']).to eq('Development work')
+          expect(attributes['mission_id']).to eq(valid_entry_params[:mission_id])
         end
       end
     end
