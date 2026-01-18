@@ -92,10 +92,10 @@ RSpec.describe 'API V1 CRA Entries', type: :request do
         create(:cra_entry_mission, mission: mission, cra_entry: other_entry)
 
         unauthorized_endpoints = [
-          -> { post "/api/v1/cras/#{cra.id}/entries", params: valid_entry_params, headers: other_headers },
+          -> { post "/api/v1/cras/#{cra.id}/entries", params: valid_entry_params.to_json, headers: other_headers.merge('Content-Type' => 'application/json') },
           -> { get "/api/v1/cras/#{cra.id}/entries", headers: other_headers },
           -> { get "/api/v1/cras/#{cra.id}/entries/#{other_entry.id}", headers: other_headers },
-          -> { patch "/api/v1/cras/#{cra.id}/entries/#{other_entry.id}", params: { quantity: 2.0 }, headers: other_headers },
+          -> { patch "/api/v1/cras/#{cra.id}/entries/#{other_entry.id}", params: { quantity: 2.0 }.to_json, headers: other_headers.merge('Content-Type' => 'application/json') },
           -> { delete "/api/v1/cras/#{cra.id}/entries/#{other_entry.id}", headers: other_headers }
         ]
 
@@ -141,7 +141,7 @@ RSpec.describe 'API V1 CRA Entries', type: :request do
 
         invalid_date_params = valid_entry_params.merge(date: '2025-12-31') # Outside CRA period
 
-        post "/api/v1/cras/#{cra.id}/entries", params: invalid_date_params, headers: headers
+        post "/api/v1/cras/#{cra.id}/entries", params: invalid_date_params.to_json, headers: headers.merge('Content-Type' => 'application/json')
 
         expect(response).to have_http_status(:bad_request)
         json_response = JSON.parse(response.body)
@@ -293,7 +293,7 @@ RSpec.describe 'API V1 CRA Entries', type: :request do
           description: "<script>alert('xss')</script>Development work"
         )
 
-        post "/api/v1/cras/#{cra.id}/entries", params: xss_params, headers: headers
+        post "/api/v1/cras/#{cra.id}/entries", params: xss_params.to_json, headers: headers.merge('Content-Type' => 'application/json')
 
         expect(response).to have_http_status(:created)
 
@@ -307,7 +307,7 @@ RSpec.describe 'API V1 CRA Entries', type: :request do
       it 'rejects negative quantities' do
         negative_params = valid_entry_params.merge(quantity: -1.0)
 
-        post "/api/v1/cras/#{cra.id}/entries", params: negative_params, headers: headers
+        post "/api/v1/cras/#{cra.id}/entries", params: negative_params.to_json, headers: headers.merge('Content-Type' => 'application/json')
 
         expect(response).to have_http_status(:unprocessable_content)
         json_response = JSON.parse(response.body)
@@ -317,7 +317,7 @@ RSpec.describe 'API V1 CRA Entries', type: :request do
       it 'rejects future dates' do
         future_params = valid_entry_params.merge(date: Date.tomorrow.strftime('%Y-%m-%d'))
 
-        post "/api/v1/cras/#{cra.id}/entries", params: future_params, headers: headers
+        post "/api/v1/cras/#{cra.id}/entries", params: future_params.to_json, headers: headers.merge('Content-Type' => 'application/json')
 
         expect(response).to have_http_status(:unprocessable_content)
         json_response = JSON.parse(response.body)
@@ -327,7 +327,9 @@ RSpec.describe 'API V1 CRA Entries', type: :request do
       it 'validates unit_price format (cents only)' do
         decimal_params = valid_entry_params.merge(unit_price: 60.50)
 
-        post "/api/v1/cras/#{cra.id}/entries", params: decimal_params, headers: headers
+        post "/api/v1/cras/#{cra.id}/entries",
+             params: decimal_params.to_json,
+             headers: headers.merge('Content-Type' => 'application/json')
 
         expect(response).to have_http_status(:unprocessable_content)
         json_response = JSON.parse(response.body)
@@ -357,7 +359,7 @@ RSpec.describe 'API V1 CRA Entries', type: :request do
       it 'responds within acceptable time limits' do
         start_time = Time.current
 
-        post "/api/v1/cras/#{cra.id}/entries", params: valid_entry_params, headers: headers
+        post "/api/v1/cras/#{cra.id}/entries", params: valid_entry_params.to_json, headers: headers.merge('Content-Type' => 'application/json')
 
         response_time = Time.current - start_time
         expect(response_time).to be < 1.second # Acceptable response time
@@ -452,7 +454,7 @@ RSpec.describe 'API V1 CRA Entries', type: :request do
     context 'Activity Logging' do
       it 'logs entry creation with basic logging' do
         # Basic test that the request completes without error
-        post "/api/v1/cras/#{cra.id}/entries", params: valid_entry_params, headers: headers
+        post "/api/v1/cras/#{cra.id}/entries", params: valid_entry_params.to_json, headers: headers.merge('Content-Type' => 'application/json')
 
         expect(response).to have_http_status(:created)
         # Note: Specific logging would need to be implemented in controllers/services
@@ -602,8 +604,10 @@ RSpec.describe 'API V1 CRA Entries', type: :request do
         it 'accepts zero unit_price' do
           zero_price_params = valid_entry_params.merge(unit_price: 0)
           post "/api/v1/cras/#{cra.id}/entries",
-               params: zero_price_params,
-               headers: headers
+               params: zero_price_params.to_json,
+               headers: headers.merge('Content-Type' => 'application/json')
+
+
 
           expect(response).to have_http_status(:created)
         end
