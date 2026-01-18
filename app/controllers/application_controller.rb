@@ -21,6 +21,6 @@ class ApplicationController < ActionController::API
   end
 
   def handle_parse_error
-    render json: { error: 'Invalid parameters' }, status: :bad_request
+    render json: { errors: ["Invalid JSON payload"] }, status: :bad_request
   end
 end

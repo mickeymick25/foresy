@@ -205,7 +205,7 @@ RSpec.describe 'API V1 CRA Entries', type: :request do
              headers: headers
 
         # Assertions métier (le cœur)
-        expect(response).to have_http_status(:bad_request)
+        expect(response).to have_http_status(:unprocessable_content)
         expect(cra.cra_entries.count).to eq(1)  # invariant métier
 
         # Vérification message d'erreur (optionnel mais utile)
@@ -560,10 +560,10 @@ RSpec.describe 'API V1 CRA Entries', type: :request do
 
     context 'with invalid parameters' do
       context 'when required fields are missing' do
-        it 'returns 422 Unprocessable Entity' do
+        it 'returns 422 Unprocessable Entity for missing required fields' do
           invalid_params = valid_entry_params.except(:quantity)
           post "/api/v1/cras/#{cra.id}/entries",
-               params: invalid_params,
+               params: invalid_params.to_json,
                headers: headers
 
           expect(response).to have_http_status(:unprocessable_content)

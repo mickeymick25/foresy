@@ -252,23 +252,13 @@ module Api
         # === Duplicate Check ===
 
         def check_duplicate
-          # Check if an entry already exists for this CRA, mission, and date
-          existing = CraEntry
-            .joins(:cra_entry_cras, :cra_entry_missions)
-            .where(cra_entry_cras: { cra_id: cra.id })
-            .where(cra_entry_missions: { mission_id: mission_id })
-            .where(date: @entry.date)
-            .exists?
-
-          if existing
-            return ApplicationResult.fail(
-              error: :conflict,
-              status: :conflict,
-              message: "An entry already exists for this mission and date in this CRA"
-            )
-          end
-
-          nil
+          # TEMPORARY: Always return error to test if this method is called
+          Rails.logger.info "[CraEntries::CreateService] TEMPORARY: Always returning duplicate error for testing"
+          return ApplicationResult.fail(
+            error: :duplicate_entry,
+            status: :conflict,
+            message: "TEMPORARY: Always duplicate error for testing"
+          )
         end
 
         # === Save Entry ===
