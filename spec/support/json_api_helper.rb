@@ -44,7 +44,7 @@ module JsonApiHelper
     if code_or_message.is_a?(Regexp)
       expect(error_text).to match(code_or_message)
     else
-      expect(error_text).to include(code_or_message.downcase)
+      expect(error_text).to include(code_or_message.to_s.downcase)
     end
 
     expect(error_text).to include(detail.downcase) if detail

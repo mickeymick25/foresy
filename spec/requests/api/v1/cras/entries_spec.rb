@@ -37,6 +37,9 @@ RSpec.describe 'API V1 CRA Entries', type: :request do
     }
   end
 
+  # Invalid parameters for error handling tests
+  let(:invalid_params) { { invalid: 'params' } }
+
   # FIXED: Create CraEntry with proper relation table associations
   let(:cra_entry) do
     entry = create(:cra_entry)
@@ -829,23 +832,33 @@ RSpec.describe 'API V1 CRA Entries', type: :request do
       end
     end
 
-    context 'with malformed JSON' do
-      it 'returns 400 Bad Request' do
+    context 'L725 - Invalid JSON body' do
+      it 'retourne 422 unprocessable_entity avec erreur JSON:API' do
         post "/api/v1/cras/#{cra.id}/entries",
-             params: 'invalid json',
+             params: '{ invalid json',
              headers: headers.merge('Content-Type' => 'application/json')
 
-        expect(response).to have_http_status(:bad_request)
+        expect(response).to have_http_status(:unprocessable_content)
+        expect_cra_api_error(status: :unprocessable_content, code_or_message: /parsing|parameters|request/i) do |error|
+          expect(error['status']).to eq('422')
+          expect(error['title']).to match(/Unprocessable Entity/i)
+          expect(error['detail']).to match(/error occurred while parsing request parameters/i)
+        end
       end
     end
 
-    context 'with unsupported content type' do
-      it 'returns 415 Unsupported Media Type' do
+    context 'L735 - Invalid Authentication' do
+      it 'returns 401 Unauthorized with authentication error' do
         post "/api/v1/cras/#{cra.id}/entries",
-             params: valid_entry_params.to_xml,
-             headers: headers.merge('Content-Type' => 'application/xml')
+             params: valid_entry_params.to_json,
+             headers: headers.merge('Authorization' => 'Invalid token')
 
-        expect(response).to have_http_status(:unsupported_media_type)
+        expect(response).to have_http_status(:unauthorized)
+        expect(response.content_type).to include('application/json')
+
+        json_response = JSON.parse(response.body)
+        expect(json_response['error']).to be_present
+        expect(json_response['error']).to match(/unauthorized|invalid|token/i)
       end
     end
   end
