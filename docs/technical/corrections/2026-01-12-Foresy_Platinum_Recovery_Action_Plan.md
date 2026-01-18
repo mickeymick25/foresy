@@ -443,7 +443,7 @@ Qualité code après CRA restauré + baseline CRA Entries stable
 | 5  | L452 : CRA/mission association         | POST / CRUD                 | Association validée, 3 cas couverts | P2           | ✅ PASS          | ✅ PASS (fonctionnel) | Co-directeur technique | 2026-01-17 | 2026-01-17 | L452 RÉSOLU le 17 Jan 2026 - Corrections mission_id parsing JSON + sérialisation + structure réponse + codes HTTP (404/422) |
 | 6  | L475 : unprocessable entity            | POST / Paramètres invalides | 422 au lieu de code attendu       | P2           | ✅ RESOLVED      | ✅ Resolved         | Co-directeur Technique | 2026-01-17 | 2026-01-17 | L475 RÉSOLU le 17 Jan 2026 - ParseError corrigée via ajout .to_json + statut HTTP déprécié :unprocessable_entity → :unprocessable_content, test fonctionnel maintenant (vraie validation métier vs parsing error) |
 | 7  | L489 : not found                       | POST / Paramètres invalides | 404 → 422                         | P2           | ✅ RESOLVED      | ✅ Resolved         | Co-directeur Technique | 2026-01-19 | 2026-01-19 | L489 RÉSOLU le 19 Jan 2026 - ParseError corrigée via ajout .to_json, test POST CRA inexistant fonctionne maintenant (404 correct) |
-| 8  | L514 : unit_price = 0                  | POST Edge Cases             | Edge case non traité              | P2           | NOT STARTED      | 🔴 Not Started      | -                   | -          | -        | -            |
+| 8  | L514 : unit_price = 0                  | POST Edge Cases             | ✅ RÉSOLU - JSON + Content-Type corrigés | P2           | ✅ RESOLVED      | ✅ COMMITTED      | Co-directeur Technique | 2026-01-20 | 2026-01-20 | L514 RÉSOLU le 20 Jan 2026 - Format JSON + Content-Type header corrigés, test fonctionnel (commit 7c34d4c) |
 | 9  | Fractional quantities                  | POST Edge Cases             | Quantités fractionnaires échouent | P2           | NOT STARTED      | 🔴 Not Started      | -                   | -          | -        | -            |
 | 10 | L725 : bad request                     | Error Handling              | 400 non retourné                  | P2           | NOT STARTED      | 🔴 Not Started      | -                   | -          | -        | -            |
 | 11 | L735 : unsupported content type        | Error Handling              | 415 non retourné                  | P2           | NOT STARTED      | 🔴 Not Started      | -                   | -          | -        | -            |
@@ -476,7 +476,7 @@ Qualité code après CRA restauré + baseline CRA Entries stable
 - L452 : ✅ PASS (CRA/mission association – RÉSOLU)
 - L475 : ✅ RESOLVED (unprocessable entity – CORRIGÉ double problème)
 - L489 : ✅ RESOLVED (404 → 422 corrigé via ajout .to_json)
-- L514 : unit_price = 0
+- L514 : ✅ COMMITTED (JSON + Content-Type corrigés)
 - Fractional quantities
 - L573 : GET entry specific
 - L585 : GET entry not found
@@ -499,8 +499,9 @@ Qualité code après CRA restauré + baseline CRA Entries stable
 **1. Valider le tableau comme dashboard officiel pour la Phase 2.0** ✅
 
 **2. Plan d'action Phase 2** :
-- Commencer par les tests **P2** : ~~L475~~, L489, L514, Fractional quantities, L573, L585, L297, L312, L322, L341
+- Commencer par les tests **P2** : ~~L475~~, L489, ~~L514~~, Fractional quantities, L573, L585, L297, L312, L322, L341
 - ~~L475~~ : ✅ RÉSOLU (unprocessable entity - ParseError + statut HTTP corrigés)
+- ~~L514~~ : ✅ COMMITTED (JSON + Content-Type corrigés, commit 7c34d4c)
 - Ensuite, attaquer les tests **P3** : L688, L698, L269, L365, L373
 
 **3. Documentation / Comments** : Garder le champ Commentaires à jour pour chaque test après correction.
