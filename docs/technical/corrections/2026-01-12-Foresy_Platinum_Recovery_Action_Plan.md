@@ -442,7 +442,7 @@ Qualité code après CRA restauré + baseline CRA Entries stable
 | 4  | L165 : duplicate entries               | Business Logic              | Test fonctionnel - détection doublons, invariant métier et statut HTTP validés             | P1           | ✅ PASS      | ✅ PASS (fonctionnel)      | Co-directeur technique                   | 2026-01-16          | 2026-01-16        | L165 COMPLÈTEMENT RÉSOLU - Détection doublons fonctionnelle, invariant métier validé, statut HTTP aligné (400), test robuste avec assertion métier et commentaires techniques            |
 | 5  | L452 : CRA/mission association         | POST / CRUD                 | Association validée, 3 cas couverts | P2           | ✅ PASS          | ✅ PASS (fonctionnel) | Co-directeur technique | 2026-01-17 | 2026-01-17 | L452 RÉSOLU le 17 Jan 2026 - Corrections mission_id parsing JSON + sérialisation + structure réponse + codes HTTP (404/422) |
 | 6  | L475 : unprocessable entity            | POST / Paramètres invalides | 422 au lieu de code attendu       | P2           | ✅ RESOLVED      | ✅ Resolved         | Co-directeur Technique | 2026-01-17 | 2026-01-17 | L475 RÉSOLU le 17 Jan 2026 - ParseError corrigée via ajout .to_json + statut HTTP déprécié :unprocessable_entity → :unprocessable_content, test fonctionnel maintenant (vraie validation métier vs parsing error) |
-| 7  | L489 : not found                       | POST / Paramètres invalides | 404 → 422                         | P2           | NOT STARTED      | 🔴 Not Started      | -                   | -          | -        | -            |
+| 7  | L489 : not found                       | POST / Paramètres invalides | 404 → 422                         | P2           | ✅ RESOLVED      | ✅ Resolved         | Co-directeur Technique | 2026-01-19 | 2026-01-19 | L489 RÉSOLU le 19 Jan 2026 - ParseError corrigée via ajout .to_json, test POST CRA inexistant fonctionne maintenant (404 correct) |
 | 8  | L514 : unit_price = 0                  | POST Edge Cases             | Edge case non traité              | P2           | NOT STARTED      | 🔴 Not Started      | -                   | -          | -        | -            |
 | 9  | Fractional quantities                  | POST Edge Cases             | Quantités fractionnaires échouent | P2           | NOT STARTED      | 🔴 Not Started      | -                   | -          | -        | -            |
 | 10 | L725 : bad request                     | Error Handling              | 400 non retourné                  | P2           | NOT STARTED      | 🔴 Not Started      | -                   | -          | -        | -            |
@@ -475,7 +475,7 @@ Qualité code après CRA restauré + baseline CRA Entries stable
 **Tests P2** (POST / Paramètres invalides, GET, pagination, filtering) : **TOUS NOT STARTED**
 - L452 : ✅ PASS (CRA/mission association – RÉSOLU)
 - L475 : ✅ RESOLVED (unprocessable entity – CORRIGÉ double problème)
-- L489 : not found
+- L489 : ✅ RESOLVED (404 → 422 corrigé via ajout .to_json)
 - L514 : unit_price = 0
 - Fractional quantities
 - L573 : GET entry specific
@@ -669,10 +669,12 @@ DATE: [17 Jan 2026 - TEST L123 RÉSOLU - PROGRÈS SIGNIFICATIF PHASE 2.0]
 ├── Résolution: Regex insensitive case dans test L123
 ├── Résultat: L123 "validates mission belongs to user company" ✅ PASS
 ├── ✅ PROGRÈS: L475 "unprocessable entity validation" RÉSOLU (ParseError + statut HTTP déprécié)
+├── ✅ PROGRÈS: L489 "404 → 422 validation" RÉSOLU (ParseError + code statut corrigés)
 ├── ✅ CORRECTION: ajout .to_json dans test L475 (JSON vs hash Ruby)
+├── ✅ CORRECTION: ajout .to_json dans test L489 (ParseError CRA inexistant)
 ├── ✅ CORRECTION: statut HTTP déprécié :unprocessable_entity → :unprocessable_content
-├── Impact: Failures réduites de 30 à 28 (Business Logic + HTTP Validation)
-└── Prochaine étape: Tests L151, L165, L452, L475 (Business Logic Validation complètes)
+├── Impact: Failures réduites de 30 à 27 (Business Logic + HTTP Validation + CRA Validation)
+└── Prochaine étape: Tests L151, L165, L452, L475, L489 (Business Logic Validation complètes)
 
 ✅ PHASE 0: Tooling - DONE
 └── Transition vers P1: AUTORISÉE

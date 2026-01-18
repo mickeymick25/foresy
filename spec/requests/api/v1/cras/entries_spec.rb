@@ -576,7 +576,7 @@ RSpec.describe 'API V1 CRA Entries', type: :request do
       context 'when CRA does not exist' do
         it 'returns 404 Not Found' do
           post "/api/v1/cras/nonexistent-cra-id/entries",
-               params: valid_entry_params,
+               params: valid_entry_params.to_json,
                headers: headers
 
           expect(response).to have_http_status(:not_found)
