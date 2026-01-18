@@ -23,8 +23,8 @@ FactoryBot.define do
       cra_entry.quantity = 0.25 if cra_entry.quantity <= 0
       cra_entry.quantity = [cra_entry.quantity, 100.0].min # Max 100 days per entry
 
-      # Ensure unit_price is positive and in cents
-      cra_entry.unit_price = 50_000 if cra_entry.unit_price <= 0 # Default 500€
+      # Ensure unit_price is non-negative (allows 0) and in cents
+      cra_entry.unit_price = 50_000 if cra_entry.unit_price < 0 # Default 500€ for negative values only
 
       # Ensure description length is within limits
       if cra_entry.description && cra_entry.description.length > 500

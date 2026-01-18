@@ -333,7 +333,7 @@ shared_examples 'complete CRA creation scenario' do
     )
 
     expect(cra.entries.count).to eq(entries_data.count)
-    expect(cra.entries.all? { |e| e.cra_id == cra.id }).to be true
+    expect(cra.entries.all? { |e| e.cra_entry_cras.any? && e.cra_entry_cras.first.cra_id == cra.id }).to be true
   end
 end
 

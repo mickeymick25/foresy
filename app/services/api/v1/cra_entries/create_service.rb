@@ -80,10 +80,9 @@ module Api
           recalculate_cra_totals
 
           # Success response - CTO SAFE PATCH: ApplicationResult.success
-          ApplicationResult.success_entry(
-            serialize_entry(@entry),
-            serialize_cra(cra.reload)
-          )
+          entry_data = serialize_entry(@entry)
+          cra_data = serialize_cra(cra.reload)
+          ApplicationResult.success_entry(entry_data, cra_data)
         rescue ActiveRecord::RecordInvalid => e
           Rails.logger.error "[CraEntries::CreateService] Record validation failed: #{e.message}"
           Rails.logger.error e.backtrace.first(10).join("\n")
@@ -179,10 +178,20 @@ module Api
         end
 
         def validate_entry
-          unless @entry.valid?
+          # Validate unit_price is an integer before conversion
+          if entry_params[:unit_price].is_a?(Float) ||
+             (entry_params[:unit_price].is_a?(String) && entry_params[:unit_price].include?('.'))
             return ApplicationResult.fail(
               error: :validation_error,
               status: :validation_error,
+              message: "unit_price must be an integer (cents only), received decimal value"
+            )
+          end
+
+          unless @entry.valid?
+            return ApplicationResult.fail(
+              error: :validation_error,
+              status: :unprocessable_entity,
               message: @entry.errors.full_messages.join(', ')
             )
           end
@@ -252,13 +261,27 @@ module Api
         # === Duplicate Check ===
 
         def check_duplicate
-          # TEMPORARY: Always return error to test if this method is called
-          Rails.logger.info "[CraEntries::CreateService] TEMPORARY: Always returning duplicate error for testing"
-          return ApplicationResult.fail(
-            error: :duplicate_entry,
-            status: :conflict,
-            message: "TEMPORARY: Always duplicate error for testing"
-          )
+          # Check for duplicate entries based on CRA, mission, and date
+          # Constraint: (cra_id, mission_id, date) must be unique
+          mission_id_value = mission_id
+          date_value = @entry.date
+
+          # Find existing entries for this CRA, mission, and date
+          existing_entries = CraEntry.joins(:cra_entry_cras, :cra_entry_missions)
+            .where(cra_entry_cras: { cra_id: cra.id })
+            .where(cra_entry_missions: { mission_id: mission_id_value })
+            .where(date: date_value)
+            .where.not(id: @entry.id) # Exclude current entry for updates
+
+          if existing_entries.any?
+            return ApplicationResult.fail(
+              error: :duplicate_entry,
+              status: :conflict,
+              message: "An entry already exists for this mission and date in this CRA"
+            )
+          end
+
+          nil # No duplicate found, continue with creation
         end
 
         # === Save Entry ===

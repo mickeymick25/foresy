@@ -10,7 +10,9 @@ module Api
     class CraEntriesController < ApplicationController
       include HTTP_STATUS_MAP
 
-      before_action :authenticate_access_token!
+      before_action :authenticate_access_token! do
+
+      end
 
 
       # Global exception handling - PRIORITÉ 2: Auth + HTTP Contract Codes
@@ -23,21 +25,17 @@ module Api
 
 
 
-
-
       # POST /api/v1/cras/:cra_id/entries
       def create
-
 
         # Phase 2.0: Load CRA in action, then authorize
         cra = Cra.find_by(id: params[:cra_id])
         return render json: { error: 'CRA not found', error_type: :not_found },
                       status: http_status(:not_found) unless cra
 
-
-
         # Phase 2.0: Authorize AFTER business loading
         return unless authorize_cra!(cra)
+
 
         result = Api::V1::CraEntries::CreateService.call(
           cra: cra,
@@ -45,17 +43,20 @@ module Api
           current_user: current_user
         )
 
-        # Check if the result is a success before formatting the response
+        # Check if the result is success before formatting the response
         if result.success?
-          format_standard_response(result, :created)
+          # Platinum: status 201 forcé ici - approche directe
+          render json: {
+            data: result.data,
+            message: "CRA entry created successfully"
+          }, status: 201
+          return # ✅ Assure que rien d'autre ne peut override le status
         else
-          # For errors, let format_standard_response use map_error_type_to_http_status
+          # erreurs → format_standard_response
           format_standard_response(result, nil)
         end
 
       rescue => e
-
-
         Rails.logger.fatal("[CRA][CREATE][UNCAUGHT] #{e.class}: #{e.message}")
         Rails.logger.fatal("[CRA][CREATE][UNCAUGHT] #{e.backtrace.join("\n")}")
         render json: { error: "Internal server error", error_type: :internal_error },
@@ -114,7 +115,7 @@ module Api
         return unless authorize_cra!(cra)
 
         # Phase 2.0: Load entry in action
-        entry = CraEntry.find_by(id: params[:id], cra_id: cra.id)
+        entry = CraEntry.joins(:cra_entry_cras).where(cra_entry_cras: { cra_id: cra.id }).find_by(id: params[:id])
         return render json: { error: 'Entry not found', error_type: :not_found },
                       status: http_status(:not_found) unless entry
 
@@ -177,7 +178,7 @@ module Api
         return unless authorize_cra!(cra)
 
         # Phase 2.0: Load entry in action
-        entry = CraEntry.find_by(id: params[:id], cra_id: cra.id)
+        entry = CraEntry.joins(:cra_entry_cras).where(cra_entry_cras: { cra_id: cra.id }).find_by(id: params[:id])
         return render json: { error: 'CRA entry not found', error_type: :not_found },
                       status: http_status(:not_found) unless entry
 
@@ -414,7 +415,7 @@ module Api
             data: {
               cra_entry: flattened_entry
             }.compact
-          }, status: http_status(status_key)
+          }, status: status_key || :created
         else
           # Format error response to match test expectations (single error)
           error_message = result.respond_to?(:message) ? result.message : result.error.to_s
@@ -426,11 +427,18 @@ module Api
       # Format collection response for list operations (index)
       # Implements P1.2.7 - Eliminates manual parsing and standardizes controller logic
       def format_collection_response(result, status_key)
-        if result.success?
-          render json: result.data, status: http_status(status_key)
+        # Handle both ApplicationResult and ActiveRecord::AssociationRelation
+        if result.respond_to?(:success?) && result.respond_to?(:data)
+          # ApplicationResult case
+          if result.success?
+            render json: result.data, status: http_status(status_key)
+          else
+            render json: { errors: Array(result.error) },
+                   status: map_error_type_to_http_status(result.error)
+          end
         else
-          render json: { errors: Array(result.error) },
-                 status: map_error_type_to_http_status(result.error)
+          # ActiveRecord::AssociationRelation case - just render the data
+          render json: result, status: http_status(status_key)
         end
       end
 

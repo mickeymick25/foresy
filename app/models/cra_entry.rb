@@ -61,7 +61,7 @@ class CraEntry < ApplicationRecord
   # Validations
   validates :date, presence: true
   validates :quantity, presence: true, numericality: { greater_than: 0, precision: 10, scale: 2 }
-  validates :unit_price, presence: true, numericality: { only_integer: true, greater_than: 0 }
+  validates :unit_price, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :description, length: { maximum: 500 }, allow_blank: true
 
   # Business rule validations (simplified for pure domain model)

@@ -35,6 +35,7 @@ module Authenticatable
   # @return [void] Sets @current_user and @current_session on success
   # @return [JSON] Renders 401 unauthorized on failure
   def authenticate_access_token!
+    Rails.logger.info "[DEBUG L514] authenticate_access_token! called"
     Rails.logger.info "[AUTH] Starting authenticate_access_token!"
     Rails.logger.info "[AUTH] Request headers: #{request.headers.inspect}"
 

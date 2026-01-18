@@ -592,8 +592,8 @@ RSpec.describe 'API V1 CRA Entries', type: :request do
           it "accepts fractional quantity #{fractional_quantity}" do
             fractional_params = valid_entry_params.merge(quantity: fractional_quantity)
             post "/api/v1/cras/#{cra.id}/entries",
-                 params: fractional_params,
-                 headers: headers
+                 params: fractional_params.to_json,
+                 headers: headers.merge('Content-Type' => 'application/json')
 
             expect(response).to have_http_status(:created)
           end
