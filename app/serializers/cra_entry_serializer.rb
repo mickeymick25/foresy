@@ -38,7 +38,8 @@ class CraEntrySerializer
           description: entry.description,
           created_at: entry.created_at&.iso8601,
           updated_at: entry.updated_at&.iso8601,
-          deleted_at: entry.deleted_at&.iso8601
+          deleted_at: entry.deleted_at&.iso8601,
+          mission_id: entry.mission_id&.to_s
         },
         relationships: build_relationships
       }

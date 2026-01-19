@@ -453,8 +453,8 @@ Qualité code après CRA restauré + baseline CRA Entries stable
 | 15 | L698 : DELETE not found                | DELETE / CRUD               | ✅ RÉSOLU - Fonctionne correctement     | P3           | ✅ RESOLVED      | ✅ RESOLVED      | Co-directeur Technique | 2026-01-20 | 2026-01-20 | L698 RÉSOLU le 20 Jan 2026 - Test DELETE entrée inexistante fonctionne correctement, retourne 404 |
 | 16 | L297 : pagination                      | Pagination / Filtering      | ✅ RÉSOLU - Pagination fonctionnelle, structure JSON corrigée | P2           | ✅ RESOLVED      | ✅ RESOLVED      | Co-directeur Technique | 2026-01-21 | 2026-01-21 | L297 RÉSOLU le 21 Jan 2026 - Correction format_collection_response, structure JSON canonique, pagination meta opérationnelle |
 | 17 | L312 : invalid pagination              | Pagination / Filtering      | ✅ RÉSOLU - Validation paramètres, messages métier explicites | P2           | ✅ RESOLVED      | ✅ RESOLVED      | Co-directeur Technique | 2026-01-21 | 2026-01-21 | L312 RÉSOLU le 21 Jan 2026 - Validation per_page > 100, messages d'erreur métier, 400 Bad Request contractuel |
-| 18 | L322 : date filter                     | Pagination / Filtering      | Filtre date échoue                | P2           | NOT STARTED      | 🔴 Not Started      | -                   | -          | -        | -            |
-| 19 | L341 : mission filter                  | Pagination / Filtering      | Filtre mission échoue             | P2           | NOT STARTED      | 🔴 Not Started      | -                   | -          | -        | -            |
+| 18 | L322 : date filter                     | Pagination / Filtering      | ✅ RÉSOLU - Filtrage par date fonctionnel, from_date/to_date supportés | P2           | ✅ RESOLVED      | ✅ RESOLVED      | Co-directeur Technique | 2026-01-21 | 2026-01-21 | L322 RÉSOLU le 21 Jan 2026 - Correction paramètres de filtrage, support from_date/to_date, validation plage de dates opérationnelle |
+| 19 | L341 : mission filter                  | Pagination / Filtering      | ✅ RÉSOLU - Filtrage par mission fonctionnel, associations DDD | P2           | ✅ RESOLVED      | ✅ RESOLVED      | Co-directeur Technique | 2026-01-21 | 2026-01-21 | L341 RÉSOLU le 21 Jan 2026 - Correction serialize_entry, mission_id via associations, architecture DDD respectée |
 | 20 | L269 : response time                   | Performance                 | Temps de réponse > seuil          | P3           | NOT STARTED      | 🔴 Not Started      | -                   | -          | -        | -            |
 | 21 | L365 : log entry creation              | Logging                     | Logs non générés                  | P3           | NOT STARTED      | 🔴 Not Started      | -                   | -          | -        | -            |
 | 22 | L373 : log access attempts             | Logging                     | Logs non générés                  | P3           | NOT STARTED      | 🔴 Not Started      | -                   | -          | -        | -            |
@@ -482,8 +482,8 @@ Qualité code après CRA restauré + baseline CRA Entries stable
 - L585 : ✅ RESOLVED (Déjà fonctionnel - Controller gère 404 correctement)
 - L297 : pagination (Collections JSON:API pattern prêt) ✅ RÉSOLU
 - L312 : invalid pagination (Collections JSON:API pattern prêt) ✅ RÉSOLU
-- L322 : date filter (Collections JSON:API pattern prêt)
-- L341 : mission filter (Collections JSON:API pattern prêt)
+- L322 : date filter (Collections JSON:API pattern prêt) ✅ RÉSOLU
+- L341 : mission filter (Collections JSON:API pattern prêt) ✅ RÉSOLU
 
 **Tests P3** (DELETE, Performance, Logging) : **TOUS NOT STARTED**
 - L688 : DELETE entry
@@ -556,8 +556,8 @@ Qualité code après CRA restauré + baseline CRA Entries stable
 
 **🏆 BASE CANONIQUE ÉTABLIE** : L725/L735 servent de référence pour tous les futurs tests error handling HTTP
 | **L312** (invalid pagination) | ✅ **RÉSOLU** | **JSON:API error** | **Pagination validation** |
-| **L322** (date filter) | 🔄 PRÊT | JSON:API collection | Filter validation |
-| **L341** (mission filter) | 🔄 PRÊT | JSON:API collection | Mission filter |
+| **L322** (date filter) | ✅ **RÉSOLU** | **JSON:API collection** | **Filter validation** |
+| **L341** (mission filter) | ✅ **RÉSOLU** | **JSON:API collection** | **Mission filter** |
 
 **Pattern JSON:API Établi**:
 ```ruby
@@ -577,9 +577,9 @@ end
 
 **Prochaines Étapes Prioritaires**:
 1. **L573 & L585**: Appliquer JSON:API pattern aux GET responses
-2. **L322 & L341**: Appliquer JSON:API pattern aux filtres date et mission
+2. **L322 & L341**: ✅ RÉSOLUS (Filtres date et mission fonctionnels)
 3. **Pagination tests**: ✅ RÉSOLUS (L297, L312 - JSON:API collection avec meta)
-4. **Filter tests**: JSON:API avec paramètres de filtrage
+4. **Filter tests**: ✅ RÉSOLUS (L322, L341 - Filtrage par date et mission opérationnel)
 
 **Critères de succès**:
 ```

@@ -346,7 +346,8 @@ module Api
             unit_price: entry.unit_price,
             description: entry.description,
             created_at: entry.created_at,
-            updated_at: entry.updated_at
+            updated_at: entry.updated_at,
+            mission_id: entry.missions.first&.id
           }
         end
 

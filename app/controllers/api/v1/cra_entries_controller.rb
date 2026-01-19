@@ -80,9 +80,10 @@ module Api
 
 
             # Préparer les filtres de manière sécurisée
+            # Support des deux formats: from_date/to_date et start_date/end_date
             filters = {
-              start_date: params[:start_date],
-              end_date: params[:end_date],
+              start_date: params[:from_date] || params[:start_date],
+              end_date: params[:to_date] || params[:end_date],
               mission_id: params[:mission_id]
             }
 
