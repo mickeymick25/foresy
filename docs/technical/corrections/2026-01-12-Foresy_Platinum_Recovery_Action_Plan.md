@@ -448,7 +448,7 @@ Qualité code après CRA restauré + baseline CRA Entries stable
 | 10 | L725 : bad request                     | Error Handling              | ✅ RÉSOLU - ParseError 422 confirmé | P2           | ✅ RESOLVED       | ✅ Resolved         | Co-directeur Technique | 2026-01-18 | 2026-01-18 | L725 RÉSOLU le 18 Jan 2026 - Pattern JSON parsing 422 établi, test fonctionnel avec expect_json_api_error |
 | 11 | L735 : unsupported content type        | Error Handling              | ✅ RÉSOLU - AuthError 401 confirmé | P2           | ✅ RESOLVED       | ✅ Resolved         | Co-directeur Technique | 2026-01-18 | 2026-01-18 | L735 RÉSOLU le 18 Jan 2026 - Pattern auth error 401 établi, refactor de Content-Type vers Authentication HTTP test |
 | 12 | L573 : GET entry specific              | GET / CRUD                  | ✅ RESOLU - Format JSON:API + Setup DDD | P2           | ✅ RESOLVED      | ✅ RESOLVED      | Co-directeur Technique | 2026-01-20 | 2026-01-20 | L573 RÉSOLU le 20 Jan 2026 - Format JSON:API via CraEntrySerializer + Setup DDD corrigé (pas de mission_id direct), test passe avec structure { data: { id, type, attributes } } |
-| 13 | L585 : GET entry not found             | GET / CRUD                  | 404 non retourné                  | P2           | NOT STARTED      | 🔴 Not Started      | -                   | -          | -        | -            |
+| 13 | L585 : GET entry not found             | GET / CRUD                  | ✅ RÉSOLU - Fonctionne correctement | P2           | ✅ RESOLVED      | ✅ RESOLVED       | Co-directeur Technique | 2026-01-20 | 2026-01-20 | L585 DÉJÀ FONCTIONNEL - Controller show gère correctement 404 pour entrées inexistantes, test passe sans correction |
 | 14 | L688 : DELETE entry                    | DELETE / CRUD               | Supprime incorrectement / 500     | P3           | NOT STARTED      | 🔴 Not Started      | -                   | -          | -        | -            |
 | 15 | L698 : DELETE not found                | DELETE / CRUD               | 404 non retourné                  | P3           | NOT STARTED      | 🔴 Not Started      | -                   | -          | -        | -            |
 | 16 | L297 : pagination                      | Pagination / Filtering      | Pagination incorrecte             | P2           | NOT STARTED      | 🔴 Not Started      | -                   | -          | -        | -            |
@@ -479,7 +479,7 @@ Qualité code après CRA restauré + baseline CRA Entries stable
 - L514 : ✅ RÉSOLU (Pattern JSON:API canonique établi - date dynamique via valid_entry_params[:date])
 - Fractional quantities : ✅ COMMITTED (Pattern JSON:API appliqué - tests [0.25, 0.5, 1.5] fonctionnels)
 - L573 : ✅ RESOLVED (Format JSON:API + Setup DDD - Test passe)
-- L585 : GET entry not found (JSON:API helper prêt)
+- L585 : ✅ RESOLVED (Déjà fonctionnel - Controller gère 404 correctement)
 - L297 : pagination (Collections JSON:API pattern prêt)
 - L312 : invalid pagination (Collections JSON:API pattern prêt)
 - L322 : date filter (Collections JSON:API pattern prêt)
