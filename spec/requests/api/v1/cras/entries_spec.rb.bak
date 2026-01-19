@@ -45,7 +45,6 @@ RSpec.describe 'API V1 CRA Entries', type: :request do
     entry = create(:cra_entry)
     create(:cra_entry_cra, cra: cra, cra_entry: entry)
     create(:cra_entry_mission, mission: mission, cra_entry: entry)
-    create(:cra_entry_mission, mission: mission, cra_entry: entry)
     entry
   end
 
@@ -382,7 +381,6 @@ RSpec.describe 'API V1 CRA Entries', type: :request do
       15.times.map do |i|
         entry = create(:cra_entry, date: Date.current - i.days)
         create(:cra_entry_cra, cra: cra, cra_entry: entry)
-    create(:cra_entry_mission, mission: mission, cra_entry: entry)
         create(:cra_entry_mission, mission: mission, cra_entry: entry)
         entry
       end
@@ -498,9 +496,9 @@ RSpec.describe 'API V1 CRA Entries', type: :request do
         expect(response).to have_http_status(:ok)
 
         # Verify the expected log patterns are received by Rails.logger
-        expect(Rails.logger).to have_received(:info).at_least(:once).with(match(/Api::V1::CraEntriesController#show/))
-        expect(Rails.logger).to have_received(:info).at_least(:once).with(match(/Authorization check starting/))
-        expect(Rails.logger).to have_received(:info).at_least(:once).with(match(/Authorization: ALLOWED/))
+        expect(Rails.logger).to have_received(:info).with(match(/Api::V1::CraEntriesController#show/))
+        expect(Rails.logger).to have_received(:info).with(match(/Authorization check starting/))
+        expect(Rails.logger).to have_received(:info).with(match(/Authorization: ALLOWED/))
 
         # Verify entry access was successful
         json_response = JSON.parse(response.body)
@@ -680,7 +678,6 @@ RSpec.describe 'API V1 CRA Entries', type: :request do
         3.times.map do |i|
           entry = create(:cra_entry, date: Date.current - i.days)
           create(:cra_entry_cra, cra: cra, cra_entry: entry)
-    create(:cra_entry_mission, mission: mission, cra_entry: entry)
           create(:cra_entry_mission, mission: mission, cra_entry: entry)
           entry
         end

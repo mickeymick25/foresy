@@ -27,8 +27,6 @@ class CraEntrySerializer
   def serialize
     return nil unless entry
 
-    mission = entry.cra_entry_missions.first&.mission
-
     {
       data: {
         id: entry.id.to_s,
@@ -41,7 +39,8 @@ class CraEntrySerializer
           created_at: entry.created_at&.iso8601,
           updated_at: entry.updated_at&.iso8601,
           deleted_at: entry.deleted_at&.iso8601,
-          mission_id: mission&.id&.to_s  # <- sécurisé avec fallback nil
+          mission = entry.cra_entry_missions.first&.mission
+          mission_id: mission&.id&.to_s
         },
         relationships: build_relationships
       }

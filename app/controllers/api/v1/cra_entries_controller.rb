@@ -107,6 +107,9 @@ module Api
 
       # GET /api/v1/cras/:cra_id/entries/:id
       def show
+        # L373: Add logging to detect resource access
+        Rails.logger.info "Api::V1::CraEntriesController#show"
+
         # Phase 2.0: Load CRA in action, then authorize
         cra = Cra.find_by(id: params[:cra_id])
         return render json: { error: 'CRA not found', error_type: :not_found },
@@ -116,13 +119,18 @@ module Api
         return unless authorize_cra!(cra)
 
         # Phase 2.0: Load entry in action
-        entry = CraEntry.joins(:cra_entry_cras).where(cra_entry_cras: { cra_id: cra.id }).find_by(id: params[:id])
+        entry = CraEntry.includes(:cra_entry_missions)
+                        .joins(:cra_entry_cras)
+                        .where(cra_entry_cras: { cra_id: cra.id })
+                        .find_by(id: params[:id])
         return render json: { error: 'Entry not found', error_type: :not_found },
                       status: http_status(:not_found) unless entry
 
         # Format single entry using JSON:API serializer
         render json: {
-          data: CraEntrySerializer.new(entry).serialize[:data]
+          data: {
+            cra_entry: CraEntrySerializer.new(entry).serialize[:data]
+          }
         },
         status: http_status(:ok)
       end
@@ -507,6 +515,8 @@ module Api
         Rails.logger.info "[AUTHORIZE] === STARTING AUTHORIZATION CHECK ==="
         Rails.logger.info "[AUTHORIZE] cra.id: #{cra&.id}"
         Rails.logger.info "[AUTHORIZE] current_user: #{current_user.inspect}"
+        # L373: Logging requis par le test
+        Rails.logger.info "Authorization check starting"
 
         # Vérifications préliminaires pour diagnostic précis
         unless current_user
@@ -528,8 +538,11 @@ module Api
 
           if current_user_can_access_cra?(cra)
             Rails.logger.info "[AUTHORIZE] ✅ Authorization successful for user #{current_user.id}"
+            # L373: Logging requis par le test
+            Rails.logger.info "Authorization: ALLOWED"
             return true
           else
+            Rails.logger.info "Authorization: DENIED"
             Rails.logger.info "[AUTHORIZE] ❌ Authorization failed for user #{current_user.id} - returning 403"
             render json: { error: "Forbidden", error_type: :forbidden },
                    status: :forbidden
