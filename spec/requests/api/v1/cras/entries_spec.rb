@@ -455,12 +455,30 @@ RSpec.describe 'API V1 CRA Entries', type: :request do
 
   describe 'Logging & Monitoring' do
     context 'Activity Logging' do
-      it 'logs entry creation with basic logging' do
-        # Basic test that the request completes without error
-        post "/api/v1/cras/#{cra.id}/entries", params: valid_entry_params.to_json, headers: headers.merge('Content-Type' => 'application/json')
+      it 'logs entry creation (L365)', :aggregate_failures do
+        # L365: Contractual proof that logging exists and works during entry creation
+        # Simple, direct approach: verify Rails.logger receives expected messages
+        allow(Rails.logger).to receive(:info)
+
+        post "/api/v1/cras/#{cra.id}/entries",
+             params: valid_entry_params.to_json,
+             headers: headers.merge('Content-Type' => 'application/json')
 
         expect(response).to have_http_status(:created)
-        # Note: Specific logging would need to be implemented in controllers/services
+
+        # Verify the expected log patterns are received by Rails.logger
+        expect(Rails.logger).to have_received(:info).with(match(/Api::V1::CraEntriesController#create/))
+        expect(Rails.logger).to have_received(:info).at_least(:once).with(match(/\[CraEntries::CreateService\]/))
+        expect(Rails.logger).to have_received(:info).with(match(/Recalculated totals/))
+
+        # Verify entry was actually created
+        cra.reload
+        expect(cra.cra_entries.count).to eq(1)
+
+        entry = cra.cra_entries.first
+        expect(entry.date).to eq(valid_entry_params[:date].to_date)
+        expect(entry.quantity).to eq(valid_entry_params[:quantity])
+        expect(entry.unit_price).to eq(valid_entry_params[:unit_price])
       end
 
       it 'logs access attempts with basic logging' do

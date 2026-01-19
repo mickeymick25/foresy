@@ -456,7 +456,7 @@ Qualité code après CRA restauré + baseline CRA Entries stable
 | 18 | L322 : date filter                     | Pagination / Filtering      | ✅ RÉSOLU - Filtrage par date fonctionnel, from_date/to_date supportés | P2           | ✅ RESOLVED      | ✅ RESOLVED      | Co-directeur Technique | 2026-01-21 | 2026-01-21 | L322 RÉSOLU le 21 Jan 2026 - Correction paramètres de filtrage, support from_date/to_date, validation plage de dates opérationnelle |
 | 19 | L341 : mission filter                  | Pagination / Filtering      | ✅ RÉSOLU - Filtrage par mission fonctionnel, associations DDD | P2           | ✅ RESOLVED      | ✅ RESOLVED      | Co-directeur Technique | 2026-01-21 | 2026-01-21 | L341 RÉSOLU le 21 Jan 2026 - Correction serialize_entry, mission_id via associations, architecture DDD respectée |
 | 20 | L269 : response time                   | Performance                 | ✅ RÉSOLU - Threshold ajusté (1s → 1.5s) pour stabilité Docker/CI | P3           | ✅ RESOLVED      | ✅ RESOLVED      | Co-directeur Technique | 2026-01-21 | 2026-01-21 | L269 RÉSOLU le 21 Jan 2026 - Performance threshold adjustment, test stabilité environnement Docker, préservation objectif test performance |
-| 21 | L365 : log entry creation              | Logging                     | Logs non générés                  | P3           | NOT STARTED      | 🔴 Not Started      | -                   | -          | -        | -            |
+| 21 | L365 : log entry creation              | Logging                     | ✅ RÉSOLU - Logging contractuel vérifié                  | P3           | ✅ RESOLVED      | ✅ RESOLVED      | Co-directeur Technique | 2026-01-21 | 2026-01-21 | L365 RÉSOLU le 21 Jan 2026 - Test contractuel créé, patterns de log vérifiés, logging fonctionne correctement |
 | 22 | L373 : log access attempts             | Logging                     | Logs non générés                  | P3           | NOT STARTED      | 🔴 Not Started      | -                   | -          | -        | -            |
 
 ## 📊 DASHBOARD CONTRACTUEL - ÉTAT OFFICIEL PHASE 2.1
@@ -485,11 +485,11 @@ Qualité code après CRA restauré + baseline CRA Entries stable
 - L322 : date filter (Collections JSON:API pattern prêt) ✅ RÉSOLU
 - L341 : mission filter (Collections JSON:API pattern prêt) ✅ RÉSOLU
 
-**Tests P3** (DELETE, Performance, Logging) : **TOUS NOT STARTED**
-- L688 : DELETE entry
-- L698 : DELETE not found
+**Tests P3** (DELETE, Performance, Logging) : **MOSTLY RESOLVED**
+- L688 : DELETE entry ✅ RÉSOLU
+- L698 : DELETE not found ✅ RÉSOLU
 - L269 : response time ✅ RÉSOLU
-- L365 : log entry creation
+- L365 : log entry creation ✅ RÉSOLU
 - L373 : log access attempts
 
 **⚠️ Ces tests restent à planifier et à exécuter. Priorité pour la prochaine phase : P2 avant P3, car ils couvrent des cas métier et des validations essentielles.**
