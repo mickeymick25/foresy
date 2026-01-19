@@ -37,40 +37,81 @@ module Api
         def initialize(entry:, current_user:)
           @entry = entry
           @current_user = current_user
+          puts "[CraEntries::DestroyService] Initialized with entry: #{entry&.id}, current_user: #{current_user&.id}"
         end
 
         def call
-          # Input validation - CTO SAFE PATCH
-          return ApplicationResult.not_found unless entry
+          puts "[CraEntries::DestroyService] === DEBUT CALL METHOD ==="
 
-          # Permission validation
+          # ✅ CORRECTION L803: Gestion correcte des sous-méthodes et résultats
+
+          # 1️⃣ Validation: Entry existe
+          puts "[CraEntries::DestroyService] STEP 1: Checking if entry exists..."
+          puts "[CraEntries::DestroyService] entry.present? = #{entry.present?}"
+          return ApplicationResult.not_found(message: "Entry not found") unless entry.present?
+          puts "[CraEntries::DestroyService] ✅ Entry exists check passed"
+
+          # Validation: Entry déjà supprimée ?
+          puts "[CraEntries::DestroyService] STEP 2: Checking if entry is already deleted..."
+          puts "[CraEntries::DestroyService] entry.discarded? = #{entry.discarded?}"
+          if entry.discarded?
+            puts "[CraEntries::DestroyService] ❌ Entry is already deleted"
+            return ApplicationResult.not_found(message: "Entry is already deleted")
+          end
+          puts "[CraEntries::DestroyService] ✅ Entry not deleted check passed"
+
+          # Validation: CRA existence ?
+          puts "[CraEntries::DestroyService] STEP 3: Checking if CRA exists..."
+          puts "[CraEntries::DestroyService] entry.cras.first.present? = #{entry.cras.first.present?}"
+          unless entry.cras.first.present?
+            puts "[CraEntries::DestroyService] ❌ CRA does not exist"
+            return ApplicationResult.not_found(message: "Entry is not associated with a valid CRA")
+          end
+          puts "[CraEntries::DestroyService] ✅ CRA exists check passed"
+
+          # 2️⃣ Validation: Permissions et règles métier
+          puts "[CraEntries::DestroyService] STEP 4: Validating permissions..."
           permission_result = validate_permissions
-          return permission_result unless permission_result.nil?
+          puts "[CraEntries::DestroyService] permission_result = #{permission_result.inspect}"
+          if permission_result.is_a?(ApplicationResult) && !permission_result.success?
+            puts "[CraEntries::DestroyService] ❌ Permissions validation failed - returning immediately"
+            return permission_result
+          end
+          puts "[CraEntries::DestroyService] ✅ Permissions validation passed"
 
-          # CRA lifecycle validation - Check if CRA can be modified
-          lifecycle_result = check_cra_modifiable!(@entry.cra)
-          return lifecycle_result unless lifecycle_result.nil?
-
-          # Perform soft delete
+          # 3️⃣ Soft delete avec gestion d'erreurs appropriée
+          puts "[CraEntries::DestroyService] STEP 5: Performing soft delete..."
           delete_result = perform_soft_delete
-          return delete_result unless delete_result.nil?
+          puts "[CraEntries::DestroyService] delete_result = #{delete_result.inspect}"
+          if delete_result.is_a?(ApplicationResult) && !delete_result.success?
+            puts "[CraEntries::DestroyService] ❌ Soft delete failed - returning immediately"
+            return delete_result
+          end
+          puts "[CraEntries::DestroyService] ✅ Soft delete passed"
 
-          # Unlink mission if this was the last active entry for it
+          # 4️⃣ Désassocier mission si c'est la dernière entry
+          puts "[CraEntries::DestroyService] STEP 6: Unlinking mission if needed..."
           unlink_mission_if_last_entry!
+          puts "[CraEntries::DestroyService] ✅ Mission unlink completed"
 
-          # Recalculate CRA totals
+          # 5️⃣ Recalculer les totaux du CRA
+          puts "[CraEntries::DestroyService] STEP 7: Recalculating CRA totals..."
           recalculate_cra_totals!
+          puts "[CraEntries::DestroyService] ✅ CRA totals recalculated"
 
-          # Success response - CTO SAFE PATCH: ApplicationResult.success
+          # 6️⃣ Retourner succès avec les données nécessaires
+          puts "[CraEntries::DestroyService] STEP 8: Returning success"
           ApplicationResult.success(
             data: {
-              item: serialize_entry(@entry),
-              cra: serialize_cra(cra)
+              item: serialize_entry(entry),
+              cra: serialize_cra(entry.cras.first)
             }
           )
         rescue => e
-          Rails.logger.error "[CraEntries::DestroyService] Unexpected error: #{e.class}: #{e.message}"
-          Rails.logger.error e.backtrace.join("\n")
+          puts "[CraEntries::DestroyService] ❌ Error in call: #{e.class}: #{e.message}"
+          puts "[CraEntries::DestroyService] Backtrace: #{e.backtrace.first(5).join("\n")}"
+          Rails.logger.error "[CraEntries::DestroyService] Unexpected error in call: #{e.class}: #{e.message}"
+          Rails.logger.error "[CraEntries::DestroyService] Backtrace: #{e.backtrace.first(5).join("\n")}"
           ApplicationResult.fail(
             error: :internal_error,
             status: :internal_error,
@@ -99,13 +140,16 @@ module Api
         end
 
         def validate_permissions
+          puts "[CraEntries::DestroyService] Starting validate_entry_discarded?"
           # Entry not deleted validation
           if entry.discarded?
+            puts "[CraEntries::DestroyService] validate_entry_discarded FAILED: Entry is already deleted"
             return ApplicationResult.not_found(message: "Entry is already deleted")
           end
+          puts "[CraEntries::DestroyService] validate_entry_discarded PASSED"
 
-          # CRA existence validation
-          unless entry.present? && entry.cra.present?
+          # CRA existence validation (Architecture DDD: entry.cras.first)
+          unless entry.present? && entry.cras.first.present?
             return ApplicationResult.not_found(message: "Entry is not associated with a valid CRA")
           end
 
@@ -128,7 +172,7 @@ module Api
           # CTO SAFE PATCH: Check if Cra.accessible_to method exists
           if defined?(Cra.accessible_to)
             accessible_cras = Cra.accessible_to(current_user)
-            unless accessible_cras.exists?(id: cra.id)
+            unless accessible_cras.exists?(id: entry.cras.first.id)
               return ApplicationResult.fail(
                 error: :forbidden,
                 status: :forbidden,
@@ -137,7 +181,7 @@ module Api
             end
           else
             # Fallback to simple ownership check if accessible_to doesn't exist
-            unless cra.created_by_user_id == current_user.id
+            unless entry.cras.first.created_by_user_id == current_user.id
               return ApplicationResult.fail(
                 error: :forbidden,
                 status: :forbidden,
@@ -157,19 +201,20 @@ module Api
 
         def validate_cra_modifiable
           # CTO SAFE PATCH: Add error handling for cra access
+          current_cra = entry.cras.first
           return ApplicationResult.fail(
             error: :not_found,
             status: :not_found,
             message: "CRA not found"
-          ) unless cra.present?
+          ) unless current_cra.present?
 
-          if cra.locked?
+          if current_cra.locked?
             return ApplicationResult.fail(
               error: :conflict,
               status: :conflict,
               message: "Cannot delete entries from locked CRAs"
             )
-          elsif cra.submitted?
+          elsif current_cra.submitted?
             return ApplicationResult.fail(
               error: :conflict,
               status: :conflict,
@@ -214,7 +259,7 @@ module Api
         # === Delete ===
 
         def perform_soft_delete
-          # CTO SAFE PATCH: Enhanced error handling
+          # ✅ SOFT DELETE SÉCURISÉ: Gestion d'erreurs et logs optimisés
           return ApplicationResult.fail(
             error: :not_found,
             status: :not_found,
@@ -222,18 +267,16 @@ module Api
           ) unless entry.present?
 
           begin
-            if entry.respond_to?(:discard) && entry.discard
-              entry.reload
-              return nil # Success
-            else
-              return ApplicationResult.fail(
-                error: :internal_error,
-                status: :internal_error,
-                message: "Failed to delete entry"
-              )
-            end
+            # ✅ L803-CORRECTION: update! garantit le succès du soft delete
+            entry.update!(deleted_at: Time.current)
+            entry.reload
+
+            Rails.logger.info "[CraEntries::DestroyService] Entry soft-deleted successfully: #{entry.id}"
+            nil # Success - return nil to indicate success
           rescue => e
             Rails.logger.error "[CraEntries::DestroyService] Soft delete failed: #{e.message}"
+            Rails.logger.error "[CraEntries::DestroyService] Entry errors: #{entry.errors.full_messages.join(', ')}"
+
             ApplicationResult.fail(
               error: :internal_error,
               status: :internal_error,
@@ -245,7 +288,7 @@ module Api
         # === Helpers ===
 
         def cra
-          @cra ||= entry.cra
+          @cra ||= entry.cras.first
         end
 
         def unlink_mission_if_last_entry!
@@ -256,22 +299,24 @@ module Api
           return unless mission
 
           # Count remaining active entries for this mission in this CRA
+          current_cra = cra
           remaining_count = CraEntry
                             .joins(:cra_entry_cras, :cra_entry_missions)
-                            .where(cra_entry_cras: { cra_id: cra.id })
+                            .where(cra_entry_cras: { cra_id: current_cra.id })
                             .where(cra_entry_missions: { mission_id: mission.id })
                             .where(deleted_at: nil)
                             .where.not(id: entry.id)
                             .count
 
           # If no remaining entries, unlink the mission
-          CraMission.find_by(cra: cra, mission: mission)&.destroy if remaining_count.zero?
+          CraMission.find_by(cra: current_cra, mission: mission)&.destroy if remaining_count.zero?
         end
 
         def recalculate_cra_totals!
           # Get all active (non-deleted) entries for this CRA
+          current_cra = entry.cras.first
           active_entries = CraEntry.joins(:cra_entry_cras)
-                                   .where(cra_entry_cras: { cra_id: cra.id })
+                                   .where(cra_entry_cras: { cra_id: current_cra.id })
                                    .where(deleted_at: nil)
 
           # Calculate total days (sum of quantities)
@@ -281,14 +326,14 @@ module Api
           total_amount = active_entries.sum { |entry| entry.quantity * entry.unit_price }
 
           # CTO SAFE PATCH: Enhanced error handling for totals recalculation
-          return unless cra.present?
+          return unless current_cra.present?
 
           begin
-            if cra.update(total_days: total_days, total_amount: total_amount)
-              Rails.logger.info "[CraEntries::DestroyService] Recalculated totals for CRA #{cra.id}: " \
+            if current_cra.update(total_days: total_days, total_amount: total_amount)
+              Rails.logger.info "[CraEntries::DestroyService] Recalculated totals for CRA #{current_cra.id}: " \
                                 "#{total_days} days, #{total_amount} amount"
             else
-              Rails.logger.error "[CraEntries::DestroyService] Failed to update CRA totals: #{cra.errors.full_messages.join(', ')}"
+              Rails.logger.error "[CraEntries::DestroyService] Failed to update CRA totals: #{current_cra.errors.full_messages.join(', ')}"
               # Don't return error here - totals calculation failure shouldn't break deletion
             end
           rescue => e
@@ -311,13 +356,13 @@ module Api
           }
         end
 
-        def serialize_cra(cra)
+        def serialize_cra(current_cra)
           {
-            id: cra.id,
-            total_days: cra.total_days,
-            total_amount: cra.total_amount,
-            currency: cra.currency,
-            status: cra.status
+            id: current_cra.id,
+            total_days: current_cra.total_days,
+            total_amount: current_cra.total_amount,
+            currency: current_cra.currency,
+            status: current_cra.status
           }
         end
       end

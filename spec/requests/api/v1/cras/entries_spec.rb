@@ -612,14 +612,17 @@ RSpec.describe 'API V1 CRA Entries', type: :request do
 
           expect(response).to have_http_status(:created)
 
+          # Parse JSON response
+          json_response = JSON.parse(response.body)
+
           # DEBUG: Voir la vraie structure JSON
           puts "🔥 DEBUG: JSON Response structure = #{json_response.inspect}"
 
-          # Validation manuelle avec la vraie structure
+          # Validation avec la structure JSON actuelle
           data = json_response['data']
           expect(data).to be_present
 
-          cra_entry = data['item']['data']
+          cra_entry = data['cra_entry']
           expect(cra_entry).to be_present
           expect(cra_entry['type']).to eq('cra_entry')
 

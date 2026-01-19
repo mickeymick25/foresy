@@ -47,44 +47,20 @@ module Api
           return ApplicationResult.fail(error: :validation_error, status: :validation_error, message: "Entry parameters are required") unless entry_params
           return ApplicationResult.fail(error: :validation_error, status: :validation_error, message: "Current user is required") unless current_user
 
-          # ✅ OPTION C - Appel explicite validate_inputs pour paramètres manquants
-          inputs_validation = validate_inputs
-          return inputs_validation unless inputs_validation.nil?
-
-          # ✅ CORRECTION CREATE SERVICE: Validation CRA/Mission supprimée
-          # La vraie validation métier est dans validate_mission_company
-          # L'association CRA ↔ Mission est créée plus bas dans save_entry_with_associations_transaction
+          # ✅ CORRECTION CREATE SERVICE: Validation CRA/Mission association stricte
+          # Vérifier que la mission appartient au CRA via table de liaison CraMission (DDD)
           mission_id_value = mission_id
           if mission_id_value.present?
             mission = Mission.find_by(id: mission_id_value)
-
-            # Si la mission n'existe pas, déléguer à validate_mission_company pour la gestion d'erreur
-            if mission.nil?
-              mission_company_validation = validate_mission_company
-              return mission_company_validation unless mission_company_validation.nil?
-            else
-              # ✅ CORRECTION - Validation CRA/Mission avec propriété utilisateur
-              # Une mission est valide SI :
-              # - elle est liée au CRA OU
-              # - elle appartient à l'utilisateur courant OU
-              # - elle n'est pas encore liée, mais appartient à la même company
-              belongs_to_cra = cra.cra_missions.exists?(mission_id: mission.id)
-              belongs_to_user = mission.created_by_user_id == current_user.id
-              belongs_to_company =
-                (current_user.user_companies.pluck(:company_id) &
-                 mission.mission_companies.pluck(:company_id)).any?
-
-              unless belongs_to_cra || belongs_to_user || belongs_to_company
-                Rails.logger.warn "[CraEntries::CreateService] Mission #{mission_id_value} does not belong to CRA #{cra.id}"
-                return ApplicationResult.fail(
-                  error: :validation_error,
-                  status: :unprocessable_entity,
-                  message: "Mission does not belong to CRA"
-                )
-              end
-
-              Rails.logger.info "[CraEntries::CreateService] Mission #{mission_id_value} processing for CRA #{cra.id}"
+            if mission.present? && !cra.cra_missions.exists?(mission_id: mission.id)
+              Rails.logger.warn "[CraEntries::CreateService] Mission #{mission_id_value} does not belong to CRA #{cra.id}"
+              return ApplicationResult.fail(
+                error: :validation_error,
+                status: :unprocessable_content,
+                message: "Mission does not belong to CRA"
+              )
             end
+            Rails.logger.info "[CraEntries::CreateService] Mission #{mission_id_value} successfully validated for CRA #{cra.id}"
           end
 
           # Permission validation

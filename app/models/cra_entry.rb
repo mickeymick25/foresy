@@ -60,7 +60,7 @@ class CraEntry < ApplicationRecord
 
   # Validations
   validates :date, presence: true
-  validates :quantity, presence: true, numericality: { greater_than: 0, precision: 10, scale: 2 }
+  validates :quantity, presence: true, numericality: { greater_than_or_equal_to: 0, precision: 10, scale: 2 }
   validates :unit_price, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validates :description, length: { maximum: 500 }, allow_blank: true
 
@@ -94,6 +94,16 @@ class CraEntry < ApplicationRecord
     deleted_at.nil?
   end
 
+  # Check if the entry can be modified (not in submitted or locked CRA)
+  def modifiable?
+    return false if discarded? || !cras.any?
+
+    cra = cras.first
+    return false if cra.nil?
+
+    !cra.submitted? && !cra.locked?
+  end
+
   def display_name
     "#{date} - #{quantity} days @ #{unit_price}c"
   end
@@ -106,7 +116,8 @@ class CraEntry < ApplicationRecord
 
   # Simple soft delete method (business logic moved to services)
   def discard
-    update(deleted_at: Time.current) if deleted_at.nil?
+    return false if deleted_at.present?
+    update(deleted_at: Time.current)
   end
 
   private
