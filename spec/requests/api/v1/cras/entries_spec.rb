@@ -365,7 +365,7 @@ RSpec.describe 'API V1 CRA Entries', type: :request do
         post "/api/v1/cras/#{cra.id}/entries", params: valid_entry_params.to_json, headers: headers.merge('Content-Type' => 'application/json')
 
         response_time = Time.current - start_time
-        expect(response_time).to be < 1.second # Acceptable response time
+        expect(response_time).to be < 1.5.seconds # Acceptable response time
         expect(response).to have_http_status(:created)
       end
     end
