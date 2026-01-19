@@ -40,7 +40,7 @@ RSpec.describe 'API V1 CRA Entries', type: :request do
   # Invalid parameters for error handling tests
   let(:invalid_params) { { invalid: 'params' } }
 
-  # FIXED: Create CraEntry with proper relation table associations
+  # DDD-compliant: Create CraEntry with proper relation table associations
   let(:cra_entry) do
     entry = create(:cra_entry)
     create(:cra_entry_cra, cra: cra, cra_entry: entry)
@@ -687,8 +687,13 @@ RSpec.describe 'API V1 CRA Entries', type: :request do
         expect(response).to have_http_status(:ok)
 
         json_response = JSON.parse(response.body)
-        expect(json_response['data']['cra_entry']['id']).to eq(cra_entry.id)
-        expect(json_response['data']['cra_entry']['cra_id']).to eq(cra.id)
+        puts "DEBUG: json_response = #{json_response.inspect}"
+        data = json_response['data']
+
+        expect(data).to be_present
+        expect(data['id']).to eq(cra_entry.id.to_s)
+        expect(data['type']).to eq('cra_entry')
+        expect(data['attributes']).to include('date', 'quantity', 'unit_price')
       end
     end
 

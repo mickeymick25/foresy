@@ -119,12 +119,11 @@ module Api
         return render json: { error: 'Entry not found', error_type: :not_found },
                       status: http_status(:not_found) unless entry
 
-        # Format single entry
-        entry_data = { entry: result_data_entry(entry) }
-        cra_data = { cra: result_data_cra(cra) }
-
-        render json: entry_data.merge(cra_data),
-               status: http_status(:ok)
+        # Format single entry using JSON:API serializer
+        render json: {
+          data: CraEntrySerializer.new(entry).serialize[:data]
+        },
+        status: http_status(:ok)
       end
 
       # PATCH /api/v1/cras/:cra_id/entries/:id
