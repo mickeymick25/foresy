@@ -450,14 +450,33 @@ module Api
         if result.respond_to?(:success?) && result.respond_to?(:data)
           # ApplicationResult case
           if result.success?
-            render json: result.data, status: http_status(status_key)
+            # Render structured JSON for L297 test expectations
+            # Service returns: { entries: [...], cra: {...}, meta: { pagination: {...} } }
+            # Test expects: { data: { entries: [...] }, meta: { pagination: {...} } }
+            entries = result.data[:entries] || []
+            meta = result.data[:meta] || {}
+
+            render json: {
+              data: {
+                entries: entries,
+                meta: {
+                  total_count: meta[:total_count] || 0
+                }
+              },
+              meta: {
+                pagination: meta[:pagination] || {}
+              }
+            }, status: http_status(status_key)
           else
-            render json: { errors: Array(result.error) },
+            # Use message if available, otherwise fall back to error symbol
+            error_message = result.message || Array(result.error)
+            render json: { errors: Array(error_message) },
                    status: map_error_type_to_http_status(result.error)
           end
         else
           # ActiveRecord::AssociationRelation case - just render the data
-          render json: result, status: http_status(status_key)
+          # This case should not happen with our service architecture
+          render json: { error: "Unexpected data structure" }, status: :internal_error
         end
       end
 

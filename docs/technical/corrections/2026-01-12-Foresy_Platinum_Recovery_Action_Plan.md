@@ -451,8 +451,8 @@ Qualité code après CRA restauré + baseline CRA Entries stable
 | 13 | L585 : GET entry not found             | GET / CRUD                  | ✅ RÉSOLU - Fonctionne correctement | P2           | ✅ RESOLVED      | ✅ RESOLVED       | Co-directeur Technique | 2026-01-20 | 2026-01-20 | L585 DÉJÀ FONCTIONNEL - Controller show gère correctement 404 pour entrées inexistantes, test passe sans correction |
 | 14 | L688 : DELETE entry                    | DELETE / CRUD               | ✅ RÉSOLU - Fonctionne correctement     | P3           | ✅ RESOLVED      | ✅ RESOLVED      | Co-directeur Technique                   | 2026-01-20          | 2026-01-20        | L688 RÉSOLU le 20 Jan 2026 - DestroyService opérationnel, soft delete correct, totaux recalculés, test L806 passe (0 failures)            |
 | 15 | L698 : DELETE not found                | DELETE / CRUD               | ✅ RÉSOLU - Fonctionne correctement     | P3           | ✅ RESOLVED      | ✅ RESOLVED      | Co-directeur Technique | 2026-01-20 | 2026-01-20 | L698 RÉSOLU le 20 Jan 2026 - Test DELETE entrée inexistante fonctionne correctement, retourne 404 |
-| 16 | L297 : pagination                      | Pagination / Filtering      | Pagination incorrecte             | P2           | NOT STARTED      | 🔴 Not Started      | -                   | -          | -        | -            |
-| 17 | L312 : invalid pagination              | Pagination / Filtering      | Param invalid non traité          | P2           | NOT STARTED      | 🔴 Not Started      | -                   | -          | -        | -            |
+| 16 | L297 : pagination                      | Pagination / Filtering      | ✅ RÉSOLU - Pagination fonctionnelle, structure JSON corrigée | P2           | ✅ RESOLVED      | ✅ RESOLVED      | Co-directeur Technique | 2026-01-21 | 2026-01-21 | L297 RÉSOLU le 21 Jan 2026 - Correction format_collection_response, structure JSON canonique, pagination meta opérationnelle |
+| 17 | L312 : invalid pagination              | Pagination / Filtering      | ✅ RÉSOLU - Validation paramètres, messages métier explicites | P2           | ✅ RESOLVED      | ✅ RESOLVED      | Co-directeur Technique | 2026-01-21 | 2026-01-21 | L312 RÉSOLU le 21 Jan 2026 - Validation per_page > 100, messages d'erreur métier, 400 Bad Request contractuel |
 | 18 | L322 : date filter                     | Pagination / Filtering      | Filtre date échoue                | P2           | NOT STARTED      | 🔴 Not Started      | -                   | -          | -        | -            |
 | 19 | L341 : mission filter                  | Pagination / Filtering      | Filtre mission échoue             | P2           | NOT STARTED      | 🔴 Not Started      | -                   | -          | -        | -            |
 | 20 | L269 : response time                   | Performance                 | Temps de réponse > seuil          | P3           | NOT STARTED      | 🔴 Not Started      | -                   | -          | -        | -            |
@@ -480,8 +480,8 @@ Qualité code après CRA restauré + baseline CRA Entries stable
 - Fractional quantities : ✅ COMMITTED (Pattern JSON:API appliqué - tests [0.25, 0.5, 1.5] fonctionnels)
 - L573 : ✅ RESOLVED (Format JSON:API + Setup DDD - Test passe)
 - L585 : ✅ RESOLVED (Déjà fonctionnel - Controller gère 404 correctement)
-- L297 : pagination (Collections JSON:API pattern prêt)
-- L312 : invalid pagination (Collections JSON:API pattern prêt)
+- L297 : pagination (Collections JSON:API pattern prêt) ✅ RÉSOLU
+- L312 : invalid pagination (Collections JSON:API pattern prêt) ✅ RÉSOLU
 - L322 : date filter (Collections JSON:API pattern prêt)
 - L341 : mission filter (Collections JSON:API pattern prêt)
 
@@ -552,10 +552,10 @@ Qualité code après CRA restauré + baseline CRA Entries stable
 | **L735** (authentication) | ✅ **RÉSOLU** | **Auth error 401** | **Pattern canonique HTTP** |
 | **L573** (GET entry specific) | 🔄 PRÊT | JSON:API object | Collection pattern |
 | **L585** (GET entry not found) | 🔄 PRÊT | JSON:API object | Not found pattern |
-| **L297** (pagination) | 🔄 PRÊT | JSON:API collection | Pagination meta |
+| **L297** (pagination) | ✅ **RÉSOLU** | **JSON:API collection** | **Pagination meta** |
 
 **🏆 BASE CANONIQUE ÉTABLIE** : L725/L735 servent de référence pour tous les futurs tests error handling HTTP
-| **L312** (invalid pagination) | 🔄 PRÊT | JSON:API error | Pagination validation |
+| **L312** (invalid pagination) | ✅ **RÉSOLU** | **JSON:API error** | **Pagination validation** |
 | **L322** (date filter) | 🔄 PRÊT | JSON:API collection | Filter validation |
 | **L341** (mission filter) | 🔄 PRÊT | JSON:API collection | Mission filter |
 
@@ -576,9 +576,9 @@ end
 ```
 
 **Prochaines Étapes Prioritaires**:
-1. **L725 & L735**: Établir error handling pattern JSON:API
-2. **L573 & L585**: Appliquer JSON:API pattern aux GET responses
-3. **Pagination tests**: JSON:API collection avec meta
+1. **L573 & L585**: Appliquer JSON:API pattern aux GET responses
+2. **L322 & L341**: Appliquer JSON:API pattern aux filtres date et mission
+3. **Pagination tests**: ✅ RÉSOLUS (L297, L312 - JSON:API collection avec meta)
 4. **Filter tests**: JSON:API avec paramètres de filtrage
 
 **Critères de succès**:

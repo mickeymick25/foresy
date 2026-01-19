@@ -79,7 +79,20 @@ module Api
             )
           end
 
+          # Validate pagination bounds
+          if @page.present? && @page.to_i < 1
+            return ApplicationResult.bad_request(
+              error: :bad_request,
+              message: "pagination parameters invalid - page must be greater than 0"
+            )
+          end
 
+          if @per_page.present? && (@per_page.to_i < 1 || @per_page.to_i > 100)
+            return ApplicationResult.bad_request(
+              error: :bad_request,
+              message: "pagination parameters invalid - per page must be between 1 and 100"
+            )
+          end
 
           # Input validation
           unless cra.present?
@@ -108,7 +121,13 @@ module Api
 
           puts "[ListService] Checking query_result: respond_to?(:success?) = #{query_result.respond_to?(:success?)}, success? = #{query_result.respond_to?(:success?) && query_result.success?}"
 
-          return query_result unless query_result.respond_to?(:success?) && query_result.success?
+          # Ensure we always work with an ApplicationResult
+          unless query_result.respond_to?(:success?)
+            # Build query returned ActiveRecord::Relation, wrap it in success result
+            query_result = ApplicationResult.success(data: query_result)
+          end
+
+          return query_result unless query_result.success?
 
           # Get total count
           puts "[ListService] About to get total_count"
