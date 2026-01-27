@@ -43,28 +43,44 @@ module Api
       # POST /api/v1/cras
       # Creates a new CRA with comprehensive business rule validation
       def create
-        result = Api::V1::Cras::CreateService.call(
+        result = CraServices::Create.call(
           cra_params: cra_params,
           current_user: current_user
         )
 
-        render json: Api::V1::Cras::ResponseFormatter.single(result.cra), status: :created
+        if result.success?
+          render json: Api::V1::Cras::ResponseFormatter.single(result.data[:cra]), status: :created
+        else
+          render json: {
+            success: false,
+            errors: [result.error],
+            timestamp: Time.current.iso8601
+          }, status: :unprocessable_content
+        end
       end
 
       # GET /api/v1/cras
       # Lists CRAs accessible to the current user with pagination
       def index
-        result = Api::V1::Cras::ListService.call(
+        result = CraServices::List.call(
           current_user: current_user,
           page: params[:page],
           per_page: params[:per_page]&.to_i || 20,
           filters: extract_filters
         )
 
-        render json: Api::V1::Cras::ResponseFormatter.collection(
-          result.cras,
-          pagination: result.pagination
-        ), status: :ok
+        if result.success?
+          render json: Api::V1::Cras::ResponseFormatter.collection(
+            result.data[:cras],
+            pagination: result.data[:pagination]
+          ), status: :ok
+        else
+          render json: {
+            success: false,
+            errors: [result.error],
+            timestamp: Time.current.iso8601
+          }, status: :unprocessable_content
+        end
       end
 
       # GET /api/v1/cras/:id
@@ -76,65 +92,109 @@ module Api
       # PATCH /api/v1/cras/:id
       # Updates a CRA with business rule validation
       def update
-        result = Api::V1::Cras::UpdateService.call(
+        result = CraServices::Update.call(
           cra: @cra,
           cra_params: cra_params,
           current_user: current_user
         )
 
-        render json: Api::V1::Cras::ResponseFormatter.single(result.cra, include_entries: true), status: :ok
+        if result.success?
+          render json: Api::V1::Cras::ResponseFormatter.single(result.data[:cra], include_entries: true), status: :ok
+        else
+          render json: {
+            success: false,
+            errors: [result.error],
+            timestamp: Time.current.iso8601
+          }, status: :unprocessable_content
+        end
       end
 
       # DELETE /api/v1/cras/:id
       # Archives a CRA (soft delete) with business rules
       def destroy
-        Api::V1::Cras::DestroyService.call(
+        result = CraServices::Destroy.call(
           cra: @cra,
           current_user: current_user
         )
 
-        render json: {
-          success: true,
-          message: 'CRA archived successfully',
-          timestamp: Time.current.iso8601
-        }, status: :ok
+        if result.success?
+          render json: {
+            success: true,
+            message: 'CRA archived successfully',
+            timestamp: Time.current.iso8601
+          }, status: :ok
+        else
+          render json: {
+            success: false,
+            errors: [result.error],
+            timestamp: Time.current.iso8601
+          }, status: :unprocessable_content
+        end
       end
 
       # POST /api/v1/cras/:id/submit
       # Submits a CRA (draft → submitted) with business rule validation
       def submit
-        result = Api::V1::Cras::LifecycleService.submit!(
+        result = CraServices::Lifecycle.call(
           cra: @cra,
+          action: 'submit',
           current_user: current_user
         )
 
-        render json: Api::V1::Cras::ResponseFormatter.single(result.cra, include_entries: true), status: :ok
+        if result.success?
+          render json: Api::V1::Cras::ResponseFormatter.single(result.data[:cra], include_entries: true), status: :ok
+        else
+          render json: {
+            success: false,
+            errors: [result.error],
+            timestamp: Time.current.iso8601
+          }, status: :unprocessable_content
+        end
       end
 
       # POST /api/v1/cras/:id/lock
       # Locks a CRA (submitted → locked) with Git versioning
       def lock
-        result = Api::V1::Cras::LifecycleService.lock!(
+        result = CraServices::Lifecycle.call(
           cra: @cra,
+          action: 'lock',
           current_user: current_user
         )
 
-        render json: Api::V1::Cras::ResponseFormatter.single(result.cra, include_entries: true), status: :ok
+        if result.success?
+          render json: Api::V1::Cras::ResponseFormatter.single(result.data[:cra], include_entries: true), status: :ok
+        else
+          render json: {
+            success: false,
+            errors: [result.error],
+            timestamp: Time.current.iso8601
+          }, status: :unprocessable_content
+        end
       end
 
       # GET /api/v1/cras/:id/export
       # Exports CRA as CSV (PDF planned for future)
       def export
-        result = Api::V1::Cras::ExportService.new(
+        result = CraServices::Export.call(
           cra: @cra,
-          format: params[:export_format] || 'csv',
-          options: export_options
-        ).call
+          current_user: current_user,
+          include_entries: params[:include_entries] != 'false',
+          format: params[:export_format] || 'csv'
+        )
 
-        send_data result[:data],
-                  filename: result[:filename],
-                  type: result[:content_type],
-                  disposition: 'attachment'
+        if result.success?
+          filename = "cra_#{@cra.year}_#{format('%02d', @cra.month)}.csv"
+          send_data result.data,
+                    filename: filename,
+                    type: 'text/csv',
+                    disposition: 'attachment'
+        else
+          render json: {
+            success: false,
+            errors: [result.error],
+            timestamp: Time.current.iso8601
+          }, status: :unprocessable_content
+        end
       end
 
       private
@@ -169,11 +229,7 @@ module Api
       end
 
       # Options for export
-      def export_options
-        {
-          include_entries: params[:include_entries] != 'false'
-        }
-      end
+
 
       # FC07 Centralized CRA error handler
       # Handles all CraErrors exceptions and returns JSON according to FC07 specifications
@@ -187,13 +243,13 @@ module Api
             message: exception.message,
             field: exception.respond_to?(:field) ? exception.field : nil,
             timestamp: Time.current.iso8601
-          }.compact, status: :unprocessable_entity
+          }.compact, status: :unprocessable_content
         when CraErrors::InvalidTransitionError
           render json: {
             error: 'invalid_transition',
             message: exception.message,
             timestamp: Time.current.iso8601
-          }, status: :unprocessable_entity
+          }, status: :unprocessable_content
         when CraErrors::CraLockedError
           render json: {
             error: 'cra_locked',
@@ -205,7 +261,7 @@ module Api
             error: 'cra_submitted',
             message: exception.message,
             timestamp: Time.current.iso8601
-          }, status: :unprocessable_entity
+          }, status: :unprocessable_content
         when CraErrors::DuplicateEntryError
           render json: {
             error: 'duplicate_entry',
@@ -248,7 +304,7 @@ module Api
             error: 'cra_error',
             message: exception.message,
             timestamp: Time.current.iso8601
-          }, status: :unprocessable_entity
+          }, status: :unprocessable_content
         end
       end
     end

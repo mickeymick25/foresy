@@ -199,6 +199,17 @@ RSpec.describe 'CRA Permissions', type: :request do
   describe 'GET /api/v1/cras/:id/export' do
     let!(:cra) { create(:cra, created_by_user_id: user.id, year: 2026, month: 6) }
 
+    before do
+      # DDD: Transition CRA to submitted state (required for export)
+      result = CraServices::Lifecycle.call(
+        cra: cra,
+        action: 'submit',
+        current_user: user
+      )
+      raise "CRA lifecycle transition failed: #{result.message}" unless result.success?
+      cra.reload
+    end
+
     context 'when user owns the CRA' do
       it 'returns 200 OK with CSV' do
         get "/api/v1/cras/#{cra.id}/export", headers: headers

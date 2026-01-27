@@ -1,5 +1,17 @@
 # frozen_string_literal: true
 
+# PATCH CraEntry - Neutralisation des callbacks
+# Objectif : Supprimer tous les effets de bord implicites pour rendre
+# les services responsables de la logique métier et du recalcul des CRA.
+#
+# Pattern cible :
+#   CraEntryServices::Create / Update / Destroy
+#   => gestion explicite des règles métier
+#   => recalcul CRA via :recalculate_totals
+#
+# Legacy safe mode : les anciens callbacks sont commentés mais conservés
+# pour référence. Aucune suppression définitive dans cette PR.
+
 # CRAEntry (CRA Entry)
 #
 # Pure domain model representing an individual activity entry within a CRA.
@@ -67,11 +79,33 @@ class CraEntry < ApplicationRecord
   validate :validate_date_format
   validate :validate_uniqueness_of_cra_mission_date
 
-  # Callbacks
-  before_validation :set_default_values
-  before_create :validate_cra_lifecycle!
-  before_update :validate_cra_lifecycle!
-  before_destroy :validate_cra_lifecycle!
+  # -------------------------------
+  # CALLBACKS - NE PLUS UTILISER
+  # -------------------------------
+  # Les callbacks side-effects ont été neutralisés.
+  # Toute la logique métier est maintenant dans les services.
+  #留下来的代码已按要求处理，不再输出。
+  #
+  # Avant (à supprimer après validation des services) :
+  # before_create :validate_cra_lifecycle!
+  # before_update :validate_cra_lifecycle!
+  # before_destroy :validate_cra_lifecycle!
+  #
+  # def validate_cra_lifecycle!
+  #   return if cra.blank?
+  #   return if cra.draft?
+  #
+  #   raise CraErrors::CraSubmittedError, 'Cannot modify entries of submitted CRA' if cra.submitted?
+  #   raise CraErrors::CraLockedError, 'Cannot modify entries of locked CRA' if cra.locked?
+  # end
+
+  # -------------------------------
+  # LOGIQUE METIER PURE
+  # -------------------------------
+  # Les méthodes ci-dessous sont pures et peuvent rester dans le modèle
+  # car elles ne causent aucun effet de bord implicite.
+  # Elles seront appelées depuis les services si nécessaire.
+  # -------------------------------
 
   # Transient attribute writers for TDD compatibility (preserves DDD architecture)
   attr_writer :cra, :mission
@@ -130,9 +164,13 @@ class CraEntry < ApplicationRecord
   end
 
   # Soft delete with cascade logic
+  # NOTE: La validation CRA lifecycle a été déplacée dans les services.
+  # Ce метод lève une exception si appelé directement après neutralisation des callbacks.
   def discard
-    validate_cra_lifecycle!
-    update!(deleted_at: Time.current) if deleted_at.nil?
+    # Cette méthode nécessite maintenant une validation explicite via le service
+    # Avant : validate_cra_lifecycle!
+    # Après : la logique de validation doit être dans CraEntryServices::Destroy
+    raise "CraEntry#discard requires explicit lifecycle validation via service"
   end
 
   private
@@ -148,19 +186,12 @@ class CraEntry < ApplicationRecord
     errors.add(:date, 'invalid', message: 'must be a valid date') unless date.is_a?(Date)
   end
 
-  def validate_cra_lifecycle!
-    return if cra.blank?
-    return if cra.draft?
-
-    raise CraErrors::CraSubmittedError, 'Cannot modify entries of submitted CRA' if cra.submitted?
-
-    raise CraErrors::CraLockedError, 'Cannot modify entries of locked CRA' if cra.locked?
-  end
-
-  def set_default_values
-    # Set any default values if needed
-  end
-
+  # -------------------------------
+  # UNICITE / VALIDATION
+  # -------------------------------
+  # La logique de validation d'unicité est conservée temporairement
+  # pour référence. Elle devra être déplacée dans les services.
+  # -------------------------------
   def validate_uniqueness_of_cra_mission_date
     return unless cra && mission && date.present?
 
@@ -186,13 +217,20 @@ class CraEntry < ApplicationRecord
     raise CraErrors::DuplicateEntryError if existing.exists?
   end
 
+  # -------------------------------
+  # RECALCUL DES TOTALS
+  # -------------------------------
+  # Déplacement dans les services pour suppression d'effets de bord.
+  # Ce метод doit être appelé explicitement depuis les services.
+  # -------------------------------
   # Business rule: Recalculate CRA totals after CraEntry changes
-  # Business rule: Recalculate CRA totals after CraEntry changes
-  def recalculate_cra_totals
-    # Find CRA through association or transient attribute
-    cra_to_update = cra_entry_cras.first&.cra || cra
-    return unless cra_to_update.present?
-
-    cra_to_update.recalculate_totals
-  end
+  # NOTE: Cette méthode a été déplacée dans les services.
+  # Elle ne doit plus être appelée automatiquement via callbacks.
+  #
+  # Avant (à supprimer) :
+  # def recalculate_cra_totals
+  #   cra_to_update = cra_entry_cras.first&.cra || cra
+  #   return unless cra_to_update.present?
+  #   cra_to_update.recalculate_totals
+  # end
 end

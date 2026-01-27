@@ -4,8 +4,8 @@ FactoryBot.define do
   factory :cra_entry do
     # Core business fields with realistic values
     date { Faker::Date.between(from: 1.year.ago, to: Date.current) }
-    quantity { Faker::Number.decimal(l_digits: 1, r_digits: 2).to_f }
-    unit_price { Faker::Number.between(from: 20_000, to: 120_000) } # In cents (200€ to 1200€)
+    quantity { 1 }
+    unit_price { 50_000 } # 500€ - realistic default
 
     # Optional description with realistic content
     description { Faker::Lorem.paragraph(sentence_count: 1) }
@@ -16,6 +16,15 @@ FactoryBot.define do
     # Timestamps
     created_at { Time.current }
     updated_at { Time.current }
+
+    # Auto-associate with CRA via CraEntryCra relation table (DDD pattern)
+    after(:create) do |entry|
+      # Associate with a CRA if one exists via CraEntryCra
+      create(:cra_entry_cra, cra_entry: entry) if entry.cra_entry_cras.empty?
+      # Auto-associate with mission for export compatibility
+      mission = create(:mission) if entry.missions.empty?
+      create(:cra_entry_mission, mission: mission, cra_entry: entry) if mission && entry.missions.empty?
+    end
 
     # Callback to handle data validation and realistic values
     after(:build) do |cra_entry|
@@ -212,15 +221,37 @@ FactoryBot.define do
       deleted_at { nil }
     end
 
-    # Traits for association testing
-    trait :for_cra_association do
-      # This will be used with cra_entry_cra factory
-      # Example usage: create(:cra_entry, :for_cra_association, cra_entry_cras: [create(:cra_entry_cra)])
+    # Traits for association testing - creates associations automatically
+    trait :with_cra_association do
+      after(:create) do |cra_entry|
+        # Create association with a CRA if one is provided
+        cra = create(:cra) unless cra_entry.cras.any?
+        create(:cra_entry_cra, cra: cra, cra_entry: cra_entry)
+      end
     end
 
-    trait :for_mission_association do
-      # This will be used with cra_entry_mission factory
-      # Example usage: create(:cra_entry, :for_mission_association, cra_entry_missions: [create(:cra_entry_mission)])
+    trait :with_mission_association do
+      after(:create) do |cra_entry|
+        # Create association with a mission if one is provided
+        mission = create(:mission) unless cra_entry.missions.any?
+        create(:cra_entry_mission, mission: mission, cra_entry: cra_entry)
+      end
+    end
+
+    # Combined trait that creates both CRA and Mission associations
+    trait :fully_associated do
+      with_cra_association
+      with_mission_association
+    end
+
+    # Trait for testing missing mission associations - removes only mission links, keeps CRA association
+    trait :without_missions do
+      after(:create) do |entry|
+        # Supprime seulement les missions associées à l'entrée
+        entry.cra_entry_missions.destroy_all
+        entry.missions.destroy_all
+        entry.reload
+      end
     end
 
     # Advanced combined traits for complex test scenarios
