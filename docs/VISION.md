@@ -200,11 +200,11 @@ Confirm readiness to implement Feature Contracts following this vision.
 | Mini-FC-02 | CRA CSV Export | `GET /cras/:id/export?export_format=csv` | ✅ DONE (26 tests) |
 | Mini-FC-02.2 | CRA PDF Export | - | 📋 BACKLOG (if needed) |
 
-### Current Metrics (Validated: 7 January 2026)
+### Current Metrics (Validated: 29 January 2026)
 
 | Tool | Result | Status |
 |------|--------|--------|
-| **RSpec** | 449 examples, 0 failures | ✅ |
+| **RSpec** | 498 examples, 0 failures | ✅ |
 | **Rswag** | 128 examples, 0 failures | ✅ |
 | **RuboCop** | 147 files inspected, no offenses detected | ✅ |
 | **Brakeman** | 0 Security Warnings (3 ignored) | ✅ |
@@ -213,4 +213,4 @@ Confirm readiness to implement Feature Contracts following this vision.
 
 ---
 
-*Last updated: 7 January 2026*
+*Last updated: 29 January 2026*
