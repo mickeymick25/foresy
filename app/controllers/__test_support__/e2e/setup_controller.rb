@@ -48,7 +48,7 @@ module TestSupport
 
         render json: build_response(user, company, user_company, token), status: :created
       rescue ActiveRecord::RecordInvalid => e
-        render json: { error: 'Setup failed', message: e.record.errors.full_messages }, status: :unprocessable_entity
+        render json: { error: 'Setup failed', message: e.record.errors.full_messages }, status: :unprocessable_content
       rescue StandardError => e
         render json: { error: 'Setup failed', message: e.message }, status: :internal_server_error
       end

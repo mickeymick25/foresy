@@ -16,7 +16,7 @@ module Api
             error: 'CRA Entry Validation Failed',
             message: exception.record.errors.full_messages,
             resource_type: 'CRA Entry'
-          }, status: :unprocessable_entity
+          }, status: :unprocessable_content
         end
 
         def handle_cra_entry_validation_error(error)
@@ -26,7 +26,7 @@ module Api
             error: 'cra_entry_validation_error',
             message: error,
             resource_type: 'CRA Entry'
-          }, status: :unprocessable_entity
+          }, status: :unprocessable_content
         end
 
         def handle_duplicate_entry_error(mission_id, date)

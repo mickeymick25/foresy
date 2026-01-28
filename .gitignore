@@ -11,8 +11,6 @@
 Gemfile.lock
 
 # Ignore all environment files (except templates).
-/.env*
-!/.env*.erb
 
 # Ignore all logfiles and tempfiles.
 /log/*
@@ -63,3 +61,7 @@ yarn-debug.log*
 
 # Ignore RSpec example reports and logs
 spec/examples.txt
+# Environment variables
+.env
+.env*
+!.env*.erb

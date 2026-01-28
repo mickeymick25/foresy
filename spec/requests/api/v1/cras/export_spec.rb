@@ -32,6 +32,16 @@ RSpec.describe 'CRA Export', type: :request do
       create(:cra_entry_mission, cra_entry: entry2, mission: mission)
 
       cra.reload
+
+      # Transition CRA to submitted state (required for export)
+      result = CraServices::Lifecycle.call(
+        cra: cra,
+        action: 'submit',
+        current_user: user
+      )
+      raise "CRA lifecycle transition failed: #{result.message}" unless result.success?
+
+      cra.reload
     end
 
     context 'with valid authentication and access' do
@@ -80,8 +90,8 @@ RSpec.describe 'CRA Export', type: :request do
       it 'returns 422 for unsupported format' do
         get "/api/v1/cras/#{cra.id}/export", params: { export_format: 'xml' }, headers: headers
 
-        expect(response).to have_http_status(:unprocessable_entity)
-        expect(JSON.parse(response.body)['error']).to eq('invalid_payload')
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(JSON.parse(response.body)['errors']).to eq(['invalid_payload'])
       end
     end
 
