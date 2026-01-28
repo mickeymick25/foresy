@@ -40,6 +40,7 @@ RSpec.describe 'CRA Export', type: :request do
         current_user: user
       )
       raise "CRA lifecycle transition failed: #{result.message}" unless result.success?
+
       cra.reload
     end
 

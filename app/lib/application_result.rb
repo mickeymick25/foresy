@@ -16,13 +16,14 @@ class ApplicationResult
   class ResultObject < ApplicationResult
     attr_reader :success, :status, :data, :error, :message, :meta
 
-    def initialize(success:, status:, data:, error:, message:, meta: {})
+    def initialize(success:, status:, data:, error:, **options)
+      super()
       @success = success
       @status = status
       @data = data
       @error = error
-      @message = message
-      @meta = meta
+      @message = options[:message]
+      @meta = options[:meta] || {}
     end
 
     def success?
@@ -38,7 +39,8 @@ class ApplicationResult
     end
 
     def value!
-      raise "Cannot call value! on failed result" unless success?
+      raise 'Cannot call value! on failed result' unless success?
+
       data
     end
 

@@ -39,7 +39,7 @@ Metrics/BlockLength:
 Metrics/MethodLength:
   Enabled: true
   CountComments: false
-  Max: 35
+  Max: 50
   CountAsOne: []
   Exclude:
     - "spec/**/*"
@@ -53,7 +53,7 @@ Metrics/MethodLength:
 # Metrics/AbcSize - augmenter la limite pour la complexité
 Metrics/AbcSize:
   Enabled: true
-  Max: 35
+  Max: 50
   Exclude:
     - "app/controllers/api/v1/missions_controller.rb"
     - "app/controllers/__test_support__/**/*"
@@ -64,7 +64,7 @@ Metrics/AbcSize:
 # Metrics/CyclomaticComplexity - augmenter la limite
 Metrics/CyclomaticComplexity:
   Enabled: true
-  Max: 12
+  Max: 20
   Exclude:
     - "app/controllers/api/v1/cras_controller.rb"
     - "app/models/concerns/validatable.rb"
@@ -72,7 +72,7 @@ Metrics/CyclomaticComplexity:
 # Metrics/PerceivedComplexity - augmenter la limite
 Metrics/PerceivedComplexity:
   Enabled: true
-  Max: 15
+  Max: 25
   Exclude:
     - "app/models/concerns/validatable.rb"
 

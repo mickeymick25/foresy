@@ -16,7 +16,7 @@ module HttpStatusMap
     validation_error: 422,    # Validation métier
     unauthorized: 401,        # Non authentifié (missing/expired token)
     forbidden: 403,           # Non autorisé (policy/access denied)
-    not_found: 404,          # Ressource absente
+    not_found: 404, # Ressource absente
     conflict: 409,            # Pour les conflits (duplicate entries, etc.)
     bad_request: 400,         # Payload invalide (format / missing)
     internal_error: 500       # Erreurs internes non gérées

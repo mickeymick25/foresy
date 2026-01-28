@@ -19,8 +19,8 @@ class SharedResultAdapter
   }.freeze
 
   # Standardized Shared::Result methods that need mapping
-  SHARED_RESULT_METHODS = [
-    :success, :failure, :success?, :failure?
+  SHARED_RESULT_METHODS = %i[
+    success failure success? failure?
   ].freeze
 
   # Mapping from Shared::Result error types to ApplicationResult
@@ -134,8 +134,8 @@ class SharedResultAdapter
     return has_success_methods if object.class.name.include?('Result')
 
     # Additional check for Duck typing
-    object.respond_to?(:success?) && object.respond_to?(:failure?) &&
-    object.respond_to?(:data) || object.respond_to?(:value)
+    (object.respond_to?(:success?) && object.respond_to?(:failure?) &&
+      object.respond_to?(:data)) || object.respond_to?(:value)
   end
 
   # Detect legacy usage patterns
@@ -184,14 +184,12 @@ class SharedResultAdapter
     )
 
     migrated_code.gsub!(
-      /result\.failure\?/,
+      'result.failure?',
       'result.failure?'
     )
 
     migrated_code
   end
-
-  private
 
   def self.extract_data_from_shared(shared_result)
     # Try multiple data extraction methods
@@ -215,10 +213,12 @@ class SharedResultAdapter
     Rails.logger.error "Shared result class: #{shared_result.class}"
 
     # In development, raise to help developers fix issues
-    raise AdapterViolationError.new(
-      "Failed to convert Shared::Result: #{error.message}",
-      source_location
-    ) if ADAPTER_CONFIG[:raise_on_legacy_usage]
+    if ADAPTER_CONFIG[:raise_on_legacy_usage]
+      raise AdapterViolationError.new(
+        "Failed to convert Shared::Result: #{error.message}",
+        source_location
+      )
+    end
 
     # In production, return fallback ApplicationResult
     ApplicationResult.internal_error(
@@ -250,24 +250,22 @@ module SharedResultAdapter::Railtie
   module ControllerSharedResultDetection
     def render(options = {}, status = nil, layout = nil)
       detect_shared_result_in_options(options)
-      super(options, status, layout)
+      super
     end
 
     private
 
     def detect_shared_result_in_options(options)
-      if options[:json].is_a?(Hash) && options[:json][:data]
-        if SharedResultAdapter.can_convert?(options[:json][:data])
-          Rails.logger.warn "🔍 Detected Shared::Result in controller render data - conversion will be applied"
-        end
+      if options[:json].is_a?(Hash) && options[:json][:data] && SharedResultAdapter.can_convert?(options[:json][:data])
+        Rails.logger.warn '🔍 Detected Shared::Result in controller render data - conversion will be applied'
       end
     end
   end
 
   module ServiceSharedResultDetection
-    def call(*args)
-      detect_shared_result_in_call(*args)
-      super(*args)
+    def call(*)
+      detect_shared_result_in_call(*)
+      super
     end
 
     private
@@ -276,7 +274,7 @@ module SharedResultAdapter::Railtie
       # Check if any arguments contain Shared::Result
       args.each do |arg|
         if SharedResultAdapter.can_convert?(arg)
-          Rails.logger.warn "🔍 Detected Shared::Result in service call arguments - migration needed"
+          Rails.logger.warn '🔍 Detected Shared::Result in service call arguments - migration needed'
         end
       end
     end
@@ -286,16 +284,16 @@ end
 # Monkey patch for Shared::Result to add conversion warnings
 if defined?(Shared::Result)
   Shared::Result.singleton_class.prepend(Module.new do
-    def success(*args, **kwargs)
-      Rails.logger.warn "⚠️ Shared::Result.success called - use ApplicationResult.success instead"
-      Rails.logger.warn "🔗 Migration guide: https://docs/foresy/day4/shared-result-migration"
-      super(*args, **kwargs)
+    def success(*, **)
+      Rails.logger.warn '⚠️ Shared::Result.success called - use ApplicationResult.success instead'
+      Rails.logger.warn '🔗 Migration guide: https://docs/foresy/day4/shared-result-migration'
+      super
     end
 
-    def failure(*args, **kwargs)
-      Rails.logger.warn "⚠️ Shared::Result.failure called - use ApplicationResult.validation_error instead"
-      Rails.logger.warn "🔗 Migration guide: https://docs/foresy/day4/shared-result-migration"
-      super(*args, **kwargs)
+    def failure(*, **)
+      Rails.logger.warn '⚠️ Shared::Result.failure called - use ApplicationResult.validation_error instead'
+      Rails.logger.warn '🔗 Migration guide: https://docs/foresy/day4/shared-result-migration'
+      super
     end
   end)
 end
@@ -358,7 +356,7 @@ if __FILE__ == $PROGRAM_NAME
   }
 
   OptionParser.new do |parser|
-    parser.banner = "Usage: ruby shared_result_adapter.rb [options] <file_or_directory>"
+    parser.banner = 'Usage: ruby shared_result_adapter.rb [options] <file_or_directory>'
 
     parser.on('--dry-run', 'Show what would be changed without making changes') do
       options[:dry_run] = true
@@ -374,11 +372,11 @@ if __FILE__ == $PROGRAM_NAME
 
     parser.on('--help', 'Show this help') do
       puts parser
-      puts ""
-      puts "Migration Helper Commands:"
-      puts "  ruby shared_result_adapter.rb --scan <directory>     Scan for Shared::Result usage"
-      puts "  ruby shared_result_adapter.rb --migrate <file>        Migrate a single file"
-      puts "  ruby shared_result_adapter.rb --check <file>         Check if file can be safely migrated"
+      puts ''
+      puts 'Migration Helper Commands:'
+      puts '  ruby shared_result_adapter.rb --scan <directory>     Scan for Shared::Result usage'
+      puts '  ruby shared_result_adapter.rb --migrate <file>        Migrate a single file'
+      puts '  ruby shared_result_adapter.rb --check <file>         Check if file can be safely migrated'
       exit 0
     end
   end.parse!
@@ -398,7 +396,7 @@ if __FILE__ == $PROGRAM_NAME
       violations.each { |v| puts "  - #{v[:type]}: #{v[:message]}" }
     end
   else
-    puts "🔄 Testing adapter conversion..."
+    puts '🔄 Testing adapter conversion...'
 
     # Test conversion
     test_result = Struct.new(:success?, :data, :error_type, :message).new

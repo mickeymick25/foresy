@@ -62,7 +62,7 @@ RSpec.describe CraServices::Export do
     describe 'successful export' do
       before do
         # Create entries via join table for proper associations
-        @entry = create(:cra_entry, quantity: 1, unit_price: 50000, description: 'Test work')
+        @entry = create(:cra_entry, quantity: 1, unit_price: 50_000, description: 'Test work')
         create(:cra_entry_cra, cra: cra, cra_entry: @entry)
       end
 
@@ -150,7 +150,7 @@ RSpec.describe CraServices::Export do
 
       it 'continues export even if recalculate_totals fails' do
         # Create entries first
-        entry = create(:cra_entry, quantity: 1, unit_price: 50000)
+        entry = create(:cra_entry, quantity: 1, unit_price: 50_000)
         create(:cra_entry_cra, cra: cra, cra_entry: entry)
 
         # Mock recalculate_totals to fail
@@ -167,7 +167,7 @@ RSpec.describe CraServices::Export do
         allow_any_instance_of(described_class).to receive(:append_entries).and_raise(StandardError, 'Test error')
 
         expect do
-          result = described_class.call(cra: cra, current_user: current_user)
+          described_class.call(cra: cra, current_user: current_user)
           # Should handle the error gracefully
         end.not_to raise_error
       end
@@ -185,9 +185,9 @@ RSpec.describe CraServices::Export do
 
         # Method takes keyword arguments
         call_params = described_class.method(:call).parameters
-        expect(call_params).to include([:keyreq, :cra])
-        expect(call_params).to include([:keyreq, :current_user])
-        expect(call_params).to include([:key, :include_entries])
+        expect(call_params).to include(%i[keyreq cra])
+        expect(call_params).to include(%i[keyreq current_user])
+        expect(call_params).to include(%i[key include_entries])
       end
 
       it 'returns CSV content directly' do
@@ -221,20 +221,20 @@ RSpec.describe CraServices::Export do
   describe '.call - edge cases' do
     context 'CRA with malformed associations' do
       it 'handles missing mission associations gracefully' do
-      # Create entry without missions but explicitly associated with CRA
-      entry = create(:cra_entry, :without_missions)
-      # Explicitly associate the entry with the CRA
-      create(:cra_entry_cra, cra: cra, cra_entry: entry)
+        # Create entry without missions but explicitly associated with CRA
+        entry = create(:cra_entry, :without_missions)
+        # Explicitly associate the entry with the CRA
+        create(:cra_entry_cra, cra: cra, cra_entry: entry)
 
-      result = described_class.call(cra: cra, current_user: current_user)
+        result = described_class.call(cra: cra, current_user: current_user)
 
-      expect(result).to be_success
-      expect(result.data).to include('Mission sans nom') # Default mission name
-    end
+        expect(result).to be_success
+        expect(result.data).to include('Mission sans nom') # Default mission name
+      end
 
       it 'handles missing entry associations' do
         # CRA with entries that have no associations
-        entry = create(:cra_entry, quantity: 1, unit_price: 50000)
+        create(:cra_entry, quantity: 1, unit_price: 50_000)
         # Don't create cra_entry_cra association
 
         result = described_class.call(cra: cra, current_user: current_user)
@@ -248,7 +248,7 @@ RSpec.describe CraServices::Export do
       it 'handles CRA with many entries' do
         # Create many entries
         50.times do
-          entry = create(:cra_entry, quantity: 1, unit_price: 50000)
+          entry = create(:cra_entry, quantity: 1, unit_price: 50_000)
           create(:cra_entry_cra, cra: cra, cra_entry: entry)
         end
 

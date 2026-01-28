@@ -28,21 +28,25 @@ class CraEntryServices::Update
 
   def call
     # Validation des paramètres d'entrée
-    return ApplicationResult.bad_request(
-      error: :missing_cra_entry,
-      message: "CRA Entry is required"
-    ) unless @cra_entry.present?
+    unless @cra_entry.present?
+      return ApplicationResult.bad_request(
+        error: :missing_cra_entry,
+        message: 'CRA Entry is required'
+      )
+    end
 
-    return ApplicationResult.bad_request(
-      error: :missing_user,
-      message: "Current user is required"
-    ) unless @current_user.present?
+    unless @current_user.present?
+      return ApplicationResult.bad_request(
+        error: :missing_user,
+        message: 'Current user is required'
+      )
+    end
 
     # Vérification des permissions
     unless @cra_entry.cra.created_by_user_id == @current_user.id
       return ApplicationResult.forbidden(
         error: :insufficient_permissions,
-        message: "Only the CRA creator can update entries"
+        message: 'Only the CRA creator can update entries'
       )
     end
 
@@ -50,7 +54,7 @@ class CraEntryServices::Update
     unless @cra_entry.cra.draft?
       return ApplicationResult.conflict(
         error: :invalid_transition,
-        message: "Cannot update entries of a CRA that is not in draft"
+        message: 'Cannot update entries of a CRA that is not in draft'
       )
     end
 
@@ -62,7 +66,7 @@ class CraEntryServices::Update
 
         ApplicationResult.success(
           data: { cra_entry: @cra_entry },
-          message: "CRA Entry updated successfully"
+          message: 'CRA Entry updated successfully'
         )
       end
     rescue ActiveRecord::RecordInvalid => e

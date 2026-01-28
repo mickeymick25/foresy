@@ -21,7 +21,8 @@ module Api
             email: result[:email]
           }, status: :created
         else
-          render json: { error: 'Validation Failed', message: user.errors.full_messages }, status: :unprocessable_content
+          render json: { error: 'Validation Failed', message: user.errors.full_messages },
+                 status: :unprocessable_content
         end
       end
 

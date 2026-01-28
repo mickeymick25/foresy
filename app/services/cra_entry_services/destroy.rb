@@ -27,21 +27,25 @@ class CraEntryServices::Destroy
 
   def call
     # Validation des paramètres d'entrée
-    return ApplicationResult.bad_request(
-      error: :missing_cra_entry,
-      message: "CRA Entry is required"
-    ) unless @cra_entry.present?
+    unless @cra_entry.present?
+      return ApplicationResult.bad_request(
+        error: :missing_cra_entry,
+        message: 'CRA Entry is required'
+      )
+    end
 
-    return ApplicationResult.bad_request(
-      error: :missing_user,
-      message: "Current user is required"
-    ) unless @current_user.present?
+    unless @current_user.present?
+      return ApplicationResult.bad_request(
+        error: :missing_user,
+        message: 'Current user is required'
+      )
+    end
 
     # Vérification des permissions
     unless @cra_entry.cra.created_by_user_id == @current_user.id
       return ApplicationResult.forbidden(
         error: :insufficient_permissions,
-        message: "Only the CRA creator can delete entries"
+        message: 'Only the CRA creator can delete entries'
       )
     end
 
@@ -49,7 +53,7 @@ class CraEntryServices::Destroy
     unless @cra_entry.cra.draft?
       return ApplicationResult.conflict(
         error: :invalid_transition,
-        message: "Cannot delete entries of a CRA that is not in draft"
+        message: 'Cannot delete entries of a CRA that is not in draft'
       )
     end
 
@@ -61,7 +65,7 @@ class CraEntryServices::Destroy
 
         ApplicationResult.success(
           data: { cra_entry_id: @cra_entry.id },
-          message: "CRA Entry deleted successfully"
+          message: 'CRA Entry deleted successfully'
         )
       end
     rescue ActiveRecord::RecordNotDestroyed => e

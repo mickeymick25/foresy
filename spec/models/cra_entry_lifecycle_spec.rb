@@ -18,7 +18,7 @@ RSpec.describe CraEntry, type: :model do
             date: Date.today,
             quantity: 1.0,
             unit_price: 50_000,
-            description: "Test entry",
+            description: 'Test entry',
             mission_id: mission.id
           },
           current_user: user
@@ -62,7 +62,7 @@ RSpec.describe CraEntry, type: :model do
             date: Date.today,
             quantity: 1.0,
             unit_price: 50_000,
-            description: "Test entry",
+            description: 'Test entry',
             mission_id: mission.id
           },
           current_user: user

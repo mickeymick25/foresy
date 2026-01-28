@@ -182,13 +182,13 @@ Confirm readiness to implement Feature Contracts following this vision.
 
 ---
 
-## 9. Feature Contracts Status (Updated: 7 Jan 2026)
+## 9. Feature Contracts Status (Updated: 28 Jan 2026)
 
 | FC# | Name | Status | Tests | Notes |
 |-----|------|--------|-------|-------|
 | FC-05 | Rate Limiting | ✅ DONE | - | Protection brute force |
 | FC-06 | Missions | ✅ DONE | 30 | PR #12 merged |
-| FC-07 | CRA (Compte Rendu d'Activité) | ✅ DONE | 427 | TDD PLATINUM, tag `fc-07-complete` |
+| FC-07 | CRA (Compte Rendu d'Activité) | ✅ DONE | 449 | TDD PLATINUM, tag `fc-07-complete`, PLATINUM CERTIFIED (28 Jan 2026) |
 | FC-08 | Entreprise Indépendant | 📋 NEXT | - | Base fiscale & légale |
 | FC-09 | Notifications & Alertes | 📋 PLANNED | - | - |
 

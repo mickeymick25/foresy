@@ -114,7 +114,7 @@ RSpec.describe CraServices::Create do
         before do
           # Associate user with company but WITHOUT independent role (insufficient permissions)
           create(:user_company, user: user_with_company, company: company, role: 'client')
-          # Note: User has company but not with 'independent' role, so permissions will fail
+          # NOTE: User has company but not with 'independent' role, so permissions will fail
         end
 
         it 'returns forbidden when user has no companies with permission' do
@@ -229,7 +229,7 @@ RSpec.describe CraServices::Create do
         end
 
         it 'accepts description within limit' do
-          params = valid_cra_params.merge(description: "a" * 2000)
+          params = valid_cra_params.merge(description: 'a' * 2000)
           result = described_class.call(cra_params: params, current_user: user)
 
           # Should not fail description validation (may fail for other reasons like permissions)
@@ -321,8 +321,8 @@ RSpec.describe CraServices::Create do
 
       it 'call method accepts keyword arguments' do
         call_params = described_class.method(:call).parameters
-        expect(call_params).to include([:keyreq, :cra_params])
-        expect(call_params).to include([:keyreq, :current_user])
+        expect(call_params).to include(%i[keyreq cra_params])
+        expect(call_params).to include(%i[keyreq current_user])
       end
 
       it 'returns ApplicationResult for invalid input' do

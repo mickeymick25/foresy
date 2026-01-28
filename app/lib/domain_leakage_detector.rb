@@ -3,7 +3,6 @@
 # Authority: CTO/Co-CTO Validated
 # Date: 2026-01-21
 
-require 'set'
 require 'json'
 
 class DomainLeakageDetector
@@ -11,50 +10,53 @@ class DomainLeakageDetector
   VIOLATION_PATTERNS = {
     domain_object_exposure: {
       pattern: /ApplicationResult\.success\([^)]*data:\s*[^,}]*\b(Domain|Cra|Mission)::[A-Z][a-zA-Z_]*\b/,
-      description: "Raw Domain object exposed in ApplicationResult.data",
+      description: 'Raw Domain object exposed in ApplicationResult.data',
       severity: :critical
     },
 
     domain_exception_propagation: {
       pattern: /rescue\s+(Domain|Cra|Mission)::[A-Z][a-zA-Z_]*Error/,
-      description: "Domain exception rescue outside Application Service layer",
+      description: 'Domain exception rescue outside Application Service layer',
       severity: :critical
     },
 
     non_standardized_error_type: {
       pattern: /ApplicationResult\.(\w+_error)/,
-      description: "Non-standard ApplicationResult error type",
+      description: 'Non-standard ApplicationResult error type',
       severity: :high,
       validator: ->(error_type) { STANDARD_ERROR_TYPES.include?(error_type.to_sym) }
     },
 
     business_logic_in_controller: {
-      pattern: /class\s+(\w*Controller).*def\s+(create|update|show|index).*(if|unless|while|case).*(business|rule|validate|check|lock|submit)/,
-      description: "Business logic found in controller",
+      pattern: /class\s+(\w*Controller).*def\s+(create|update|show|index).*
+        (if|unless|while|case).*(business|rule|validate|check|lock|submit)/,
+      description: 'Business logic found in controller',
       severity: :critical
     },
 
     direct_domain_access: {
-      pattern: /\b(Cra|Mission|Domain)::[A-Z][a-zA-Z_]*\.new\b|\b(Cra|Mission|Domain)::[A-Z][a-zA-Z_]*\.find\b|\b(Cra|Mission|Domain)::[A-Z][a-zA-Z_]*\.where\b/,
-      description: "Direct domain access without Application Service",
-      severity: :medium
+      pattern: /\b(Cra|Mission|Domain)::[A-Z][a-zA-Z_]*\.new\b|
+        \b(Cra|Mission|Domain)::[A-Z][a-zA-Z_]*\.find\b|
+        \b(Cra|Mission|Domain)::[A-Z][a-zA-Z_]*\.where\b/x,
+      description: 'Direct domain access without Application Service',
+      severity: :critical
     },
 
     active_record_exposure: {
       pattern: /ApplicationResult\.success\([^)]*data:\s*[^,}]*\b[A-Z][a-zA-Z_]*\.where\b|\b[A-Z][a-zA-Z_]*\.find_by\b/,
-      description: "ActiveRecord objects exposed in ApplicationResult",
+      description: 'ActiveRecord objects exposed in ApplicationResult',
       severity: :medium
     },
 
     service_without_application_result: {
       pattern: /def\s+call[^)]*\n(?!.*return\s+ApplicationResult)/m,
-      description: "Service call method does not return ApplicationResult",
+      description: 'Service call method does not return ApplicationResult',
       severity: :critical
     },
 
     mixed_contract_patterns: {
       pattern: /return\s*\{[^}]*(success|error|data)[^}]*\}/,
-      description: "Mixed return contract patterns (hash returns)",
+      description: 'Mixed return contract patterns (hash returns)',
       severity: :critical
     }
   }.freeze
@@ -67,13 +69,13 @@ class DomainLeakageDetector
   class Violation
     attr_reader :type, :file, :line, :message, :severity, :suggested_fix
 
-    def initialize(type, file, line, message, severity, suggested_fix = nil)
-      @type = type
-      @file = file
-      @line = line
-      @message = message
-      @severity = severity
-      @suggested_fix = suggested_fix
+    def initialize(params = {})
+      @type = params[:type]
+      @file = params[:file]
+      @line = params[:line]
+      @message = params[:message]
+      @severity = params[:severity]
+      @suggested_fix = params[:suggested_fix]
     end
 
     def to_h
@@ -156,13 +158,13 @@ class DomainLeakageDetector
       }
     end
 
-    def to_json
+    def to_json(*_args)
       JSON.pretty_generate(to_h)
     end
   end
 
   # Main detection method
-  def self.detect(code_content, file_path = "unknown")
+  def self.detect(code_content, file_path = 'unknown')
     violations = []
 
     VIOLATION_PATTERNS.each do |violation_type, config|
@@ -269,13 +271,13 @@ class DomainLeakageDetector
         :missing_application_service_inheritance,
         service_class.name || 'Unknown',
         0,
-        "Service does not inherit from ApplicationService",
+        'Service does not inherit from ApplicationService',
         :critical
       )
     end
 
     # Check if call method exists and returns ApplicationResult
-    if service_class.instance_methods.include?(:call)
+    if service_class.method_defined?(:call)
       # This would require runtime testing
       # For now, we'll check the source code
       source = service_class.instance_method(:call).source_location
@@ -286,7 +288,7 @@ class DomainLeakageDetector
             :missing_application_result_return,
             source[0],
             source[1],
-            "Service call method does not return ApplicationResult",
+            'Service call method does not return ApplicationResult',
             :critical
           )
         end
@@ -319,28 +321,28 @@ class DomainLeakageDetector
   # Generate text report
   def self.generate_text_report(result)
     report = []
-    report << "=" * 80
-    report << "DOMAIN LEAKAGE DETECTION REPORT"
-    report << "=" * 80
-    report << ""
-    report << "Scan Summary:"
+    report << ('=' * 80)
+    report << 'DOMAIN LEAKAGE DETECTION REPORT'
+    report << ('=' * 80)
+    report << ''
+    report << 'Scan Summary:'
     report << "  Files scanned: #{result.files_scanned}"
     report << "  Scan time: #{result.scan_time} seconds"
     report << "  Total violations: #{result.total_violations}"
     report << "  Critical: #{result.critical_violations.size}"
     report << "  High: #{result.high_violations.size}"
     report << "  Medium: #{result.medium_violations.size}"
-    report << ""
+    report << ''
 
     if result.clean_scan?
-      report << "✅ CLEAN SCAN - No violations detected"
-      report << "   Domain → ApplicationResult mapping is compliant"
+      report << '✅ CLEAN SCAN - No violations detected'
+      report << '   Domain → ApplicationResult mapping is compliant'
     else
-      report << "❌ VIOLATIONS DETECTED"
-      report << ""
+      report << '❌ VIOLATIONS DETECTED'
+      report << ''
 
       # Group by severity
-      [:critical, :high, :medium].each do |severity|
+      %i[critical high medium].each do |severity|
         violations = result.send("#{severity}_violations")
         next if violations.empty?
 
@@ -348,15 +350,13 @@ class DomainLeakageDetector
         violations.each do |violation|
           report << "  📁 #{violation.file}:#{violation.line}"
           report << "     #{violation.message}"
-          if violation.suggested_fix
-            report << "     💡 Suggested fix: #{violation.suggested_fix}"
-          end
-          report << ""
+          report << "     💡 Suggested fix: #{violation.suggested_fix}" if violation.suggested_fix
+          report << ''
         end
       end
     end
 
-    report << "=" * 80
+    report << ('=' * 80)
     report.join("\n")
   end
 
@@ -380,38 +380,36 @@ class DomainLeakageDetector
     STANDARD_ERROR_TYPES.include?(error_type.to_sym)
   end
 
-  private
-
-  def self.build_violation_message(violation_type, config, match)
+  def self.build_violation_message(_violation_type, config, match)
     base_message = config[:description]
 
     # Add context from the match if available
     if match.respond_to?(:pre_match) && match.respond_to?(:post_match)
-      context = "#{match.pre_match[-20..-1]}#{match[0]}#{match.post_match[0..20]}"
+      context = "#{match.pre_match[-20..]}#{match[0]}#{match.post_match[0..20]}"
       "#{base_message}\n   Context: ...#{context}..."
     else
       base_message
     end
   end
 
-  def self.build_suggested_fix(violation_type, match)
+  def self.build_suggested_fix(violation_type, _match)
     case violation_type
     when :domain_object_exposure
-      "Use serializer: ApplicationResult.success(data: Serializer.new.serialize(domain_object))"
+      'Use serializer: ApplicationResult.success(data: Serializer.new.serialize(domain_object))'
     when :domain_exception_propagation
-      "Use ApplicationService#execute_with_error_mapping for domain operations"
+      'Use ApplicationService#execute_with_error_mapping for domain operations'
     when :non_standardized_error_type
       "Use standard error types: #{STANDARD_ERROR_TYPES.join(', ')}"
     when :business_logic_in_controller
-      "Move business logic to Application Service layer"
+      'Move business logic to Application Service layer'
     when :direct_domain_access
-      "Use Application Service instead of direct domain access"
+      'Use Application Service instead of direct domain access'
     when :service_without_application_result
-      "Ensure service call method returns ApplicationResult"
+      'Ensure service call method returns ApplicationResult'
     when :mixed_contract_patterns
-      "Return only ApplicationResult, not hash objects"
+      'Return only ApplicationResult, not hash objects'
     else
-      "Review Day 3 documentation for proper patterns"
+      'Review Day 3 documentation for proper patterns'
     end
   end
 end
@@ -439,51 +437,51 @@ if __FILE__ == $PROGRAM_NAME
     when '--controllers-only'
       options[:controller_only] = true
     when '--help', '-h'
-      puts "Domain Leakage Detector - Step 3.3"
-      puts ""
-      puts "Usage: ruby domain_leakage_detector.rb [options]"
-      puts ""
-      puts "Options:"
-      puts "  --output, -o <path>    Output report path"
-      puts "  --paths <path1,path2>  Custom paths to scan"
-      puts "  --services-only        Scan only application services"
-      puts "  --controllers-only     Scan only controllers"
-      puts "  --help, -h            Show this help"
-      puts ""
-      puts "Examples:"
-      puts "  ruby domain_leakage_detector.rb"
-      puts "  ruby domain_leakage_detector.rb --services-only"
-      puts "  ruby domain_leakage_detector.rb --output reports/day3/scan.json"
+      puts 'Domain Leakage Detector - Step 3.3'
+      puts ''
+      puts 'Usage: ruby domain_leakage_detector.rb [options]'
+      puts ''
+      puts 'Options:'
+      puts '  --output, -o <path>    Output report path'
+      puts '  --paths <path1,path2>  Custom paths to scan'
+      puts '  --services-only        Scan only application services'
+      puts '  --controllers-only     Scan only controllers'
+      puts '  --help, -h            Show this help'
+      puts ''
+      puts 'Examples:'
+      puts '  ruby domain_leakage_detector.rb'
+      puts '  ruby domain_leakage_detector.rb --services-only'
+      puts '  ruby domain_leakage_detector.rb --output reports/day3/scan.json'
       exit 0
     end
   end
 
   # Perform scan
-  if options[:service_only]
-    result = DomainLeakageDetector.scan_application_services
-  elsif options[:controller_only]
-    result = DomainLeakageDetector.scan_controllers
-  else
-    result = DomainLeakageDetector.scan_application(options[:paths])
-  end
+  result = if options[:service_only]
+             DomainLeakageDetector.scan_application_services
+           elsif options[:controller_only]
+             DomainLeakageDetector.scan_controllers
+           else
+             DomainLeakageDetector.scan_application(options[:paths])
+           end
 
   # Generate report
   report_info = DomainLeakageDetector.generate_report(result, options[:output])
 
   # Output summary
-  puts "Domain Leakage Detection Complete"
+  puts 'Domain Leakage Detection Complete'
   puts "Files scanned: #{result.files_scanned}"
   puts "Violations found: #{result.total_violations}"
   puts "Critical: #{result.critical_violations.size}"
   puts "High: #{result.high_violations.size}"
   puts "Medium: #{result.medium_violations.size}"
-  puts ""
+  puts ''
 
   if result.clean_scan?
-    puts "✅ CLEAN SCAN - Ready for Day 3 implementation"
+    puts '✅ CLEAN SCAN - Ready for Day 3 implementation'
   else
-    puts "❌ VIOLATIONS DETECTED - Review and fix before proceeding"
-    puts "Reports saved:"
+    puts '❌ VIOLATIONS DETECTED - Review and fix before proceeding'
+    puts 'Reports saved:'
     puts "  JSON: #{report_info[:json_report]}"
     puts "  Text: #{report_info[:text_report]}"
     exit 1

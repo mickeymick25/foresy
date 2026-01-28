@@ -11,7 +11,7 @@ RSpec.describe CraEntryServices::Update do
     {
       quantity: 15,
       unit_price: 120,
-      description: "Updated entry"
+      description: 'Updated entry'
     }
   end
 
@@ -75,7 +75,7 @@ RSpec.describe CraEntryServices::Update do
         expect(result).to be_success
         expect(result.data[:cra_entry].quantity).to eq(15)
         expect(result.data[:cra_entry].unit_price).to eq(120)
-        expect(result.data[:cra_entry].description).to eq("Updated entry")
+        expect(result.data[:cra_entry].description).to eq('Updated entry')
       end
     end
 

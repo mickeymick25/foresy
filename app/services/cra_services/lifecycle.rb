@@ -41,20 +41,26 @@ class CraServices::Lifecycle
 
   def call
     # Input validation
-    return ApplicationResult.bad_request(
-      error: :missing_cra,
-      message: "CRA is required"
-    ) unless @cra.present?
+    unless @cra.present?
+      return ApplicationResult.bad_request(
+        error: :missing_cra,
+        message: 'CRA is required'
+      )
+    end
 
-    return ApplicationResult.bad_request(
-      error: :missing_user,
-      message: "Current user is required"
-    ) unless @current_user.present?
+    unless @current_user.present?
+      return ApplicationResult.bad_request(
+        error: :missing_user,
+        message: 'Current user is required'
+      )
+    end
 
-    return ApplicationResult.bad_request(
-      error: :missing_action,
-      message: "Action is required (submit or lock)"
-    ) unless @action.present?
+    unless @action.present?
+      return ApplicationResult.bad_request(
+        error: :missing_action,
+        message: 'Action is required (submit or lock)'
+      )
+    end
 
     # Validate action
     unless %w[submit lock].include?(@action)
@@ -78,22 +84,28 @@ class CraServices::Lifecycle
 
   def handle_submit
     # Permission validation
-    return ApplicationResult.forbidden(
-      error: :insufficient_permissions,
-      message: "Only the CRA creator can perform this action"
-    ) unless cra.created_by_user_id == current_user.id
+    unless cra.created_by_user_id == current_user.id
+      return ApplicationResult.forbidden(
+        error: :insufficient_permissions,
+        message: 'Only the CRA creator can perform this action'
+      )
+    end
 
     # Status validation - must be draft to submit
-    return ApplicationResult.conflict(
-      error: :invalid_transition,
-      message: "Cannot submit CRA from status #{cra.status}. Only draft CRAs can be submitted."
-    ) unless cra.draft?
+    unless cra.draft?
+      return ApplicationResult.conflict(
+        error: :invalid_transition,
+        message: "Cannot submit CRA from status #{cra.status}. Only draft CRAs can be submitted."
+      )
+    end
 
     # Business rule - must have entries to submit
-    return ApplicationResult.bad_request(
-      error: :cra_has_no_entries,
-      message: "CRA must have at least one entry to be submitted"
-    ) unless cra.cra_entries.active.any?
+    unless cra.cra_entries.active.any?
+      return ApplicationResult.bad_request(
+        error: :cra_has_no_entries,
+        message: 'CRA must have at least one entry to be submitted'
+      )
+    end
 
     # Perform submit transition
     perform_submit_transition
@@ -101,82 +113,84 @@ class CraServices::Lifecycle
 
   def handle_lock
     # Permission validation
-    return ApplicationResult.forbidden(
-      error: :insufficient_permissions,
-      message: "Only the CRA creator can perform this action"
-    ) unless cra.created_by_user_id == current_user.id
+    unless cra.created_by_user_id == current_user.id
+      return ApplicationResult.forbidden(
+        error: :insufficient_permissions,
+        message: 'Only the CRA creator can perform this action'
+      )
+    end
 
     # Status validation - must be submitted to lock
-    return ApplicationResult.conflict(
-      error: :invalid_transition,
-      message: "Cannot lock CRA from status #{cra.status}. Only submitted CRAs can be locked."
-    ) unless cra.submitted?
+    unless cra.submitted?
+      return ApplicationResult.conflict(
+        error: :invalid_transition,
+        message: "Cannot lock CRA from status #{cra.status}. Only submitted CRAs can be locked."
+      )
+    end
 
     # Status validation - must not already be locked
-    return ApplicationResult.conflict(
-      error: :cra_already_locked,
-      message: "CRA is already locked"
-    ) if cra.locked?
+    if cra.locked?
+      return ApplicationResult.conflict(
+        error: :cra_already_locked,
+        message: 'CRA is already locked'
+      )
+    end
 
     # Perform lock transition
     perform_lock_transition
   end
 
   def perform_submit_transition
-    begin
-      ActiveRecord::Base.transaction do
-        # Recalculate totals before submit
-        cra.recalculate_totals
+    ActiveRecord::Base.transaction do
+      # Recalculate totals before submit
+      cra.recalculate_totals
 
-        # Submit the CRA
-        cra.submit!
-        cra.reload
+      # Submit the CRA
+      cra.submit!
+      cra.reload
 
-        ApplicationResult.success(
-          data: { cra: cra },
-          message: "CRA submitted successfully"
-        )
-      end
-    rescue ActiveRecord::RecordInvalid => e
-      ApplicationResult.unprocessable_entity(
-        error: :validation_failed,
-        message: e.record.errors.full_messages.join(', ')
-      )
-    rescue StandardError => e
-      Rails.logger.error "CraServices::Lifecycle submit error: #{e.message}" if defined?(Rails)
-      ApplicationResult.internal_error(
-        error: :submit_failed,
-        message: "Failed to submit CRA: #{e.message}"
+      ApplicationResult.success(
+        data: { cra: cra },
+        message: 'CRA submitted successfully'
       )
     end
+  rescue ActiveRecord::RecordInvalid => e
+    ApplicationResult.unprocessable_entity(
+      error: :validation_failed,
+      message: e.record.errors.full_messages.join(', ')
+    )
+  rescue StandardError => e
+    Rails.logger.error "CraServices::Lifecycle submit error: #{e.message}" if defined?(Rails)
+    ApplicationResult.internal_error(
+      error: :submit_failed,
+      message: "Failed to submit CRA: #{e.message}"
+    )
   end
 
   def perform_lock_transition
-    begin
-      ActiveRecord::Base.transaction do
-        # Recalculate totals before lock
-        cra.recalculate_totals
+    ActiveRecord::Base.transaction do
+      # Recalculate totals before lock
+      cra.recalculate_totals
 
-        # Lock the CRA (includes Git Ledger commit)
-        cra.lock!
-        cra.reload
+      # Lock the CRA (includes Git Ledger commit)
+      cra.lock!
+      cra.reload
 
-        ApplicationResult.success(
-          data: { cra: cra },
-          message: "CRA locked successfully"
-        )
-      end
-    rescue ActiveRecord::RecordInvalid => e
-      ApplicationResult.unprocessable_entity(
-        error: :validation_failed,
-        message: e.record.errors.full_messages.join(', ')
-      )
-    rescue StandardError => e
-      Rails.logger.error "CraServices::Lifecycle lock error: #{e.message}" if defined?(Rails)
-      ApplicationResult.internal_error(
-        error: :lock_failed,
-        message: "Failed to lock CRA: #{e.message}"
+      ApplicationResult.success(
+        data: { cra: cra },
+        message: 'CRA locked successfully'
       )
     end
+  rescue ActiveRecord::RecordInvalid => e
+    ApplicationResult.unprocessable_entity(
+      error: :validation_failed,
+      message: e.record.errors.full_messages.join(', ')
+    )
+  rescue StandardError => e
+    Rails.logger.error "CraServices::Lifecycle lock error: #{e.message}" if defined?(Rails)
+    ApplicationResult.internal_error(
+      error: :lock_failed,
+      message: "Failed to lock CRA: #{e.message}"
+    )
   end
 end

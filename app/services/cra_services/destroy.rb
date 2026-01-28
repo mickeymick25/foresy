@@ -22,7 +22,7 @@ module CraServices
   #   result.success? # => true/false
   #   result.data # => { cra: {...} }
   #
-class CraServices::Destroy
+  class CraServices::Destroy
     def self.call(cra:, current_user:)
       new(cra: cra, current_user: current_user).call
     end
@@ -34,15 +34,19 @@ class CraServices::Destroy
 
     def call
       # Input validation
-      return ApplicationResult.bad_request(
-        error: :missing_parameters,
-        message: "CRA is required"
-      ) unless cra.present?
+      unless cra.present?
+        return ApplicationResult.bad_request(
+          error: :missing_parameters,
+          message: 'CRA is required'
+        )
+      end
 
-      return ApplicationResult.bad_request(
-        error: :missing_parameters,
-        message: "Current user is required"
-      ) unless current_user.present?
+      unless current_user.present?
+        return ApplicationResult.bad_request(
+          error: :missing_parameters,
+          message: 'Current user is required'
+        )
+      end
 
       # Parameter validation
       validation_result = validate_cra
@@ -63,13 +67,13 @@ class CraServices::Destroy
       # Success
       ApplicationResult.success(
         data: { cra: cra },
-        message: "CRA destroyed successfully"
+        message: 'CRA destroyed successfully'
       )
     rescue StandardError => e
       Rails.logger.error "CraServices::Destroy error: #{e.message}" if defined?(Rails)
       ApplicationResult.internal_error(
         error: :internal_error,
-        message: "An unexpected error occurred while destroying the CRA"
+        message: 'An unexpected error occurred while destroying the CRA'
       )
     end
 
@@ -84,7 +88,7 @@ class CraServices::Destroy
       unless cra.present? && cra.is_a?(Cra)
         return ApplicationResult.not_found(
           error: :cra_not_found,
-          message: "CRA not found"
+          message: 'CRA not found'
         )
       end
 
@@ -92,7 +96,7 @@ class CraServices::Destroy
       unless cra.created_by_user_id == current_user.id
         return ApplicationResult.forbidden(
           error: :insufficient_permissions,
-          message: "You can only destroy your own CRAs"
+          message: 'You can only destroy your own CRAs'
         )
       end
 
@@ -102,10 +106,12 @@ class CraServices::Destroy
     # === Permissions ===
 
     def check_user_permissions
-      return ApplicationResult.forbidden(
-        error: :insufficient_permissions,
-        message: "User does not have permission to destroy CRAs"
-      ) unless user_has_destroy_permission?
+      unless user_has_destroy_permission?
+        return ApplicationResult.forbidden(
+          error: :insufficient_permissions,
+          message: 'User does not have permission to destroy CRAs'
+        )
+      end
 
       nil # Permission check passed
     end
@@ -115,7 +121,7 @@ class CraServices::Destroy
 
       # User can destroy if they are the creator or have admin/manager role
       cra.created_by_user_id == current_user.id ||
-      current_user.user_companies.joins(:company).where(role: ['admin', 'manager']).exists?
+        current_user.user_companies.joins(:company).where(role: %w[admin manager]).exists?
     end
 
     # === State Check ===
@@ -125,14 +131,14 @@ class CraServices::Destroy
       if cra.submitted?
         return ApplicationResult.conflict(
           error: :cra_submitted,
-          message: "Cannot destroy a submitted CRA. Use unlock first."
+          message: 'Cannot destroy a submitted CRA. Use unlock first.'
         )
       end
 
       if cra.locked?
         return ApplicationResult.conflict(
           error: :cra_locked,
-          message: "Cannot destroy a locked CRA"
+          message: 'Cannot destroy a locked CRA'
         )
       end
 
@@ -149,13 +155,14 @@ class CraServices::Destroy
           error: :validation_failed,
           message: e.record.errors.full_messages.join(', ')
         )
-      rescue ActiveRecord::RecordNotFound => e
+      rescue ActiveRecord::RecordNotFound
         ApplicationResult.not_found(
           error: :cra_not_found,
-          message: "CRA not found"
+          message: 'CRA not found'
         )
       end
 
       ApplicationResult.success
     end
   end
+end

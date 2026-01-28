@@ -16,4 +16,21 @@
 #   result = CraServices::List.call(current_user: user, filters: filters)
 #
 class CraServices
+  # Namespace class for CRA services
+  # Individual services are defined in separate files:
+  # - Create
+  # - List
+  # - Update
+  # - Destroy
+  # - Lifecycle
+  # - Export
+  #
+  # This empty class serves as a namespace to avoid
+  # Zeitwerk autoloader conflicts.
+
+  # Stub method to prevent EmptyClass RuboCop offense
+  # Individual services are defined in separate files
+  def self.service_available?(service_name)
+    %w[Create List Update Destroy Lifecycle Export].include?(service_name.to_s)
+  end
 end

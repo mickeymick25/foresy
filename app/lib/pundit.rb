@@ -6,7 +6,7 @@
 module Pundit
   # Classe d'erreur d'autorisation Pundit
   class NotAuthorizedError < StandardError
-    def initialize(message = "Not authorized")
+    def initialize(message = 'Not authorized')
       super
     end
   end

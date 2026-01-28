@@ -72,12 +72,6 @@ module Services
           status: :internal_server_error,
           message: "Failed to delete CRA entry: #{e.message}"
         )
-      rescue => e
-        ApplicationResult.fail(
-          error: :internal_error,
-          status: :internal_server_error,
-          message: "Failed to delete CRA entry: #{e.message}"
-        )
       end
 
       private
@@ -92,7 +86,7 @@ module Services
           return ApplicationResult.fail(
             error: :not_found,
             status: :not_found,
-            message: "CRA entry not found"
+            message: 'CRA entry not found'
           )
         end
 
@@ -100,7 +94,7 @@ module Services
           return ApplicationResult.fail(
             error: :bad_request,
             status: :bad_request,
-            message: "Current user is required"
+            message: 'Current user is required'
           )
         end
 
@@ -109,7 +103,7 @@ module Services
           return ApplicationResult.fail(
             error: :conflict,
             status: :conflict,
-            message: "CRA entry is already deleted"
+            message: 'CRA entry is already deleted'
           )
         end
 
@@ -123,7 +117,7 @@ module Services
           return ApplicationResult.fail(
             error: :not_found,
             status: :not_found,
-            message: "CRA not found for this entry"
+            message: 'CRA not found for this entry'
           )
         end
 
@@ -131,7 +125,7 @@ module Services
           return ApplicationResult.fail(
             error: :forbidden,
             status: :forbidden,
-            message: "You can only delete entries for your own CRAs"
+            message: 'You can only delete entries for your own CRAs'
           )
         end
 
@@ -145,7 +139,7 @@ module Services
           return ApplicationResult.fail(
             error: :not_found,
             status: :not_found,
-            message: "Associated CRA not found"
+            message: 'Associated CRA not found'
           )
         end
 
@@ -154,7 +148,7 @@ module Services
           return ApplicationResult.fail(
             error: :conflict,
             status: :conflict,
-            message: "CRA is locked and cannot be modified"
+            message: 'CRA is locked and cannot be modified'
           )
         end
 

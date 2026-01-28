@@ -84,7 +84,7 @@ class CraEntry < ApplicationRecord
   # -------------------------------
   # Les callbacks side-effects ont été neutralisés.
   # Toute la logique métier est maintenant dans les services.
-  #留下来的代码已按要求处理，不再输出。
+  # 留下来的代码已按要求处理，不再输出。
   #
   # Avant (à supprimer après validation des services) :
   # before_create :validate_cra_lifecycle!
@@ -170,7 +170,7 @@ class CraEntry < ApplicationRecord
     # Cette méthode nécessite maintenant une validation explicite via le service
     # Avant : validate_cra_lifecycle!
     # Après : la logique de validation doit être dans CraEntryServices::Destroy
-    raise "CraEntry#discard requires explicit lifecycle validation via service"
+    raise 'CraEntry#discard requires explicit lifecycle validation via service'
   end
 
   private

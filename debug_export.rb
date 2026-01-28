@@ -5,7 +5,7 @@
 
 require_relative 'config/environment'
 
-puts "=== Debugging CraServices::Export ==="
+puts '=== Debugging CraServices::Export ==='
 
 # Create test data
 user = User.first
@@ -19,7 +19,7 @@ cra = Cra.create!(created_by_user_id: user.id, status: 'submitted', year: 2026, 
 puts "   CRA created: id=#{cra.id}, status=#{cra.status}"
 
 puts "\n2. Creating CraEntry..."
-entry = CraEntry.create!(quantity: 1, unit_price: 50000, date: Date.current, description: 'Test work')
+entry = CraEntry.create!(quantity: 1, unit_price: 50_000, date: Date.current, description: 'Test work')
 puts "   Entry created: id=#{entry.id}"
 
 puts "\n3. Creating join table entry..."
@@ -30,7 +30,7 @@ puts "\n4. Checking associations..."
 puts "   cra.cra_entries.count: #{cra.cra_entries.count}"
 puts "   cra.cra_entries.inspect: #{cra.cra_entries.inspect}"
 
-if cra.cra_entries.count > 0
+if cra.cra_entries.any?
   first_entry = cra.cra_entries.first
   puts "   First entry: id=#{first_entry.id}"
   puts "   First entry missions: #{first_entry.missions.inspect}"
@@ -48,11 +48,11 @@ begin
     puts "   Result data length: #{result.data.length}"
     puts "   Result data preview: #{result.data[0..100]}..."
   else
-    puts "   Result data: nil"
+    puts '   Result data: nil'
   end
-rescue => e
+rescue StandardError => e
   puts "   EXCEPTION: #{e.class}: #{e.message}"
-  puts "   Backtrace:"
+  puts '   Backtrace:'
   e.backtrace.first(10).each { |line| puts "      #{line}" }
 end
 
@@ -60,6 +60,6 @@ puts "\n6. Cleaning up..."
 CraEntryCra.where(cra: cra, cra_entry: entry).destroy_all
 CraEntry.destroy(entry.id)
 Cra.destroy(cra.id)
-puts "   Cleanup done"
+puts '   Cleanup done'
 
 puts "\n=== Debug complete ==="

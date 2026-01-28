@@ -7,8 +7,8 @@ require 'json'
 require 'csv'
 require 'fileutils'
 require 'date'
-require 'set'
 
+# rubocop:disable Metrics/ClassLength
 class Step3ReportingSystem
   # Configuration
   OUTPUT_DIR = 'outputs/reports/day3'.freeze
@@ -90,7 +90,7 @@ class Step3ReportingSystem
       }
     end
 
-    def to_json
+    def to_json(*_args)
       JSON.pretty_generate(to_h)
     end
   end
@@ -164,23 +164,23 @@ class Step3ReportingSystem
       total_weighted_score = 0
       total_weight = 0
 
-      @metrics.each do |metric_name, metric_data|
+      @metrics.each_value do |metric_data|
         value = metric_data[:value]
         max_value = metric_data[:max_value]
         weight = metric_data[:weight]
 
         # Calculate score for this metric (0-100)
-        if max_value == 0
-          metric_score = value == 0 ? 100 : 0
-        else
-          metric_score = [0, 100 - ((value.to_f / max_value) * 100)].max
-        end
+        metric_score = if max_value.zero?
+                         value.zero? ? 100 : 0
+                       else
+                         [0, 100 - ((value.to_f / max_value) * 100)].max
+                       end
 
         total_weighted_score += metric_score * weight
         total_weight += weight
       end
 
-      @overall_score = total_weight > 0 ? (total_weighted_score / total_weight).round(2) : 0
+      @overall_score = total_weight.positive? ? (total_weighted_score / total_weight).round(2) : 0
     end
 
     def compliance_level
@@ -215,7 +215,7 @@ class Step3ReportingSystem
     private
 
     def group_violations_by_severity
-      @violations.group_by { |v| v.severity }.transform_values(&:size)
+      @violations.group_by(&:severity).transform_values(&:size)
     end
 
     def group_violations_by_type
@@ -270,9 +270,13 @@ class Step3ReportingSystem
       trend = calculate_linear_trend(violations)
 
       {
-        predicted_violations: [0, (trend[:slope] * violations.size + trend[:intercept]).round].max,
+        predicted_violations: [0, ((trend[:slope] * violations.size) + trend[:intercept]).round].max,
         confidence_level: calculate_confidence_level(violations),
-        trend_direction: trend[:slope] > 0 ? 'INCREASING' : trend[:slope] < 0 ? 'DECREASING' : 'STABLE'
+        trend_direction: if trend[:slope].positive?
+                           'INCREASING'
+                         else
+                           trend[:slope].negative? ? 'DECREASING' : 'STABLE'
+                         end
       }
     end
 
@@ -285,10 +289,14 @@ class Step3ReportingSystem
       recent_avg = violations.last(3).sum / 3.0
       older_avg = violations.first(3).sum / 3.0
 
-      change_percentage = older_avg > 0 ? ((recent_avg - older_avg) / older_avg * 100).round(1) : 0
+      change_percentage = older_avg.positive? ? ((recent_avg - older_avg) / older_avg * 100).round(1) : 0
 
       {
-        direction: change_percentage > 5 ? 'INCREASING' : change_percentage < -5 ? 'DECREASING' : 'STABLE',
+        direction: if change_percentage > 5
+                     'INCREASING'
+                   else
+                     change_percentage < -5 ? 'DECREASING' : 'STABLE'
+                   end,
         change_percentage: change_percentage
       }
     end
@@ -300,10 +308,14 @@ class Step3ReportingSystem
       recent_avg = scores.last(3).sum / 3.0
       older_avg = scores.first(3).sum / 3.0
 
-      change_percentage = older_avg > 0 ? ((recent_avg - older_avg) / older_avg * 100).round(1) : 0
+      change_percentage = older_avg.positive? ? ((recent_avg - older_avg) / older_avg * 100).round(1) : 0
 
       {
-        direction: change_percentage > 1 ? 'IMPROVING' : change_percentage < -1 ? 'DECLINING' : 'STABLE',
+        direction: if change_percentage > 1
+                     'IMPROVING'
+                   else
+                     change_percentage < -1 ? 'DECLINING' : 'STABLE'
+                   end,
         change_percentage: change_percentage
       }
     end
@@ -315,10 +327,14 @@ class Step3ReportingSystem
       recent_avg = critical_counts.last(3).sum / 3.0
       older_avg = critical_counts.first(3).sum / 3.0
 
-      change_percentage = older_avg > 0 ? ((recent_avg - older_avg) / older_avg * 100).round(1) : 0
+      change_percentage = older_avg.positive? ? ((recent_avg - older_avg) / older_avg * 100).round(1) : 0
 
       {
-        direction: change_percentage > 0 ? 'INCREASING' : change_percentage < 0 ? 'DECREASING' : 'STABLE',
+        direction: if change_percentage.positive?
+                     'INCREASING'
+                   else
+                     change_percentage.negative? ? 'DECREASING' : 'STABLE'
+                   end,
         change_percentage: change_percentage
       }
     end
@@ -330,19 +346,19 @@ class Step3ReportingSystem
       xy_sum = (0...n).sum { |i| i * values[i] }
       x2_sum = (0...n).sum { |i| i * i }
 
-      slope = (n * xy_sum - x_sum * y_sum) / (n * x2_sum - x_sum * x_sum)
-      intercept = (y_sum - slope * x_sum) / n
+      slope = ((n * xy_sum) - (x_sum * y_sum)) / ((n * x2_sum) - (x_sum * x_sum))
+      intercept = (y_sum - (slope * x_sum)) / n
 
       { slope: slope, intercept: intercept }
     end
 
     def calculate_confidence_level(values)
-      variance = values.sum { |v| (v - values.sum / values.size) ** 2 } / values.size
+      variance = values.sum { |v| (v - (values.sum / values.size))**2 } / values.size
       standard_deviation = Math.sqrt(variance)
       mean = values.sum / values.size
 
       # Confidence based on consistency (lower standard deviation = higher confidence)
-      coefficient_of_variation = mean > 0 ? standard_deviation / mean : 1
+      coefficient_of_variation = mean.positive? ? standard_deviation / mean : 1
 
       if coefficient_of_variation < 0.1 then 'HIGH'
       elsif coefficient_of_variation < 0.3 then 'MEDIUM'
@@ -389,9 +405,7 @@ class Step3ReportingSystem
     end
 
     # Add violations
-    if audit_data[:violations]
-      audit.add_violations(audit_data[:violations])
-    end
+    audit.add_violations(audit_data[:violations]) if audit_data[:violations]
 
     report_data = ReportData.new('compliance_audit', audit.to_h)
 
@@ -445,7 +459,8 @@ class Step3ReportingSystem
   def self.archive_report(report_path)
     return unless File.exist?(report_path)
 
-    archive_filename = "#{File.basename(report_path, '.*')}_#{Time.current.strftime('%Y%m%d_%H%M%S')}#{File.extname(report_path)}"
+    archive_filename = "#{File.basename(report_path,
+                                        '.*')}_#{Time.current.strftime('%Y%m%d_%H%M%S')}#{File.extname(report_path)}"
     archive_path = File.join(ARCHIVE_DIR, archive_filename)
 
     FileUtils.mv(report_path, archive_path)
@@ -476,8 +491,6 @@ class Step3ReportingSystem
     }
   end
 
-  private
-
   def self.generate_output_path(report_type)
     timestamp = Time.current.strftime('%Y%m%d_%H%M%S')
 
@@ -496,51 +509,74 @@ class Step3ReportingSystem
   end
 
   def self.generate_text_report(report_data)
-    data = report_data.data
+    [
+      text_report_header(report_data),
+      text_report_body(report_data),
+      text_report_footer(report_data)
+    ].compact.join("\n")
+  end
+
+  private_class_method :text_report_header, :text_report_body, :text_report_footer,
+                       :generate_csv_report, :generate_html_report, :html_report_header,
+                       :html_report_body, :html_report_footer, :generate_audit_text_report,
+                       :generate_summary_section, :generate_violations_section,
+                       :generate_violations_list, :generate_violation_item, :generate_clean_scan_message
+
+  def self.text_report_header(report_data)
     report_lines = []
 
-    report_lines << "=" * 80
-    report_lines << "DOMAIN LEAKAGE DETECTION REPORT"
-    report_lines << "=" * 80
-    report_lines << ""
+    report_lines << ('=' * 80)
+    report_lines << 'DOMAIN LEAKAGE DETECTION REPORT'
+    report_lines << ('=' * 80)
+    report_lines << ''
     report_lines << "Report Generated: #{report_data.timestamp}"
     report_lines << "Authority: #{report_data.metadata[:authority] || 'Step 3.3 Validated'}"
-    report_lines << ""
+    report_lines << ''
+
+    report_lines.join("\n")
+  end
+
+  def self.text_report_body(report_data)
+    data = report_data.data
+    report_lines = []
 
     # Summary
     if data[:summary]
       summary = data[:summary]
-      report_lines << "SCAN SUMMARY:"
+      report_lines << 'SCAN SUMMARY:'
       report_lines << "  Files scanned: #{summary[:files_scanned]}"
       report_lines << "  Scan time: #{summary[:scan_time]} seconds"
       report_lines << "  Total violations: #{summary[:total]}"
       report_lines << "  Critical: #{summary[:critical]}"
       report_lines << "  High: #{summary[:high]}"
       report_lines << "  Medium: #{summary[:medium]}"
-      report_lines << ""
+      report_lines << ''
     end
 
     # Violations details
-    if data[:violations] && data[:violations].any?
-      report_lines << "VIOLATIONS DETECTED:"
-      report_lines << ""
+    if data[:violations]&.any?
+      report_lines << 'VIOLATIONS DETECTED:'
+      report_lines << ''
 
       data[:violations].each_with_index do |violation, index|
         severity_config = SEVERITY_LEVELS[violation[:severity].to_sym]
-        report_lines << "#{index + 1}. #{severity_config[:color]} #{violation[:type].to_s.upcase} (#{violation[:severity].upcase})"
+        report_lines << "#{index + 1}. #{severity_config[:color]} " \
+                        "#{violation[:type].to_s.upcase} (#{violation[:severity].upcase})"
         report_lines << "   File: #{violation[:file]}:#{violation[:line]}"
         report_lines << "   Message: #{violation[:message]}"
         report_lines << "   Impact Score: #{violation[:impact_score] || 'N/A'}"
-        report_lines << ""
+        report_lines << ''
       end
     else
-      report_lines << "✅ CLEAN SCAN - No violations detected"
-      report_lines << "   Domain → ApplicationResult mapping is compliant"
+      report_lines << '✅ CLEAN SCAN - No violations detected'
+      report_lines << '   Domain → ApplicationResult mapping is compliant'
     end
 
-    report_lines << "=" * 80
-
     report_lines.join("\n")
+  end
+
+  def self.text_report_footer(_report_data)
+    ('=' * 80)
   end
 
   def self.generate_csv_report(report_data)
@@ -549,127 +585,199 @@ class Step3ReportingSystem
       csv << ['Type', 'File', 'Line', 'Severity', 'Message', 'Impact Score', 'Timestamp']
 
       # Data
-      if report_data.data[:violations]
-        report_data.data[:violations].each do |violation|
-          csv << [
-            violation[:type],
-            violation[:file],
-            violation[:line],
-            violation[:severity],
-            violation[:message],
-            violation[:impact_score] || 'N/A',
-            report_data.timestamp
-          ]
-        end
+      report_data.data[:violations]&.each do |violation|
+        csv << [
+          violation[:type],
+          violation[:file],
+          violation[:line],
+          violation[:severity],
+          violation[:message],
+          violation[:impact_score] || 'N/A',
+          report_data.timestamp
+        ]
       end
     end
   end
 
   def self.generate_html_report(report_data)
-    data = report_data.data
+    [
+      html_report_header(report_data),
+      html_report_body(report_data),
+      html_report_footer(report_data)
+    ].join
+  end
 
+  def self.html_report_header(report_data)
     html = []
-    html << "<!DOCTYPE html>"
-    html << "<html>"
-    html << "<head>"
-    html << "  <title>Domain Leakage Detection Report</title>"
+    html << '<!DOCTYPE html>'
+    html << '<html>'
+    html << '<head>'
+    html << '  <title>Domain Leakage Detection Report</title>'
     html << "  <meta charset='utf-8'>"
-    html << "  <style>"
-    html << "    body { font-family: Arial, sans-serif; margin: 40px; }"
-    html << "    .header { background-color: #f8f9fa; padding: 20px; border-radius: 8px; }"
-    html << "    .violation { border-left: 4px solid; padding: 15px; margin: 10px 0; }"
-    html << "    .critical { border-color: #dc3545; background-color: #f8d7da; }"
-    html << "    .high { border-color: #fd7e14; background-color: #fff3cd; }"
-    html << "    .medium { border-color: #ffc107; background-color: #fff3cd; }"
-    html << "    .summary { background-color: #e9ecef; padding: 15px; margin: 20px 0; border-radius: 8px; }"
-    html << "  </style>"
-    html << "</head>"
-    html << "<body>"
+    html << '  <style>'
+    html << '    body { font-family: Arial, sans-serif; margin: 40px; }'
+    html << '    .header { background-color: #f8f9fa; padding: 20px; border-radius: 8px; }'
+    html << '    .violation { border-left: 4px solid; padding: 15px; margin: 10px 0; }'
+    html << '    .critical { border-color: #dc3545; background-color: #f8d7da; }'
+    html << '    .high { border-color: #fd7e14; background-color: #fff3cd; }'
+    html << '    .medium { border-color: #ffc107; background-color: #fff3cd; }'
+    html << '    .summary { background-color: #e9ecef; padding: 15px; margin: 20px 0; border-radius: 8px; }'
+    html << '  </style>'
+    html << '</head>'
+    html << '<body>'
 
     # Header
     html << "<div class='header'>"
-    html << "  <h1>🔍 Domain Leakage Detection Report</h1>"
+    html << '  <h1>🔍 Domain Leakage Detection Report</h1>'
     html << "  <p><strong>Generated:</strong> #{report_data.timestamp}</p>"
-    html << "  <p><strong>Authority:</strong> Step 3.3 CTO/Co-CTO Validated</p>"
-    html << "</div>"
+    html << '  <p><strong>Authority:</strong> Step 3.3 CTO/Co-CTO Validated</p>'
+    html << '</div>'
 
-    # Summary
-    if data[:summary]
-      summary = data[:summary]
-      html << "<div class='summary'>"
-      html << "  <h2>📊 Scan Summary</h2>"
-      html << "  <ul>"
-      html << "    <li><strong>Files scanned:</strong> #{summary[:files_scanned]}</li>"
-      html << "    <li><strong>Scan time:</strong> #{summary[:scan_time]} seconds</li>"
-      html << "    <li><strong>Total violations:</strong> #{summary[:total]}</li>"
-      html << "    <li><strong>Critical:</strong> #{summary[:critical]}</li>"
-      html << "    <li><strong>High:</strong> #{summary[:high]}</li>"
-      html << "    <li><strong>Medium:</strong> #{summary[:medium]}</li>"
-      html << "  </ul>"
-      html << "</div>"
-    end
+    html.join
+  end
 
-    # Violations
-    if data[:violations] && data[:violations].any?
-      html << "<h2>🚨 Violations Detected</h2>"
+  def self.html_report_body(report_data)
+    data = report_data.data
+    html = []
 
-      data[:violations].each do |violation|
-        severity_class = violation[:severity]
-        severity_config = SEVERITY_LEVELS[severity_class.to_sym]
+    html << generate_summary_section(data[:summary]) if data[:summary]
+    html << generate_violations_section(data[:violations])
 
-        html << "<div class='violation #{severity_class}'>"
-        html << "  <h3>#{severity_config[:color]} #{violation[:type].to_s.upcase}</h3>"
-        html << "  <p><strong>File:</strong> #{violation[:file]}:#{violation[:line]}</p>"
-        html << "  <p><strong>Severity:</strong> #{violation[:severity].upcase}</p>"
-        html << "  <p><strong>Message:</strong> #{violation[:message]}</p>"
-        html << "  <p><strong>Impact Score:</strong> #{violation[:impact_score] || 'N/A'}</p>"
-        html << "</div>"
-      end
+    html.compact.join
+  end
+
+  def self.generate_summary_section(summary)
+    return nil unless summary
+
+    html = []
+    html << "<div class='summary'>"
+    html << '  <h2>📊 Scan Summary</h2>'
+    html << '  <ul>'
+    html << "    <li><strong>Files scanned:</strong> #{summary[:files_scanned]}</li>"
+    html << "    <li><strong>Scan time:</strong> #{summary[:scan_time]} seconds</li>"
+    html << "    <li><strong>Total violations:</strong> #{summary[:total]}</li>"
+    html << "    <li><strong>Critical:</strong> #{summary[:critical]}</li>"
+    html << "    <li><strong>High:</strong> #{summary[:high]}</li>"
+    html << "    <li><strong>Medium:</strong> #{summary[:medium]}</li>"
+    html << '  </ul>'
+    html << '</div>'
+    html
+  end
+
+  def self.generate_violations_section(violations)
+    if violations&.any?
+      generate_violations_list(violations)
     else
-      html << "<div class='summary'>"
-      html << "  <h2>✅ Clean Scan</h2>"
-      html << "  <p>No violations detected. Domain → ApplicationResult mapping is compliant.</p>"
-      html << "</div>"
+      generate_clean_scan_message
+    end
+  end
+
+  def self.generate_violations_list(violations)
+    html = ['<h2>🚨 Violations Detected</h2>']
+
+    violations.each do |violation|
+      html << generate_violation_item(violation)
     end
 
-    html << "</body>"
-    html << "</html>"
+    html
+  end
 
-    html.join("\n")
+  def self.generate_violation_item(violation)
+    severity_class = violation[:severity]
+    severity_config = SEVERITY_LEVELS[severity_class.to_sym]
+
+    [
+      "<div class='violation #{severity_class}'>",
+      "  <h3>#{severity_config[:color]} #{violation[:type].to_s.upcase}</h3>",
+      "  <p><strong>File:</strong> #{violation[:file]}:#{violation[:line]}</p>",
+      "  <p><strong>Severity:</strong> #{violation[:severity].upcase}</p>",
+      "  <p><strong>Message:</strong> #{violation[:message]}</p>",
+      "  <p><strong>Impact Score:</strong> #{violation[:impact_score] || 'N/A'}</p>",
+      '</div>'
+    ]
+  end
+
+  def self.generate_clean_scan_message
+    [
+      "<div class='summary'>",
+      '  <h2>✅ Clean Scan</h2>',
+      '  <p>No violations detected. Domain → ApplicationResult mapping is compliant.</p>',
+      '</div>'
+    ]
+  end
+
+  def self.html_report_footer(_report_data)
+    '</body></html>'
   end
 
   def self.generate_audit_text_report(report_data)
-    audit_data = report_data.data
-    audit_info = audit_data[:audit_info]
+    audit_sections(report_data).join("\n")
+  end
+
+  private_class_method :audit_sections, :audit_header, :audit_entries, :audit_summary,
+                       :generate_summary_text_report, :determine_overall_status,
+                       :extract_key_metrics, :summarize_violations,
+                       :calculate_overall_compliance_score, :generate_recommendations,
+                       :load_recent_reports, :calculate_compliance_from_report,
+                       :calculate_compliance_trend, :calculate_violation_trends,
+                       :calculate_violation_trend, :find_most_common_violations,
+                       :analyze_service_compliance
+
+  def self.audit_sections(report_data)
+    [
+      audit_header(report_data),
+      audit_entries(report_data),
+      audit_summary(report_data)
+    ]
+  end
+
+  def self.audit_header(report_data)
+    audit_info = report_data.data[:audit_info]
 
     lines = []
-    lines << "=" * 80
-    lines << "COMPLIANCE AUDIT REPORT"
-    lines << "=" * 80
-    lines << ""
+    lines << ('=' * 80)
+    lines << 'COMPLIANCE AUDIT REPORT'
+    lines << ('=' * 80)
+    lines << ''
     lines << "Audit ID: #{audit_info[:audit_id]}"
     lines << "Generated: #{audit_info[:timestamp]}"
     lines << "Overall Score: #{audit_info[:overall_score]}/100"
     lines << "Compliance Level: #{audit_info[:compliance_level]}"
-    lines << ""
+    lines << ''
+
+    lines.join("\n")
+  end
+
+  def self.audit_entries(report_data)
+    audit_data = report_data.data
+
+    lines = []
 
     # Metrics
-    lines << "METRICS:"
-    lines << "-" * 40
-    audit_data[:metrics].each do |metric_name, metric_data|
-      lines << "#{metric_data[:name]}: #{metric_data[:value]}/#{metric_data[:max_value]} (weight: #{metric_data[:weight]})"
+    lines << 'METRICS:'
+    lines << ('-' * 40)
+    audit_data[:metrics].each_value do |metric_data|
+      lines << "#{metric_data[:name]}: #{metric_data[:value]}/#{metric_data[:max_value]} " \
+               "(weight: #{metric_data[:weight]})"
       lines << "  Description: #{metric_data[:description]}"
-      lines << ""
+      lines << ''
     end
 
-    # Violations summary
+    lines.join("\n")
+  end
+
+  def self.audit_summary(report_data)
+    audit_data = report_data.data
     violations_summary = audit_data[:violations_summary]
-    lines << "VIOLATIONS SUMMARY:"
-    lines << "-" * 40
+
+    lines = []
+
+    lines << 'VIOLATIONS SUMMARY:'
+    lines << ('-' * 40)
     lines << "Total violations: #{violations_summary[:total]}"
 
     if violations_summary[:by_severity].any?
-      lines << "By severity:"
+      lines << 'By severity:'
       violations_summary[:by_severity].each do |severity, count|
         severity_config = SEVERITY_LEVELS[severity.to_sym]
         lines << "  #{severity_config[:color]} #{severity.upcase}: #{count}"
@@ -677,14 +785,14 @@ class Step3ReportingSystem
     end
 
     if violations_summary[:by_type].any?
-      lines << "By type:"
+      lines << 'By type:'
       violations_summary[:by_type].each do |type, count|
         lines << "  - #{type}: #{count}"
       end
     end
 
-    lines << ""
-    lines << "=" * 80
+    lines << ''
+    lines << ('=' * 80)
 
     lines.join("\n")
   end
@@ -693,36 +801,36 @@ class Step3ReportingSystem
     summary = report_data.data
 
     lines = []
-    lines << "=" * 80
-    lines << "COMPREHENSIVE SUMMARY REPORT"
-    lines << "=" * 80
-    lines << ""
+    lines << ('=' * 80)
+    lines << 'COMPREHENSIVE SUMMARY REPORT'
+    lines << ('=' * 80)
+    lines << ''
     lines << "Generated: #{summary[:generated_at]}"
     lines << "Authority: #{summary[:authority]}"
     lines << "Reports Analyzed: #{summary[:reports_analyzed]}"
     lines << "Overall Status: #{summary[:overall_status]}"
     lines << "Compliance Score: #{summary[:compliance_score]}/100"
-    lines << ""
+    lines << ''
 
     # Key metrics
-    lines << "KEY METRICS:"
-    lines << "-" * 40
+    lines << 'KEY METRICS:'
+    lines << ('-' * 40)
     summary[:key_metrics].each do |metric, value|
       lines << "#{metric}: #{value}"
     end
-    lines << ""
+    lines << ''
 
     # Recommendations
     if summary[:recommendations].any?
-      lines << "RECOMMENDATIONS:"
-      lines << "-" * 40
+      lines << 'RECOMMENDATIONS:'
+      lines << ('-' * 40)
       summary[:recommendations].each_with_index do |rec, index|
         lines << "#{index + 1}. #{rec}"
       end
-      lines << ""
+      lines << ''
     end
 
-    lines << "=" * 80
+    lines << ('=' * 80)
 
     lines.join("\n")
   end
@@ -730,7 +838,7 @@ class Step3ReportingSystem
   # Helper methods for comprehensive analysis
   def self.determine_overall_status(reports_data)
     all_clean = reports_data.all? { |r| r[:clean_scan] }
-    any_critical = reports_data.any? { |r| r[:critical_violations].to_i > 0 }
+    any_critical = reports_data.any? { |r| r[:critical_violations].to_i.positive? }
 
     if all_clean then 'COMPLIANT'
     elsif any_critical then 'CRITICAL_VIOLATIONS'
@@ -749,7 +857,7 @@ class Step3ReportingSystem
       total_critical_violations: total_critical,
       total_files_scanned: total_files,
       average_compliance_score: avg_compliance.round(2),
-      reports_with_violations: reports_data.count { |r| r[:total_violations].to_i > 0 }
+      reports_with_violations: reports_data.count { |r| r[:total_violations].to_i.positive? }
     }
   end
 
@@ -792,13 +900,13 @@ class Step3ReportingSystem
         recommendations << "Address #{critical_violations.size} critical violations immediately"
       end
     else
-      recommendations << "Maintain current high compliance standards"
-      recommendations << "Continue regular monitoring and validation"
+      recommendations << 'Maintain current high compliance standards'
+      recommendations << 'Continue regular monitoring and validation'
     end
 
     # General recommendations
-    recommendations << "Ensure all team members are trained on Step 3.3 patterns"
-    recommendations << "Regular review of Domain → ApplicationResult mapping compliance"
+    recommendations << 'Ensure all team members are trained on Step 3.3 patterns'
+    recommendations << 'Regular review of Domain → ApplicationResult mapping compliance'
 
     recommendations
   end
@@ -812,25 +920,23 @@ class Step3ReportingSystem
     recent_reports = []
 
     report_files.each do |file|
-      begin
-        file_date_str = File.basename(file)[/\d{8}_\d{6}/]
-        file_date = Date.strptime(file_date_str[0..7], '%Y%m%d')
+      file_date_str = File.basename(file)[/\d{8}_\d{6}/]
+      file_date = Date.strptime(file_date_str[0..7], '%Y%m%d')
 
-        if file_date >= cutoff_date
-          report_data = JSON.parse(File.read(file))
-          recent_reports << {
-            timestamp: file_date,
-            total_violations: report_data.dig('summary', 'total') || 0,
-            critical_violations: report_data.dig('summary', 'critical') || 0,
-            compliance_score: calculate_compliance_from_report(report_data),
-            clean_scan: (report_data.dig('summary', 'total') || 0) == 0,
-            violations: report_data['violations'] || []
-          }
-        end
-      rescue => e
-        # Skip files that can't be parsed
-        next
+      if file_date >= cutoff_date
+        report_data = JSON.parse(File.read(file))
+        recent_reports << {
+          timestamp: file_date,
+          total_violations: report_data.dig('summary', 'total') || 0,
+          critical_violations: report_data.dig('summary', 'critical') || 0,
+          compliance_score: calculate_compliance_from_report(report_data),
+          clean_scan: (report_data.dig('summary', 'total') || 0).zero?,
+          violations: report_data['violations'] || []
+        }
       end
+    rescue StandardError
+      # Skip files that can't be parsed
+      next
     end
 
     recent_reports.sort_by { |r| r[:timestamp] }
@@ -842,7 +948,7 @@ class Step3ReportingSystem
     high = report_data.dig('summary', 'high') || 0
 
     # Simple compliance calculation
-    score = 100 - (critical * 10 + high * 5 + total * 1)
+    score = 100 - ((critical * 10) + (high * 5) + (total * 1))
     [0, score].max
   end
 
@@ -852,10 +958,14 @@ class Step3ReportingSystem
     recent_avg = reports_data.last(3).sum { |r| r[:compliance_score] } / 3.0
     older_avg = reports_data.first(3).sum { |r| r[:compliance_score] } / 3.0
 
-    change_percentage = older_avg > 0 ? ((recent_avg - older_avg) / older_avg * 100).round(1) : 0
+    change_percentage = older_avg.positive? ? ((recent_avg - older_avg) / older_avg * 100).round(1) : 0
 
     {
-      direction: change_percentage > 1 ? 'IMPROVING' : change_percentage < -1 ? 'DECLINING' : 'STABLE',
+      direction: if change_percentage > 1
+                   'IMPROVING'
+                 else
+                   change_percentage < -1 ? 'DECLINING' : 'STABLE'
+                 end,
       change_percentage: change_percentage
     }
   end
@@ -873,17 +983,27 @@ class Step3ReportingSystem
     recent_avg = values.last(3).sum / 3.0
     older_avg = values.first(3).sum / 3.0
 
-    change_percentage = older_avg > 0 ? ((recent_avg - older_avg) / older_avg * 100).round(1) : 0
+    change_percentage = older_avg.positive? ? ((recent_avg - older_avg) / older_avg * 100).round(1) : 0
 
     {
-      direction: change_percentage > 5 ? 'INCREASING' : change_percentage < -5 ? 'DECREASING' : 'STABLE',
+      direction: if change_percentage > 5
+                   'INCREASING'
+                 else
+                   change_percentage < -5 ? 'DECREASING' : 'STABLE'
+                 end,
       change_percentage: change_percentage
     }
   end
 
   def self.find_most_common_violations(reports_data)
     all_violations = reports_data.flat_map { |r| r[:violations] || [] }
-    all_violations.group_by { |v| v[:type] }.sort_by { |_, v| -v.size }.first(5).map { |type, violations| { type: type, count: violations.size } }
+    violations_by_type = all_violations.group_by { |v| v[:type] }
+    sorted_violations = violations_by_type.sort_by { |_, v| -v.size }
+    top_five_types = sorted_violations.first(5)
+
+    top_five_types.map do |type, violations|
+      { type: type, count: violations.size }
+    end
   end
 
   def self.analyze_service_compliance(reports_data)
@@ -908,9 +1028,10 @@ if __FILE__ == $PROGRAM_NAME
   }
 
   OptionParser.new do |parser|
-    parser.banner = "Usage: ruby step3_reporting_system.rb [options]"
+    parser.banner = 'Usage: ruby step3_reporting_system.rb [options]'
 
-    parser.on('--type TYPE', '--report-type TYPE', 'Report type (leakage_detection, compliance_audit, comprehensive_summary)') do |type|
+    parser.on('--type TYPE', '--report-type TYPE',
+              'Report type (leakage_detection, compliance_audit, comprehensive_summary)') do |type|
       options[:report_type] = type
     end
 
@@ -932,11 +1053,11 @@ if __FILE__ == $PROGRAM_NAME
 
     parser.on('--help', 'Show this help') do
       puts parser
-      puts ""
-      puts "Examples:"
-      puts "  ruby step3_reporting_system.rb --type leakage_detection --format all"
-      puts "  ruby step3_reporting_system.rb --dashboard --days 30"
-      puts "  ruby step3_reporting_system.rb --archive"
+      puts ''
+      puts 'Examples:'
+      puts '  ruby step3_reporting_system.rb --type leakage_detection --format all'
+      puts '  ruby step3_reporting_system.rb --dashboard --days 30'
+      puts '  ruby step3_reporting_system.rb --archive'
       exit 0
     end
   end.parse!
@@ -944,23 +1065,46 @@ if __FILE__ == $PROGRAM_NAME
   # Execute reporting system
   if options[:dashboard]
     dashboard_data = Step3ReportingSystem.generate_dashboard_data
-    puts "Dashboard Data:"
+    puts 'Dashboard Data:'
     puts JSON.pretty_generate(dashboard_data)
   end
 
   if options[:archive]
     Step3ReportingSystem.cleanup_old_reports
-    puts "Old reports archived successfully"
+    puts 'Old reports archived successfully'
   end
 
   # Generate report based on type
   case options[:report_type]
   when 'leakage_detection'
     # This would typically be called with actual scan results
-    puts "Leakage detection report generation requires scan results"
+    puts 'Leakage detection report generation requires scan results'
   when 'compliance_audit'
-    puts "Compliance audit report generation requires audit data"
+    puts 'Compliance audit report generation requires audit data'
   when 'comprehensive_summary'
-    puts "Comprehensive summary report generation requires multiple reports data"
+    puts 'Comprehensive summary report generation requires multiple reports data'
+  end
+end
+
+class Step3ReportingSystem
+  class TextReportBuilder
+    def initialize(context)
+      @context = context
+    end
+    # rubocop:enable Metrics/ClassLength
+
+    def call
+      @context.generate_text_report
+    end
+  end
+
+  class HtmlReportBuilder
+    def initialize(context)
+      @context = context
+    end
+
+    def call
+      @context.generate_html_report
+    end
   end
 end

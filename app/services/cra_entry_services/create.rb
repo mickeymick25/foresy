@@ -42,20 +42,26 @@ module CraEntryServices
 
     def call
       # ---- Input validation -------------------------------------------------
-      return ApplicationResult.bad_request(
-        error: :missing_cra,
-        message: "CRA is required"
-      ) unless @cra.present?
+      unless @cra.present?
+        return ApplicationResult.bad_request(
+          error: :missing_cra,
+          message: 'CRA is required'
+        )
+      end
 
-      return ApplicationResult.bad_request(
-        error: :missing_attributes,
-        message: "Entry attributes are required"
-      ) unless @attributes.present?
+      unless @attributes.present?
+        return ApplicationResult.bad_request(
+          error: :missing_attributes,
+          message: 'Entry attributes are required'
+        )
+      end
 
-      return ApplicationResult.bad_request(
-        error: :missing_user,
-        message: "Current user is required"
-      ) unless @current_user.present?
+      unless @current_user.present?
+        return ApplicationResult.bad_request(
+          error: :missing_user,
+          message: 'Current user is required'
+        )
+      end
 
       # ---- Permission validation ---------------------------------------------
       permission_result = validate_permissions
@@ -79,7 +85,7 @@ module CraEntryServices
       # ---- Success response ---------------------------------------------------
       ApplicationResult.success(
         data: { cra_entry: serialize_entry(create_result.data[:cra_entry]) },
-        message: "CRA entry created successfully"
+        message: 'CRA entry created successfully'
       )
     rescue ActiveRecord::RecordInvalid => e
       ApplicationResult.unprocessable_content(
@@ -100,20 +106,24 @@ module CraEntryServices
 
     # ==== Permission Validation ==============================================
     def validate_permissions
-      return ApplicationResult.forbidden(
-        error: :insufficient_permissions,
-        message: "Only the CRA creator can perform this action"
-      ) unless cra.created_by_user_id == current_user.id
+      unless cra.created_by_user_id == current_user.id
+        return ApplicationResult.forbidden(
+          error: :insufficient_permissions,
+          message: 'Only the CRA creator can perform this action'
+        )
+      end
 
       nil
     end
 
     # ==== CRA Lifecycle Validation ==========================================
     def validate_cra_lifecycle
-      return ApplicationResult.conflict(
-        error: :invalid_cra_state,
-        message: "Cannot create entries in submitted or locked CRAs"
-      ) unless cra.draft?
+      unless cra.draft?
+        return ApplicationResult.conflict(
+          error: :invalid_cra_state,
+          message: 'Cannot create entries in submitted or locked CRAs'
+        )
+      end
 
       nil
     end
@@ -121,18 +131,29 @@ module CraEntryServices
     # ==== Business Rule Validation ===========================================
     def validate_business_rules
       date = extract_date
-      return ApplicationResult.bad_request(error: :invalid_date, message: "Date is required") unless date.present?
-      return ApplicationResult.bad_request(error: :future_date_not_allowed, message: "Cannot create entries for future dates") if date > Date.current
+      return ApplicationResult.bad_request(error: :invalid_date, message: 'Date is required') unless date.present?
+
+      if date > Date.current
+        return ApplicationResult.bad_request(error: :future_date_not_allowed,
+                                             message: 'Cannot create entries for future dates')
+      end
 
       quantity = extract_quantity
-      return ApplicationResult.bad_request(error: :invalid_quantity, message: "Quantity must be greater than 0") unless quantity.present? && quantity > 0
+      unless quantity.present? && quantity.positive?
+        return ApplicationResult.bad_request(error: :invalid_quantity,
+                                             message: 'Quantity must be greater than 0')
+      end
 
       unit_price = extract_unit_price
-      return ApplicationResult.bad_request(error: :invalid_unit_price, message: "Unit price must be greater than 0") unless unit_price.present? && unit_price > 0
+      unless unit_price.present? && unit_price.positive?
+        return ApplicationResult.bad_request(error: :invalid_unit_price,
+                                             message: 'Unit price must be greater than 0')
+      end
 
       description = extract_description
       if description.present? && description.length > 500
-        return ApplicationResult.bad_request(error: :description_too_long, message: "Description cannot exceed 500 characters")
+        return ApplicationResult.bad_request(error: :description_too_long,
+                                             message: 'Description cannot exceed 500 characters')
       end
 
       duplicate_check = check_duplicate_entry(date, extract_mission_id)
@@ -163,8 +184,10 @@ module CraEntryServices
       ApplicationResult.success(data: { cra_entry: cra_entry })
     rescue ActiveRecord::RecordInvalid => e
       if e.record.errors[:base]&.any? { |msg| msg.include?('already exists') }
-        return ApplicationResult.conflict(error: :duplicate_entry, message: "An entry already exists for this mission and date")
+        return ApplicationResult.conflict(error: :duplicate_entry,
+                                          message: 'An entry already exists for this mission and date')
       end
+
       raise
     end
 
@@ -177,19 +200,19 @@ module CraEntryServices
 
     # ==== Helper Methods =====================================================
     def extract_date
-      attributes[:date] || attributes.dig(:date)
+      attributes[:date]
     end
 
     def extract_quantity
-      attributes[:quantity] || attributes.dig(:quantity)
+      attributes[:quantity]
     end
 
     def extract_unit_price
-      attributes[:unit_price] || attributes.dig(:unit_price)
+      attributes[:unit_price]
     end
 
     def extract_description
-      attributes[:description] || attributes.dig(:description)
+      attributes[:description]
     end
 
     def extract_mission_id
@@ -206,7 +229,8 @@ module CraEntryServices
                                .first
 
       if existing_entry.present?
-        return ApplicationResult.conflict(error: :duplicate_entry, message: "An entry already exists for this mission and date")
+        return ApplicationResult.conflict(error: :duplicate_entry,
+                                          message: 'An entry already exists for this mission and date')
       end
 
       nil

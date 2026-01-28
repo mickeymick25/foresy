@@ -40,25 +40,39 @@ class CraServices
 
     def call
       # Input validation
-      return ApplicationResult.fail(error: :invalid_cra, status: :bad_request, message: "CRA is required") unless @cra.present?
+      unless @cra.present?
+        return ApplicationResult.fail(error: :invalid_cra, status: :bad_request,
+                                      message: 'CRA is required')
+      end
 
       # Format validation - CRITICAL FIX
-      return ApplicationResult.fail(
-        error: :invalid_payload,
-        status: :unprocessable_content,
-        message: "Export format '#{@format}' is not supported. Supported formats: #{SUPPORTED_FORMATS.join(', ')}"
-      ) unless valid_format?
+      unless valid_format?
+        return ApplicationResult.fail(
+          error: :invalid_payload,
+          status: :unprocessable_content,
+          message: "Export format '#{@format}' is not supported. Supported formats: #{SUPPORTED_FORMATS.join(', ')}"
+        )
+      end
 
       # Permission check
-      return ApplicationResult.fail(error: :forbidden, status: :forbidden, message: "User cannot export this CRA") unless permitted?
+      unless permitted?
+        return ApplicationResult.fail(error: :forbidden, status: :forbidden,
+                                      message: 'User cannot export this CRA')
+      end
 
       # Lifecycle check
-      return ApplicationResult.fail(error: :invalid_lifecycle, status: :conflict, message: "CRA must be submitted or locked") unless cra_submitted_or_locked?
+      unless cra_submitted_or_locked?
+        return ApplicationResult.fail(error: :invalid_lifecycle, status: :conflict,
+                                      message: 'CRA must be submitted or locked')
+      end
 
       recalc_totals_safe
 
       csv_content = generate_csv_safe
-      return ApplicationResult.fail(error: :csv_generation_failed, status: :internal_error, message: "Failed to generate CSV") unless csv_content
+      unless csv_content
+        return ApplicationResult.fail(error: :csv_generation_failed, status: :internal_error,
+                                      message: 'Failed to generate CSV')
+      end
 
       ApplicationResult.success(data: csv_content)
     rescue StandardError => e
@@ -77,11 +91,13 @@ class CraServices
     def permitted?
       return false unless @cra.present?
       return false unless @current_user.present?
+
       @cra.created_by_user_id == @current_user.id
     end
 
     def cra_submitted_or_locked?
       return false unless @cra.present?
+
       %w[submitted locked].include?(@cra.status)
     end
 
@@ -108,11 +124,11 @@ class CraServices
 
     def append_entries(csv)
       @cra.cra_entries.includes(:cra_entry_missions, :missions).each do |entry|
-        mission_name = entry.missions.first&.name || "Mission sans nom"
+        mission_name = entry.missions.first&.name || 'Mission sans nom'
         quantity = entry.quantity.to_f
         unit_price_eur = euros(entry.unit_price)
         line_total_eur = euros(calculate_line_total(entry))
-        description = entry.description || ""
+        description = entry.description || ''
 
         csv << [
           entry.date.iso8601,
@@ -130,7 +146,7 @@ class CraServices
 
     def append_total(csv)
       total_amount_eur = euros(@cra.total_amount)
-      csv << ["TOTAL", "", "", "", total_amount_eur, ""]
+      csv << ['TOTAL', '', '', '', total_amount_eur, '']
     end
 
     def euros(cents)

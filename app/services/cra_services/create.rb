@@ -29,188 +29,231 @@ class CraServices::Create
   end
 
   def call
-    return ApplicationResult.bad_request(
-      error: :missing_parameters,
-      message: "CRA parameters are required"
-    ) unless @cra_params.present?
-
-    return ApplicationResult.bad_request(
-      error: :missing_parameters,
-      message: "Current user is required"
-    ) unless @current_user.present?
-
-      # Parameter validation
-      validation_result = validate_cra_params
-      return validation_result if validation_result.failure?
-
-      # Permission check
-      permission_check = check_user_permissions
-      return permission_check if permission_check.failure?
-
-      # Build CRA
-      build_result = build_cra
-      return build_result if build_result.failure?
-
-      # Save CRA
-      save_result = save_cra(build_result.data[:cra])
-      return save_result if save_result.failure?
-
-      # Success
-      ApplicationResult.success(
-        data: { cra: save_result.data[:cra] },
-        message: "CRA created successfully"
-      )
-    rescue StandardError => e
-      Rails.logger.error "CraServices::Create error: #{e.message}" if defined?(Rails)
-      ApplicationResult.internal_error(
-        error: :internal_error,
-        message: "An unexpected error occurred while creating the CRA"
+    unless @cra_params.present?
+      return ApplicationResult.bad_request(
+        error: :missing_parameters,
+        message: 'CRA parameters are required'
       )
     end
 
-    private
+    unless @current_user.present?
+      return ApplicationResult.bad_request(
+        error: :missing_parameters,
+        message: 'Current user is required'
+      )
+    end
 
-    attr_reader :cra_params, :current_user
+    # Parameter validation
+    validation_result = validate_cra_params
+    return validation_result if validation_result.failure?
 
-    # === Validation ===
+    # Permission check
+    permission_check = check_user_permissions
+    return permission_check if permission_check.failure?
 
-    def validate_cra_params
-      # Check required parameters
+    # Build CRA
+    build_result = build_cra
+    return build_result if build_result.failure?
+
+    # Save CRA
+    save_result = save_cra(build_result.data[:cra])
+    return save_result if save_result.failure?
+
+    # Success
+    ApplicationResult.success(
+      data: { cra: save_result.data[:cra] },
+      message: 'CRA created successfully'
+    )
+  rescue StandardError => e
+    Rails.logger.error "CraServices::Create error: #{e.message}" if defined?(Rails)
+    ApplicationResult.internal_error(
+      error: :internal_error,
+      message: 'An unexpected error occurred while creating the CRA'
+    )
+  end
+
+  private
+
+  attr_reader :cra_params, :current_user
+
+  # === Validation ===
+
+  def validate_cra_params
+    # Validate required parameters
+    required_result = validate_required_parameters
+    return required_result unless required_result.nil?
+
+    # Validate date range
+    date_result = validate_date_range
+    return date_result unless date_result.nil?
+
+    # Validate optional parameters
+    optional_result = validate_optional_parameters
+    return optional_result unless optional_result.nil?
+
+    ApplicationResult.success(data: {})
+  end
+
+  def validate_required_parameters
+    unless cra_params[:month].present?
       return ApplicationResult.bad_request(
         error: :missing_month,
-        message: "Month is required"
-      ) unless cra_params[:month].present?
+        message: 'Month is required'
+      )
+    end
 
+    unless cra_params[:year].present?
       return ApplicationResult.bad_request(
         error: :missing_year,
-        message: "Year is required"
-      ) unless cra_params[:year].present?
+        message: 'Year is required'
+      )
+    end
 
-      # Validate month
-      month = cra_params[:month].to_i
+    nil
+  end
+
+  def validate_date_range
+    # Validate month
+    month = cra_params[:month].to_i
+    unless (1..12).include?(month)
       return ApplicationResult.bad_request(
         error: :invalid_month,
-        message: "Month must be between 1 and 12"
-      ) unless (1..12).include?(month)
+        message: 'Month must be between 1 and 12'
+      )
+    end
 
-      # Validate year
-      year = cra_params[:year].to_i
+    # Validate year
+    year = cra_params[:year].to_i
+    if year < 2000
       return ApplicationResult.bad_request(
         error: :invalid_year,
-        message: "Year must be 2000 or later"
-      ) if year < 2000
+        message: 'Year must be 2000 or later'
+      )
+    end
 
+    if year > (Date.current.year + 5)
       return ApplicationResult.bad_request(
         error: :year_too_far_future,
-        message: "Year cannot be more than 5 years in the future"
-      ) if year > (Date.current.year + 5)
+        message: 'Year cannot be more than 5 years in the future'
+      )
+    end
 
-      # Validate currency if provided
-      if cra_params[:currency].present?
-        currency = cra_params[:currency].to_s
+    nil
+  end
+
+  def validate_optional_parameters
+    # Validate currency if provided
+    if cra_params[:currency].present?
+      currency = cra_params[:currency].to_s
+      unless currency.match?(/\A[A-Z]{3}\z/)
         return ApplicationResult.bad_request(
           error: :invalid_currency,
-          message: "Currency must be a valid ISO 4217 code"
-        ) unless currency.match?(/\A[A-Z]{3}\z/)
-      end
-
-      # Validate description if provided
-      if cra_params[:description].present?
-        description = cra_params[:description].to_s
-        return ApplicationResult.bad_request(
-          error: :description_too_long,
-          message: "Description cannot exceed 2000 characters"
-        ) if description.length > 2000
-      end
-
-      ApplicationResult.success(data: {})
-    end
-
-    # === Permissions ===
-
-    def check_user_permissions
-      return ApplicationResult.forbidden(
-        error: :insufficient_permissions,
-        message: "User does not have permission to create CRAs"
-      ) unless user_has_independent_company_access?
-
-      ApplicationResult.success(data: {}) # Permission check passed
-    end
-
-    def user_has_independent_company_access?
-      return false unless current_user.present?
-
-      current_user.user_companies.joins(:company).where(role: 'independent').exists?
-    end
-
-    # === Build ===
-
-    def build_cra
-      cra = Cra.new(
-        month: cra_params[:month].to_i,
-        year: cra_params[:year].to_i,
-        description: cra_params[:description].to_s,
-        currency: cra_params[:currency]&.to_s || 'EUR',
-        status: 'draft',
-        created_by_user_id: current_user.id
-      )
-
-      unless cra.valid?
-        return ApplicationResult.unprocessable_entity(
-          error: :validation_failed,
-          message: cra.errors.full_messages.join(', ')
+          message: 'Currency must be a valid ISO 4217 code'
         )
       end
+    end
 
-      ApplicationResult.success(data: { cra: cra })
-    rescue StandardError => e
-      ApplicationResult.internal_error(
-        error: :build_failed,
-        message: "Failed to build CRA: #{e.message}"
+    # Validate description if provided
+    if cra_params[:description].present?
+      description = cra_params[:description].to_s
+      if description.length > 2000
+        return ApplicationResult.bad_request(
+          error: :description_too_long,
+          message: 'Description cannot exceed 2000 characters'
+        )
+      end
+    end
+
+    nil
+  end
+
+  # === Permissions ===
+
+  def check_user_permissions
+    unless user_has_independent_company_access?
+      return ApplicationResult.forbidden(
+        error: :insufficient_permissions,
+        message: 'User does not have permission to create CRAs'
       )
     end
 
-    # === Save ===
+    ApplicationResult.success(data: {}) # Permission check passed
+  end
 
-    def save_cra(cra)
-      ActiveRecord::Base.transaction do
-        cra.save!
-        cra.reload
-      rescue ActiveRecord::RecordInvalid => e
-        # Handle duplicate CRA error with multiple detection patterns
-        base_errors = cra.errors[:base] || []
-        duplicate_detected = base_errors.any? do |msg|
-          msg.include?('already exists') ||
+  def user_has_independent_company_access?
+    return false unless current_user.present?
+
+    current_user.user_companies.joins(:company).where(role: 'independent').exists?
+  end
+
+  # === Build ===
+
+  def build_cra
+    cra = Cra.new(
+      month: cra_params[:month].to_i,
+      year: cra_params[:year].to_i,
+      description: cra_params[:description].to_s,
+      currency: cra_params[:currency]&.to_s || 'EUR',
+      status: 'draft',
+      created_by_user_id: current_user.id
+    )
+
+    unless cra.valid?
+      return ApplicationResult.unprocessable_entity(
+        error: :validation_failed,
+        message: cra.errors.full_messages.join(', ')
+      )
+    end
+
+    ApplicationResult.success(data: { cra: cra })
+  rescue StandardError => e
+    ApplicationResult.internal_error(
+      error: :build_failed,
+      message: "Failed to build CRA: #{e.message}"
+    )
+  end
+
+  # === Save ===
+
+  def save_cra(cra)
+    ActiveRecord::Base.transaction do
+      cra.save!
+      cra.reload
+    rescue ActiveRecord::RecordInvalid => e
+      # Handle duplicate CRA error with multiple detection patterns
+      base_errors = cra.errors[:base] || []
+      duplicate_detected = base_errors.any? do |msg|
+        msg.include?('already exists') ||
           msg.include?('A CRA already exists') ||
           msg.include?('duplicate') ||
           msg.include?('has already been taken')
-        end
+      end
 
-        if duplicate_detected
-          return ApplicationResult.conflict(
-            error: :cra_already_exists,
-            message: "A CRA already exists for this user, month, and year"
-          )
-        end
-
-        ApplicationResult.unprocessable_entity(
-          error: :save_failed,
-          message: e.record.errors.full_messages.join(', ')
-        )
-      rescue ActiveRecord::RecordNotFound => e
-        ApplicationResult.not_found(
-          error: :cra_not_found,
-          message: "CRA not found during save"
+      if duplicate_detected
+        return ApplicationResult.conflict(
+          error: :cra_already_exists,
+          message: 'A CRA already exists for this user, month, and year'
         )
       end
 
-      ApplicationResult.success(data: { cra: cra })
-    rescue StandardError => e
-      Rails.logger.error "[DEBUG] CraServices::Create save_cra StandardError: #{e.class} - #{e.message}"
-      Rails.logger.error "[DEBUG] StandardError details: #{e.inspect}"
-      ApplicationResult.internal_error(
+      ApplicationResult.unprocessable_entity(
         error: :save_failed,
-        message: "Failed to save CRA: #{e.message}"
+        message: e.record.errors.full_messages.join(', ')
+      )
+    rescue ActiveRecord::RecordNotFound
+      ApplicationResult.not_found(
+        error: :cra_not_found,
+        message: 'CRA not found during save'
       )
     end
+
+    ApplicationResult.success(data: { cra: cra })
+  rescue StandardError => e
+    Rails.logger.error "[DEBUG] CraServices::Create save_cra StandardError: #{e.class} - #{e.message}"
+    Rails.logger.error "[DEBUG] StandardError details: #{e.inspect}"
+    ApplicationResult.internal_error(
+      error: :save_failed,
+      message: "Failed to save CRA: #{e.message}"
+    )
+  end
 end

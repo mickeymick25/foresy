@@ -230,7 +230,6 @@ module Api
 
       # Options for export
 
-
       # FC07 Centralized CRA error handler
       # Handles all CraErrors exceptions and returns JSON according to FC07 specifications
       def handle_cra_error(exception)

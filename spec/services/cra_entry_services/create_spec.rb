@@ -20,8 +20,8 @@ RSpec.describe CraEntryServices::Create, type: :service do
     {
       date: Date.new(2024, 12, 15),
       quantity: 8.0,
-      unit_price: 75000,
-      description: "Development work"
+      unit_price: 75_000,
+      description: 'Development work'
     }
   end
 
@@ -75,8 +75,8 @@ RSpec.describe CraEntryServices::Create, type: :service do
       cra_entry = result.data[:cra_entry]
       expect(cra_entry[:date]).to eq(Date.new(2024, 12, 15))
       expect(cra_entry[:quantity]).to eq(8.0)
-      expect(cra_entry[:unit_price]).to eq(75000)
-      expect(cra_entry[:description]).to eq("Development work")
+      expect(cra_entry[:unit_price]).to eq(75_000)
+      expect(cra_entry[:description]).to eq('Development work')
     end
 
     it 'creates CRA entry in database' do
@@ -322,7 +322,7 @@ RSpec.describe CraEntryServices::Create, type: :service do
       create(:cra_entry,
              date: Date.new(2024, 12, 15),
              quantity: 4.0,
-             unit_price: 50000,
+             unit_price: 50_000,
              cra_entry_cras: [create(:cra_entry_cra, cra: cra)],
              cra_entry_missions: [create(:cra_entry_mission, mission: mission)])
     end
@@ -427,7 +427,8 @@ RSpec.describe CraEntryServices::Create, type: :service do
       expect(described_class.respond_to?(:call)).to be true
 
       # Method should take keyword arguments
-      expect(described_class.method(:call).parameters).to include([:keyreq, :cra], [:keyreq, :attributes], [:keyreq, :current_user])
+      expect(described_class.method(:call).parameters).to include(%i[keyreq cra], %i[keyreq attributes],
+                                                                  %i[keyreq current_user])
     end
   end
 
@@ -436,13 +437,13 @@ RSpec.describe CraEntryServices::Create, type: :service do
       # This test verifies that if any part of the creation fails,
       # no partial data is left in the database
 
-      expect {
+      expect do
         CraEntryServices::Create.call(
           cra: cra,
           attributes: valid_attributes.merge(date: 'invalid'),
           current_user: current_user
         )
-      }.not_to change(CraEntry, :count)
+      end.not_to change(CraEntry, :count)
     end
   end
 

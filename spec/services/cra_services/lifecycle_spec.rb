@@ -35,7 +35,8 @@ RSpec.describe CraServices::Lifecycle, type: :service do
     end
 
     it 'call method accepts cra, action, and current_user parameters' do
-      expect(described_class.method(:call).parameters).to include([:keyreq, :cra], [:keyreq, :action], [:keyreq, :current_user])
+      expect(described_class.method(:call).parameters).to include(%i[keyreq cra], %i[keyreq action],
+                                                                  %i[keyreq current_user])
     end
   end
 
@@ -287,7 +288,8 @@ RSpec.describe CraServices::Lifecycle, type: :service do
       expect(described_class.respond_to?(:call)).to be true
 
       # Call method should take keyword arguments
-      expect(described_class.method(:call).parameters).to include([:keyreq, :cra], [:keyreq, :action], [:keyreq, :current_user])
+      expect(described_class.method(:call).parameters).to include(%i[keyreq cra], %i[keyreq action],
+                                                                  %i[keyreq current_user])
     end
   end
 
