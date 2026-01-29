@@ -17,5 +17,4 @@ class ApplicationError < StandardError
   class InternalServerError < ApplicationError; end
   class ValidationError < ApplicationError; end
   class AuthorizationError < ApplicationError; end
-
 end

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-
-
 # OAuthTokenService
 #
 # Service responsible for OAuth token generation and response formatting.
