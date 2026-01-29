@@ -17,5 +17,5 @@ class ApplicationError < StandardError
   class InternalServerError < ApplicationError; end
   class ValidationError < ApplicationError; end
   class AuthorizationError < ApplicationError; end
-  class GitLedgerError < ApplicationError; end
+
 end
