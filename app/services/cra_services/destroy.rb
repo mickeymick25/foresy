@@ -4,7 +4,7 @@
 # Uses CraServices namespace to avoid model conflicts
 # Architecture: app/services/cra_services/destroy.rb → CraServices::Destroy
 
-module CraServices
+class CraServices
   # Service for destroying CRAs with comprehensive business rule validation
   # Uses ApplicationResult contract for consistent Service → Controller communication
   #
@@ -22,7 +22,7 @@ module CraServices
   #   result.success? # => true/false
   #   result.data # => { cra: {...} }
   #
-  class CraServices::Destroy
+  class Destroy
     def self.call(cra:, current_user:)
       new(cra: cra, current_user: current_user).call
     end

@@ -708,8 +708,6 @@ class Step3ReportingSystem
     audit_sections(report_data).join("\n")
   end
 
-
-
   def self.audit_sections(report_data)
     [
       audit_header(report_data),
