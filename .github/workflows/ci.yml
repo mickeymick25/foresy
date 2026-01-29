@@ -40,7 +40,7 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: 3.4.8
-          bundler: "4.0.3"
+          bundler: "2.6.2"
           bundler-cache: true
 
       - name: Set up database
@@ -86,7 +86,7 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: 3.4.8
-          bundler: "4.0.3"
+          bundler: "2.6.2"
           bundler-cache: true
 
       - name: Run RuboCop
