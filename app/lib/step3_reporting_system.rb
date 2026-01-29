@@ -516,12 +516,6 @@ class Step3ReportingSystem
     ].compact.join("\n")
   end
 
-  private_class_method :text_report_header, :text_report_body, :text_report_footer,
-                       :generate_csv_report, :generate_html_report, :html_report_header,
-                       :html_report_body, :html_report_footer, :generate_audit_text_report,
-                       :generate_summary_section, :generate_violations_section,
-                       :generate_violations_list, :generate_violation_item, :generate_clean_scan_message
-
   def self.text_report_header(report_data)
     report_lines = []
 
@@ -714,14 +708,7 @@ class Step3ReportingSystem
     audit_sections(report_data).join("\n")
   end
 
-  private_class_method :audit_sections, :audit_header, :audit_entries, :audit_summary,
-                       :generate_summary_text_report, :determine_overall_status,
-                       :extract_key_metrics, :summarize_violations,
-                       :calculate_overall_compliance_score, :generate_recommendations,
-                       :load_recent_reports, :calculate_compliance_from_report,
-                       :calculate_compliance_trend, :calculate_violation_trends,
-                       :calculate_violation_trend, :find_most_common_violations,
-                       :analyze_service_compliance
+
 
   def self.audit_sections(report_data)
     [
@@ -1013,6 +1000,23 @@ class Step3ReportingSystem
       trend: calculate_compliance_trend(reports_data)
     }
   end
+
+  # Private class methods for report generation
+  private_class_method :text_report_header, :text_report_body, :text_report_footer,
+                       :generate_csv_report, :generate_html_report, :html_report_header,
+                       :html_report_body, :html_report_footer, :generate_audit_text_report,
+                       :generate_summary_section, :generate_violations_section,
+                       :generate_violations_list, :generate_violation_item, :generate_clean_scan_message
+
+  # Private class methods for audit report generation
+  private_class_method :audit_sections, :audit_header, :audit_entries, :audit_summary,
+                       :generate_summary_text_report, :determine_overall_status,
+                       :extract_key_metrics, :summarize_violations,
+                       :calculate_overall_compliance_score, :generate_recommendations,
+                       :load_recent_reports, :calculate_compliance_from_report,
+                       :calculate_compliance_trend, :calculate_violation_trends,
+                       :calculate_violation_trend, :find_most_common_violations,
+                       :analyze_service_compliance
 end
 
 # CLI interface for reporting system
