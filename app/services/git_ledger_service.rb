@@ -27,7 +27,7 @@ class GitLedgerService
       execute_commit(cra)
     rescue StandardError => e
       Rails.logger.error "[GitLedgerService] Failed to commit CRA #{cra.id}: #{e.message}"
-      raise "Git Ledger commit failed: #{e.message}"
+      raise ApplicationError::GitLedgerError, "Git Ledger commit failed: #{e.message}"
     end
 
     def cra_already_committed?(cra)
