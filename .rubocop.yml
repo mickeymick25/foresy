@@ -157,18 +157,6 @@ Style/HashSyntax:
 Style/RedundantReturn:
   Enabled: false
 
-# Naming/PredicateMethod - désactiver les faux positifs pour les méthodes setter/helper
-Naming/PredicateMethod:
-  Enabled: true
-  AllowedMethods:
-    - set_tags_with_modern_api
-    - set_tags_with_legacy_api
-    - add_attributes_datadog_modern_api
-    - check_locked_and_render
-    - check_creator_and_render
-    - check_transition_and_render
-    - execute_destroy_link
-
 # Naming/AccessorMethodName - permettre get_ prefix pour clarté
 Naming/AccessorMethodName:
   Enabled: false
