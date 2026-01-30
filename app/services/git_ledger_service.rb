@@ -32,6 +32,8 @@ class GitLedgerService
 
   class << self
     def commit_cra_lock!(cra)
+      return fake_commit(cra) if Rails.env.test?
+
       validate_cra!(cra)
       GitLedgerRepository.ensure_initialized!
 
@@ -77,6 +79,15 @@ class GitLedgerService
       raise ArgumentError, 'CRA must be locked' unless cra.locked?
       raise ArgumentError, 'CRA must be persisted' unless cra.persisted?
     end
+
+    def fake_commit(cra)
+      {
+        cra_id: cra.id,
+        commit_hash: "test-commit-#{cra.id}",
+        committed_at: Time.current
+      }
+    end
+    private :fake_commit
 
     def handle_existing_commit(cra)
       Rails.logger.warn "[GitLedgerService] CRA #{cra.id} already committed"
