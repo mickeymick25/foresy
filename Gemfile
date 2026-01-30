@@ -27,13 +27,15 @@ gem 'ostruct'
 gem 'puma', '>= 5.0'
 gem 'rack-cors'
 gem 'rails', '~> 8.1.1'
+# Fix Trix XSS vulnerability - requires >= 2.1.16
+gem 'action_text-trix', '~> 2.1.16', require: false
 gem 'redis', '~> 5.0'
 gem 'sprockets-rails'
 gem 'stimulus-rails'
 gem 'turbo-rails'
 
 # For Windows compatibility
-gem 'tzinfo-data', platforms: %i[windows jruby]
+gem 'tzinfo-data', platforms: %i[mswin jruby]
 
 # Security & Rate Limiting
 gem 'rack-attack', '~> 6.7.0'
