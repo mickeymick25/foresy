@@ -17,7 +17,7 @@ module Api
       class ListService
         DEFAULT_PAGE = 1
         DEFAULT_PER_PAGE = 20
-        ORDER_DIRECTIONS = { asc: "ASC", desc: "DESC" }.freeze
+        ORDER_DIRECTIONS = { asc: 'ASC', desc: 'DESC' }.freeze
 
         Result = Struct.new(:items, :total_count, keyword_init: true)
 
