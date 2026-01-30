@@ -17,6 +17,19 @@ class GitLedgerService
   LEDGER_PATH = '/app/cra-ledger'
   LEDGER_BRANCH = 'main'
 
+  # GitLedgerError
+  #
+  # Exception spécifique au GitLedgerService pour gérer les erreurs
+  # liées au versioning Git des CRA verrouillés.
+  #
+  # Used in:
+  #   - GitLedgerService.commit_cra_lock!
+  #   - Cra#lock! (rescue)
+  #
+  class GitLedgerError < StandardError
+    # No additional functionality needed - inherits from StandardError
+  end
+
   class << self
     def commit_cra_lock!(cra)
       validate_cra!(cra)

@@ -33,7 +33,7 @@ gem 'stimulus-rails'
 gem 'turbo-rails'
 
 # For Windows compatibility
-gem 'tzinfo-data', platforms: %i[windows jruby]
+gem 'tzinfo-data', platforms: %i[mswin jruby]
 
 # Security & Rate Limiting
 gem 'rack-attack', '~> 6.7.0'
