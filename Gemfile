@@ -27,6 +27,8 @@ gem 'ostruct'
 gem 'puma', '>= 5.0'
 gem 'rack-cors'
 gem 'rails', '~> 8.1.1'
+# Fix Trix XSS vulnerability - requires >= 2.1.16
+gem 'action_text-trix', '>= 2.1.16'
 gem 'redis', '~> 5.0'
 gem 'sprockets-rails'
 gem 'stimulus-rails'

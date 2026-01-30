@@ -17,6 +17,7 @@ module Api
       class ListService
         DEFAULT_PAGE = 1
         DEFAULT_PER_PAGE = 20
+        ORDER_DIRECTIONS = { asc: "ASC", desc: "DESC" }.freeze
 
         Result = Struct.new(:items, :total_count, keyword_init: true)
 
@@ -179,7 +180,7 @@ module Api
 
         def apply_sorting(query)
           sort_field = validated_sort_field
-          sort_direction = validated_sort_direction
+          sort_direction = ORDER_DIRECTIONS.fetch(sort_options[:direction]&.to_s&.downcase&.to_sym || :desc)
 
           if sort_field == 'line_total'
             query.order(Arel.sql("(quantity * unit_price) #{sort_direction}"))
@@ -203,7 +204,7 @@ module Api
         def validated_sort_direction
           sort_direction = sort_options[:direction]&.to_s&.downcase || 'desc'
 
-          %w[asc desc].include?(sort_direction) ? sort_direction : 'desc'
+          ORDER_DIRECTIONS.fetch(sort_direction.to_sym, 'desc')
         end
 
         def parse_date(date_param)
