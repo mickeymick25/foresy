@@ -1,0 +1,4 @@
+# Forcer action_text-trix 2.1.16 pour contourner la contrainte transitive de Rails 8.1.1
+# Cette contrainte écrase actiontext (~> 2.1.15) qui bloque l'upgrade de sécurité
+
+gem 'action_text-trix', '2.1.16', require: false
