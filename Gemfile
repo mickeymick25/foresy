@@ -65,8 +65,8 @@ group :test do
   gem 'faker'
   gem 'rspec_junit_formatter'
   gem 'selenium-webdriver'
-  gem 'shoulda-matchers', '~> 5.0'
   gem 'rswag'
+  gem 'shoulda-matchers', '~> 5.0'
   gem 'rswag-specs'
   gem 'rswag-ui'
 end
