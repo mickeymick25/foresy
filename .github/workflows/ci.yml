@@ -45,7 +45,7 @@ jobs:
 
     steps:
       - name: 📥 Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: 🧩 Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -100,7 +100,7 @@ jobs:
 
       - name: 📋 Upload test results
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-results
           path: |
@@ -118,7 +118,7 @@ jobs:
 
     steps:
       - name: 📥 Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: 🧩 Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -152,7 +152,7 @@ jobs:
 
     steps:
       - name: 📥 Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: 🧩 Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -171,7 +171,7 @@ jobs:
         continue-on-error: false
 
       - name: 📋 Upload linting results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: linting-results
@@ -208,7 +208,7 @@ jobs:
 
     steps:
       - name: 📥 Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: 🧩 Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -247,7 +247,7 @@ jobs:
           echo "✅ API contracts validated and generated"
 
       - name: 📋 Upload API documentation
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: api-docs
           path: |
@@ -286,7 +286,7 @@ jobs:
 
     steps:
       - name: 📥 Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: 🧩 Set up Ruby
         uses: ruby/setup-ruby@v1
