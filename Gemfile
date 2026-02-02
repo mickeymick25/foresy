@@ -49,9 +49,6 @@ group :development, :test do
   gem 'factory_bot_rails'
   gem 'rspec' # <- sécurité si RSpec core non inclus
   gem 'rspec-rails'
-  gem 'rswag'
-  gem 'rswag-specs'
-  gem 'rswag-ui'
   gem 'rubocop', require: false
 end
 
@@ -69,4 +66,7 @@ group :test do
   gem 'rspec_junit_formatter'
   gem 'selenium-webdriver'
   gem 'shoulda-matchers', '~> 5.0'
+  gem 'rswag'
+  gem 'rswag-specs'
+  gem 'rswag-ui'
 end
