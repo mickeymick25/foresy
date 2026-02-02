@@ -1,11 +1,21 @@
-name: CI
+name: 🚀 CI/CD Pipeline - Clean Architecture
 
 on:
+  push:
+    branches: [main, develop]
   pull_request:
     branches: [main]
 
+env:
+  RAILS_ENV: test
+  RUBY_VERSION: 3.4.8
+
 jobs:
-  test:
+  # ═══════════════════════════════════════════════════════════════
+  # 🧪 TESTS - RSpec UNIQUEMENT
+  # ═══════════════════════════════════════════════════════════════
+  tests:
+    name: 🧪 Tests & Coverage
     runs-on: ubuntu-latest
 
     services:
@@ -34,60 +44,331 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v3
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
 
-      - name: Set up Ruby
+      - name: 🧩 Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 3.4.8
+          ruby-version: ${{ env.RUBY_VERSION }}
           bundler: "2.6.2"
           bundler-cache: true
 
-      - name: Set up database
-        env:
-          RAILS_ENV: test
-          DATABASE_URL: postgres://postgres:password@localhost:5432/foresy_test
-          REDIS_URL: redis://localhost:6379/0
-          SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      - name: 🔐 Validate secrets
         run: |
           if [[ -z "$SECRET_KEY_BASE" || -z "$JWT_SECRET" ]]; then
-            echo "❌ Error: Required secrets are not configured"
+            echo "❌ Required secrets not configured"
             exit 1
           fi
-          bundle exec rails db:drop db:create db:schema:load
-
-      - name: Run tests
+          echo "✅ Secrets validated"
         env:
-          RAILS_ENV: test
+          SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+
+      - name: 🗄️ Setup database
+        env:
           DATABASE_URL: postgres://postgres:password@localhost:5432/foresy_test
           REDIS_URL: redis://localhost:6379/0
           SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
-        run: bundle exec rspec
+        run: |
+          bundle exec rails db:drop db:create db:schema:load
+          echo "✅ Database ready"
 
-      - name: Security audit
+      - name: 🧪 Run RSpec tests
         env:
+          DATABASE_URL: postgres://postgres:password@localhost:5432/foresy_test
+          REDIS_URL: redis://localhost:6379/0
           SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: |
-          # Brakeman: fail on high confidence warnings (critical vulnerabilities)
-          bundle exec brakeman --ignore-config=.brakeman.ignore --no-exit-on-warn --confidence-level=2
-          # Bundle audit: check for known vulnerabilities in gems
-          bundle exec bundle audit check --update
+          echo "🧪 Running RSpec with coverage..."
+          bundle exec rspec \
+            --format progress \
+            --format RspecJunitFormatter \
+            --out rspec.xml \
+            --format json \
+            --out coverage/rspec.json
 
-  lint:
+      - name: 📊 Generate coverage report
+        if: success()
+        run: |
+          echo "📊 Generating coverage artifacts..."
+          COVERAGE=true bundle exec rspec --format progress
+
+      - name: 📋 Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            rspec.xml
+            coverage/
+          retention-days: 7
+
+  # ═══════════════════════════════════════════════════════════════
+  # 🔒 SÉCURITÉ - BRUKEMAN + BUNDLE AUDIT UNIQUEMENT
+  # ═══════════════════════════════════════════════════════════════
+  security:
+    name: 🔒 Security Audit
     runs-on: ubuntu-latest
+    needs: tests
 
     steps:
-      - uses: actions/checkout@v3
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
 
-      - name: Set up Ruby
+      - name: 🧩 Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 3.4.8
+          ruby-version: ${{ env.RUBY_VERSION }}
           bundler: "2.6.2"
           bundler-cache: true
 
-      - name: Run RuboCop
-        run: bundle exec rubocop
+      - name: 🔍 Brakeman Security Scan
+        run: |
+          echo "🔍 Running Brakeman security analysis..."
+          bundle exec brakeman \
+            --ignore-config=.brakeman.ignore \
+            --no-exit-on-warn \
+            --confidence-level=2
+          echo "✅ Brakeman scan completed"
+
+      - name: 🔍 Bundle Audit
+        run: |
+          echo "🔍 Running Bundle audit for known vulnerabilities..."
+          bundle exec bundle audit check --update
+          echo "✅ Bundle audit completed"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 🎨 LINTING - RUBOCOP UNIQUEMENT
+  # ═══════════════════════════════════════════════════════════════
+  lint:
+    name: 🎨 Code Quality
+    runs-on: ubuntu-latest
+    needs: tests
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🧩 Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ env.RUBY_VERSION }}
+          bundler: "2.6.2"
+          bundler-cache: true
+
+      - name: 🎨 Run RuboCop
+        run: |
+          echo "🎨 Running RuboCop linting..."
+          bundle exec rubocop \
+            --format progress \
+            --format json \
+            --out rubocop-report.json
+        continue-on-error: false
+
+      - name: 📋 Upload linting results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: linting-results
+          path: rubocop-report.json
+          retention-days: 7
+
+  # ═══════════════════════════════════════════════════════════════
+  # 📖 CONTRATS API - RSWAG UNIQUEMENT
+  # ═══════════════════════════════════════════════════════════════
+  contracts:
+    name: 📖 API Contracts
+    runs-on: ubuntu-latest
+    needs: tests
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: foresy_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -h localhost"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🧩 Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ env.RUBY_VERSION }}
+          bundler: "2.6.2"
+          bundler-cache: true
+
+      - name: 🔐 Setup secrets
+        env:
+          SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        run: echo "✅ Secrets configured"
+
+      - name: 🗄️ Setup database
+        env:
+          DATABASE_URL: postgres://postgres:password@localhost:5432/foresy_test
+          REDIS_URL: redis://localhost:6379/0
+          SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        run: |
+          bundle exec rails db:prepare
+          echo "✅ Database ready for RSwag"
+
+      - name: 📖 Generate & Validate RSwag
+        env:
+          DATABASE_URL: postgres://postgres:password@localhost:5432/foresy_test
+          REDIS_URL: redis://localhost:6379/0
+          SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        run: |
+          echo "📖 Generating Swagger/OpenAPI documentation..."
+          bundle exec rswag spec:specs:process
+          echo "📖 Validating API contracts..."
+          bundle exec rswag spec:specs:validate
+          echo "✅ API contracts validated and generated"
+
+      - name: 📋 Upload API documentation
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-docs
+          path: |
+            swagger/v1/swagger.yaml
+            doc/api/
+          retention-days: 30
+
+  # ═══════════════════════════════════════════════════════════════
+  # 🧪 TESTS E2E - CONDITIONNELS PR UNIQUEMENT
+  # ═══════════════════════════════════════════════════════════════
+  e2e:
+    name: 🧪 End-to-End Tests
+    runs-on: ubuntu-latest
+    needs: [tests, contracts]
+    if: github.event_name == 'pull_request'
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: foresy_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -h localhost"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🧩 Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ env.RUBY_VERSION }}
+          bundler: "2.6.2"
+          bundler-cache: true
+
+      - name: 🗄️ Setup database
+        env:
+          DATABASE_URL: postgres://postgres:password@localhost:5432/foresy_test
+          REDIS_URL: redis://localhost:6379/0
+          SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        run: |
+          bundle exec rails db:prepare
+          echo "✅ Database ready for E2E"
+
+      - name: 🧪 Run E2E Tests
+        env:
+          DATABASE_URL: postgres://postgres:password@localhost:5432/foresy_test
+          REDIS_URL: redis://localhost:6379/0
+          SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          E2E_MODE: true
+        run: |
+          echo "🧪 Running E2E acceptance tests..."
+          bundle exec rspec spec/acceptance/ --format documentation
+          echo "🧪 Running smoke tests..."
+          if [ -f "./bin/e2e/smoke_test.sh" ]; then
+            chmod +x ./bin/e2e/smoke_test.sh
+            ./bin/e2e/smoke_test.sh
+          fi
+          echo "✅ E2E tests completed"
+
+  # ═══════════════════════════════════════════════════════════════
+  # 🚀 QUALITY GATE - RÉSUMÉ FINAL
+  # ═══════════════════════════════════════════════════════════════
+  quality-gate:
+    name: 🚀 Quality Gate
+    runs-on: ubuntu-latest
+    needs: [tests, security, lint, contracts, e2e]
+    if: always()
+
+    steps:
+      - name: 📊 Summary Report
+        run: |
+          echo "╔═══════════════════════════════════════════════════════════════╗"
+          echo "║                    CI/CD QUALITY GATE                        ║"
+          echo "╚═══════════════════════════════════════════════════════════════╝"
+          echo ""
+
+          # Status des jobs
+          echo "📋 Jobs Status:"
+          echo "  🧪 Tests:           ${{ needs.tests.result }}"
+          echo "  🔒 Security:        ${{ needs.security.result }}"
+          echo "  🎨 Linting:         ${{ needs.lint.result }}"
+          echo "  📖 Contracts:       ${{ needs.contracts.result }}"
+          echo "  🧪 E2E:             ${{ needs.e2e.result || 'skipped (not PR)' }}"
+          echo ""
+
+          # Validation finale
+          if [[ "${{ needs.tests.result }}" == "success" &&
+                "${{ needs.security.result }}" == "success" &&
+                "${{ needs.lint.result }}" == "success" &&
+                "${{ needs.contracts.result }}" == "success" ]]; then
+            echo "🎉 ALL QUALITY GATES PASSED! ✅"
+            echo "🚀 Ready for production!"
+            else
+              echo "❌ SOME QUALITY GATES FAILED!"
+              echo "🔧 Please fix the issues before merging"
+              echo "Failed jobs:"
+              [[ "${{ needs.tests.result }}" != "success" ]] &amp;&amp; echo "  - Tests: ${{ needs.tests.result }}"
+              [[ "${{ needs.security.result }}" != "success" ]] &amp;&amp; echo "  - Security: ${{ needs.security.result }}"
+              [[ "${{ needs.lint.result }}" != "success" ]] &amp;&amp; echo "  - Linting: ${{ needs.lint.result }}"
+              [[ "${{ needs.contracts.result }}" != "success" ]] &amp;&amp; echo "  - Contracts: ${{ needs.contracts.result }}"
+              exit 1
+            fi
+
+          echo ""
+          echo "📊 Artifacts generated:"
+          echo "  📋 Test results: available for 7 days"
+          echo "  📊 Coverage reports: available for 7 days"
+          echo "  📖 API documentation: available for 30 days"
+          echo "  🎨 Linting reports: available for 7 days"
+          echo ""
+          echo "✨ CI/CD Pipeline completed successfully!"
