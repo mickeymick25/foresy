@@ -225,6 +225,9 @@ jobs:
           bundler-cache: true
           bundler-with: test
 
+      - name: 📦 Install gems
+        run: bundle install
+
       - name: 🔐 Setup secrets
         env:
           SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE || '' }}
