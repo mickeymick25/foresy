@@ -1,4 +1,4 @@
-parname: 🚀 CI/CD Pipeline - Clean Architecture
+name: 🚀 CI/CD Pipeline - Clean Architecture
 
 on:
   push:
@@ -17,6 +17,7 @@ jobs:
   tests:
     name: 🧪 Tests & Coverage
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     services:
       postgres:
@@ -115,6 +116,7 @@ jobs:
   security:
     name: 🔒 Security Audit
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: tests
 
     steps:
@@ -150,6 +152,7 @@ jobs:
   lint:
     name: 🎨 Code Quality
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: tests
 
     steps:
@@ -187,6 +190,7 @@ jobs:
   contracts:
     name: 📖 API Contracts
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: tests
 
     services:
@@ -265,6 +269,7 @@ jobs:
   e2e:
     name: 🧪 End-to-End Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: [tests, contracts]
     if: github.event_name == 'pull_request'
 
@@ -333,11 +338,13 @@ jobs:
   quality-gate:
     name: 🚀 Quality Gate
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     needs: [tests, security, lint, contracts, e2e]
     if: always()
 
     steps:
       - name: 📊 Summary Report
+        shell: bash
         run: |
           echo "╔═══════════════════════════════════════════════════════════════╗"
           echo "║                    CI/CD QUALITY GATE                        ║"
@@ -360,16 +367,17 @@ jobs:
                 "${{ needs.contracts.result }}" == "success" ]]; then
             echo "🎉 ALL QUALITY GATES PASSED! ✅"
             echo "🚀 Ready for production!"
-            else
-              echo "❌ SOME QUALITY GATES FAILED!"
-              echo "🔧 Please fix the issues before merging"
-              echo "Failed jobs:"
-              [[ "${{ needs.tests.result }}" != "success" ]] &amp;&amp; echo "  - Tests: ${{ needs.tests.result }}"
-              [[ "${{ needs.security.result }}" != "success" ]] &amp;&amp; echo "  - Security: ${{ needs.security.result }}"
-              [[ "${{ needs.lint.result }}" != "success" ]] &amp;&amp; echo "  - Linting: ${{ needs.lint.result }}"
-              [[ "${{ needs.contracts.result }}" != "success" ]] &amp;&amp; echo "  - Contracts: ${{ needs.contracts.result }}"
-              exit 1
-            fi
+            exit 0
+          else
+            echo "❌ SOME QUALITY GATES FAILED!"
+            echo "🔧 Please fix the issues before merging"
+            echo "Failed jobs:"
+            [[ "${{ needs.tests.result }}" != "success" ]] && echo "  - Tests: ${{ needs.tests.result }}"
+            [[ "${{ needs.security.result }}" != "success" ]] && echo "  - Security: ${{ needs.security.result }}"
+            [[ "${{ needs.lint.result }}" != "success" ]] && echo "  - Linting: ${{ needs.lint.result }}"
+            [[ "${{ needs.contracts.result }}" != "success" ]] && echo "  - Contracts: ${{ needs.contracts.result }}"
+            exit 1
+          fi
 
           echo ""
           echo "📊 Artifacts generated:"
