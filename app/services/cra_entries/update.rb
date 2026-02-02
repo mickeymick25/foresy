@@ -130,7 +130,7 @@ module CraEntries
       unless temp_entry.valid_date?
         return ApplicationResult.fail(
           error: :validation_error,
-          status: :unprocessable_content,
+          status: :unprocessable_entity,
           message: 'Invalid date format'
         )
       end
@@ -138,7 +138,7 @@ module CraEntries
       unless temp_entry.valid_quantity?
         return ApplicationResult.fail(
           error: :validation_error,
-          status: :unprocessable_content,
+          status: :unprocessable_entity,
           message: "Quantity must be between 0 and #{::Domain::CraEntry::CraEntry::MAX_QUANTITY} days"
         )
       end
@@ -146,7 +146,7 @@ module CraEntries
       unless temp_entry.valid_unit_price?
         return ApplicationResult.fail(
           error: :validation_error,
-          status: :unprocessable_content,
+          status: :unprocessable_entity,
           message: "Unit price must be between 0 and #{::Domain::CraEntry::CraEntry::MAX_UNIT_PRICE} cents"
         )
       end
@@ -154,7 +154,7 @@ module CraEntries
       unless temp_entry.valid_description?
         return ApplicationResult.fail(
           error: :validation_error,
-          status: :unprocessable_content,
+          status: :unprocessable_entity,
           message: "Description cannot exceed #{::Domain::CraEntry::CraEntry::MAX_DESCRIPTION_LENGTH} characters"
         )
       end
@@ -267,7 +267,7 @@ module CraEntries
       rescue ActiveRecord::RecordInvalid => e
         ApplicationResult.fail(
           error: :validation_error,
-          status: :unprocessable_content,
+          status: :unprocessable_entity,
           message: "Failed to update entry: #{e.message}"
         )
       end

@@ -62,7 +62,7 @@ module CraEntries
     rescue ActiveRecord::RecordInvalid => e
       ApplicationResult.fail(
         error: :validation_error,
-        status: :unprocessable_content,
+        status: :unprocessable_entity,
         message: "Failed to delete entry: #{e.message}"
       )
     rescue StandardError => e

@@ -88,7 +88,7 @@ module CraEntryServices
         message: 'CRA entry created successfully'
       )
     rescue ActiveRecord::RecordInvalid => e
-      ApplicationResult.unprocessable_content(
+      ApplicationResult.unprocessable_entity(
         error: :validation_failed,
         message: e.record.errors.full_messages.join(', ')
       )

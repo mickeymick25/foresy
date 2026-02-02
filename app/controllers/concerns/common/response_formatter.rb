@@ -87,7 +87,7 @@ module Common
     end
 
     def validation_error_response(errors)
-      format_error_response('validation_error', :unprocessable_content, errors)
+      format_error_response('validation_error', :unprocessable_entity, errors)
     end
 
     def conflict_response(message = 'Conflict')

@@ -20,7 +20,7 @@ module Common
         error: 'validation_error',
         message: exception.record.errors.full_messages,
         resource_type: exception.record.class.name
-      }, status: :unprocessable_content
+      }, status: :unprocessable_entity
     end
 
     def handle_record_not_found(exception)

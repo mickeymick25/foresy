@@ -40,6 +40,28 @@ render json: ..., status: HttpStatusMap.http_status(:unprocessable_content)
 
 ---
 
+### 🔧 Bonus : Correction Configuration Rswag (Découverte durante le debugging)
+
+#### Diagnostic
+- Lors du run des specs, erreur `uninitialized constant Rswag (NameError)` dans `routes.rb:5`
+- Causes : Rswag pas chargé dans l'environnement test
+- Conséquence : Pas de routes définies → 404 sur TOUS les endpoints
+
+#### Corrections appliquées
+1. `spec/swagger_helper.rb` : Ajout de `require 'rswag/specs'`
+2. `config/routes.rb` : Utilisation de `if defined?(Rswag)` pour éviter le crash
+
+#### Vérification
+```bash
+bin/rails routes | grep export
+# → export_api_v1_cra GET /api/v1/cras/:id/export ✓
+```
+
+#### Résultat
+- 9 examples, 0 failures dans `spec/requests/api/v1/cras/export_spec.rb`
+
+---
+
 ## 2️⃣ CRITIQUE — Conflit Result / ApplicationResult (Zeitwerk Trap)
 
 ### Diagnostic
@@ -328,7 +350,7 @@ Mais **pas les deux**.
 
 | Ordre | Action | Priorité |
 |-------|--------|----------|
-| 1 | Fix `:unprocessable_content` → `:unprocessable_entity` | 🔴 Bloquant |
+| 1 | Fix `:unprocessable_content` → `:unprocessable_entity` | ✅ Terminé |
 | 2 | Supprimer `vendor/bundle` | 🔴 Bloquant |
 | 3 | Dédupliquer `Result` / `ApplicationResult` | 🔴 Bloquant |
 | 4 | Passer `rails zeitwerk:check` | 🟠 Important |
@@ -348,7 +370,8 @@ Après le merge, créer une PR dédiée pour :
 
 ### Avant Merge
 
-- [ ] `:unprocessable_content` remplacé par `:unprocessable_entity`
+- [x] `:unprocessable_content` remplacé par `:unprocessable_entity`
+- [x] Configuration Rswag corrigée (`require 'rswag/specs'` + `defined?(Rswag)` dans routes.rb)
 - [ ] `vendor/bundle` supprimé du repo
 - [ ] `app/lib/result.rb` supprimé
 - [ ] `ApplicationResult` utilisé uniformément

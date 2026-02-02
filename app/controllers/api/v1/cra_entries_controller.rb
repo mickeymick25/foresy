@@ -204,12 +204,12 @@ module Api
           message: error.message,
           field: error.field,
           timestamp: Time.current.iso8601
-        }, status: :unprocessable_content
+        }, status: :unprocessable_entity
       end
 
       def handle_invalid_transition_error(error)
         Rails.logger.warn "CRA Entry InvalidTransitionError: #{error.message}"
-        render_fc07_error('invalid_transition', error.message, :unprocessable_content)
+        render_fc07_error('invalid_transition', error.message, :unprocessable_entity)
       end
 
       def handle_cra_locked_error(error)
@@ -261,9 +261,9 @@ module Api
       def handle_service_error(result)
         case result.error_type
         when :validation_failed
-          render_fc07_error('invalid_payload', result.errors, :unprocessable_content)
+          render_fc07_error('invalid_payload', result.errors, :unprocessable_entity)
         when :business_rule_violation
-          render_fc07_error('business_rule_violation', result.errors, :unprocessable_content)
+          render_fc07_error('business_rule_violation', result.errors, :unprocessable_entity)
         when :duplicate_entry
           render_fc07_error('duplicate_entry', result.errors, :conflict)
         when :not_found

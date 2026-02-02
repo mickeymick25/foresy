@@ -16,7 +16,7 @@ module MissionErrors
   class BaseError < StandardError
     attr_reader :code, :http_status
 
-    def initialize(message = nil, code: nil, http_status: :unprocessable_content)
+    def initialize(message = nil, code: nil, http_status: :unprocessable_entity)
       @code = code
       @http_status = http_status
       super(message || default_message)
@@ -65,7 +65,7 @@ module MissionErrors
                 else
                   'Invalid status transition'
                 end
-      super(message, code: :invalid_transition, http_status: :unprocessable_content)
+      super(message, code: :invalid_transition, http_status: :unprocessable_entity)
     end
   end
 
@@ -78,7 +78,7 @@ module MissionErrors
       super(
         message || 'Invalid payload',
         code: :invalid_payload,
-        http_status: :unprocessable_content
+        http_status: :unprocessable_entity
       )
     end
 

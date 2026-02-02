@@ -22,7 +22,7 @@ module Api
           }, status: :created
         else
           render json: { error: 'Validation Failed', message: user.errors.full_messages },
-                 status: :unprocessable_content
+                 status: :unprocessable_entity
         end
       end
 

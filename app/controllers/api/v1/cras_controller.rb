@@ -55,7 +55,7 @@ module Api
             success: false,
             errors: [result.error],
             timestamp: Time.current.iso8601
-          }, status: :unprocessable_content
+          }, status: :unprocessable_entity
         end
       end
 
@@ -79,7 +79,7 @@ module Api
             success: false,
             errors: [result.error],
             timestamp: Time.current.iso8601
-          }, status: :unprocessable_content
+          }, status: :unprocessable_entity
         end
       end
 
@@ -105,7 +105,7 @@ module Api
             success: false,
             errors: [result.error],
             timestamp: Time.current.iso8601
-          }, status: :unprocessable_content
+          }, status: :unprocessable_entity
         end
       end
 
@@ -128,7 +128,7 @@ module Api
             success: false,
             errors: [result.error],
             timestamp: Time.current.iso8601
-          }, status: :unprocessable_content
+          }, status: :unprocessable_entity
         end
       end
 
@@ -148,7 +148,7 @@ module Api
             success: false,
             errors: [result.error],
             timestamp: Time.current.iso8601
-          }, status: :unprocessable_content
+          }, status: :unprocessable_entity
         end
       end
 
@@ -168,7 +168,7 @@ module Api
             success: false,
             errors: [result.error],
             timestamp: Time.current.iso8601
-          }, status: :unprocessable_content
+          }, status: :unprocessable_entity
         end
       end
 
@@ -193,7 +193,7 @@ module Api
             success: false,
             errors: [result.error],
             timestamp: Time.current.iso8601
-          }, status: :unprocessable_content
+          }, status: :unprocessable_entity
         end
       end
 
@@ -242,13 +242,13 @@ module Api
             message: exception.message,
             field: exception.respond_to?(:field) ? exception.field : nil,
             timestamp: Time.current.iso8601
-          }.compact, status: :unprocessable_content
+          }.compact, status: :unprocessable_entity
         when CraErrors::InvalidTransitionError
           render json: {
             error: 'invalid_transition',
             message: exception.message,
             timestamp: Time.current.iso8601
-          }, status: :unprocessable_content
+          }, status: :unprocessable_entity
         when CraErrors::CraLockedError
           render json: {
             error: 'cra_locked',
@@ -260,7 +260,7 @@ module Api
             error: 'cra_submitted',
             message: exception.message,
             timestamp: Time.current.iso8601
-          }, status: :unprocessable_content
+          }, status: :unprocessable_entity
         when CraErrors::DuplicateEntryError
           render json: {
             error: 'duplicate_entry',
@@ -303,7 +303,7 @@ module Api
             error: 'cra_error',
             message: exception.message,
             timestamp: Time.current.iso8601
-          }, status: :unprocessable_content
+          }, status: :unprocessable_entity
         end
       end
     end

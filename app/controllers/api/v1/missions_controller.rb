@@ -73,7 +73,7 @@ module Api
           render json: {
             error: 'Invalid Payload',
             message: mission.errors.full_messages
-          }, status: :unprocessable_content
+          }, status: :unprocessable_entity
         end
       rescue ActiveRecord::RecordInvalid => e
         handle_mission_validation_error(e)
@@ -82,7 +82,7 @@ module Api
         render json: {
           error: 'Invalid Payload',
           message: [e.message]
-        }, status: :unprocessable_content
+        }, status: :unprocessable_entity
       rescue StandardError
         render json: {
           error: 'Internal Error',
@@ -141,7 +141,7 @@ module Api
           render json: {
             error: 'Invalid Transition',
             message: "Cannot transition from #{@mission.status} to #{mission_params[:status]}"
-          }, status: :unprocessable_content
+          }, status: :unprocessable_entity
           return
         end
 
@@ -151,7 +151,7 @@ module Api
           render json: {
             error: 'Invalid Payload',
             message: @mission.errors.full_messages
-          }, status: :unprocessable_content
+          }, status: :unprocessable_entity
         end
       rescue ActiveRecord::RecordInvalid => e
         handle_mission_validation_error(e)
@@ -334,18 +334,18 @@ module Api
           render json: {
             error: 'Invalid Transition',
             message: mission.errors.full_messages
-          }, status: :unprocessable_content
+          }, status: :unprocessable_entity
         elsif mission.errors[:daily_rate]&.include?('required') ||
               mission.errors[:fixed_price]&.include?('required')
           render json: {
             error: 'Invalid Payload',
             message: mission.errors.full_messages
-          }, status: :unprocessable_content
+          }, status: :unprocessable_entity
         else
           render json: {
             error: 'Invalid Payload',
             message: mission.errors.full_messages
-          }, status: :unprocessable_content
+          }, status: :unprocessable_entity
         end
       end
     end

@@ -70,7 +70,7 @@ class CraEntryServices::Update
         )
       end
     rescue ActiveRecord::RecordInvalid => e
-      ApplicationResult.unprocessable_content(
+      ApplicationResult.unprocessable_entity(
         error: :validation_failed,
         message: e.record.errors.full_messages.join(', ')
       )

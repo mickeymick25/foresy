@@ -49,7 +49,7 @@ class CraServices
       unless valid_format?
         return ApplicationResult.fail(
           error: :invalid_payload,
-          status: :unprocessable_content,
+          status: :unprocessable_entity,
           message: "Export format '#{@format}' is not supported. Supported formats: #{SUPPORTED_FORMATS.join(', ')}"
         )
       end

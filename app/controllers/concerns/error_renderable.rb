@@ -33,8 +33,8 @@ module ErrorRenderable
     render_error(message, :not_found)
   end
 
-  def render_unprocessable_content(message = 'Unprocessable Entity')
-    render_error(message, :unprocessable_content)
+  def render_unprocessable_entity(message = 'Unprocessable Entity')
+    render_error(message, :unprocessable_entity)
   end
 
   def render_conditional_server_error(exception = nil)

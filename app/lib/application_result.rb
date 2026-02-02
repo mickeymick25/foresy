@@ -137,8 +137,8 @@ class ApplicationResult
     fail(error: error, status: :conflict, message: message, meta: meta)
   end
 
-  def self.unprocessable_content(error:, message: nil, meta: {})
-    fail(error: error, status: :unprocessable_content, message: message, meta: meta)
+  def self.unprocessable_entity(error:, message: nil, meta: {})
+    fail(error: error, status: :unprocessable_entity, message: message, meta: meta)
   end
 
   def self.internal_error(error:, message: nil, meta: {})
@@ -213,8 +213,8 @@ module Result
     ApplicationResult.conflict(error: error, message: message, meta: meta)
   end
 
-  def self.unprocessable_content(error:, message: nil, meta: {})
-    ApplicationResult.unprocessable_content(error: error, message: message, meta: meta)
+  def self.unprocessable_entity(error:, message: nil, meta: {})
+    ApplicationResult.unprocessable_entity(error: error, message: message, meta: meta)
   end
 
   def self.internal_error(error:, message: nil, meta: {})

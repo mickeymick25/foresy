@@ -117,7 +117,7 @@ module CraEntries
       unless domain_entry.valid?
         return ApplicationResult.fail(
           error: :validation_error,
-          status: :unprocessable_content,
+          status: :unprocessable_entity,
           message: "Invalid entry data: #{domain_entry.errors.full_messages.join(', ')}"
         )
       end
@@ -189,7 +189,7 @@ module CraEntries
         unless user_company_ids.intersect?(mission_company_ids)
           return ApplicationResult.fail(
             error: :validation_error,
-            status: :unprocessable_content,
+            status: :unprocessable_entity,
             message: "Mission does not belong to user's company"
           )
         end

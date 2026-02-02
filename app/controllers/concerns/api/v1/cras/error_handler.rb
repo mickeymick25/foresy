@@ -16,7 +16,7 @@ module Api
             error: 'CRA Validation Failed',
             message: exception.record.errors.full_messages,
             resource_type: 'CRA'
-          }, status: :unprocessable_content
+          }, status: :unprocessable_entity
         end
 
         def handle_cra_validation_error(error)
@@ -26,7 +26,7 @@ module Api
             error: 'cra_validation_error',
             message: error,
             resource_type: 'CRA'
-          }, status: :unprocessable_content
+          }, status: :unprocessable_entity
         end
 
         def handle_duplicate_cra_error(month, year, user_id)
@@ -106,7 +106,7 @@ module Api
               from_status: from_status,
               to_status: to_status
             }
-          }, status: :unprocessable_content
+          }, status: :unprocessable_entity
         end
 
         def handle_conflict_error(message = 'Conflict error for CRA')
@@ -229,7 +229,7 @@ module Api
             error: 'cra_mission_error',
             message: message,
             resource_type: 'CRA'
-          }, status: :unprocessable_content
+          }, status: :unprocessable_entity
         end
       end
     end
