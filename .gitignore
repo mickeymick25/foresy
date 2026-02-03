@@ -68,3 +68,6 @@ spec/examples.txt
 .env
 .env*
 !.env*.erb
+-e 
+# Bundler
+/.bundle
