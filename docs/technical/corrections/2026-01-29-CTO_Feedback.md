@@ -352,10 +352,10 @@ Mais **pas les deux**.
 |-------|--------|----------|
 | 1 | Fix `:unprocessable_content` → `:unprocessable_entity` | ✅ Terminé |
 | 2 | Supprimer `vendor/bundle` | 🔴 Bloquant |
-| 3 | Dédupliquer `Result` / `ApplicationResult` | 🔴 Bloquant |
+| 3 | Dédupliquer `Result` / `ApplicationResult` | ✅ Terminé |
 | 4 | Passer `rails zeitwerk:check` | 🟠 Important |
-| 5 | CI full (tests + Brakeman) | ✅ Validation |
-| 6 | Merge | ✅ Terminé |
+| 5 | CI full (tests + Brakeman) | ⏳ En attente |
+| 6 | Merge | ⏳ En attente |
 
 ### Optionnel — PR Séparée
 
@@ -373,7 +373,7 @@ Après le merge, créer une PR dédiée pour :
 - [x] `:unprocessable_content` remplacé par `:unprocessable_entity`
 - [x] Configuration Rswag corrigée (`require 'rswag/specs'` + `defined?(Rswag)` dans routes.rb)
 - [ ] `vendor/bundle` supprimé du repo
-- [ ] `app/lib/result.rb` supprimé
+- [x] `app/lib/result.rb` supprimé et alias Result dans application_result.rb retiré
 - [ ] `ApplicationResult` utilisé uniformément
 - [ ] `rails zeitwerk:check` passe sans erreur
 - [ ] CI complète : Tests ✓, RuboCop ✓, Brakeman ✓
