@@ -3,6 +3,13 @@
 require 'swagger_helper'
 
 RSpec.describe 'API V1 Users', type: :request do
+  before do
+    # Stub RateLimitService for auth tests (FC-05 specs test real behavior)
+    # NOTE: allowed? doesn't exist, only check_rate_limit is available
+    allow(RateLimitService).to receive(:check_rate_limit).and_return([true, nil])
+    RateLimitService.clear_rate_limit('auth/signup', '127.0.0.1')
+  end
+
   path '/api/v1/signup' do
     post 'Crée un nouvel utilisateur' do
       tags 'Users'

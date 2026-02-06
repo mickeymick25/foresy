@@ -3,6 +3,12 @@
 require 'swagger_helper'
 
 RSpec.describe 'API V1 OAuth', type: :request do
+  before do
+    # Stub RateLimitService for auth tests (FC-05 specs test real behavior)
+    # NOTE: allowed? doesn't exist, only check_rate_limit is available
+    allow(RateLimitService).to receive(:check_rate_limit).and_return([true, nil])
+  end
+
   path '/api/v1/auth/{provider}/callback' do
     post 'OAuth callback for provider authentication' do
       tags 'OAuth'

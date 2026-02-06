@@ -90,7 +90,7 @@ RSpec.describe 'CRA Export', type: :request do
       it 'returns 422 for unsupported format' do
         get "/api/v1/cras/#{cra.id}/export", params: { export_format: 'xml' }, headers: headers
 
-        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response).to have_http_status(:unprocessable_content)
         expect(JSON.parse(response.body)['errors']).to eq(['invalid_payload'])
       end
     end

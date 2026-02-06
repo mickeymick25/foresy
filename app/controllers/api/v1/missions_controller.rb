@@ -29,6 +29,7 @@ module Api
     # - 409 mission_in_use: Mission linked to CRA
     # - 500 internal_error: Server error
     class MissionsController < ApplicationController
+      rescue_from ActiveRecord::RecordNotFound, with: :record_not_found
       before_action :authenticate_access_token!
       before_action :set_mission, only: %i[show update destroy]
       before_action :check_rate_limit!, only: %i[create update]
@@ -135,32 +136,51 @@ module Api
           return
         end
 
-        # Validate status transition if status is being updated
+        # Handle status transition using transition_to (validation-style)
         new_status = mission_params[:status]
-        if new_status.present? && @mission.status != new_status && !@mission.can_transition_to?(new_status)
-          render json: {
-            error: 'Invalid Transition',
-            message: "Cannot transition from #{@mission.status} to #{mission_params[:status]}"
-          }, status: :unprocessable_entity
+
+        # 1. Status transition if needed (no early return - allows composability with other updates)
+        if new_status.present? && @mission.status != new_status
+          transition_result = @mission.transition_to(new_status)
+          unless transition_result
+            render json: {
+              error: 'Invalid Transition',
+              message: @mission.errors[:status]
+            }, status: :unprocessable_entity
+            return
+          end
+        end
+
+        # 2. Non-status updates (name, description, etc.)
+        updates = mission_params.except(:status).to_h
+        if updates.any? { |_k, v| v.present? }
+          if @mission.update(updates)
+            render json: mission_response(@mission, include_companies: true)
+          else
+            render json: {
+              error: 'Invalid Payload',
+              message: @mission.errors.full_messages
+            }, status: :unprocessable_entity
+          end
           return
         end
 
-        if @mission.update(mission_params)
-          render json: mission_response(@mission, include_companies: true)
-        else
-          render json: {
-            error: 'Invalid Payload',
-            message: @mission.errors.full_messages
-          }, status: :unprocessable_entity
-        end
+        # 3. Default: render mission response (status-only change or GET-like request)
+        render json: mission_response(@mission, include_companies: true)
       rescue ActiveRecord::RecordInvalid => e
         handle_mission_validation_error(e)
-      rescue StandardError
-        render json: {
-          error: 'Internal Error',
-          message: 'An unexpected error occurred'
-        }, status: :internal_server_error
       end
+
+      private
+
+      def record_not_found
+        render json: {
+          error: 'Not Found',
+          message: 'Mission not found'
+        }, status: :not_found
+      end
+
+      public
 
       # DELETE /api/v1/missions/:id
       # Archives a mission (soft delete) with business rules
@@ -195,13 +215,19 @@ module Api
       private
 
       def set_mission
+        puts "\n=== DEBUG: set_mission ==="
+        puts "params[:id] = #{params[:id]}"
         @mission = Mission.find_by(id: params[:id])
+        puts "@mission.present? = #{@mission.present?}"
+        puts "@mission.id = #{@mission&.id}"
         unless @mission
           render json: {
             error: 'Not Found',
             message: 'Mission not found'
           }, status: :not_found
+          return
         end
+        puts "=== END DEBUG: set_mission ===\n"
       rescue ActiveRecord::RecordNotFound
         render json: {
           error: 'Not Found',
@@ -212,16 +238,28 @@ module Api
       # Validate user has access to the mission
       # FC 06 Rule: User must belong to a company linked to the mission with role independent or client
       def validate_mission_access!
+        puts "\n=== DEBUG: validate_mission_access! ==="
+        puts "@mission.present? = #{@mission.present?}"
         return unless @mission
+
+        puts "current_user.id = #{current_user.id}"
 
         # Check if user can access this mission
         accessible_missions = Mission.accessible_to(current_user)
+        puts "accessible_missions.count = #{accessible_missions.count}"
+        puts "accessible_missions.ids = #{accessible_missions.ids}"
+        puts "@mission.id = #{@mission.id}"
+        puts "@mission.id in accessible_missions? #{accessible_missions.ids.include?(@mission.id)}"
+
         unless accessible_missions.exists?(id: @mission.id)
+          puts 'Rendering 404 - Mission not accessible'
           render json: {
             error: 'Not Found',
             message: 'Mission not accessible'
           }, status: :not_found
+          return
         end
+        puts "=== END DEBUG: validate_mission_access! ===\n"
       end
 
       # Check if user has independent company access
@@ -247,6 +285,7 @@ module Api
             error: 'Rate limit exceeded',
             retry_after: retry_after
           }, status: :too_many_requests
+          return
         end
       end
 

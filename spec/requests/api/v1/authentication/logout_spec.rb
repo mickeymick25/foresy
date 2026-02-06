@@ -7,6 +7,13 @@ RSpec.describe 'Authentication - Logout', type: :request do
   let(:auth_params) { { email: user.email, password: 'password123' } }
   let(:headers) { { 'Content-Type' => 'application/json' } }
 
+  before do
+    # Stub RateLimitService for auth tests (FC-05 specs test real behavior)
+    # NOTE: allowed? doesn't exist, only check_rate_limit is available
+    allow(RateLimitService).to receive(:check_rate_limit).and_return([true, nil])
+    RateLimitService.clear_rate_limit('auth/logout', '127.0.0.1')
+  end
+
   # Login and extract token before tests
   let!(:token) do
     post '/api/v1/auth/login', params: auth_params.to_json, headers: headers

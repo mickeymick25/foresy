@@ -6,6 +6,12 @@ RSpec.describe 'Token Revocation', type: :request do
   let(:user) { create(:user, email: "test_#{SecureRandom.hex(4)}@example.com", password: 'password123') }
   let(:headers) { { 'Content-Type' => 'application/json' } }
 
+  before do
+    # Stub RateLimitService for auth tests (FC-05 specs test real behavior)
+    # NOTE: allowed? doesn't exist, only check_rate_limit is available
+    allow(RateLimitService).to receive(:check_rate_limit).and_return([true, nil])
+  end
+
   # Helper to get auth tokens
   def login_user(user)
     post '/api/v1/auth/login',
@@ -108,13 +114,11 @@ RSpec.describe 'Token Revocation', type: :request do
              params: { email: user.email, password: 'password123' }.to_json,
              headers: { 'Content-Type' => 'application/json' }
         expect(response.status).to eq(200)
-        sleep 1  # Delay to avoid rate limiting
 
         post '/api/v1/auth/login',
              params: { email: user.email, password: 'password123' }.to_json,
              headers: { 'Content-Type' => 'application/json' }
         expect(response.status).to eq(200)
-        sleep 1  # Delay to avoid rate limiting
 
         post '/api/v1/auth/login',
              params: { email: user.email, password: 'password123' }.to_json,
@@ -148,7 +152,6 @@ RSpec.describe 'Token Revocation', type: :request do
         expect(response.status).to eq(200)
         auth_response1 = JSON.parse(response.body)
         token1 = auth_response1['token']
-        sleep 1 # Delay to avoid rate limiting
 
         # Create second session in same test block
         post '/api/v1/auth/login',
@@ -183,7 +186,6 @@ RSpec.describe 'Token Revocation', type: :request do
         expect(response.status).to eq(200)
         auth_response_user = JSON.parse(response.body)
         token_user = auth_response_user['token']
-        sleep 1 # Delay to avoid rate limiting
 
         post '/api/v1/auth/login',
              params: { email: other_user.email, password: 'password123' }.to_json,

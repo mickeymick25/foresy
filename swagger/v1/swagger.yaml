@@ -281,18 +281,17 @@ paths:
       summary: Creates a new mission
       tags:
       - Missions
-      parameters: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
       responses:
         '201':
-          description: Mission created with client company
+          description: Mission created successfully
         '401':
           description: Unauthorized - No token
-        '403':
-          description: Forbidden - No independent company access
-        '422':
-          description: Validation failed - Fixed-price mission without fixed_price
-        '429':
-          description: Rate limit exceeded
       requestBody:
         content:
           application/json:
@@ -307,81 +306,70 @@ paths:
                   type: string
                 start_date:
                   type: string
+                  format: date
+                daily_rate:
+                  type: integer
+                fixed_price:
+                  type: integer
                 currency:
                   type: string
+                client_company_id:
+                  type: string
+                  format: uuid
+                  nullable: true
         required: true
     get:
       summary: Lists missions accessible to user
       tags:
       - Missions
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
       responses:
         '200':
-          description: Returns empty list when no missions
-        '401':
-          description: Unauthorized
+          description: Returns empty list
   "/api/v1/missions/{id}":
     get:
-      summary: Shows a specific mission
+      summary: Shows a mission
       tags:
       - Missions
       parameters:
       - name: id
         in: path
-        format: uuid
+        required: true
+        schema:
+          type: string
+      - name: Authorization
+        in: header
         required: true
         schema:
           type: string
       responses:
         '200':
-          description: Mission found and accessible
-        '401':
-          description: Unauthorized
-        '404':
-          description: Mission not found or not accessible
+          description: Mission found
     patch:
-      summary: Updates a mission
+      summary: Transitions mission status
       tags:
       - Missions
       parameters:
       - name: id
         in: path
-        format: uuid
+        required: true
+        schema:
+          type: string
+      - name: Authorization
+        in: header
         required: true
         schema:
           type: string
       responses:
         '200':
-          description: Mission updated successfully
-        '401':
-          description: Unauthorized
-        '403':
-          description: Forbidden - User is not the creator
+          description: allows in_progress -> completed
         '422':
-          description: Invalid status transition
-        '404':
-          description: Mission not accessible
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                description:
-                  type: string
-                status:
-                  type: string
-                  enum:
-                  - lead
-                  - pending
-                  - won
-                  - in_progress
-                  - completed
-                end_date:
-                  type: string
-                  format: date
-        required: true
+          description: rejects won -> lead
     delete:
       summary: Archives a mission
       tags:
@@ -389,21 +377,17 @@ paths:
       parameters:
       - name: id
         in: path
-        format: uuid
+        required: true
+        schema:
+          type: string
+      - name: Authorization
+        in: header
         required: true
         schema:
           type: string
       responses:
         '200':
           description: Mission archived successfully
-        '401':
-          description: Unauthorized
-        '403':
-          description: Forbidden - User is not the creator
-        '409':
-          description: Mission in use (has CRA entries)
-        '404':
-          description: Mission not accessible
   "/api/v1/signup":
     post:
       summary: Crée un nouvel utilisateur
@@ -494,5 +478,3 @@ components:
       required:
       - email
       - password
-security:
-- bearer_auth: []

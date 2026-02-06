@@ -10,6 +10,9 @@ RSpec.describe 'Authentication - Login', type: :request do
   end
 
   before do
+    # Stub RateLimitService for auth tests (FC-05 specs test real behavior)
+    allow(RateLimitService).to receive(:check_rate_limit).and_return([true, nil])
+
     # Clear rate limiting state before each test to avoid interference
     RateLimitService.clear_rate_limit('auth/login', '127.0.0.1')
     RateLimitService.clear_rate_limit('auth/signup', '127.0.0.1')

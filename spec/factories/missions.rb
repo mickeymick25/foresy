@@ -14,6 +14,11 @@ FactoryBot.define do
     # Association to user (required field) - FIXED: follows Rails naming conventions
     association :user, factory: :user
 
+    # NOTE: Mission has no direct company association
+    # Company access is managed through MissionCompany join table
+    # For testing, create mission_company separately:
+    # create(:mission_company, mission: mission, company: company, role: 'independent')
+
     # Conditional financial fields based on mission_type
     after(:build) do |mission|
       if mission.mission_type == 'time_based'
@@ -21,6 +26,9 @@ FactoryBot.define do
       elsif mission.mission_type == 'fixed_price'
         mission.fixed_price = Faker::Number.between(from: 5000, to: 50_000) * 100 # In cents
       end
+
+      # Ensure created_by_user_id is set from user association
+      mission.created_by_user_id = mission.user.id if mission.user.present? && mission.created_by_user_id.nil?
     end
 
     # Trait for time-based missions
