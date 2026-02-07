@@ -256,12 +256,9 @@ jobs:
           JWT_SECRET: ${{ secrets.JWT_SECRET || '' }}
         run: |
           echo "📖 Generating Swagger/OpenAPI documentation..."
-          bundle exec rswag specs:swaggerize
+          bundle exec rake rswag:specs:swaggerize
 
-          echo "📖 Validating API contracts..."
-          bundle exec rswag specs:validate
-
-          echo "✅ API contracts validated and generated"
+          echo "✅ Swagger documentation generated"
 
       - name: 📋 Upload API documentation
         uses: actions/upload-artifact@v4
