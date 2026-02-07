@@ -50,6 +50,11 @@ group :development, :test do
   gem 'rspec' # <- sécurité si RSpec core non inclus
   gem 'rspec-rails'
   gem 'rubocop', require: false
+
+  # RSwag for API documentation and contract testing
+  gem 'rswag'
+  gem 'rswag-specs'
+  gem 'rswag-ui'
 end
 
 # == Development Only ==
@@ -66,11 +71,4 @@ group :test do
   gem 'rspec_junit_formatter'
   gem 'selenium-webdriver'
   gem 'shoulda-matchers', '~> 5.0'
-end
-
-# == Development & Test (Rswag for CI) ==
-group :development, :test do
-  gem 'rswag'
-  gem 'rswag-specs'
-  gem 'rswag-ui'
 end
