@@ -140,7 +140,9 @@ class RateLimitService
   # @return [Integer] current request count in the window
   def self.current_count(endpoint, client_ip)
     # Bypass rate limiting in test environment (infrastructure concern, not business logic)
+
     return 0 if Rails.env.test?
+
     key = "rate_limit:#{endpoint}:#{client_ip}"
     redis.zcard(key)
   rescue StandardError => e
@@ -154,7 +156,9 @@ class RateLimitService
   # @param client_ip [String] client IP address
   def self.clear_rate_limit(endpoint, client_ip)
     # Bypass rate limiting in test environment (infrastructure concern, not business logic)
+
     return if Rails.env.test?
+
     key = "rate_limit:#{endpoint}:#{client_ip}"
     redis.del(key)
   rescue StandardError => e
