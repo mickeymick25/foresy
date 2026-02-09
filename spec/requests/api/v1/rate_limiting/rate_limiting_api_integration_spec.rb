@@ -619,6 +619,13 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
     end
 
     context 'should log rate limit exceeded events' do
+      before do
+        # Reset singleton Redis to ensure mock works
+        if RateLimitService.instance_variable_defined?(:@redis)
+          RateLimitService.send(:remove_instance_variable, :@redis)
+        end
+      end
+
       it 'logs with rate_limit.exceeded tag' do
         # Test that logging methods exist and work
         test_ip = '192.168.1.102'
@@ -672,6 +679,13 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
     # Explicit test for Redis::CannotConnectError as requested by CTO
     # Validates fail-closed behavior when Redis is unavailable
     context 'should fail closed when Redis is unavailable (Redis::CannotConnectError)' do
+      before do
+        # Reset singleton Redis to ensure mock works
+        if RateLimitService.instance_variable_defined?(:@redis)
+          RateLimitService.send(:remove_instance_variable, :@redis)
+        end
+      end
+
       it 'returns 429 when Redis connection fails' do
         test_ip = '192.168.1.200'
         endpoint = 'auth/login'
