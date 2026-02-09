@@ -1,75 +1,28 @@
 # frozen_string_literal: true
 
-require 'securerandom'
-
-# RateLimitService - Service for Redis sliding window rate limiting
+# RateLimitService - Service for sliding window rate limiting
 #
 # Implements IP-based rate limiting with sliding window algorithm
 # for protection against brute force attacks on authentication endpoints.
 #
-# == ARCHITECTURE DECISION (FC-05)
+# == Architecture (FC-05)
 #
-# Why controller-based (before_action) instead of Rack middleware?
+# - Uses Strategy Pattern for backend selection
+# - MemoryBackend in test (no Redis dependency)
+# - RedisBackend in production (distributed rate limiting)
+# - Fail-closed on Redis failure (429, not 500)
 #
-# 1. **Granularity**: before_action allows per-endpoint configuration
-#    without complex path matching in middleware
-# 2. **Rails Integration**: Native access to request object, params, and
-#    controller context for accurate endpoint identification
-# 3. **Testability**: Easier to test with RSpec request specs and mocking
-# 4. **Maintainability**: Logic stays within Rails conventions, easier for
-#    Rails developers to understand and modify
-# 5. **rack-attack issues**: Initial middleware approach had integration
-#    problems with Rails 8.1.1 configuration
+# == Supported Endpoints
 #
-# Trade-off: Slightly later in request lifecycle, but negligible for auth
-# endpoints where business logic validation is the main cost.
-#
-# == SLIDING WINDOW ALGORITHM
-#
-# Uses Redis Sorted Sets (ZSET) for accurate sliding window rate limiting:
-#
-# 1. Each request is stored as a ZSET member with timestamp as score
-# 2. On each check:
-#    a. ZREMRANGEBYSCORE removes entries older than window (60s)
-#    b. ZCARD counts remaining entries in window
-#    c. If count >= limit → reject with retry_after calculation
-#    d. If count < limit → ZADD new entry with current timestamp
-#
-# Why Sorted Sets vs simple counter with TTL?
-# - Simple counter resets entirely after TTL, allowing burst at window edges
-# - Sorted Set provides TRUE sliding window: each request has its own expiry
-# - More accurate rate limiting, no "thundering herd" at window boundaries
-#
-# Example: 5 req/min limit
-#   T=0s:  Request 1 → ZADD score=0    → count=1 → ALLOWED
-#   T=10s: Request 2 → ZADD score=10   → count=2 → ALLOWED
-#   T=20s: Request 3 → ZADD score=20   → count=3 → ALLOWED
-#   T=30s: Request 4 → ZADD score=30   → count=4 → ALLOWED
-#   T=40s: Request 5 → ZADD score=40   → count=5 → ALLOWED
-#   T=50s: Request 6 → count=5         → BLOCKED (retry_after=10s)
-#   T=61s: Request 7 → ZREM score<1    → count=4 → ALLOWED (request 1 expired)
-#
-# == SECURITY FEATURES
-# - Redis-only state (no internal data exposed)
-# - IP-based identification (stateless servers compatible)
-# - Generic error messages only
-# - Fail closed on Redis failure (returns 429, not 500)
-#
-# == SUPPORTED ENDPOINTS
 # - POST /api/v1/auth/login (5 requests/minute)
 # - POST /api/v1/signup (3 requests/minute)
 # - POST /api/v1/auth/refresh (10 requests/minute)
 #
-# == EDGE CASES
-# - Redis unavailable → fail closed (HTTP 429)
-# - IP absente → fallback sur request.remote_ip
-# - Endpoint hors scope → AUCUN impact (returns [true, 0])
+# == Interface (Strategy Pattern)
 #
-# == LOGGING & MONITORING
-# - Log des événements de dépassement avec tag: rate_limit.exceeded
-# - Log Redis failures avec tag: rate_limit.redis_unavailable
-# - IPs masquées dans les logs (192.168.x.x)
-# - Aucun token en clair dans les logs
+# @see RateLimit::Backend
+# @see RateLimit::MemoryBackend
+# @see RateLimit::RedisBackend
 class RateLimitService
   WINDOW_SIZE = 60 # 1 minute in seconds
 
@@ -81,40 +34,62 @@ class RateLimitService
     'auth/refresh' => 10
   }.freeze
 
-  # Check if rate limit is exceeded for given endpoint and client IP
+  # Initialize the rate limit service with a backend
+  #
+  # @param backend [RateLimit::Backend] optional backend (auto-selected if nil)
+  # @return [void]
+  def initialize(backend: nil)
+    @backend = backend || default_backend
+  end
+
+  # Select default backend based on Rails environment
+  #
+  # @return [RateLimit::Backend]
+  def default_backend
+    if Rails.env.test?
+      RateLimit::MemoryBackend.new
+    else
+      RateLimit::RedisBackend.new
+    end
+  end
+
+  # Check if rate limit is exceeded (class method)
   #
   # @param endpoint [String] endpoint path (e.g., 'auth/login')
   # @param client_ip [String] client IP address
+  # @param _request [ActionDispatch::Request, nil] optional request object
   # @return [Array] [allowed (Boolean), retry_after (Integer)]
   def self.check_rate_limit(endpoint, client_ip, _request = nil)
     limit = LIMITS[endpoint]
     return [true, 0] if limit.nil?
 
-    # Bypass rate limiting in test environment (infrastructure concern, not business logic)
-    return [true, 0] if Rails.env.test?
+    new.check_rate_limit(endpoint, client_ip)
+  end
 
-    key = "rate_limit:#{endpoint}:#{client_ip}"
+  # Check if rate limit is exceeded (instance method)
+  #
+  # @param endpoint [String] endpoint path
+  # @param client_ip [String] client IP address
+  # @return [Array] [allowed (Boolean), retry_after (Integer)]
+  def check_rate_limit(endpoint, client_ip)
+    limit = LIMITS[endpoint]
+    return [true, 0] if limit.nil?
 
-    begin
-      now = Time.current.to_i
+    key = rate_limit_key(endpoint, client_ip)
 
-      current_requests = count_current_requests(key, now)
+    count = @backend.count(key, window: WINDOW_SIZE)
 
-      if current_requests >= limit
-        retry_after = calculate_retry_after(key, now)
-        log_rate_limit_exceeded(endpoint, client_ip, current_requests, limit)
-
-        [false, retry_after]
-      else
-        add_request_to_window(key, now)
-
-        [true, 0]
-      end
-    rescue StandardError => e
-      Rails.logger.warn "RateLimitService Redis error: #{e.message}"
-      log_redis_unavailable(endpoint, client_ip, e.message)
-      [false, 60]
+    if count >= limit
+      retry_after = WINDOW_SIZE
+      log_rate_limit_exceeded(endpoint, client_ip, count, limit)
+      [false, retry_after]
+    else
+      @backend.increment(key, window: WINDOW_SIZE)
+      [true, 0]
     end
+  rescue StandardError => e
+    log_redis_unavailable(endpoint, client_ip, e.message)
+    [false, WINDOW_SIZE]
   end
 
   # Extract client IP from request considering reverse proxies
@@ -122,11 +97,8 @@ class RateLimitService
   # @param request [ActionDispatch::Request] Rails request object
   # @return [String] client IP address
   def self.extract_client_ip(request)
-    # Extract client IP considering reverse proxies
-    # Priority: X-Forwarded-For > X-Real-IP > REMOTE_ADDR
     forwarded_for = request.env['HTTP_X_FORWARDED_FOR']
     if forwarded_for.present?
-      # X-Forwarded-For can contain multiple IPs, take the first one
       forwarded_for.split(',').first.strip
     else
       request.env['HTTP_X_REAL_IP'] || request.env['REMOTE_ADDR'] || 'unknown'
@@ -139,15 +111,17 @@ class RateLimitService
   # @param client_ip [String] client IP address
   # @return [Integer] current request count in the window
   def self.current_count(endpoint, client_ip)
-    # Bypass rate limiting in test environment (infrastructure concern, not business logic)
+    new.current_count(endpoint, client_ip)
+  end
 
-    return 0 if Rails.env.test?
-
-    key = "rate_limit:#{endpoint}:#{client_ip}"
-    redis.zcard(key)
-  rescue StandardError => e
-    Rails.logger.warn "RateLimitService Redis error: #{e.message}"
-    0
+  # Instance method for getting current count
+  #
+  # @param endpoint [String] endpoint path
+  # @param client_ip [String] client IP address
+  # @return [Integer] count
+  def current_count(endpoint, client_ip)
+    key = rate_limit_key(endpoint, client_ip)
+    @backend.count(key, window: WINDOW_SIZE)
   end
 
   # Clear rate limit for a specific endpoint and IP (useful for testing)
@@ -155,14 +129,16 @@ class RateLimitService
   # @param endpoint [String] endpoint path
   # @param client_ip [String] client IP address
   def self.clear_rate_limit(endpoint, client_ip)
-    # Bypass rate limiting in test environment (infrastructure concern, not business logic)
+    new.clear_rate_limit(endpoint, client_ip)
+  end
 
-    return if Rails.env.test?
-
-    key = "rate_limit:#{endpoint}:#{client_ip}"
-    redis.del(key)
-  rescue StandardError => e
-    Rails.logger.warn "RateLimitService Redis error: #{e.message}"
+  # Instance method for clearing rate limit
+  #
+  # @param endpoint [String] endpoint path
+  # @param client_ip [String] client IP address
+  def clear_rate_limit(endpoint, client_ip)
+    key = rate_limit_key(endpoint, client_ip)
+    @backend.clear(key)
   end
 
   # Get configuration for display/monitoring
@@ -177,106 +153,97 @@ class RateLimitService
   # @param request_path [String] request path (e.g., '/api/v1/auth/login')
   # @return [Boolean] true if endpoint should be rate-limited
   def self.rate_limited_endpoint?(request_path)
-    # Extract endpoint from /api/v1/endpoint format
     endpoint = request_path.sub('/api/v1/', '')
     LIMITS.key?(endpoint)
   end
 
   # Extract endpoint from request path
   #
-  # @param request_path [String] request path (e.g., '/api/v1/auth/login')
-  # @return [String] endpoint key (e.g., 'auth/login')
+  # @param request_path [String] request path
+  # @return [String] endpoint key
   def self.extract_endpoint(request_path)
     request_path.sub('/api/v1/', '')
   end
 
-  private_class_method def self.redis
-    require 'redis'
-    @redis ||= ::Redis.new(url: ENV['REDIS_URL'] || 'redis://localhost:6379/0')
-  end
-
-  # Count requests in current sliding window
-  # Uses Redis pipeline for atomic operations:
-  # 1. ZREMRANGEBYSCORE: Remove expired entries (score < window_start)
-  # 2. ZCARD: Count remaining entries
-  private_class_method def self.count_current_requests(key, now)
-    window_start = now - WINDOW_SIZE
-
-    # Get the count from the pipeline result (second operation)
-    result = redis.pipelined do |pipeline|
-      pipeline.zremrangebyscore(key, 0, window_start)
-      pipeline.zcard(key)
+  class << self
+    def redis
+      @redis ||= ::Redis.new(
+        url: ENV.fetch('REDIS_URL', 'redis://localhost:6379/0')
+      )
     end
 
-    result[1] # zcard result is the second operation in the pipeline
+    private :redis
   end
 
-  # Calculate seconds until oldest request expires from window
-  # This gives accurate retry_after value for 429 response
-  private_class_method def self.calculate_retry_after(key, now)
-    oldest_request = redis.zrange(key, 0, 0, with_scores: true)&.first&.last
-    return 60 unless oldest_request
-
-    retry_after = (oldest_request + WINDOW_SIZE - now).ceil
-    [retry_after, 60].min
+  # Build rate limit key for endpoint and IP
+  #
+  # @param endpoint [String] endpoint path
+  # @param client_ip [String] client IP address
+  # @return [String] rate limit key
+  def rate_limit_key(endpoint, client_ip)
+    "rate_limit:#{endpoint}:#{client_ip}"
   end
 
-  # Add new request to sliding window
-  # Uses UUID as member to ensure uniqueness (same timestamp possible)
-  # Sets key expiry to 2x window to ensure cleanup
-  private_class_method def self.add_request_to_window(key, now)
-    redis.pipelined do |pipeline|
-      pipeline.zadd(key, now, SecureRandom.uuid)
-      pipeline.expire(key, WINDOW_SIZE * 2)
-    end
-  end
-
-  private_class_method def self.log_rate_limit_exceeded(endpoint, client_ip, current_requests, limit)
-    # Mask IP for security (only log first 2 octets)
+  # Log rate limit exceeded event
+  #
+  # @param endpoint [String] endpoint path
+  # @param client_ip [String] client IP address
+  # @param current_requests [Integer] current request count
+  # @param limit [Integer] rate limit
+  # @return [void]
+  def log_rate_limit_exceeded(endpoint, client_ip, current_requests, limit)
     masked_ip = mask_ip(client_ip)
 
-    Rails.logger.info do
-      {
-        message: 'Rate limit exceeded',
-        event: 'rate_limit.exceeded',
-        endpoint: endpoint,
-        client_ip_masked: masked_ip,
-        current_requests: current_requests,
-        limit: limit,
-        window_size_seconds: WINDOW_SIZE
-      }.to_json
-    end
+    log_data = {
+      tag: 'rate_limit.exceeded',
+      message: 'Rate limit exceeded',
+      endpoint: endpoint,
+      client_ip_masked: masked_ip,
+      current_requests: current_requests,
+      limit: limit,
+      window_size_seconds: WINDOW_SIZE
+    }
+
+    Rails.logger.info { log_data.to_json }
+    log_data.to_json
   end
 
-  private_class_method def self.log_redis_unavailable(endpoint, client_ip, error_message)
-    # Mask IP for security (only log first 2 octets)
+  # Log Redis unavailable event
+  #
+  # @param endpoint [String] endpoint path
+  # @param client_ip [String] client IP address
+  # @param error_message [String] error message
+  # @return [void]
+  def log_redis_unavailable(endpoint, client_ip, error_message)
     masked_ip = mask_ip(client_ip)
 
-    Rails.logger.warn do
-      {
-        message: 'Redis unavailable - failing closed',
-        event: 'rate_limit.redis_unavailable',
-        endpoint: endpoint,
-        client_ip_masked: masked_ip,
-        redis_error: error_message,
-        action: 'fail_closed'
-      }.to_json
-    end
+    log_data = {
+      tag: 'rate_limit.redis_unavailable',
+      message: 'Redis unavailable - failing closed',
+      endpoint: endpoint,
+      client_ip_masked: masked_ip,
+      redis_error: error_message,
+      action: 'fail_closed'
+    }
+
+    Rails.logger.warn { log_data.to_json }
+    log_data.to_json
   end
 
-  private_class_method def self.mask_ip(ip)
+  # Mask IP address for security in logs
+  #
+  # @param ip [String] IP address
+  # @return [String] masked IP address
+  def mask_ip(ip)
     return 'unknown' if ip == 'unknown' || ip.nil?
 
-    # IPv4 masking: 192.168.1.100 -> 192.168.x.x
     if ip.match?(/^\d+\.\d+\.\d+\.\d+$/)
       parts = ip.split('.')
       "#{parts[0]}.#{parts[1]}.x.x"
-    # IPv6 masking: 2001:db8::1 -> 2001:db8::x
     elsif ip.include?(':')
       parts = ip.split(':')
       "#{parts[0]}:#{parts[1]}:...:x"
     else
-      # Unknown format, mask most of it
       ip.length > 4 ? "#{ip[0..3]}...x" : 'masked'
     end
   end
