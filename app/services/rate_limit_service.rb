@@ -36,11 +36,11 @@ class RateLimitService
     'auth/refresh' => 10
   }.freeze
 
-  # Singleton backend instance (memoized per process)
+  # Get backend instance (lazy creation, no memoization for test isolation)
   #
   # @return [RateLimit::Backend]
   def self.backend
-    @backend ||= if Rails.env.test?
+    if Rails.env.test?
       RateLimit::MemoryBackend.new
     else
       RateLimit::RedisBackend.new
