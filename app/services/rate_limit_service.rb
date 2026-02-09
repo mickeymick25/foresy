@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'redis'
+
 # RateLimitService - Service for sliding window rate limiting
 #
 # Implements IP-based rate limiting with sliding window algorithm
@@ -34,24 +36,34 @@ class RateLimitService
     'auth/refresh' => 10
   }.freeze
 
-  # Initialize the rate limit service with a backend
-  #
-  # @param backend [RateLimit::Backend] optional backend (auto-selected if nil)
-  # @return [void]
-  def initialize(backend: nil)
-    @backend = backend || default_backend
-  end
-
-  # Select default backend based on Rails environment
+  # Singleton backend instance (memoized per process)
   #
   # @return [RateLimit::Backend]
-  def default_backend
-    if Rails.env.test?
+  def self.backend
+    @backend ||= if Rails.env.test?
       RateLimit::MemoryBackend.new
     else
       RateLimit::RedisBackend.new
     end
   end
+
+  # Initialize the rate limit service with a backend
+  #
+  # @param backend [RateLimit::Backend] optional backend (auto-selected if nil)
+  # @return [void]
+  def initialize(backend: nil)
+    @backend = backend || self.class.backend
+  end
+
+  # Get Redis connection (private for test stubbing)
+  #
+  # @return [Redis] Redis connection
+  def self.redis
+    ::Redis.new(
+      url: ENV.fetch('REDIS_URL', 'redis://localhost:6379/0')
+    )
+  end
+  private_class_method :redis
 
   # Check if rate limit is exceeded (class method)
   #
@@ -77,16 +89,18 @@ class RateLimitService
 
     key = rate_limit_key(endpoint, client_ip)
 
+    @backend.increment(key, window: WINDOW_SIZE)
     count = @backend.count(key, window: WINDOW_SIZE)
 
-    if count >= limit
-      retry_after = WINDOW_SIZE
+    if count > limit
       log_rate_limit_exceeded(endpoint, client_ip, count, limit)
-      [false, retry_after]
+      [false, WINDOW_SIZE]
     else
-      @backend.increment(key, window: WINDOW_SIZE)
       [true, 0]
     end
+  rescue Redis::CannotConnectError => e
+    log_redis_unavailable(endpoint, client_ip, e.message)
+    [false, WINDOW_SIZE]
   rescue StandardError => e
     log_redis_unavailable(endpoint, client_ip, e.message)
     [false, WINDOW_SIZE]
@@ -165,15 +179,7 @@ class RateLimitService
     request_path.sub('/api/v1/', '')
   end
 
-  class << self
-    def redis
-      @redis ||= ::Redis.new(
-        url: ENV.fetch('REDIS_URL', 'redis://localhost:6379/0')
-      )
-    end
 
-    private :redis
-  end
 
   # Build rate limit key for endpoint and IP
   #
