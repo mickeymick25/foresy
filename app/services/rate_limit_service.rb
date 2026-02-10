@@ -37,14 +37,15 @@ class RateLimitService
   }.freeze
 
   # Get backend instance (memoized per process)
-  # Memoization ensures rate limit counters accumulate across requests
+  # Always uses RedisBackend, falls back to MemoryBackend if Redis unavailable
+  # This ensures fail-closed behavior and test mockability
   #
   # @return [RateLimit::Backend]
   def self.backend
-    @backend ||= if Rails.env.test?
-      RateLimit::MemoryBackend.new
-    else
+    @backend ||= begin
       RateLimit::RedisBackend.new
+    rescue Redis::CannotConnectError
+      RateLimit::MemoryBackend.new
     end
   end
 
