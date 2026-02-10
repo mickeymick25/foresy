@@ -11,6 +11,7 @@
 # - Sliding window via ZSET: each request stored with timestamp as score
 # - Fail-closed: Redis::CannotConnectError propagates via RateLimitService
 # - Deterministic: zadd uses timestamp as member, no UUID needed
+# - Exclusive dependency on RateLimitService.redis for test mocking
 #
 # == Algorithm
 #
@@ -21,6 +22,14 @@
 # @see RateLimit::Backend Interface contract
 module RateLimit
   class RedisBackend < Backend
+    # Get Redis connection exclusively via RateLimitService
+    # Enables test mocking and fail-closed behavior
+    #
+    # @return [Redis] Redis connection
+    def redis
+      RateLimitService.send(:redis)
+    end
+
     # Increment the request count for a key within the sliding window
     #
     # @param key [String] rate limit key (e.g., 'rate_limit:auth/login:1.2.3.4')
@@ -30,7 +39,7 @@ module RateLimit
       now = Time.current.to_f
       window_start = now - window
 
-      RateLimitService.send(:redis).pipelined do |pipeline|
+      redis.pipelined do |pipeline|
         pipeline.zremrangebyscore(key, 0, window_start)
         pipeline.zadd(key, now, now)
         pipeline.zcard(key)
@@ -45,7 +54,7 @@ module RateLimit
     def count(key, window:)
       now = Time.current.to_f
       window_start = now - window
-      RateLimitService.send(:redis).zcount(key, window_start, now)
+      redis.zcount(key, window_start, now)
     end
 
     # Clear all timestamps for a specific key
@@ -53,7 +62,7 @@ module RateLimit
     # @param key [String] rate limit key
     # @return [void]
     def clear(key)
-      RateLimitService.send(:redis).del(key)
+      redis.del(key)
     end
   end
 end
