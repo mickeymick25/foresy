@@ -730,8 +730,8 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
     context 'boots without Redis available' do
       it 'uses MemoryBackend when Redis is unavailable' do
         # Stub Redis.new to simulate Redis being unavailable
-        allow(::Redis).to receive(:new).and_raise(
-          Redis::CannotConnectError.new("Connection refused")
+        allow(Redis).to receive(:new).and_raise(
+          Redis::CannotConnectError.new('Connection refused')
         )
 
         # Verify that backend is MemoryBackend (not RedisBackend)
@@ -743,7 +743,7 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
       it 'fails closed when Redis is mocked as unavailable' do
         # Stub RateLimitService.redis to simulate Redis connection failure
         allow(RateLimitService).to receive(:redis).and_raise(
-          Redis::CannotConnectError.new("Connection refused")
+          Redis::CannotConnectError.new('Connection refused')
         )
 
         # Create a RedisBackend to trigger the mock
@@ -751,8 +751,8 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
 
         # Verify that check_rate_limit fails closed
         allowed, retry_after = RateLimitService.new(backend: redis_backend).check_rate_limit(
-          "auth/login",
-          "127.0.0.1"
+          'auth/login',
+          '127.0.0.1'
         )
 
         expect(allowed).to be false
