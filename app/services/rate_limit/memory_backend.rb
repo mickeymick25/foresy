@@ -23,6 +23,7 @@ module RateLimit
     #
     # @return [void]
     def initialize
+      super
       @store = Hash.new { |h, k| h[k] = [] }
       @mutex = Mutex.new
     end

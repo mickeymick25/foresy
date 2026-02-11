@@ -100,10 +100,7 @@ class RateLimitService
     else
       [true, 0]
     end
-  rescue Redis::CannotConnectError => e
-    log_redis_unavailable(endpoint, client_ip, e.message)
-    [false, WINDOW_SIZE]
-  rescue StandardError => e
+  rescue Redis::CannotConnectError, StandardError => e
     log_redis_unavailable(endpoint, client_ip, e.message)
     [false, WINDOW_SIZE]
   end
@@ -180,8 +177,6 @@ class RateLimitService
   def self.extract_endpoint(request_path)
     request_path.sub('/api/v1/', '')
   end
-
-
 
   # Build rate limit key for endpoint and IP
   #
