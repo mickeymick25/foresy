@@ -199,14 +199,20 @@ class Mission < ApplicationRecord
     valid_transitions[status]&.include?(new_status) || false
   end
 
-  # Business rule: Transition mission status
-  def transition_to!(new_status)
+  # Business rule: Transition mission status (validation-style, returns false on error)
+  def transition_to(new_status)
     unless can_transition_to?(new_status)
-      errors.add(:status, 'invalid_transition', message: "Cannot transition from #{status} to #{new_status}")
+      errors.add(:status, "cannot transition from #{status} to #{new_status}")
       return false
     end
 
     update!(status: new_status)
+    true
+  end
+
+  # Alias for backward compatibility (same behavior)
+  def transition_to!(new_status)
+    transition_to(new_status)
   end
 
   # Business rule: Check if post-won notifications should be sent

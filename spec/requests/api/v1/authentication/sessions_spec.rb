@@ -3,6 +3,12 @@
 require 'rails_helper'
 
 RSpec.describe 'Authentication - Sessions', type: :request do
+  before do
+    # Stub RateLimitService for auth tests (FC-05 specs test real behavior)
+    # NOTE: allowed? doesn't exist, only check_rate_limit is available
+    allow(RateLimitService).to receive(:check_rate_limit).and_return([true, nil])
+  end
+
   describe 'Refresh token invalidé après invalidate_all_sessions!' do
     it 'refuse le refresh token après invalidation' do
       user = create(:user)

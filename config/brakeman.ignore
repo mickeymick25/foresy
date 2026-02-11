@@ -4,10 +4,7 @@
       "fingerprint": "735e3b0deeded6097728b35440a1a20130aea30f50dd6d4aae468d4ef8440ccb",
       "note": "TEST SUPPORT ONLY - Ce contrôleur est utilisé exclusivement pour les scénarios E2E. Il n'est jamais exposé en production. Le champ role est volontairement mass-assignable pour simplifier la création de fixtures de test."
     },
-    {
-      "fingerprint": "86ac1851e8e41ec2483cb2d74002a56f2eec7aef8808fdc7c0b4dd5b564f61fd",
-      "note": "FALSE POSITIVE - validated_sort_direction est validé et ne peut retourner que 'asc' ou 'desc' via validated_sort_direction method. Aucune injection possible."
-    },
+
     {
       "fingerprint": "ed1fa52b6ab02f31a4186f143fa92e28112f1367803fe9dec32fc39d26697650",
       "note": "FALSE POSITIVE - DomainDriven concern utilise des noms de relation définis dans le code (pas d'input utilisateur). Les foreign_key et name proviennent de la configuration du modèle, pas de paramètres HTTP."

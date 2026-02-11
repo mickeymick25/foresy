@@ -45,10 +45,9 @@ module Api
       # POST /api/v1/cras/:cra_id/entries
       # Creates a new CRA entry with comprehensive business rule validation
       def create
-        result = CraEntries::CreateService.call(
+        result = Services::CraEntries::Create.call(
           cra: @cra,
-          entry_params: cra_entry_attributes,
-          mission_id: mission_id,
+          entry_params: cra_entry_attributes.merge(mission_id: mission_id),
           current_user: current_user
         )
 
@@ -65,9 +64,9 @@ module Api
       # GET /api/v1/cras/:cra_id/entries
       # Lists CRA entries with optimized queries and pagination
       def index
-        result = CraEntries::ListService.call(
+        result = Services::CraEntries::List.call(
           cra: @cra,
-          include_associations: true
+          current_user: current_user
         )
 
         if result.success?
@@ -92,10 +91,9 @@ module Api
       # PATCH /api/v1/cras/:cra_id/entries/:id
       # Updates a CRA entry with business rule validation
       def update
-        result = CraEntries::UpdateService.call(
-          entry: @cra_entry,
-          entry_params: cra_entry_params,
-          mission_id: mission_id,
+        result = Services::CraEntries::Update.call(
+          cra_entry: @cra_entry,
+          entry_params: cra_entry_params.merge(mission_id: mission_id),
           current_user: current_user
         )
 
@@ -113,8 +111,8 @@ module Api
       # DELETE /api/v1/cras/:cra_id/entries/:id
       # Deletes a CRA entry (soft delete) with business rules
       def destroy
-        result = CraEntries::DestroyService.call(
-          entry: @cra_entry,
+        result = Services::CraEntries::Destroy.call(
+          cra_entry: @cra_entry,
           current_user: current_user
         )
 

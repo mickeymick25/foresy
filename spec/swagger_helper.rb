@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
+require 'rswag/specs'
 
 RSpec.configure do |config|
   # Dossier où seront générés les fichiers Swagger
@@ -54,10 +55,7 @@ RSpec.configure do |config|
             required: %w[email password]
           }
         }
-      },
-      security: [
-        { bearer_auth: [] }
-      ]
+      }
     }
   }
 
@@ -65,11 +63,22 @@ RSpec.configure do |config|
   config.openapi_format = :yaml
 end
 
-# Ajout global du header Authorization pour les tests request specs
-RSpec.shared_context 'with_authenticated_user', shared_context: :metadata do
-  let(:Authorization) { 'Bearer dummy_token' }
-end
+# NOTE: Les tokens doivent être générés par AuthenticationService.login
+# pour respecter le contrat FC-06 (session active requise)
+#
+# IMPORTANT: Ce shared_context ne crée PLUS d'utilisateur automatiquement.
+# Chaque test DOIT définir son propre `user` via let(:user).
+# Chaque test DOIT définir son propre token via let(:user_token) ou let(:Authorization).
+#
+# Exemple de setup dans un test :
+#   let(:user) { create(:user) }
+#   let(:user_token) { AuthenticationService.login(user, '127.0.0.1', 'Test')[:token] }
+#   let(:headers) { { 'Authorization' => "Bearer #{user_token}" } }
+#
+# Ce shared_context reste disponible pour la rétrocompatibilité des configs rswag.
 
 RSpec.configure do |config|
-  config.include_context 'with_authenticated_user', type: :request
+  # NOTE: shared_context 'with_authenticated_user' was removed
+  # Each test is now responsible for creating its own user and token
+  # See comments above for the recommended pattern
 end

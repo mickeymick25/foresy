@@ -7,6 +7,9 @@
 # Ignore bundler config.
 /.bundle
 
+# Ignore vendor bundle (Docker-installed gems)
+/vendor/bundle
+
 # Ignore Gemfile.lock to avoid platform compatibility issues in Docker builds
 Gemfile.lock
 
@@ -65,3 +68,6 @@ spec/examples.txt
 .env
 .env*
 !.env*.erb
+-e 
+# Bundler
+/.bundle

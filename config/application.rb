@@ -28,7 +28,9 @@ module App
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
     # Common ones are `templates`, `generators`, or `middleware`, for example.
-    config.autoload_lib(ignore: %w[assets tasks])
+    #
+    # REMOVED: config.autoload_lib(ignore: %w[assets tasks]) to avoid FrozenError
+    # FIXED: FrozenError resolved by removing non-standard directory manipulations
 
     # Configuration for the application, engines, and railties goes here.
     #
@@ -36,7 +38,7 @@ module App
     # in config/environments, which are processed later.
     #
     # config.time_zone = "Central Time (US & Canada)"
-    # config.eager_load_paths << Rails.root.join("extras")
+    # REMOVED: config.eager_load_paths << Rails.root.join("extras") - Causes FrozenError in Rails 8+
 
     # Session middleware configuration for OmniAuth compatibility
     # OmniAuth requires session support to store CSRF state during OAuth flow

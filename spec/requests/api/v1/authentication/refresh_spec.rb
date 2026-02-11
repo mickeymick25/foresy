@@ -5,6 +5,12 @@ require 'swagger_helper'
 RSpec.describe 'Authentication - Token Refresh', type: :request do
   let(:user) { create(:user, password: 'password123') }
 
+  before do
+    # Stub RateLimitService for auth tests (FC-05 specs test real behavior)
+    allow(RateLimitService).to receive(:check_rate_limit).and_return([true, nil])
+    RateLimitService.clear_rate_limit('auth/refresh', '127.0.0.1')
+  end
+
   path '/api/v1/auth/refresh' do
     post 'Refreshes authentication token' do
       tags 'Authentication'

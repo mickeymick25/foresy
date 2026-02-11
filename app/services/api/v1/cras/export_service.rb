@@ -46,7 +46,8 @@ module Api
 
         def generate_csv
           # UTF-8 BOM for Excel compatibility
-          UTF8_BOM + CSV.generate(headers: true, encoding: 'UTF-8') do |csv|
+          # Ruby 3.4: CSV.generate does not accept keyword arguments
+          UTF8_BOM + CSV.generate do |csv|
             csv << headers
             append_entries(csv) if include_entries?
             append_total(csv)

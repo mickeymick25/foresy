@@ -47,6 +47,10 @@
 # - .submitted: CRAs in submitted status
 # - .locked: CRAs in locked status
 # - .accessible_to: CRAs accessible to a user (via their companies and missions)
+
+# NOTE: GitLedgerError is now handled via Rails Zeitwerk autoloading
+# See app/exceptions/application_error.rb for the definition
+
 class Cra < ApplicationRecord
   # Soft delete implementation (manual, no gem dependency)
   default_scope { where(deleted_at: nil) }

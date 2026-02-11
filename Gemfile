@@ -27,13 +27,15 @@ gem 'ostruct'
 gem 'puma', '>= 5.0'
 gem 'rack-cors'
 gem 'rails', '~> 8.1.1'
+# Fix Trix XSS vulnerability - requires >= 2.1.16
+gem 'action_text-trix', '~> 2.1.16', require: false
 gem 'redis', '~> 5.0'
 gem 'sprockets-rails'
 gem 'stimulus-rails'
 gem 'turbo-rails'
 
 # For Windows compatibility
-gem 'tzinfo-data', platforms: %i[windows jruby]
+gem 'tzinfo-data', platforms: %i[mswin jruby]
 
 # Security & Rate Limiting
 gem 'rack-attack', '~> 6.7.0'
@@ -47,10 +49,12 @@ group :development, :test do
   gem 'factory_bot_rails'
   gem 'rspec' # <- sécurité si RSpec core non inclus
   gem 'rspec-rails'
+  gem 'rubocop', require: false
+
+  # RSwag for API documentation and contract testing
   gem 'rswag'
   gem 'rswag-specs'
   gem 'rswag-ui'
-  gem 'rubocop', require: false
 end
 
 # == Development Only ==
@@ -64,6 +68,7 @@ end
 group :test do
   gem 'capybara'
   gem 'faker'
+  gem 'rspec_junit_formatter'
   gem 'selenium-webdriver'
   gem 'shoulda-matchers', '~> 5.0'
 end
