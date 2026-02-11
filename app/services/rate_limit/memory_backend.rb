@@ -63,10 +63,12 @@ module RateLimit
     #   backend.count('auth/login:1.2.3.4', window: 60)
     #   # => 3
     def count(key, window:)
-      now = Time.current.to_f
-      window_start = now - window
+      @mutex.synchronize do
+        now = Time.current.to_f
+        window_start = now - window
 
-      @store[key].count { |ts| ts >= window_start }
+        @store[key].count { |ts| ts >= window_start }
+      end
     end
 
     # Clear all timestamps for a specific key
