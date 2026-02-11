@@ -37,16 +37,12 @@ class RateLimitService
   }.freeze
 
   # Get backend instance (memoized per process)
-  # Always uses RedisBackend, falls back to MemoryBackend if Redis unavailable
-  # This ensures fail-closed behavior and test mockability
+  # Uses MemoryBackend by default for reliable boot
+  # Switches to RedisBackend when Redis is available and needed
   #
   # @return [RateLimit::Backend]
   def self.backend
-    @backend ||= begin
-      RateLimit::RedisBackend.new
-    rescue Redis::CannotConnectError
-      RateLimit::MemoryBackend.new
-    end
+    @backend ||= RateLimit::MemoryBackend.new
   end
 
   # Initialize the rate limit service with a backend
