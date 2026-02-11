@@ -321,6 +321,36 @@ jobs:
           bundle exec rails db:prepare
           echo "✅ Database ready for E2E"
 
+      - name: 🚀 Start Rails server
+        env:
+          DATABASE_URL: postgres://postgres:password@localhost:5432/foresy_test
+          REDIS_URL: redis://localhost:6379/0
+          SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE || '' }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET || '' }}
+        run: |
+          echo "🚀 Preparing Rails server..."
+          rm -f tmp/pids/server.pid
+          bundle exec rails server -e test -p 3000 -b 0.0.0.0 -d
+          echo "✅ Rails server started in background"
+
+      - name: ⏳ Wait for server to be ready
+        run: |
+          echo "⏳ Waiting for server to be ready..."
+          for i in {1..30}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/up 2>/dev/null || true)
+            if [ "$STATUS" = "200" ]; then
+              echo "✅ Server is ready on port 3000"
+              exit 0
+            fi
+            echo "  Attempt $i/30 - server not ready yet..."
+            sleep 2
+          done
+          echo "❌ Server failed to start"
+          echo "📄 Last 50 lines of log:"
+          tail -n 50 log/test.log 2>/dev/null || echo "No logs available"
+          curl -s http://localhost:3000/ 2>/dev/null || echo "Server not responding"
+          exit 1
+
       - name: 🧪 Run E2E Tests
         env:
           DATABASE_URL: postgres://postgres:password@localhost:5432/foresy_test
