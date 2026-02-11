@@ -723,5 +723,41 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
         expect(json['retry_after']).to eq(60)
       end
     end
+
+    # === BOOT SAFETY TEST (FC-05) ===
+    # Verifies that Rails can boot without Redis running
+    # Critical for production deployments where Redis might not be available at boot
+    context 'boots without Redis available' do
+      it 'uses MemoryBackend when Redis is unavailable' do
+        # Stub Redis.new to simulate Redis being unavailable
+        allow(::Redis).to receive(:new).and_raise(
+          Redis::CannotConnectError.new("Connection refused")
+        )
+
+        # Verify that backend is MemoryBackend (not RedisBackend)
+        # This test verifies the boot safety contract
+        backend = RateLimitService.backend
+        expect(backend).to be_a(RateLimit::MemoryBackend)
+      end
+
+      it 'fails closed when Redis is mocked as unavailable' do
+        # Stub RateLimitService.redis to simulate Redis connection failure
+        allow(RateLimitService).to receive(:redis).and_raise(
+          Redis::CannotConnectError.new("Connection refused")
+        )
+
+        # Create a RedisBackend to trigger the mock
+        redis_backend = RateLimit::RedisBackend.new
+
+        # Verify that check_rate_limit fails closed
+        allowed, retry_after = RateLimitService.new(backend: redis_backend).check_rate_limit(
+          "auth/login",
+          "127.0.0.1"
+        )
+
+        expect(allowed).to be false
+        expect(retry_after).to eq(RateLimitService::WINDOW_SIZE)
+      end
+    end
   end
 end
