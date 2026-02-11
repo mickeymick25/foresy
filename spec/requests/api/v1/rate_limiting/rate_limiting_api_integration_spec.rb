@@ -666,7 +666,9 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
         # Force Redis error by mocking Redis failure
         allow(RateLimitService).to receive(:redis).and_raise(StandardError.new('Connection refused'))
 
-        allowed, retry_after = RateLimitService.check_rate_limit(endpoint, test_ip)
+        # Use RedisBackend to trigger the mock (MemoryBackend bypasses the mock)
+        redis_backend = RateLimit::RedisBackend.new
+        allowed, retry_after = RateLimitService.new(backend: redis_backend).check_rate_limit(endpoint, test_ip)
         expect(allowed).to be false # Should fail closed
         expect(retry_after).to eq(60)
 
@@ -696,8 +698,9 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
           Redis::CannotConnectError.new('Error connecting to Redis on localhost:6379 (Errno::ECONNREFUSED)')
         )
 
-        # Service should fail closed (return blocked state)
-        allowed, retry_after = RateLimitService.check_rate_limit(endpoint, test_ip)
+        # Use RedisBackend to trigger the mock (MemoryBackend bypasses the mock)
+        redis_backend = RateLimit::RedisBackend.new
+        allowed, retry_after = RateLimitService.new(backend: redis_backend).check_rate_limit(endpoint, test_ip)
 
         expect(allowed).to be false
         expect(retry_after).to eq(60)
