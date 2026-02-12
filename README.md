@@ -13,7 +13,7 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 - **Feature Contract 06 (Missions)** : ✅ Opérationnel avec CRUD complet
 - **Feature Contract 05 (Rate Limiting)** : ✅ OPÉRATIONNEL
 - **Architecture** : ✅ DDD/RDD certifiée Platinium
-- **Tests** : 449 exemples RSpec verts (97 → 449 evolution complète)
+- **Tests** : 491 exemples RSpec verts (97 → 491 evolution complète)
 - **Sécurité** : ✅ JWT stateless, OAuth Google/GitHub, CSRF protection
 
 ### 📈 Historique des Accomplissements
@@ -157,9 +157,9 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 
 ### Statistiques Actuelles (Janvier 2026) — Validé le 29 janvier 2026
 **🏆 Migration DDD/RDD Architecture Complétée (27-28 Janvier 2026)**
-- **Tests RSpec** : ✅ **498 examples, 0 failures**
-- **Tests Rswag** : ✅ **128 examples, 0 failures** — `swagger.yaml` généré
-- **RuboCop** : ✅ **147 files inspected, no offenses detected**
+- **Tests RSpec** : ✅ **491 examples, 0 failures**
+- **Tests Rswag** : ✅ **134 examples, 0 failures** — `swagger.yaml` généré
+- **RuboCop** : ✅ **177 files inspected, no offenses detected**
 - **Brakeman** : ✅ **0 Security Warnings** (3 ignored warnings)
 - **Tests Missions (FC-06)** : ✅ 30/30 passent
 - **Tests CRA (FC-07)** : ✅ **Architecture DDD/RDD Pure**

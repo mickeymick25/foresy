@@ -188,7 +188,7 @@ Confirm readiness to implement Feature Contracts following this vision.
 |-----|------|--------|-------|-------|
 | FC-05 | Rate Limiting | ✅ DONE | - | Protection brute force |
 | FC-06 | Missions | ✅ DONE | 30 | PR #12 merged |
-| FC-07 | CRA (Compte Rendu d'Activité) | ✅ DONE | 449 | TDD PLATINUM, tag `fc-07-complete`, PLATINUM CERTIFIED (28 Jan 2026) |
+| FC-07 | CRA (Compte Rendu d'Activité) | ✅ DONE | 491 | TDD PLATINUM, tag `fc-07-complete`, PLATINUM CERTIFIED (28 Jan 2026) |
 | FC-08 | Entreprise Indépendant | 📋 NEXT | - | Base fiscale & légale |
 | FC-09 | Notifications & Alertes | 📋 PLANNED | - | - |
 
@@ -200,17 +200,17 @@ Confirm readiness to implement Feature Contracts following this vision.
 | Mini-FC-02 | CRA CSV Export | `GET /cras/:id/export?export_format=csv` | ✅ DONE (26 tests) |
 | Mini-FC-02.2 | CRA PDF Export | - | 📋 BACKLOG (if needed) |
 
-### Current Metrics (Validated: 29 January 2026)
+### Current Metrics (Validated: 12 February 2026)
 
 | Tool | Result | Status |
 |------|--------|--------|
-| **RSpec** | 498 examples, 0 failures | ✅ |
-| **Rswag** | 128 examples, 0 failures | ✅ |
-| **RuboCop** | 147 files inspected, no offenses detected | ✅ |
+| **RSpec** | 491 examples, 0 failures | ✅ |
+| **Rswag** | 134 examples, 0 failures | ✅ |
+| **RuboCop** | 177 files inspected, no offenses detected | ✅ |
 | **Brakeman** | 0 Security Warnings (3 ignored) | ✅ |
 
 - **Architecture**: Domain-Driven / Relation-Driven (no FK between domains)
 
 ---
 
-*Last updated: 29 January 2026*
+*Last updated: 12 February 2026*

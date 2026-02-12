@@ -1,7 +1,7 @@
 # BRIEFING.md - Foresy API Project
 
 **For AI Context Understanding - Optimized for Fast Project Comprehension**  
-**Last Updated:** 7 janvier 2026 - FC-07 CRA 100% TERMINÉ (449 tests GREEN)
+**Last Updated:** 29 janvier 2026 - Validation DDD/RDD CRA (491 tests GREEN)
 
 ---
 
@@ -16,11 +16,11 @@
 - **Current Feature**: FC-07 CRA — **COMPLET** — 449 tests GREEN, taggé `fc-07-complete`
 - **Previous Feature**: FC-06 Missions (31 Dec 2025) - **PR #12 MERGED** (1 Jan 2026) ✅
 
-### Quality Metrics (Jan 2026) — Validé le 29 janvier 2026
+### Quality Metrics (Jan 2026) — Validé le 12 février 2026
 **🏆 Migration DDD/RDD Architecture Complétée (27-28 Janvier 2026)**
-- **RSpec Tests**: ✅ **498 examples, 0 failures** (validé 29 Jan 2026)
-- **Rswag Swagger**: ✅ **128 examples, 0 failures** — `swagger.yaml` généré
-- **RuboCop**: ✅ **147 files inspected, no offenses detected**
+- **RSpec Tests**: ✅ **491 examples, 0 failures** (validé 12 Fév 2026)
+- **Rswag Swagger**: ✅ **134 examples, 0 failures** — `swagger.yaml` généré
+- **RuboCop**: ✅ **177 files inspected, no offenses detected**
 - **Brakeman**: ✅ **0 Security Warnings** (3 ignored)
 - **Missions Tests (FC-06)**: ✅ 30/30 passing
 - **CRA Tests (FC-07)**: ✅ **TDD PLATINUM COMPLETE**
@@ -788,5 +788,5 @@ docker-compose run --rm web bash
 
 ---
 
-**Last Updated**: January 28, 2026 (soir)  
-**Status**: ✅ LIVE on Render, 449 tests passing (FC-07 PLATINUM), 0 Rubocop violations, CI/CD operational, CRA Domain PLATINUM Certified, DDD/RDD Migration COMPLETED
+**Last Updated**: February 12, 2026  
+**Status**: ✅ LIVE on Render, 491 tests passing (FC-07 PLATINUM), 0 Rubocop violations, CI/CD operational, CRA Domain PLATINUM Certified, DDD/RDD Migration COMPLETED
