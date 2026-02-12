@@ -40,6 +40,9 @@ gem 'tzinfo-data', platforms: %i[mswin jruby]
 # Security & Rate Limiting
 gem 'rack-attack', '~> 6.7.0'
 
+# Security fix for CVE-2026-25765 (SSRF in Faraday)
+gem 'faraday', '>= 2.14.1'
+
 # == Development & Test ==
 group :development, :test do
   gem 'brakeman'
