@@ -184,6 +184,30 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_02_171723) do
     t.index ["user_id"], name: "index_user_companies_on_user_id"
   end
 
+  create_table "user_cras", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "cra_id", null: false
+    t.datetime "created_at", null: false
+    t.string "role", default: "creator", null: false
+    t.bigint "user_id", null: false
+    t.index ["cra_id", "role"], name: "idx_user_cras_cra_creator", unique: true, where: "((role)::text = 'creator'::text)"
+    t.index ["cra_id"], name: "index_user_cras_on_cra_id"
+    t.index ["user_id", "cra_id"], name: "index_user_cras_on_user_id_and_cra_id"
+    t.index ["user_id"], name: "index_user_cras_on_user_id"
+    t.check_constraint "role::text = ANY (ARRAY['creator'::character varying, 'contributor'::character varying, 'reviewer'::character varying]::text[])", name: "user_cras_role_check"
+  end
+
+  create_table "user_missions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.uuid "mission_id", null: false
+    t.string "role", default: "creator", null: false
+    t.bigint "user_id", null: false
+    t.index ["mission_id", "role"], name: "idx_user_missions_mission_creator", unique: true, where: "((role)::text = 'creator'::text)"
+    t.index ["mission_id"], name: "index_user_missions_on_mission_id"
+    t.index ["user_id", "mission_id"], name: "index_user_missions_on_user_id_and_mission_id"
+    t.index ["user_id"], name: "index_user_missions_on_user_id"
+    t.check_constraint "role::text = ANY (ARRAY['creator'::character varying, 'contributor'::character varying, 'reviewer'::character varying]::text[])", name: "user_missions_role_check"
+  end
+
   create_table "users", force: :cascade do |t|
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
@@ -210,4 +234,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_02_171723) do
   add_foreign_key "sessions", "users"
   add_foreign_key "user_companies", "companies"
   add_foreign_key "user_companies", "users"
+  add_foreign_key "user_cras", "cras", name: "fk_user_cras_cra", on_delete: :cascade
+  add_foreign_key "user_cras", "users", name: "fk_user_cras_user", on_delete: :cascade
+  add_foreign_key "user_missions", "missions", name: "fk_user_missions_mission", on_delete: :cascade
+  add_foreign_key "user_missions", "users", name: "fk_user_missions_user", on_delete: :cascade
 end

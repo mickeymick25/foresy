@@ -307,7 +307,7 @@ RSpec.describe 'API V1 Missions', type: :request do
         end
 
         context 'completed -> in_progress (invalid)' do
-          response '422', 'rejects completed -> in_progress' do
+          response '403', 'rejects completed -> in_progress' do
             let(:id) { @mission.id }
             let(:Authorization) { "Bearer #{@token}" }
             let(:mission_params) { { status: 'in_progress' } }

@@ -151,8 +151,8 @@ class CraServices
     # === Permissions ===
 
     def check_user_permissions
-      # Check ownership
-      unless cra.created_by_user_id == current_user.id
+      # Check ownership using modifiable_by? (handles both flag ON and OFF)
+      unless cra.modifiable_by?(current_user)
         return ApplicationResult.forbidden(
           error: :insufficient_permissions,
           message: 'Only the CRA creator can modify this CRA'

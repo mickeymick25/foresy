@@ -84,19 +84,20 @@ class CraServices
     attr_reader :cra, :action, :current_user
 
     def handle_submit
-      # Permission validation
-      unless cra.created_by_user_id == current_user.id
-        return ApplicationResult.forbidden(
-          error: :insufficient_permissions,
-          message: 'Only the CRA creator can perform this action'
-        )
-      end
-
-      # Status validation - must be draft to submit
+      # Status validation first - must be draft to submit
       unless cra.draft?
         return ApplicationResult.conflict(
           error: :invalid_transition,
           message: "Cannot submit CRA from status #{cra.status}. Only draft CRAs can be submitted."
+        )
+      end
+
+      # Permission validation using modifiable_by? (handles both flag ON and OFF)
+      # Note: We check status first because modifiable_by? returns false for locked CRAs
+      unless cra.modifiable_by?(current_user)
+        return ApplicationResult.forbidden(
+          error: :insufficient_permissions,
+          message: 'Only the CRA creator can perform this action'
         )
       end
 
@@ -113,15 +114,7 @@ class CraServices
     end
 
     def handle_lock
-      # Permission validation
-      unless cra.created_by_user_id == current_user.id
-        return ApplicationResult.forbidden(
-          error: :insufficient_permissions,
-          message: 'Only the CRA creator can perform this action'
-        )
-      end
-
-      # Status validation - must be submitted to lock
+      # Status validation first - must be submitted to lock (and not already locked)
       unless cra.submitted?
         return ApplicationResult.conflict(
           error: :invalid_transition,
@@ -129,11 +122,19 @@ class CraServices
         )
       end
 
-      # Status validation - must not already be locked
       if cra.locked?
         return ApplicationResult.conflict(
           error: :cra_already_locked,
           message: 'CRA is already locked'
+        )
+      end
+
+      # Permission validation using modifiable_by? (handles both flag ON and OFF)
+      # Note: We check status first because modifiable_by? returns false for locked CRAs
+      unless cra.modifiable_by?(current_user)
+        return ApplicationResult.forbidden(
+          error: :insufficient_permissions,
+          message: 'Only the CRA creator can perform this action'
         )
       end
 

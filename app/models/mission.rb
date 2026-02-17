@@ -111,6 +111,10 @@ class Mission < ApplicationRecord
   # User association (for authorization) - FIXED: follows Rails naming conventions
   belongs_to :user, foreign_key: 'created_by_user_id'
 
+  # DDD Relation-Driven: Mission ↔ User via pivot table
+  has_many :user_missions, dependent: :destroy
+  has_many :users, through: :user_missions
+
   # Scopes
   scope :active, -> { where(deleted_at: nil) }
   scope :by_status, ->(status) { where(status: status) }
@@ -120,12 +124,36 @@ class Mission < ApplicationRecord
   scope :current, -> { where.not(status: 'completed') }
 
   # Scope for user accessibility (FC 06 access rules)
+  # Delegates to appropriate implementation based on FeatureFlags.relation_driven?
   scope :accessible_to, lambda { |user|
+    if defined?(FeatureFlags) && FeatureFlags.relation_driven?
+      relation_accessible_to(user)
+    else
+      legacy_accessible_to(user)
+    end
+  }
+
+  # Legacy implementation: uses company access (original accessible_to behavior)
+  def self.legacy_accessible_to(user)
     joins(:mission_companies)
       .joins('INNER JOIN user_companies ON user_companies.company_id = mission_companies.company_id')
       .where(user_companies: { user_id: user.id, role: %w[independent client] })
       .distinct
-  }
+  end
+
+  # Relation-driven implementation: uses user_missions pivot table
+  def self.relation_accessible_to(user)
+    via_user_missions = joins(:user_missions)
+                        .where(user_missions: { user_id: user.id })
+                        .select(:id)
+
+    via_companies = joins(:mission_companies)
+                    .joins('INNER JOIN user_companies ON user_companies.company_id = mission_companies.company_id')
+                    .where(user_companies: { user_id: user.id, role: %w[independent client] })
+                    .select(:id)
+
+    where(id: via_user_missions).or(where(id: via_companies)).distinct
+  end
 
   # Instance methods
   def active?
@@ -150,6 +178,26 @@ class Mission < ApplicationRecord
 
   def client?
     client_company.present?
+  end
+
+  # @return [User, nil] the creator of this mission
+  # Delegates to appropriate implementation based on FeatureFlags.relation_driven?
+  def creator
+    if defined?(FeatureFlags) && FeatureFlags.relation_driven?
+      relation_creator
+    else
+      legacy_creator
+    end
+  end
+
+  # @return [User, nil] the creator via legacy created_by_user_id column
+  def legacy_creator
+    @legacy_creator ||= User.find_by(id: created_by_user_id)
+  end
+
+  # @return [User, nil] the creator via pivot table
+  def relation_creator
+    @relation_creator ||= users.joins(:user_missions).where(user_missions: { role: 'creator' }).first
   end
 
   def display_name
@@ -181,10 +229,27 @@ class Mission < ApplicationRecord
 
   # Business rule: Check if mission can be modified by user
   # MVP: Only creator can modify
+  # Delegates to appropriate implementation based on FeatureFlags.relation_driven?
   def modifiable_by?(user)
     return false unless user.present?
 
+    if defined?(FeatureFlags) && FeatureFlags.relation_driven?
+      relation_modifiable_by?(user)
+    else
+      legacy_modifiable_by?(user)
+    end
+  end
+
+  # Legacy implementation: checks created_by_user_id column
+  def legacy_modifiable_by?(user)
+    return false if completed?
     created_by_user_id == user.id
+  end
+
+  # Relation-driven implementation: checks user_missions pivot table for 'creator' role
+  def relation_modifiable_by?(user)
+    return false if completed?
+    user_missions.exists?(role: 'creator', user_id: user.id)
   end
 
   # Business rule: Check if status transition is valid

@@ -220,6 +220,11 @@ class CraServices
       ActiveRecord::Base.transaction do
         cra.save!
         cra.reload
+
+        # Relation-driven: create UserCra pivot record when flag is ON
+        if FeatureFlags.relation_driven?
+          create_user_cra_relation!(cra, current_user)
+        end
       rescue ActiveRecord::RecordInvalid => e
         # Handle duplicate CRA error with multiple detection patterns
         base_errors = cra.errors[:base] || []
@@ -256,6 +261,31 @@ class CraServices
         error: :save_failed,
         message: "Failed to save CRA: #{e.message}"
       )
+    end
+
+    # === Relation-Driven ===
+
+    # Creates UserCra pivot record for relation-driven architecture
+    # @param cra [Cra] the created CRA
+    # @param user [User] the creator user
+    # @raise [ActiveRecord::RecordInvalid] if UserCra creation fails
+    def create_user_cra_relation!(cra, user)
+      user_cra = UserCra.new(
+        user_id: user.id,
+        cra_id: cra.id,
+        role: UserCra::DEFAULT_ROLE # 'creator'
+      )
+
+      unless user_cra.valid?
+        Rails.logger.error "[DEBUG] CraServices::Create UserCra validation failed: #{user_cra.errors.full_messages}"
+        raise ActiveRecord::RecordInvalid.new(user_cra)
+      end
+
+      user_cra.save!
+      Rails.logger.info "[DEBUG] CraServices::Create created UserCra: user_id=#{user.id}, cra_id=#{cra.id}, role=creator"
+    rescue ActiveRecord::RecordInvalid => e
+      Rails.logger.error "[DEBUG] CraServices::Create failed to create UserCra: #{e.message}"
+      raise
     end
   end
 end

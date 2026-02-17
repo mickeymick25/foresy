@@ -213,6 +213,8 @@ GEM
     ostruct (0.6.3)
     pagy (9.4.0)
     parallel (1.27.0)
+    parallel_tests (5.6.0)
+      parallel
     parser (3.3.10.0)
       ast (~> 2.4.1)
       racc
@@ -421,6 +423,7 @@ DEPENDENCIES
   omniauth-google-oauth2
   ostruct
   pagy (~> 9.0)
+  parallel_tests (~> 5.0)
   pg (~> 1.1)
   puma (>= 5.0)
   rack-attack (~> 6.7.0)

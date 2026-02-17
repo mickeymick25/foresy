@@ -92,7 +92,8 @@ class CraServices
       return false unless @cra.present?
       return false unless @current_user.present?
 
-      @cra.created_by_user_id == @current_user.id
+      # Use modifiable_by? to handle both flag ON and OFF paths
+      @cra.modifiable_by?(@current_user)
     end
 
     def cra_submitted_or_locked?

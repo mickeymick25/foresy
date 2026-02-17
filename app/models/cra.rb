@@ -105,6 +105,40 @@ class Cra < ApplicationRecord
   # Creator association (for authorization) - FIXED: follows Rails naming conventions
   belongs_to :user, class_name: 'User', foreign_key: 'created_by_user_id', optional: true
 
+  # DDD Relation-Driven: CRA ↔ User via pivot table
+  has_many :user_cras, dependent: :destroy
+  has_many :users, through: :user_cras
+
+  # Scopes for relation-driven access
+  scope :with_users, -> { includes(:users) }
+  scope :created_by_user, ->(user_id) { joins(:user_cras).where(user_cras: { user_id: user_id, role: 'creator' }) }
+
+  # Instance methods for relation-driven access
+  # @return [User, nil] the creator of this CRA
+  # Delegates to appropriate implementation based on FeatureFlags.relation_driven?
+  def creator
+    if defined?(FeatureFlags) && FeatureFlags.relation_driven?
+      relation_creator
+    else
+      legacy_creator
+    end
+  end
+
+  # @return [User, nil] the creator via legacy created_by_user_id column
+  def legacy_creator
+    @legacy_creator ||= User.find_by(id: created_by_user_id)
+  end
+
+  # @return [User, nil] the creator via pivot table (preferred method after R02)
+  def relation_creator
+    @relation_creator ||= users.joins(:user_cras).where(user_cras: { role: 'creator' }).first
+  end
+
+  # @return [Array<User>] all users associated with this CRA
+  def relation_users
+    users
+  end
+
   # Scopes
   scope :active, -> { where(deleted_at: nil) }
   scope :by_status, ->(status) { where(status: status) }
@@ -117,11 +151,20 @@ class Cra < ApplicationRecord
   scope :locked, -> { where(status: 'locked') }
 
   # Scope for user accessibility (FC 06 access rules via missions + creator access)
+  # Delegates to appropriate implementation based on FeatureFlags.relation_driven?
+  scope :accessible_to, lambda { |user|
+    if defined?(FeatureFlags) && FeatureFlags.relation_driven?
+      relation_accessible_to(user)
+    else
+      legacy_accessible_to(user)
+    end
+  }
+
+  # Legacy implementation: uses created_by_user_id column
   # A CRA is accessible if:
   # 1. The user created it (created_by_user_id)
   # 2. OR the user has access to missions associated with the CRA
-  scope :accessible_to, lambda { |user|
-    # Get IDs of CRAs accessible via missions
+  def self.legacy_accessible_to(user)
     via_missions_ids = joins(:cra_missions)
                        .joins('INNER JOIN missions ON missions.id = cra_missions.mission_id')
                        .joins('INNER JOIN mission_companies ON mission_companies.mission_id = missions.id')
@@ -129,9 +172,27 @@ class Cra < ApplicationRecord
                        .where(user_companies: { user_id: user.id, role: %w[independent client] })
                        .select(:id)
 
-    # CRAs created by user OR accessible via missions
     where(created_by_user_id: user.id).or(where(id: via_missions_ids))
-  }
+  end
+
+  # Relation-driven implementation: uses user_cras pivot table
+  # A CRA is accessible if:
+  # 1. The user has a 'creator' role in user_cras
+  # 2. OR the user has access to missions associated with the CRA
+  def self.relation_accessible_to(user)
+    via_user_cras = joins(:user_cras)
+                    .where(user_cras: { user_id: user.id })
+                    .select(:id)
+
+    via_missions_ids = joins(:cra_missions)
+                       .joins('INNER JOIN missions ON missions.id = cra_missions.mission_id')
+                       .joins('INNER JOIN mission_companies ON mission_companies.mission_id = missions.id')
+                       .joins('INNER JOIN user_companies ON user_companies.company_id = mission_companies.company_id')
+                       .where(user_companies: { user_id: user.id, role: %w[independent client] })
+                       .select(:id)
+
+    where(id: via_user_cras).or(where(id: via_missions_ids))
+  end
 
   # Instance methods
   def active?
@@ -159,11 +220,28 @@ class Cra < ApplicationRecord
   end
 
   # Business rule: Check if CRA can be modified by user
+  # Delegates to appropriate implementation based on FeatureFlags.relation_driven?
   def modifiable_by?(user)
     return false unless user.present?
     return false if locked?
 
+    if defined?(FeatureFlags) && FeatureFlags.relation_driven?
+      relation_modifiable_by?(user)
+    else
+      legacy_modifiable_by?(user)
+    end
+  end
+
+  # Legacy implementation: checks created_by_user_id column
+  def legacy_modifiable_by?(user)
+    return false if locked?
     created_by_user_id == user.id
+  end
+
+  # Relation-driven implementation: checks user_cras pivot table for 'creator' role
+  def relation_modifiable_by?(user)
+    return false if locked?
+    user_cras.exists?(role: 'creator', user_id: user.id)
   end
 
   # Business rule: Check if status transition is valid

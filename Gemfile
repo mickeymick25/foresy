@@ -71,6 +71,7 @@ end
 group :test do
   gem 'capybara'
   gem 'faker'
+  gem 'parallel_tests', '~> 5.0'
   gem 'rspec_junit_formatter'
   gem 'selenium-webdriver'
   gem 'shoulda-matchers', '~> 5.0'

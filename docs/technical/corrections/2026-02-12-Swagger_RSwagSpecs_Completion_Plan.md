@@ -110,6 +110,361 @@ Security & Schema reference for consistent spec creation
 
 ---
 
+## 🎯 Phase 1.6: Schema Strict Validation (PLATINUM ABSOLU)
+
+> **⚠️ CRITICAL FOR PLATINUM — Contractual Strictness**
+>
+> To achieve Platinum absolute level, schemas MUST be strictly enforced.
+
+### Objectives
+- Ensure every schema has explicit `required` fields
+- Prevent undocumented fields with `additionalProperties: false`
+- Validate response conformity with serializers
+
+### Tasks
+1. **Required Fields Declaration**
+   ```yaml
+   # INCORRECT (loose schema)
+   properties:
+     id:
+       type: integer
+     name:
+       type: string
+   
+   # CORRECT (Platinum strict)
+   required:
+     - id
+     - name
+   properties:
+     id:
+       type: integer
+     name:
+       type: string
+   ```
+
+2. **Additional Properties Guard**
+   ```yaml
+   # Prevents undocumented fields in API responses
+   additionalProperties: false
+   ```
+
+3. **Schema ↔ Serializer Coherence Check**
+   ```ruby
+   # lib/tasks/swagger/schema_coherence.rake
+   namespace :swagger do
+     desc "Validate schema strictness (Platinum check)"
+     task validate_schemas: :environment do
+       swagger_path = Rails.root.join('swagger', 'v1', 'swagger.yaml')
+       spec = YAML.load_file(swagger_path)
+       
+       errors = []
+       
+       spec['components']['schemas'].each do |name, schema|
+         # Check required fields declared
+         unless schema['required'].present?
+           errors << "Schema '#{name}' has no required fields declared"
+         end
+         
+         # Check additionalProperties: false
+         if schema['properties'].present? && schema['additionalProperties'] != false
+           errors << "Schema '#{name}' should have additionalProperties: false"
+         end
+         
+         # Verify required fields exist in properties
+         (schema['required'] || []).each do |field|
+           unless schema['properties'].key?(field)
+             errors << "Schema '#{name}': required field '#{field}' not in properties"
+           end
+         end
+       end
+       
+       if errors.any?
+         puts "🚨 Schema coherence errors:"
+         errors.each { |e| puts "  - #{e}" }
+         exit 1
+       else
+         puts "✅ All schemas are Platinum-compliant"
+       end
+     end
+   end
+   ```
+
+### Deliverable
+- `additionalProperties: false` on all response schemas
+- Explicit `required` array on all schemas
+- CI task: `rake swagger:validate_schemas`
+
+---
+
+## 🎯 Phase 1.7: Routes ↔ Swagger Exhaustiveness Audit
+
+> **⚠️ CRITICAL FOR PLATINUM — No Missing Endpoints**
+
+### Objectives
+- Generate structured diff between routes.rb and swagger.yaml
+- Exclude internal/non-API routes explicitly
+- Fail CI on mismatch
+
+### Tasks
+1. **Exclusion List**
+   ```ruby
+   # config/routes_exclusions.yml
+   internal_routes:
+     - /rails/** # Rails internals
+     - /active_storage/** # Active Storage
+     - /webhooks/** # Webhooks (if any)
+     - /health # Health checks (documented separately)
+   ```
+
+2. **Exhaustiveness Audit Script**
+   ```ruby
+   # lib/tasks/swagger/exhaustiveness_audit.rake
+   namespace :swagger do
+     desc "Audit routes vs swagger coverage (Platinum check)"
+     task audit_coverage: :environment do
+       swagger_path = Rails.root.join('swagger', 'v1', 'swagger.yaml')
+       swagger = YAML.load_file(swagger_path)
+       
+       # Extract documented paths from swagger
+       documented_paths = swagger['paths'].keys.map do |path|
+         path.gsub('/{id}', '/:id')
+       end.to_set
+       
+       # Extract API routes from routes.rb
+       api_routes = Rails.application.routes.routes
+         .reject { |r| r.path.start_with?('/rails/') }
+         .reject { |r| r.path.start_with?('/active_storage/') }
+         .reject { |r| r.internal } # Marked as internal
+         .map { |r| r.path.gsub(/\(.:format\)/, '').gsub('/{id}', '/:id') }
+         .to_set
+       
+       missing_in_swagger = api_routes - documented_paths
+       undocumented_routes = documented_paths - api_routes
+       
+       if missing_in_swagger.any?
+         puts "🚨 Routes MISSING from swagger.yaml:"
+         missing_in_swagger.sort.each { |p| puts "  - #{p}" }
+       end
+       
+       if undocumented_routes.any?
+         puts "⚠️  Swagger endpoints with NO route:"
+         undocumented_routes.sort.each { |p| puts "  - #{p}" }
+       end
+       
+       if missing_in_swagger.any?
+         exit 1
+       else
+         puts "✅ All API routes are documented in swagger"
+       end
+     end
+   end
+   ```
+
+3. **CI Integration**
+   ```yaml
+   # .github/workflows/swagger-exhaustiveness.yml
+   name: Swagger Exhaustiveness Audit
+   
+   on:
+     pull_request:
+       paths:
+         - 'config/routes.rb'
+         - 'swagger/v1/swagger.yaml'
+   
+   jobs:
+     audit:
+       runs-on: ubuntu-latest
+       steps:
+         - uses: actions/checkout@v4
+         - name: Setup Ruby
+           uses: ruby/setup-ruby@v1
+         - name: Run Audit
+           run: bundle exec rake swagger:audit_coverage
+   ```
+
+### Deliverable
+- Routes exclusion list (internal routes)
+- Audit script: `rake swagger:audit_coverage`
+- CI workflow for exhaustiveness
+
+---
+
+## 🎯 Phase 1.8: API Versioning Policy
+
+> **⚠️ REQUIRED FOR PLATINUM ENTERPRISE — API Lifecycle Management**
+
+### Objectives
+- Formalize versioning strategy
+- Document deprecation rules
+- Define breaking change policy
+
+### Policy Document
+
+```markdown
+## API Versioning Policy (Platinum)
+
+### Version Format
+- Format: `v{major}` (e.g., `v1`, `v2`)
+- Breaking changes increment major version
+- Additive changes within same version
+
+### Deprecation Rules
+
+1. **Announcement Period**
+   - Deprecated endpoint must be documented as `deprecated: true`
+   - Warning header in response: `X-API-Deprecated: true`
+   - Sunset date must be communicated in `description`
+
+2. **Deprecation Timeline**
+   ```yaml
+   /api/v1/cras:
+     get:
+       deprecated: true
+       description: |
+         ⚠️ DEPRECATED since 2026-03-01
+         Will be removed on 2026-06-01
+         Use `/api/v2/cras` instead.
+       headers:
+         X-API-Deprecated:
+           schema:
+             type: boolean
+           description: "Indicates if endpoint is deprecated"
+   ```
+
+3. **Breaking Change Definition**
+   - Removal or renaming of any field
+   - Change to field type
+   - Change to response structure
+   - Change to authentication requirements
+   - Addition of required parameters
+
+4. **Backward-Compatible Changes (Safe)**
+   - New optional parameters
+   - New fields in responses
+   - New endpoints
+   - Relaxation of validation rules
+
+### Version Lifecycle
+```
+┌─────────┐   ┌─────────────┐   ┌──────────────┐   ┌───────────┐
+│ v1      │ → │ v1 (stable) │ → │ v1 (legacy)  │ → │ v1 (gone) │
+│ Active  │   │ Deprecated  │   │ Sunset       │   │ Removed   │
+│ 2025    │   │ 2026-Q1     │   │ 2026-Q3      │   │ 2027-Q1   │
+└─────────┘   └─────────────┘   └──────────────┘   └───────────┘
+```
+
+### Breaking Change Process
+1. Create new version (v2)
+2. Document breaking changes in release notes
+3. Send deprecation notice to consumers
+4. Maintain old version for transition period
+5. Remove old version after sunset
+
+### Deliverable
+- Versioning policy documentation
+- Deprecation header: `X-API-Deprecated`
+- Sunset date format in endpoint descriptions
+
+---
+
+## 🎯 Phase 1.9: Negative Tests Structure (Platinum)
+
+> **⚠️ REQUIRED FOR PLATINUM ENTERPRISE — Robustness Validation**
+
+### Objectives
+- Test malformed payloads
+- Test missing headers
+- Test invalid content-type
+- Validate error responses match schema
+
+### Test Pattern
+
+```ruby
+# spec/requests/api/v1/cras_negative_spec.rb
+
+RSpec.describe 'API V1 CRAs - Negative Tests' do
+  let(:user) { create(:user) }
+  let(:headers) { auth_headers(user) }
+  
+  describe 'Malformed JSON' do
+    it 'returns 400 for invalid JSON body' do
+      patch "/api/v1/cras/#{cra.id}", 
+        headers: headers.merge('Content-Type' => 'application/json'),
+        params: '{ invalid json }'
+      
+      expect(response).to have_http_status(:bad_request)
+      expect(response.body).to match_json_schema('error')
+    end
+  end
+  
+  describe 'Missing Content-Type' do
+    it 'returns 415 for missing Content-Type' do
+      post "/api/v1/cras",
+        headers: headers.merge('Content-Type' => nil),
+        params: { cra: attributes }.to_json
+      
+      expect(response).to have_http_status(:unsupported_media_type)
+    end
+  end
+  
+  describe 'Invalid Content-Type' do
+    it 'returns 415 for non-JSON Content-Type' do
+      post "/api/v1/cras",
+        headers: headers.merge('Content-Type' => 'text/plain'),
+        params: "not json"
+      
+      expect(response).to have_http_status(:unsupported_media_type)
+    end
+  end
+  
+  describe 'Unexpected fields' do
+    context 'additionalProperties: false validation' do
+      it 'returns 422 for unexpected fields' do
+        patch "/api/v1/cras/#{cra.id}",
+          headers: headers,
+          params: {
+            cra: {
+              status: 'valid',
+              unexpected_field: 'value'  # Should be rejected
+            }
+          }.to_json
+        
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+    end
+  end
+  
+  describe 'Missing authentication' do
+    it 'returns 401 for missing Bearer token' do
+      get "/api/v1/cras"
+      expect(response).to have_http_status(:unauthorized)
+    end
+  end
+  
+  describe 'Invalid token format' do
+    it 'returns 401 for malformed Bearer token' do
+      get "/api/v1/cras",
+        headers: { 'Authorization' => 'InvalidFormat token123' }
+      expect(response).to have_http_status(:unauthorized)
+    end
+  end
+  
+  describe 'Non-existent resource ID format' do
+    it 'returns 404 for invalid UUID format' do
+      get "/api/v1/cras/invalid-uuid-format"
+      expect(response).to have_http_status(:not_found)
+    end
+  end
+end
+```
+
+### Deliverable
+- Negative test specs for each endpoint
+- Coverage: malformed JSON, missing headers, invalid content-type
+- Validation of error schema conformity
+
+---
+
 ## 🎯 Phase 2: Priority 1 - Auth Revocation Endpoints
 
 ### Scope
@@ -612,6 +967,10 @@ end
 ### Technical Criteria
 - [ ] All Phase 1 tasks completed
 - [ ] Phase 1.5 completed (security & schema validation)
+- [ ] Phase 1.6 completed (schema strict validation - required + additionalProperties)
+- [ ] Phase 1.7 completed (routes ↔ swagger exhaustiveness audit)
+- [ ] Phase 1.8 completed (API versioning policy documented)
+- [ ] Phase 1.9 completed (negative tests structure)
 - [ ] Phase 2 specs created (2 endpoints)
 - [ ] Phase 3 specs created (8 endpoints)
 - [ ] Phase 4 specs created (5 endpoints)
@@ -619,11 +978,17 @@ end
 - [ ] All RSwag tests pass (0 failures)
 - [ ] swagger/v1/swagger.yaml contains all 27 endpoints
 - [ ] **Anti-regression:** No endpoint in `config/routes.rb` is missing from swagger
+- [ ] **Platinum Check:** `rake swagger:validate_schemas` passes
+- [ ] **Platinum Check:** `rake swagger:audit_coverage` passes
 
 ### Platinum+ Governance Criteria
 - [ ] CI check enforces swagger consistency on every commit
 - [ ] Error schema standardized across all 401/404/422/409 responses
 - [ ] Export endpoint declares `produces 'text/csv'`
+- [ ] **Platinum Absolute:** All schemas have `required` and `additionalProperties: false`
+- [ ] **Platinum Absolute:** Routes ↔ Swagger exhaustiveness CI passes
+- [ ] **Platinum Absolute:** Deprecation headers documented (X-API-Deprecated)
+- [ ] **Platinum Absolute:** Negative test coverage implemented
 
 ### Quality Criteria
 - [ ] Code follows existing patterns

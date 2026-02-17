@@ -39,6 +39,30 @@ class User < ApplicationRecord
   has_many :client_companies, -> { where(user_companies: { role: 'client' }) },
            through: :user_companies, source: :company
 
+  # Mission associations via relation table (Domain-Driven Architecture)
+  has_many :user_missions, dependent: :destroy
+  has_many :missions, through: :user_missions
+
+  # Missions where user is creator
+  has_many :created_user_missions,
+           -> { where(role: 'creator') },
+           class_name: 'UserMission'
+  has_many :created_missions,
+           through: :created_user_missions,
+           source: :mission
+
+  # CRA associations via relation table (Domain-Driven Architecture)
+  has_many :user_cras, dependent: :destroy
+  has_many :cras, through: :user_cras
+
+  # CRAs where user is creator
+  has_many :created_user_cras,
+           -> { where(role: 'creator') },
+           class_name: 'UserCra'
+  has_many :created_cras,
+           through: :created_user_cras,
+           source: :cra
+
   # Email validation is conditional for OAuth support
   # For traditional users (no provider): global email uniqueness (case-insensitive)
   # For OAuth users (with provider): email uniqueness per provider (handled by OAuth validation below)

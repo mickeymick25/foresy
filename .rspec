@@ -1,0 +1,4 @@
+``` Foresy/.rspec
+--require ./config/environment
+--format progress
+--color

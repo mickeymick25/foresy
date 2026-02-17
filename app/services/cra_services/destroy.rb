@@ -119,8 +119,9 @@ class CraServices
     def user_has_destroy_permission?
       return false unless current_user.present?
 
-      # User can destroy if they are the creator or have admin/manager role
-      cra.created_by_user_id == current_user.id ||
+      # User can destroy if they are the creator (via modifiable_by? - handles flag ON/OFF)
+      # or have admin/manager role
+      cra.modifiable_by?(current_user) ||
         current_user.user_companies.joins(:company).where(role: %w[admin manager]).exists?
     end
 
