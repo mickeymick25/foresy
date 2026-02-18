@@ -154,49 +154,48 @@ RSpec.describe UserMission, type: :model do
 
   describe 'Database Constraints' do
     let(:user) { create(:user) }
-    let(:mission) { create(:mission, created_by_user_id: user.id) }
+    let(:mission) { create(:mission, :with_creator, creator: user) }
 
     describe 'Partial Unique Index' do
       context 'when role = creator' do
         it 'prevents multiple creators for the same mission' do
-          create(:user_mission, user: user, mission: mission, role: 'creator')
-          expect {
-            create(:user_mission, user_id: user.id + 1, mission: mission, role: 'creator')
-          }.to raise_error(ActiveRecord::RecordNotUnique)
+          user2 = create(:user)
+          expect do
+            create(:user_mission, user: user2, mission: mission, role: 'creator')
+          end.to raise_error(ActiveRecord::RecordNotUnique)
         end
 
         it 'allows one creator per mission' do
-          expect {
-            create(:user_mission, user: user, mission: mission, role: 'creator')
-          }.not_to raise_error
+          # Factory already created creator user_mission
+          expect(mission.user_missions.creators.count).to eq(1)
         end
       end
 
       context 'when role != creator' do
         it 'allows multiple contributors for the same mission' do
           user2 = create(:user)
-          create(:user_mission, user: user, mission: mission, role: 'contributor')
-          expect {
+          expect do
+            create(:user_mission, user: user, mission: mission, role: 'contributor')
             create(:user_mission, user: user2, mission: mission, role: 'contributor')
-          }.not_to raise_error
+          end.not_to raise_error
         end
 
         it 'allows same user with different roles' do
-          create(:user_mission, user: user, mission: mission, role: 'creator')
-          expect {
+          # Factory already created creator user_mission
+          expect do
             create(:user_mission, user: user, mission: mission, role: 'contributor')
-          }.not_to raise_error
+          end.not_to raise_error
         end
       end
     end
 
     describe 'CHECK Constraint on role' do
       it 'rejects invalid role values at database level' do
-        expect {
-          UserMission.connection.execute(
-            "INSERT INTO user_missions (user_id, mission_id, role, created_at) VALUES (#{user.id}, '#{mission.id}', 'invalid_role', NOW())"
-          )
-        }.to raise_error(ActiveRecord::StatementInvalid)
+        expect do
+          sql = 'INSERT INTO user_missions (user_id, mission_id, role, created_at) '
+          sql += "VALUES (#{user.id}, '#{mission.id}', 'invalid_role', NOW())"
+          UserMission.connection.execute(sql)
+        end.to raise_error(ActiveRecord::StatementInvalid)
       end
     end
   end
@@ -206,7 +205,7 @@ RSpec.describe UserMission, type: :model do
     let(:mission) { create(:mission, created_by_user_id: user.id) }
 
     it 'is deleted when mission is HARD deleted' do
-      user_mission = create(:user_mission, user: user, mission: mission, role: 'creator')
+      create(:user_mission, user: user, mission: mission, role: 'creator')
       mission_id = mission.id
 
       # Hard delete the mission
@@ -217,7 +216,7 @@ RSpec.describe UserMission, type: :model do
     end
 
     it 'is deleted when user is deleted' do
-      user_mission = create(:user_mission, user: user, mission: mission, role: 'creator')
+      create(:user_mission, user: user, mission: mission, role: 'creator')
       user_id = user.id
 
       # Delete the user
@@ -242,12 +241,6 @@ RSpec.describe UserMission, type: :model do
         # user_mission should still exist (mission not hard-deleted)
         expect(UserMission.where(id: user_mission.id)).to exist
       end
-    end
-  end
-
-  describe 'Feature Flag Integration' do
-    it 'is accessible via FeatureFlags module' do
-      expect(defined?(FeatureFlags)).to be_present
     end
   end
 end

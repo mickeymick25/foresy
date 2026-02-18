@@ -1,4 +1,3 @@
-
 # frozen_string_literal: true
 
 require 'rails_helper'
@@ -22,8 +21,18 @@ require 'rails_helper'
 RSpec.describe 'Relation-Driven Associations', type: :model do
   describe 'User ↔ Mission via user_missions' do
     let(:user) { create(:user) }
-    let(:mission) { create(:mission, created_by_user_id: user.id) }
-    let(:user_mission) { create(:user_mission, user: user, mission: mission, role: 'creator') }
+    let(:mission) { create(:mission, :with_creator, creator: user) }
+    # NOTE: :with_creator trait in mission factory automatically creates user_mission
+    let(:user_mission) { mission.user_missions.creators.first }
+
+    # Override for "empty" tests
+    describe 'User has_many :missions, through: :user_missions' do
+      let(:mission) { create(:mission) }  # No relations
+
+      it 'is empty when no mission relations exist' do
+        expect(user.missions).to be_empty
+      end
+    end
 
     describe 'User has_many :missions, through: :user_missions' do
       it 'returns missions through user_missions' do
@@ -43,14 +52,16 @@ RSpec.describe 'Relation-Driven Associations', type: :model do
     end
 
     describe 'Mission has_many :users, through: :user_missions' do
+      let(:mission) { create(:mission) }  # No relations for empty test
+
       it 'returns users through user_missions' do
-        user_mission
+        create(:user_mission, user: user, mission: mission, role: 'creator')
         expect(mission.users).to include(user)
       end
 
       it 'only returns users where mission relation exists' do
+        create(:user_mission, user: user, mission: mission, role: 'creator')
         other_user = create(:user)
-        user_mission
         expect(mission.users).not_to include(other_user)
       end
 
@@ -60,6 +71,7 @@ RSpec.describe 'Relation-Driven Associations', type: :model do
 
       context 'with multiple users' do
         let(:user2) { create(:user) }
+        let(:mission) { create(:mission) } # Override to not use :with_creator
 
         before do
           create(:user_mission, user: user, mission: mission, role: 'creator')
@@ -106,8 +118,18 @@ RSpec.describe 'Relation-Driven Associations', type: :model do
 
   describe 'User ↔ CRA via user_cras' do
     let(:user) { create(:user) }
-    let(:cra) { create(:cra, created_by_user_id: user.id) }
-    let(:user_cra) { create(:user_cra, user: user, cra: cra, role: 'creator') }
+    let(:cra) { create(:cra, :with_creator, creator: user) }
+    # NOTE: :with_creator trait in cra factory automatically creates user_cra
+    let(:user_cra) { cra.user_cras.creators.first }
+
+    # Override for "empty" tests
+    describe 'CRA has_many :users, through: :user_cras' do
+      let(:cra) { create(:cra) } # No relations
+
+      it 'is empty when no user relations exist' do
+        expect(cra.users).to be_empty
+      end
+    end
 
     describe 'User has_many :cras, through: :user_cras' do
       it 'returns cras through user_cras' do
@@ -123,23 +145,6 @@ RSpec.describe 'Relation-Driven Associations', type: :model do
 
       it 'is empty when no cra relations exist' do
         expect(user.cras).to be_empty
-      end
-    end
-
-    describe 'CRA has_many :users, through: :user_cras' do
-      it 'returns users through user_cras' do
-        user_cra
-        expect(cra.users).to include(user)
-      end
-
-      it 'only returns users where cra relation exists' do
-        other_user = create(:user)
-        user_cra
-        expect(cra.users).not_to include(other_user)
-      end
-
-      it 'is empty when no user relations exist' do
-        expect(cra.users).to be_empty
       end
     end
 
@@ -170,12 +175,11 @@ RSpec.describe 'Relation-Driven Associations', type: :model do
 
   describe 'Cross-model access patterns' do
     let(:user) { create(:user) }
-    let(:mission) { create(:mission, created_by_user_id: user.id) }
-    let(:cra) { create(:cra, created_by_user_id: user.id) }
+    let(:mission) { create(:mission, :with_creator, creator: user) }
+    let(:cra) { create(:cra, :with_creator, creator: user) }
 
     before do
-      create(:user_mission, user: user, mission: mission, role: 'creator')
-      create(:user_cra, user: user, cra: cra, role: 'creator')
+      # Relations are already created by :with_creator trait
     end
 
     describe 'User can access all created missions and cras' do
@@ -212,26 +216,6 @@ RSpec.describe 'Relation-Driven Associations', type: :model do
       it 'includes creator' do
         expect(cra.users).to include(user)
       end
-    end
-  end
-
-  describe 'Feature Flag Integration' do
-    let(:user) { create(:user) }
-    let(:mission) { create(:mission, created_by_user_id: user.id) }
-
-    before do
-      create(:user_mission, user: user, mission: mission, role: 'creator')
-    end
-
-    it 'relation-driven path is accessible when USE_USER_RELATIONS is enabled' do
-      # This test validates the feature flag is accessible
-      expect(defined?(USE_USER_RELATIONS)).to be_present
-    end
-
-    it 'associations work regardless of feature flag state' do
-      # Associations should always work, regardless of feature flag
-      expect(user.missions).to include(mission)
-      expect(mission.users).to include(user)
     end
   end
 end

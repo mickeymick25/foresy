@@ -8,7 +8,7 @@ RSpec.describe CraEntry, type: :model do
     let(:mission) { create(:mission) }
 
     context 'when CRA is draft' do
-      let(:cra) { create(:cra, status: :draft, user: user) }
+      let(:cra) { create(:cra, :with_creator, creator: user, status: :draft) }
 
       it 'allows creation of entry via service' do
         # DDD: Use service for creation
@@ -52,7 +52,7 @@ RSpec.describe CraEntry, type: :model do
     end
 
     context 'when CRA is submitted' do
-      let(:cra) { create(:cra, status: :submitted, user: user) }
+      let(:cra) { create(:cra, :with_creator, creator: user, status: :submitted) }
 
       it 'forbids creation of entry via service' do
         # DDD: Use service for creation - should fail for submitted CRA
@@ -74,7 +74,7 @@ RSpec.describe CraEntry, type: :model do
     end
 
     context 'when CRA is locked' do
-      let(:cra) { create(:cra, status: :locked, user: user) }
+      let(:cra) { create(:cra, :with_creator, creator: user, status: :locked) }
       let(:entry) { create(:cra_entry, cra: cra, mission: mission) }
 
       it 'forbids update of entry via service' do

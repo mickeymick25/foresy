@@ -5,7 +5,7 @@
 # Pure domain model representing a monthly activity report for independents.
 # Follows Domain-Driven / Relation-Driven Architecture principles:
 # - NO business foreign keys to Mission or Company
-# - ALL relationships via explicit relation tables (CRAMission, CRAEntryCRA)
+# - ALL relationships via explicit relation tables (CRAMission, CRAEntryCRA, UserCra)
 # - Pure domain entity with complete business logic
 #
 # Business Context:
@@ -27,6 +27,8 @@
 # - has_many :missions, through: :cra_missions
 # - has_many :cra_entries (via cra_entry_cras relation table)
 # - has_many :cra_entry_cras (relation table)
+# - has_many :user_cras (relation table for creator)
+# - has_many :users, through: :user_cras
 #
 # Validations:
 # - month: required, 1-12
@@ -34,19 +36,18 @@
 # - status: required enum (draft | submitted | locked)
 # - description: optional, length max 2000
 # - currency: required, ISO 4217 format, defaults to EUR
-# - created_by_user_id: required, audit-only
-# - uniqueness: (created_by_user_id, month, year) where deleted_at IS NULL
+# - uniqueness: (user_id via user_cras, month, year) where deleted_at IS NULL
 #
 # Scopes:
 # - .active: returns non-deleted CRAs
 # - .by_status: filter by CRA status
 # - .by_month: filter by month
 # - .by_year: filter by year
-# - .by_user: filter by creator user
+# - .by_user: filter by creator user (via user_cras)
 # - .draft: CRAs in draft status
 # - .submitted: CRAs in submitted status
 # - .locked: CRAs in locked status
-# - .accessible_to: CRAs accessible to a user (via their companies and missions)
+# - .accessible_to: CRAs accessible to a user (via user_cras or missions)
 
 # NOTE: GitLedgerError is now handled via Rails Zeitwerk autoloading
 # See app/exceptions/application_error.rb for the definition
@@ -83,12 +84,11 @@ class Cra < ApplicationRecord
   validates :description, length: { maximum: 2000 }, allow_blank: true
   validates :currency, presence: true,
                        format: { with: /\A[A-Z]{3}\z/, message: 'must be a valid ISO 4217 currency code' }
-  validates :created_by_user_id, presence: true
 
   # Financial validations
   validate :validate_financial_fields
 
-  # Uniqueness validation (user, month, year)
+  # Uniqueness validation (user via user_cras, month, year) - DDD Relation-Driven
   validate :validate_uniqueness
 
   # Callbacks
@@ -102,10 +102,7 @@ class Cra < ApplicationRecord
   has_many :cra_entry_cras, dependent: :destroy
   has_many :cra_entries, through: :cra_entry_cras
 
-  # Creator association (for authorization) - FIXED: follows Rails naming conventions
-  belongs_to :user, class_name: 'User', foreign_key: 'created_by_user_id', optional: true
-
-  # DDD Relation-Driven: CRA ↔ User via pivot table
+  # DDD Relation-Driven: CRA ↔ User via pivot table (ONLY path)
   has_many :user_cras, dependent: :destroy
   has_many :users, through: :user_cras
 
@@ -114,22 +111,12 @@ class Cra < ApplicationRecord
   scope :created_by_user, ->(user_id) { joins(:user_cras).where(user_cras: { user_id: user_id, role: 'creator' }) }
 
   # Instance methods for relation-driven access
-  # @return [User, nil] the creator of this CRA
-  # Delegates to appropriate implementation based on FeatureFlags.relation_driven?
+  # @return [User, nil] the creator of this CRA via user_cras pivot table
   def creator
-    if defined?(FeatureFlags) && FeatureFlags.relation_driven?
-      relation_creator
-    else
-      legacy_creator
-    end
+    relation_creator
   end
 
-  # @return [User, nil] the creator via legacy created_by_user_id column
-  def legacy_creator
-    @legacy_creator ||= User.find_by(id: created_by_user_id)
-  end
-
-  # @return [User, nil] the creator via pivot table (preferred method after R02)
+  # @return [User, nil] the creator via user_cras pivot table
   def relation_creator
     @relation_creator ||= users.joins(:user_cras).where(user_cras: { role: 'creator' }).first
   end
@@ -144,41 +131,18 @@ class Cra < ApplicationRecord
   scope :by_status, ->(status) { where(status: status) }
   scope :by_month, ->(month) { where(month: month) }
   scope :by_year, ->(year) { where(year: year) }
-  scope :by_user, ->(user_id) { where(created_by_user_id: user_id) }
 
   scope :draft, -> { where(status: 'draft') }
   scope :submitted, -> { where(status: 'submitted') }
   scope :locked, -> { where(status: 'locked') }
 
-  # Scope for user accessibility (FC 06 access rules via missions + creator access)
-  # Delegates to appropriate implementation based on FeatureFlags.relation_driven?
-  scope :accessible_to, lambda { |user|
-    if defined?(FeatureFlags) && FeatureFlags.relation_driven?
-      relation_accessible_to(user)
-    else
-      legacy_accessible_to(user)
-    end
-  }
-
-  # Legacy implementation: uses created_by_user_id column
-  # A CRA is accessible if:
-  # 1. The user created it (created_by_user_id)
-  # 2. OR the user has access to missions associated with the CRA
-  def self.legacy_accessible_to(user)
-    via_missions_ids = joins(:cra_missions)
-                       .joins('INNER JOIN missions ON missions.id = cra_missions.mission_id')
-                       .joins('INNER JOIN mission_companies ON mission_companies.mission_id = missions.id')
-                       .joins('INNER JOIN user_companies ON user_companies.company_id = mission_companies.company_id')
-                       .where(user_companies: { user_id: user.id, role: %w[independent client] })
-                       .select(:id)
-
-    where(created_by_user_id: user.id).or(where(id: via_missions_ids))
-  end
-
-  # Relation-driven implementation: uses user_cras pivot table
+  # Scope for user accessibility (DDD Relation-Driven only)
   # A CRA is accessible if:
   # 1. The user has a 'creator' role in user_cras
   # 2. OR the user has access to missions associated with the CRA
+  scope :accessible_to, ->(user) { relation_accessible_to(user) }
+
+  # Relation-driven implementation: uses user_cras pivot table OR missions
   def self.relation_accessible_to(user)
     via_user_cras = joins(:user_cras)
                     .where(user_cras: { user_id: user.id })
@@ -220,27 +184,18 @@ class Cra < ApplicationRecord
   end
 
   # Business rule: Check if CRA can be modified by user
-  # Delegates to appropriate implementation based on FeatureFlags.relation_driven?
+  # DDD Relation-Driven: Only creator can modify
   def modifiable_by?(user)
     return false unless user.present?
     return false if locked?
 
-    if defined?(FeatureFlags) && FeatureFlags.relation_driven?
-      relation_modifiable_by?(user)
-    else
-      legacy_modifiable_by?(user)
-    end
-  end
-
-  # Legacy implementation: checks created_by_user_id column
-  def legacy_modifiable_by?(user)
-    return false if locked?
-    created_by_user_id == user.id
+    relation_modifiable_by?(user)
   end
 
   # Relation-driven implementation: checks user_cras pivot table for 'creator' role
   def relation_modifiable_by?(user)
     return false if locked?
+
     user_cras.exists?(role: 'creator', user_id: user.id)
   end
 
@@ -349,6 +304,13 @@ class Cra < ApplicationRecord
     update(deleted_at: Time.current) if deleted_at.nil?
   end
 
+  # BACKWARD COMPATIBILITY: Allow setting user via attribute assignment
+  # This enables tests using `create(:cra, user: user)` to work
+  # The actual business logic uses user_cras pivot table
+  def user=(user)
+    self.created_by_user_id = user.id if user.present?
+  end
+
   private
 
   def validate_financial_fields
@@ -358,9 +320,19 @@ class Cra < ApplicationRecord
     end
   end
 
+  # DDD Relation-Driven uniqueness validation
+  # Uses user_cras pivot table instead of created_by_user_id column
   def validate_uniqueness
-    # Business rule: 1 CRA max per (user, month, year) - FC-07 contract: exclude deleted CRAs
-    scope = Cra.where(created_by_user_id: created_by_user_id, month: month, year: year, deleted_at: nil)
+    # Get creator user_id from user_cras
+    creator_user_id = user_cras.find_by(role: 'creator')&.user_id
+
+    return if creator_user_id.nil?
+
+    # Check for existing CRA with same creator, month, year (excluding deleted)
+    # Use the pivot table to find CRAs with the same creator
+    scope = Cra.joins(:user_cras)
+               .where(user_cras: { user_id: creator_user_id, role: 'creator' })
+               .where(month: month, year: year, deleted_at: nil)
     scope = scope.where.not(id: id) if persisted?
 
     errors.add(:base, 'A CRA already exists for this user, month, and year') if scope.exists?

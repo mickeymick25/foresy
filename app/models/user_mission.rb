@@ -17,7 +17,7 @@ class UserMission < ApplicationRecord
   # (creator, contributor, reviewer) in future evolution
 
   ROLES = %w[creator contributor reviewer].freeze
-  DEFAULT_ROLE = 'creator'.freeze
+  DEFAULT_ROLE = 'creator'
 
   # Associations
   belongs_to :user, optional: false

@@ -3,7 +3,19 @@
 FactoryBot.define do
   factory :user_cra do
     user { create(:user) }
-    cra { create(:cra) }
+    cra { create(:cra, :with_creator) }
     role { 'contributor' }
+
+    trait :as_creator do
+      role { 'creator' }
+    end
+
+    trait :as_contributor do
+      role { 'contributor' }
+    end
+
+    trait :as_reviewer do
+      role { 'reviewer' }
+    end
   end
 end

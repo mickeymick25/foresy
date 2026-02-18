@@ -146,17 +146,21 @@ class MissionServices
 
       # Parse dates if they're strings
       start_date = parse_date(start_date)
-      return ApplicationResult.bad_request(
-        error: :invalid_start_date,
-        message: 'Start date must be a valid date'
-      ) unless start_date
+      unless start_date
+        return ApplicationResult.bad_request(
+          error: :invalid_start_date,
+          message: 'Start date must be a valid date'
+        )
+      end
 
       if end_date.present?
         end_date = parse_date(end_date)
-        return ApplicationResult.bad_request(
-          error: :invalid_end_date,
-          message: 'End date must be a valid date'
-        ) unless end_date
+        unless end_date
+          return ApplicationResult.bad_request(
+            error: :invalid_end_date,
+            message: 'End date must be a valid date'
+          )
+        end
 
         if end_date < start_date
           return ApplicationResult.bad_request(
@@ -233,8 +237,11 @@ class MissionServices
     def parse_date(date)
       case date
       when Date then date
-      when String then Date.parse(date) rescue nil
-      else nil
+      when String then begin
+        Date.parse(date)
+      rescue StandardError
+        nil
+      end
       end
     end
 
@@ -301,9 +308,7 @@ class MissionServices
         mission.reload
 
         # Relation-driven: create UserMission pivot record when flag is ON
-        if FeatureFlags.relation_driven?
-          create_user_mission_relation!(mission, current_user)
-        end
+        create_user_mission_relation!(mission, current_user) if FeatureFlags.relation_driven?
       rescue ActiveRecord::RecordInvalid => e
         ApplicationResult.unprocessable_entity(
           error: :save_failed,
@@ -339,12 +344,14 @@ class MissionServices
       )
 
       unless user_mission.valid?
-        Rails.logger.error "[DEBUG] MissionServices::Create UserMission validation failed: #{user_mission.errors.full_messages}"
-        raise ActiveRecord::RecordInvalid.new(user_mission)
+        msg = "MissionServices::Create UserMission validation failed: #{user_mission.errors.full_messages}"
+        Rails.logger.error "[DEBUG] #{msg}"
+        raise ActiveRecord::RecordInvalid, user_mission
       end
 
       user_mission.save!
-      Rails.logger.info "[DEBUG] MissionServices::Create created UserMission: user_id=#{user.id}, mission_id=#{mission.id}, role=creator"
+      msg = "[DEBUG] Created UserMission: user_id=#{user.id}, mission_id=#{mission.id}, role=creator"
+      Rails.logger.info msg
     rescue ActiveRecord::RecordInvalid => e
       Rails.logger.error "[DEBUG] MissionServices::Create failed to create UserMission: #{e.message}"
       raise

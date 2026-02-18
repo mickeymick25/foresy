@@ -11,13 +11,9 @@ FactoryBot.define do
     # Ensure name is unique
     sequence(:name) { |n| "Mission #{n} - #{Faker::Company.industry}" }
 
-    # Association to user (required field) - FIXED: follows Rails naming conventions
-    association :user, factory: :user
-
-    # NOTE: Mission has no direct company association
-    # Company access is managed through MissionCompany join table
-    # For testing, create mission_company separately:
-    # create(:mission_company, mission: mission, company: company, role: 'independent')
+    # DDD Relation-Driven: No direct user association
+    # User-Mission relationship is handled via user_missions pivot table
+    # Use trait :with_creator to automatically create the pivot record
 
     # Conditional financial fields based on mission_type
     after(:build) do |mission|
@@ -26,9 +22,22 @@ FactoryBot.define do
       elsif mission.mission_type == 'fixed_price'
         mission.fixed_price = Faker::Number.between(from: 5000, to: 50_000) * 100 # In cents
       end
+    end
 
-      # Ensure created_by_user_id is set from user association
-      mission.created_by_user_id = mission.user.id if mission.user.present? && mission.created_by_user_id.nil?
+    # NOTE: Removed automatic user_mission creation
+    # Relations are now created explicitly by services (MissionServices::Create)
+    # This avoids conflicts with tests that manually create user_missions
+
+    # Trait: Create mission WITH creator via pivot table (DDD Relation-Driven)
+    trait :with_creator do
+      transient do
+        creator { create(:user) }
+      end
+
+      after(:create) do |mission, evaluator|
+        mission.update!(created_by_user_id: evaluator.creator.id)
+        create(:user_mission, mission: mission, user: evaluator.creator, role: 'creator')
+      end
     end
 
     # Trait for time-based missions

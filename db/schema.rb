@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_02_171723) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_17_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -95,7 +95,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_02_171723) do
 
   create_table "cras", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.bigint "created_by_user_id", null: false, comment: "Audit-only: user who created the CRA"
+    t.bigint "created_by_user_id", comment: "Audit-only: user who created the CRA"
     t.string "currency", default: "EUR", null: false, comment: "ISO 4217 currency code"
     t.datetime "deleted_at", comment: "Soft delete timestamp"
     t.text "description", comment: "Non-financial metadata (description)"
@@ -193,7 +193,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_02_171723) do
     t.index ["cra_id"], name: "index_user_cras_on_cra_id"
     t.index ["user_id", "cra_id"], name: "index_user_cras_on_user_id_and_cra_id"
     t.index ["user_id"], name: "index_user_cras_on_user_id"
-    t.check_constraint "role::text = ANY (ARRAY['creator'::character varying, 'contributor'::character varying, 'reviewer'::character varying]::text[])", name: "user_cras_role_check"
+    t.check_constraint "role::text = ANY (ARRAY['creator'::character varying::text, 'contributor'::character varying::text, 'reviewer'::character varying::text])", name: "user_cras_role_check"
   end
 
   create_table "user_missions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -205,7 +205,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_02_171723) do
     t.index ["mission_id"], name: "index_user_missions_on_mission_id"
     t.index ["user_id", "mission_id"], name: "index_user_missions_on_user_id_and_mission_id"
     t.index ["user_id"], name: "index_user_missions_on_user_id"
-    t.check_constraint "role::text = ANY (ARRAY['creator'::character varying, 'contributor'::character varying, 'reviewer'::character varying]::text[])", name: "user_missions_role_check"
+    t.check_constraint "role::text = ANY (ARRAY['creator'::character varying::text, 'contributor'::character varying::text, 'reviewer'::character varying::text])", name: "user_missions_role_check"
   end
 
   create_table "users", force: :cascade do |t|

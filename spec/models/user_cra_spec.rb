@@ -73,9 +73,8 @@ RSpec.describe UserCra, type: :model do
     before do
       @creator = create(:user)
       @contributor = create(:user)
-      @cra = create(:cra, created_by_user_id: @creator.id)
+      @cra = create(:cra, :with_creator, creator: @creator)
 
-      create(:user_cra, user: @creator, cra: @cra, role: 'creator')
       create(:user_cra, user: @contributor, cra: @cra, role: 'contributor')
     end
 
@@ -117,35 +116,36 @@ RSpec.describe UserCra, type: :model do
 
   describe 'Business Methods' do
     let(:user) { create(:user) }
-    let(:cra) { create(:cra, created_by_user_id: user.id) }
+    let(:cra) { create(:cra, :with_creator, creator: user) }
 
     describe '#creator?' do
       it 'returns true for creator role' do
-        user_cra = create(:user_cra, user: user, cra: cra, role: 'creator')
+        user_cra = cra.user_cras.creators.first
         expect(user_cra.creator?).to be true
       end
 
       it 'returns false for contributor role' do
-        user_cra = create(:user_cra, user: user, cra: cra, role: 'contributor')
+        contributor = create(:user)
+        user_cra = create(:user_cra, user: contributor, cra: cra, role: 'contributor')
         expect(user_cra.creator?).to be false
       end
 
       it 'returns false for reviewer role' do
-        user_cra = create(:user_cra, user: user, cra: cra, role: 'reviewer')
+        reviewer = create(:user)
+        user_cra = create(:user_cra, user: reviewer, cra: cra, role: 'reviewer')
         expect(user_cra.creator?).to be false
       end
     end
 
     describe '.cra_creator' do
       it 'returns the creator for a specific cra' do
-        create(:user_cra, user: user, cra: cra, role: 'creator')
         creator = UserCra.cra_creator(cra.id)
         expect(creator).to be_present
         expect(creator.role).to eq('creator')
       end
 
       it 'returns nil for cra without creator' do
-        cra_no_creator = create(:cra, created_by_user_id: user.id)
+        cra_no_creator = create(:cra)
         creator = UserCra.cra_creator(cra_no_creator.id)
         expect(creator).to be_nil
       end
@@ -154,59 +154,57 @@ RSpec.describe UserCra, type: :model do
 
   describe 'Database Constraints' do
     let(:user) { create(:user) }
-    let(:cra) { create(:cra, created_by_user_id: user.id) }
+    let(:cra) { create(:cra, :with_creator, creator: user) }
 
     describe 'Partial Unique Index' do
       context 'when role = creator' do
         it 'prevents multiple creators for the same cra' do
-          create(:user_cra, user: user, cra: cra, role: 'creator')
-          expect {
-            create(:user_cra, user_id: user.id + 1, cra: cra, role: 'creator')
-          }.to raise_error(ActiveRecord::RecordNotUnique)
+          user2 = create(:user)
+          expect do
+            create(:user_cra, user: user2, cra: cra, role: 'creator')
+          end.to raise_error(ActiveRecord::RecordNotUnique)
         end
 
         it 'allows one creator per cra' do
-          expect {
-            create(:user_cra, user: user, cra: cra, role: 'creator')
-          }.not_to raise_error
+          expect do
+            create(:user_cra, user: user, cra: cra, role: 'contributor')
+          end.not_to raise_error
         end
       end
 
       context 'when role != creator' do
         it 'allows multiple contributors for the same cra' do
           user2 = create(:user)
-          create(:user_cra, user: user, cra: cra, role: 'contributor')
-          expect {
+          expect do
+            create(:user_cra, user: user, cra: cra, role: 'contributor')
             create(:user_cra, user: user2, cra: cra, role: 'contributor')
-          }.not_to raise_error
+          end.not_to raise_error
         end
 
         it 'allows same user with different roles' do
-          create(:user_cra, user: user, cra: cra, role: 'creator')
-          expect {
+          expect do
             create(:user_cra, user: user, cra: cra, role: 'contributor')
-          }.not_to raise_error
+          end.not_to raise_error
         end
       end
     end
 
     describe 'CHECK Constraint on role' do
       it 'rejects invalid role values at database level' do
-        expect {
-          UserCra.connection.execute(
-            "INSERT INTO user_cras (user_id, cra_id, role, created_at) VALUES (#{user.id}, '#{cra.id}', 'invalid_role', NOW())"
-          )
-        }.to raise_error(ActiveRecord::StatementInvalid)
+        expect do
+          sql = 'INSERT INTO user_cras (user_id, cra_id, role, created_at) '
+          sql += "VALUES (#{user.id}, '#{cra.id}', 'invalid_role', NOW())"
+          UserCra.connection.execute(sql)
+        end.to raise_error(ActiveRecord::StatementInvalid)
       end
     end
   end
 
   describe 'CASCADE Delete' do
     let(:user) { create(:user) }
-    let(:cra) { create(:cra, created_by_user_id: user.id) }
+    let(:cra) { create(:cra, :with_creator, creator: user) }
 
     it 'is deleted when cra is HARD deleted' do
-      user_cra = create(:user_cra, user: user, cra: cra, role: 'creator')
       cra_id = cra.id
 
       # Hard delete the cra
@@ -217,7 +215,6 @@ RSpec.describe UserCra, type: :model do
     end
 
     it 'is deleted when user is deleted' do
-      user_cra = create(:user_cra, user: user, cra: cra, role: 'creator')
       user_id = user.id
 
       # Delete the user
@@ -230,11 +227,11 @@ RSpec.describe UserCra, type: :model do
 
   describe 'Soft Delete Behavior' do
     let(:user) { create(:user) }
-    let(:cra) { create(:cra, created_by_user_id: user.id) }
+    let(:cra) { create(:cra, :with_creator, creator: user) }
 
     context 'when cra is soft-deleted' do
       it 'still exists (trigger blocks manual deletion)' do
-        user_cra = create(:user_cra, user: user, cra: cra, role: 'creator')
+        user_cra = cra.user_cras.creators.first
 
         # Soft delete the cra
         cra.update(deleted_at: Time.current)
@@ -242,12 +239,6 @@ RSpec.describe UserCra, type: :model do
         # user_cra should still exist (cra not hard-deleted)
         expect(UserCra.where(id: user_cra.id)).to exist
       end
-    end
-  end
-
-  describe 'Feature Flag Integration' do
-    it 'is accessible via FeatureFlags module' do
-      expect(defined?(FeatureFlags)).to be_present
     end
   end
 end

@@ -370,6 +370,8 @@ paths:
           description: allows in_progress -> completed
         '422':
           description: rejects won -> lead
+        '403':
+          description: rejects completed -> in_progress
     delete:
       summary: Archives a mission
       tags:

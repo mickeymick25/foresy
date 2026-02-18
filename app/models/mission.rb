@@ -5,7 +5,7 @@
 # Pure domain model representing a professional mission between companies.
 # Follows Domain-Driven / Relation-Driven Architecture principles:
 # - NO business foreign keys to Company or User
-# - ALL relationships via explicit relation tables (MissionCompany)
+# - ALL relationships via explicit relation tables (MissionCompany, UserMission)
 # - Pure domain entity with complete business logic
 #
 # Business Context:
@@ -43,7 +43,7 @@
 # - .time_based: missions with time_based type
 # - .fixed_price: missions with fixed_price type
 # - .current: missions that are currently active (not completed)
-# - .accessible_to: missions accessible to a user (via their companies)
+# - .accessible_to: missions accessible to a user (via user_missions pivot or companies)
 class Mission < ApplicationRecord
   # Soft delete implementation (manual, no gem dependency)
   default_scope { where(deleted_at: nil) }
@@ -84,9 +84,6 @@ class Mission < ApplicationRecord
   # Financial validations based on mission type
   validate :validate_financial_fields
 
-  # Creator validation (for authorization rules)
-  validates :created_by_user_id, presence: true
-
   # Callbacks
   before_validation :set_default_currency
   before_validation :set_default_status
@@ -108,10 +105,7 @@ class Mission < ApplicationRecord
   has_one :client_company, -> { where(mission_companies: { role: 'client' }) },
           through: :mission_companies, source: :company
 
-  # User association (for authorization) - FIXED: follows Rails naming conventions
-  belongs_to :user, foreign_key: 'created_by_user_id'
-
-  # DDD Relation-Driven: Mission ↔ User via pivot table
+  # DDD Relation-Driven: Mission ↔ User via pivot table (ONLY path)
   has_many :user_missions, dependent: :destroy
   has_many :users, through: :user_missions
 
@@ -123,25 +117,13 @@ class Mission < ApplicationRecord
   scope :fixed_price, -> { where(mission_type: 'fixed_price') }
   scope :current, -> { where.not(status: 'completed') }
 
-  # Scope for user accessibility (FC 06 access rules)
-  # Delegates to appropriate implementation based on FeatureFlags.relation_driven?
-  scope :accessible_to, lambda { |user|
-    if defined?(FeatureFlags) && FeatureFlags.relation_driven?
-      relation_accessible_to(user)
-    else
-      legacy_accessible_to(user)
-    end
-  }
+  # Scope for user accessibility (DDD Relation-Driven only)
+  # A mission is accessible if:
+  # 1. The user has a 'creator' role in user_missions
+  # 2. OR the user has access via their companies
+  scope :accessible_to, ->(user) { relation_accessible_to(user) }
 
-  # Legacy implementation: uses company access (original accessible_to behavior)
-  def self.legacy_accessible_to(user)
-    joins(:mission_companies)
-      .joins('INNER JOIN user_companies ON user_companies.company_id = mission_companies.company_id')
-      .where(user_companies: { user_id: user.id, role: %w[independent client] })
-      .distinct
-  end
-
-  # Relation-driven implementation: uses user_missions pivot table
+  # Relation-driven implementation: uses user_missions pivot table OR companies
   def self.relation_accessible_to(user)
     via_user_missions = joins(:user_missions)
                         .where(user_missions: { user_id: user.id })
@@ -180,22 +162,12 @@ class Mission < ApplicationRecord
     client_company.present?
   end
 
-  # @return [User, nil] the creator of this mission
-  # Delegates to appropriate implementation based on FeatureFlags.relation_driven?
+  # @return [User, nil] the creator of this mission via pivot table
   def creator
-    if defined?(FeatureFlags) && FeatureFlags.relation_driven?
-      relation_creator
-    else
-      legacy_creator
-    end
+    relation_creator
   end
 
-  # @return [User, nil] the creator via legacy created_by_user_id column
-  def legacy_creator
-    @legacy_creator ||= User.find_by(id: created_by_user_id)
-  end
-
-  # @return [User, nil] the creator via pivot table
+  # @return [User, nil] the creator via user_missions pivot table
   def relation_creator
     @relation_creator ||= users.joins(:user_missions).where(user_missions: { role: 'creator' }).first
   end
@@ -228,27 +200,16 @@ class Mission < ApplicationRecord
   end
 
   # Business rule: Check if mission can be modified by user
-  # MVP: Only creator can modify
-  # Delegates to appropriate implementation based on FeatureFlags.relation_driven?
+  # DDD Relation-Driven: Only creator can modify
   def modifiable_by?(user)
     return false unless user.present?
-
-    if defined?(FeatureFlags) && FeatureFlags.relation_driven?
-      relation_modifiable_by?(user)
-    else
-      legacy_modifiable_by?(user)
-    end
-  end
-
-  # Legacy implementation: checks created_by_user_id column
-  def legacy_modifiable_by?(user)
     return false if completed?
-    created_by_user_id == user.id
+
+    relation_modifiable_by?(user)
   end
 
   # Relation-driven implementation: checks user_missions pivot table for 'creator' role
   def relation_modifiable_by?(user)
-    return false if completed?
     user_missions.exists?(role: 'creator', user_id: user.id)
   end
 
@@ -300,6 +261,13 @@ class Mission < ApplicationRecord
   # Business rule: Mission cannot be deleted if it has CRA entries
   def cra_entries?
     cra_entry_missions.exists?
+  end
+
+  # BACKWARD COMPATIBILITY: Allow setting user via attribute assignment
+  # This enables tests using `create(:mission, user: user)` to work
+  # The actual business logic uses user_missions pivot table
+  def user=(user)
+    self.created_by_user_id = user.id if user.present?
   end
 
   private

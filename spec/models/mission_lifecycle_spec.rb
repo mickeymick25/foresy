@@ -8,13 +8,10 @@ RSpec.describe Mission, type: :model do
   # ==== VALID TRANSITIONS ====
 
   context 'lead -> pending' do
-    let(:mission) { create(:mission, user: user, status: 'lead') }
+    let(:mission) { create(:mission, :with_creator, creator: user, status: 'lead') }
 
     it 'creates mission with correct status' do
-      puts '=== DEBUG: Creating mission with status=lead ==='
-      mission = create(:mission, user: user, status: 'lead')
-      puts "DEBUG: Mission created with status=#{mission.status}"
-      puts "DEBUG: Mission has user: #{mission.user.inspect}"
+      mission = create(:mission, :with_creator, creator: user, status: 'lead')
       expect(mission.status).to eq('lead')
     end
 
@@ -32,7 +29,7 @@ RSpec.describe Mission, type: :model do
   end
 
   context 'pending -> won' do
-    let(:mission) { create(:mission, user: user, status: 'pending') }
+    let(:mission) { create(:mission, :with_creator, creator: user, status: 'pending') }
 
     it 'allows pending -> won' do
       puts '=== DEBUG: Valid transition pending -> won ==='
@@ -48,7 +45,7 @@ RSpec.describe Mission, type: :model do
   end
 
   context 'won -> in_progress' do
-    let(:mission) { create(:mission, user: user, status: 'won') }
+    let(:mission) { create(:mission, :with_creator, creator: user, status: 'won') }
 
     it 'allows won -> in_progress' do
       puts '=== DEBUG: Valid transition won -> in_progress ==='
@@ -64,7 +61,7 @@ RSpec.describe Mission, type: :model do
   end
 
   context 'in_progress -> completed' do
-    let(:mission) { create(:mission, user: user, status: 'in_progress') }
+    let(:mission) { create(:mission, :with_creator, creator: user, status: 'in_progress') }
 
     it 'allows in_progress -> completed' do
       puts '=== DEBUG: Valid transition in_progress -> completed ==='
@@ -82,7 +79,7 @@ RSpec.describe Mission, type: :model do
   # ==== INVALID TRANSITIONS ====
 
   context 'completed -> in_progress (invalid)' do
-    let(:mission) { create(:mission, user: user, status: 'completed') }
+    let(:mission) { create(:mission, :with_creator, creator: user, status: 'completed') }
 
     it 'rejects completed -> in_progress' do
       puts '=== DEBUG: Invalid transition completed -> in_progress ==='
@@ -103,7 +100,7 @@ RSpec.describe Mission, type: :model do
   end
 
   context 'won -> lead (invalid)' do
-    let(:mission) { create(:mission, user: user, status: 'won') }
+    let(:mission) { create(:mission, :with_creator, creator: user, status: 'won') }
 
     it 'rejects won -> lead' do
       puts '=== DEBUG: Invalid transition won -> lead ==='

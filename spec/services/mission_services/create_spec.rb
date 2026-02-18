@@ -162,7 +162,7 @@ RSpec.describe MissionServices::Create do
         end
 
         it 'returns bad_request when fixed_price is provided for time_based' do
-          params = valid_mission_params.merge(fixed_price: 10000)
+          params = valid_mission_params.merge(fixed_price: 10_000)
           result = described_class.call(mission_params: params, current_user: user)
 
           expect(result).to be_failure
@@ -182,7 +182,7 @@ RSpec.describe MissionServices::Create do
         end
 
         it 'returns bad_request when daily_rate is provided for fixed_price' do
-          params = valid_mission_params.merge(mission_type: 'fixed_price', fixed_price: 10000, daily_rate: 500)
+          params = valid_mission_params.merge(mission_type: 'fixed_price', fixed_price: 10_000, daily_rate: 500)
           result = described_class.call(mission_params: params, current_user: user)
 
           expect(result).to be_failure
@@ -235,102 +235,6 @@ RSpec.describe MissionServices::Create do
 
         mission = result.data[:mission]
         expect(mission.created_by_user_id).to eq(user.id)
-      end
-    end
-
-    describe 'relation-driven feature flag (DDD/RDD Compliant)' do
-      let(:user) { create(:user) }
-      let(:independent_company) { create(:company) }
-
-      before do
-        create(:user_company, user: user, company: independent_company, role: 'independent')
-      end
-
-      context 'when feature flag USE_USER_RELATIONS is ON' do
-        before do
-          allow(FeatureFlags).to receive(:relation_driven?).and_return(true)
-        end
-
-        it 'creates a UserMission record with creator role when flag is ON' do
-          result = described_class.call(
-            mission_params: valid_mission_params,
-            current_user: user
-          )
-
-          expect(result.success?).to be true
-
-          mission = result.data[:mission]
-          expect(mission.user_missions).to be_present
-          expect(mission.user_missions.creators).to be_present
-          expect(mission.user_missions.creators.first.user_id).to eq(user.id)
-          expect(mission.user_missions.creators.first.role).to eq('creator')
-        end
-
-        it 'still populates created_by_user_id for legacy compatibility' do
-          result = described_class.call(
-            mission_params: valid_mission_params,
-            current_user: user
-          )
-
-          expect(result.success?).to be true
-
-          mission = result.data[:mission]
-          expect(mission.created_by_user_id).to eq(user.id)
-        end
-
-        it 'creates only one creator UserMission per mission' do
-          result = described_class.call(
-            mission_params: valid_mission_params,
-            current_user: user
-          )
-
-          expect(result.success?).to be true
-
-          mission = result.data[:mission]
-          expect(mission.user_missions.creators.count).to eq(1)
-        end
-
-        it 'associates the correct user through UserMission' do
-          result = described_class.call(
-            mission_params: valid_mission_params,
-            current_user: user
-          )
-
-          expect(result.success?).to be true
-
-          mission = result.data[:mission]
-          expect(mission.users).to include(user)
-        end
-      end
-
-      context 'when feature flag USE_USER_RELATIONS is OFF (legacy mode)' do
-        before do
-          allow(FeatureFlags).to receive(:relation_driven?).and_return(false)
-        end
-
-        it 'does NOT create UserMission record when flag is OFF (legacy mode)' do
-          result = described_class.call(
-            mission_params: valid_mission_params,
-            current_user: user
-          )
-
-          expect(result.success?).to be true
-
-          mission = result.data[:mission]
-          expect(mission.user_missions.count).to eq(0)
-        end
-
-        it 'still populates created_by_user_id in legacy mode' do
-          result = described_class.call(
-            mission_params: valid_mission_params,
-            current_user: user
-          )
-
-          expect(result.success?).to be true
-
-          mission = result.data[:mission]
-          expect(mission.created_by_user_id).to eq(user.id)
-        end
       end
     end
 

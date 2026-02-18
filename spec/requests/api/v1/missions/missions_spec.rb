@@ -89,7 +89,7 @@ RSpec.describe 'API V1 Missions', type: :request do
             company = create(:company)
             create(:user_company, user: user, company: company, role: 'independent')
 
-            mission = create(:mission, user: user)
+            mission = create(:mission, :with_creator, creator: user)
             create(:mission_company, mission: mission, company: company, role: 'independent')
 
             @token = AuthenticationService.login(user, '127.0.0.1', 'rswag')[:token]
@@ -134,7 +134,7 @@ RSpec.describe 'API V1 Missions', type: :request do
             company = create(:company)
             create(:user_company, user: user, company: company, role: 'independent')
 
-            mission = create(:mission, user: user)
+            mission = create(:mission, :with_creator, creator: user)
             create(:mission_company, mission: mission, company: company, role: 'independent')
 
             @mission = mission
@@ -171,7 +171,7 @@ RSpec.describe 'API V1 Missions', type: :request do
             company = create(:company)
             create(:user_company, user: user, company: company, role: 'independent')
 
-            mission = create(:mission, user: user, status: 'lead')
+            mission = create(:mission, :with_creator, creator: user, status: 'lead')
             create(:mission_company, mission: mission, company: company, role: 'independent')
 
             @mission = mission
@@ -191,7 +191,7 @@ RSpec.describe 'API V1 Missions', type: :request do
             company = create(:company)
             create(:user_company, user: user, company: company, role: 'independent')
 
-            mission = create(:mission, user: user, status: 'lead')
+            mission = create(:mission, :with_creator, creator: user, status: 'lead')
             create(:mission_company, mission: mission, company: company, role: 'independent')
 
             @mission = mission
@@ -229,7 +229,7 @@ RSpec.describe 'API V1 Missions', type: :request do
               company = create(:company)
               create(:user_company, user: user, company: company, role: 'independent')
 
-              mission = create(:mission, user: user, status: 'lead')
+              mission = create(:mission, :with_creator, creator: user, status: 'lead')
               create(:mission_company, mission: mission, company: company, role: 'independent')
 
               @mission = mission
@@ -251,7 +251,7 @@ RSpec.describe 'API V1 Missions', type: :request do
               company = create(:company)
               create(:user_company, user: user, company: company, role: 'independent')
 
-              mission = create(:mission, user: user, status: 'pending')
+              mission = create(:mission, :with_creator, creator: user, status: 'pending')
               create(:mission_company, mission: mission, company: company, role: 'independent')
 
               @mission = mission
@@ -273,7 +273,7 @@ RSpec.describe 'API V1 Missions', type: :request do
               company = create(:company)
               create(:user_company, user: user, company: company, role: 'independent')
 
-              mission = create(:mission, user: user, status: 'won')
+              mission = create(:mission, :with_creator, creator: user, status: 'won')
               create(:mission_company, mission: mission, company: company, role: 'independent')
 
               @mission = mission
@@ -295,7 +295,7 @@ RSpec.describe 'API V1 Missions', type: :request do
               company = create(:company)
               create(:user_company, user: user, company: company, role: 'independent')
 
-              mission = create(:mission, user: user, status: 'in_progress')
+              mission = create(:mission, :with_creator, creator: user, status: 'in_progress')
               create(:mission_company, mission: mission, company: company, role: 'independent')
 
               @mission = mission
@@ -317,7 +317,7 @@ RSpec.describe 'API V1 Missions', type: :request do
               company = create(:company)
               create(:user_company, user: user, company: company, role: 'independent')
 
-              mission = create(:mission, user: user, status: 'completed')
+              mission = create(:mission, :with_creator, creator: user, status: 'completed')
               create(:mission_company, mission: mission, company: company, role: 'independent')
 
               @mission = mission
@@ -339,7 +339,7 @@ RSpec.describe 'API V1 Missions', type: :request do
               company = create(:company)
               create(:user_company, user: user, company: company, role: 'independent')
 
-              mission = create(:mission, user: user, status: 'won')
+              mission = create(:mission, :with_creator, creator: user, status: 'won')
               create(:mission_company, mission: mission, company: company, role: 'independent')
 
               @mission = mission
@@ -374,7 +374,7 @@ RSpec.describe 'API V1 Missions', type: :request do
             company = create(:company)
             create(:user_company, user: user, company: company, role: 'independent')
 
-            mission = create(:mission, user: user)
+            mission = create(:mission, :with_creator, creator: user)
             create(:mission_company, mission: mission, company: company, role: 'independent')
 
             @mission = mission

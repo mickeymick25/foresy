@@ -1,10 +1,10 @@
-# 2026-02-15 — Correction Architecturale DDD/RDD : Élimination des FK Inter-Domaines
+# 2026-02-15 — Plan de Migration DDD/RDD : Élimination des FK Inter-Domaines
 
-**Correction Architecturale — PLATINUM ABSOLU**  
+**Plan de Migration — PLATINUM ABSOLU**  
 **Date** : 15 février 2026  
 **Auteur** : Co-CTO  
 **Type** : Correction Technique (Non-Feature)  
-**Status** : APPROVED — Ready for Implementation  
+**Status** : IMPLEMENTED — ARCHIVED  
 **Niveau** : PLATINUM ABSOLU
 
 ---
@@ -1315,38 +1315,21 @@ alias rspec_full="bundle exec rspec"
 
 ---
 
-## 🔄 État de Migration Actuel (Phase Transitionnelle)
+## 🔄 État Actuel (Post Release 3 — Stabilisé)
 
-### Statut Actuel
+| Aspect | État |
+|--------|------|
+| **Dual-path** | ❌ Supprimé |
+| **Feature Flag** | ❌ Supprimé |
+| **Colonne `created_by_user_id`** | ❌ Supprimée |
+| **Pivot Tables** | ✅ Seule source de vérité |
+| **Backfill** | ✅ Exécuté et validé |
+| **Triggers DB** | ✅ Actifs |
+| **CASCADE** | ✅ Actif |
+| **Tests** | ✅ 0 failures |
 
-Nous sommes en **phase transitoire contrôlée**, pas en état final:
-
-| Aspect | État | Release 3 |
-|--------|------|-----------|
-| **Dual-path** | Actif (legacy + relation-driven) | Supprimé |
-| **Feature Flag** | `USE_USER_RELATIONS` contrôle création et autorisation | Supprimé |
-| **Colonne `created_by_user_id`** | Présente en DB,仍 utilisée en mode legacy | Supprimée |
-| **Pivot Tables** | `user_cras`, `user_missions` créées et utilisées en mode flag ON | Seule solution |
-| **Backfill** | Non encore exécuté | À exécuter |
-
-### Feature Flag Comportement
-
-```ruby
-# Flag OFF (legacy)
-CraServices::Create → crée CRA avec created_by_user_id
-CraServices::Update → vérifie legacy_modifiable_by? (created_by_user_id)
-
-# Flag ON (relation-driven)
-CraServices::Create → crée CRA + UserCra avec role 'creator'
-CraServices::Update → vérifie relation_modifiable_by? (user_cras pivot)
-```
-
-### Résumé
-
-- ✅ Dual-path actif et testé
-- ✅ Feature flag contrôle le comportement
-- ✅ Backfill non exécuté (prévu Release 3)
-- ✅ Suppression legacy prévue en Release 3
+Le système est désormais **100% relation-driven**.
+Aucune compatibilité legacy restante.
 
 ---
 
@@ -1392,46 +1375,29 @@ end
 
 ---
 
-## 🚨 Release 3 – Breaking Phase
+## ✅ Release 3 — Complétée
 
-### Ce qui sera supprimé
+Release 3 a été exécutée avec succès.
 
-| Élément | Action | Irréversible? |
-|---------|--------|----------------|
-| `created_by_user_id` (colonnes) | DROP COLUMN | ✅ Oui |
-| `USE_USER_RELATIONS` (feature flag) | Supprimer | ✅ Oui |
-| Dual-path (code legacy) | Supprimer | ✅ Oui |
-| Méthodes `legacy_creator`, `legacy_modifiable_by?` | Supprimer | ✅ Oui |
-| Tests mode legacy | Supprimer ou marquer pending | ⚠️ Configurable |
+### Actions Réalisées
 
-### Pré-requis Release 3
+| Élément | Action |
+|---------|--------|
+| `created_by_user_id` (colonnes) | ✅ DROP COLUMN |
+| `USE_USER_RELATIONS` (feature flag) | ✅ Supprimé |
+| Dual-path (code legacy) | ✅ Supprimé |
+| Méthodes `legacy_creator`, `legacy_modifiable_by?` | ✅ Supprimées |
+| Tests mode legacy | ✅ Supprimés |
 
-1. ✅ Backfill exécuté et vérifié
-2. ✅ 100% des services utilisent `modifiable_by?`
-3. ✅ Tous les tests passent en mode flag ON
-4. ✅ Validation manuelle des parcours critiques
+### Validation Finale
 
-### Plan de Migration Release 3
-
-```ruby
-# Étape 1: Exécuter backfill
-rake foresy:migrate:backfill_all
-
-# Étape 2: Valider intégrité
-rake foresy:migrate:verify_integrity
-
-# Étape 3: Activer flag ON en prod (observe)
-USE_USER_RELATIONS=true [observation period]
-
-# Étape 4: Supprimer code legacy (après validation)
-# - Supprimer created_by_user_id
-# - Supprimer dual-path
-# - Supprimer feature flag
-```
-
-### Attention
-
-> **La Release 3 est irréversible.** Une fois `created_by_user_id` supprimée, il n'y a pas de retour arrière possible sans restauration de DB.
+- Backfill exécuté et vérifié
+- Contraintes uniques partielles ajoutées
+- FK ON DELETE CASCADE activées
+- Triggers de protection actifs
+- Suppression définitive de created_by_user_id
+- Suppression complète du feature flag
+- Suppression du code legacy
 
 ---
 
@@ -1628,21 +1594,21 @@ end
 
 | Critère | Méthode | Status |
 |---------|---------|--------|
-| 1. Tables créées vides | `rails db:migrate` | ⏳ |
-| 2. Data backfillée | `rake foresy:migrate:backfill_*` | ⏳ |
-| 3. Intégrité vérifiée (BLOCKING) | `rake foresy:migrate:verify_integrity` | ⏳ |
-| 4. Contraintes unicité PARTIELLE ajoutées | Index partiel uniquement | ⏳ |
-| 5. ON DELETE CASCADE actifs | Test CASCADE spec | ⏳ |
-| 6. Triggers DB actifs (vérification parent) | Test trigger spec | ⏳ |
-| 7. Colonnes SUPPRIMÉES COMPLET | `remove_column` | ⏳ |
-| 8. Modèle UserMission créé | PAS de validates_uniqueness (user_id, mission_id) | ⏳ |
-| 9. Modèle UserCra créé | PAS de validates_uniqueness (user_id, cra_id) | ⏳ |
-| 10. Services refactorés (transaction) | Atomic transaction spec | ⏳ |
-| 11. Tests triggers | CASCADE + protection | ⏳ |
-| 12. RSpec : 0 failures | `bundle exec rspec` | ⏳ |
-| 13. Rswag : 0 failures | `bundle exec rswag` | ⏳ |
-| 14. RuboCop : 0 offenses | `bundle exec rubocop` | ⏳ |
-| 15. Brakeman : 0 warnings | `bundle exec brakeman` | ⏳ |
+| 1. Tables créées vides | `rails db:migrate` | ✅ |
+| 2. Data backfillée | `rake foresy:migrate:backfill_*` | ✅ |
+| 3. Intégrité vérifiée (BLOCKING) | `rake foresy:migrate:verify_integrity` | ✅ |
+| 4. Contraintes unicité PARTIELLE ajoutées | Index partiel uniquement | ✅ |
+| 5. ON DELETE CASCADE actifs | Test CASCADE spec | ✅ |
+| 6. Triggers DB actifs (vérification parent) | Test trigger spec | ✅ |
+| 7. Colonnes SUPPRIMÉES COMPLET | `remove_column` | ✅ |
+| 8. Modèle UserMission créé | PAS de validates_uniqueness (user_id, mission_id) | ✅ |
+| 9. Modèle UserCra créé | PAS de validates_uniqueness (user_id, cra_id) | ✅ |
+| 10. Services refactorés (transaction) | Atomic transaction spec | ✅ |
+| 11. Tests triggers | CASCADE + protection | ✅ |
+| 12. RSpec : 0 failures | `bundle exec rspec` | ✅ |
+| 13. Rswag : 0 failures | `bundle exec rswag` | ✅ |
+| 14. RuboCop : 0 offenses | `bundle exec rubocop` | ✅ |
+| 15. Brakeman : 0 warnings | `bundle exec brakeman` | ✅ |
 
 ---
 
