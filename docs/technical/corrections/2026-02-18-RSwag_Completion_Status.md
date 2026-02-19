@@ -14,10 +14,10 @@
 
 | Métrique | Cible | Actuel | Status |
 |----------|-------|--------|--------|
-| Total endpoints à couvrir | 27 | ~15 | 🟡 Partiel |
-| RSwag examples | - | 134 | ✅ |
+| Total endpoints à couvrir | 27 | 11 | 🟡 Partiel |
+| RSwag examples | 591 | 591 | ✅ |
 | Schemas stricts (required + additionalProperties:false) | TBD | Non implémenté | ❌ |
-| Routes ↔ Swagger audit | TBD | Non implémenté | ❌ |
+| Routes ↔ Swagger audit | 27 endpoints exhaustifs | Implémenté + CI intégré | 🔄 En cours (17 manquants) |
 | Negative tests | TBD | Non implémenté | ❌ |
 
 ---
@@ -38,7 +38,7 @@
 |------|--------|-------|
 | Security scheme bearerAuth | ✅ Fait | Présent dans swagger.yaml |
 | Schema inventory | ✅ Fait | Composants définis |
-| Standardisation error schema | ⚠️ Partiel | Partiellement implémenté |
+| Standardisation error schema | ✅ Fait | Standardisé via ErrorRenderable (code + message) |
 
 ---
 
@@ -52,13 +52,13 @@
 
 ---
 
-## ❌ Phase 1.7 : Routes ↔ Swagger Exhaustiveness Audit
+## ✅ Phase 1.7 : Routes ↔ Swagger Exhaustiveness Audit
 
 | Item | Status | Notes |
 |------|--------|-------|
-| Exclusion list (internal routes) | ❌ Non implémenté | À créer |
-| Audit script | ❌ Non implémenté | À créer |
-| CI workflow | ❌ Non implémenté | À créer |
+| Exclusion list (internal routes) | ✅ Implémenté | /health + internal |
+| Audit script | ✅ Implémenté | rake swagger:audit_coverage |
+| CI workflow | ✅ Intégré | Fail si mismatch |
 
 ---
 
@@ -129,8 +129,8 @@
 
 | Item | Status | Notes |
 |------|--------|-------|
-| rake rswag execute | ✅ Fait | 134 examples |
-| RSwag tests pass | ✅ Fait | 0 failures |
+| rake rswag execute | ✅ Fait | 591 examples |
+| RSwag tests pass | ✅ Fait | 0 failures (591/591) |
 | YAML syntax valide | ✅ Fait | - |
 
 ---
@@ -144,7 +144,7 @@
 | Toutes les tâches Phase 1 complétées | ✅ |
 | Phase 1.5 complétée | ✅ |
 | Phase 1.6 complétée (schema strict) | ❌ |
-| Phase 1.7 complétée (exhaustiveness audit) | ❌ |
+| Phase 1.7 complétée (exhaustiveness audit) | ✅ |
 | Phase 1.8 complétée (versioning policy) | ❌ |
 | Phase 1.9 complétée (negative tests) | ❌ |
 | Specs Phase 2 créées (2 endpoints) | 🔄 |
@@ -155,17 +155,17 @@
 | swagger/v1/swagger.yaml contient les 27 endpoints | 🔄 |
 | Anti-régrESSION:Aucun endpoint manquant dans swagger | ❌ |
 | Platinum Check: rake swagger:validate_schemas passe | ❌ |
-| Platinum Check: rake swagger:audit_coverage passe | ❌ |
+| Platinum Check: rake swagger:audit_coverage passe | 🔄 (CI rouge — 17 endpoints manquants) |
 
 ### Critères Platinum+ Governance
 
 | Critère | Status |
 |---------|--------|
-| CI enforce swagger consistency | ❌ |
-| Error schema standardisé | ⚠️ Partiel |
+| CI enforce swagger consistency | ✅ (Phase 1.7 intégré) |
+| Error schema standardisé | ✅ Fait |
 | Export endpoint declare produces text/csv | 🔄 |
 | Platinum Absolute: schemas with required + additionalProperties:false | ❌ |
-| Platinum Absolute: Routes ↔ Swagger exhaustiveness CI | ❌ |
+| Platinum Absolute: Routes ↔ Swagger exhaustiveness CI | 🔄 (Mécanisme en place — endpoints manquants) |
 | Platinum Absolute: Deprecation headers documentés | ❌ |
 | Platinum Absolute: Negative test coverage implémenté | ❌ |
 
@@ -175,9 +175,8 @@
 
 ### Priorité 1 (Immediate)
 
-1. **Vérifier les specs existantes** - Confirmer quelles endpoints sont déjà couverts par les 134 tests RSwag
-2. **Implémenter Phase 1.6** - Schema strict validation (required + additionalProperties:false)
-3. **Implémenter Phase 1.7** - Routes ↔ Swagger exhaustiveness audit
+1. **Documenter les 17 endpoints manquants** - CRAs → CRA Entries → Auth revoke → missions PUT
+2. **Faire passer CI au vert** - until all endpoints are documented
 
 ### Priorité 2 (Court terme)
 

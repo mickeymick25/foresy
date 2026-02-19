@@ -19,8 +19,7 @@ module Api
         return render_unauthorized('Invalid credentials') unless user
 
         unless user.active?
-          return render json: { error: 'Forbidden', message: 'Account is inactive' },
-                        status: :forbidden
+          return render_forbidden('Account is inactive')
         end
 
         perform_login(user)
@@ -131,7 +130,10 @@ module Api
         unless allowed
           response.headers['Retry-After'] = retry_after.to_s
           render json: {
-            error: 'Rate limit exceeded',
+            error: {
+              code: 'rate_limit_exceeded',
+              message: 'Rate limit exceeded'
+            },
             retry_after: retry_after
           }, status: :too_many_requests
         end

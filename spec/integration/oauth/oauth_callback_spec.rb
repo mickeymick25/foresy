@@ -155,7 +155,7 @@ RSpec.describe 'OAuth Callback Integration', type: :request do
 
         json_response = JSON.parse(response.body)
         expect(json_response).to include('error')
-        expect(json_response['error']).to eq('oauth_failed')
+        expect(json_response['error']['code']).to eq('oauth_failed')
       end
     end
 
@@ -177,7 +177,7 @@ RSpec.describe 'OAuth Callback Integration', type: :request do
 
         json_response = JSON.parse(response.body)
         expect(json_response).to include('error')
-        expect(json_response['error']).to eq('invalid_provider')
+        expect(json_response['error']['code']).to eq('invalid_provider')
       end
     end
 
@@ -211,7 +211,7 @@ RSpec.describe 'OAuth Callback Integration', type: :request do
 
         json_response = JSON.parse(response.body)
         expect(json_response).to include('error')
-        expect(json_response['error']).to eq('invalid_payload')
+        expect(json_response['error']['code']).to eq('invalid_payload')
       end
     end
 
@@ -247,7 +247,7 @@ RSpec.describe 'OAuth Callback Integration', type: :request do
 
         json_response = JSON.parse(response.body)
         expect(json_response).to include('error')
-        expect(json_response['error']).to eq('internal_error')
+        expect(json_response['error']['code']).to eq('internal_error')
       end
     end
   end
@@ -260,7 +260,7 @@ RSpec.describe 'OAuth Callback Integration', type: :request do
 
       json_response = JSON.parse(response.body)
       expect(json_response).to include('error')
-      expect(json_response['error']).to eq('oauth_failed')
+      expect(json_response['error']['code']).to eq('oauth_failed')
     end
   end
 end

@@ -45,8 +45,7 @@ RSpec.describe 'Authentication - Logout', type: :request do
         let(:Authorization) { 'Bearer invalid.token.here' }
 
         run_test! do |response|
-          data = JSON.parse(response.body)
-          expect(data['error']).to be_present
+          expect_error_code(response, 'unauthorized')
         end
       end
 
@@ -54,8 +53,7 @@ RSpec.describe 'Authentication - Logout', type: :request do
         let(:Authorization) { nil }
 
         run_test! do |response|
-          data = JSON.parse(response.body)
-          expect(data['error']).to eq('Missing token')
+          expect_error_response(response, code: 'unauthorized', message: 'Missing token')
         end
       end
 
@@ -67,8 +65,7 @@ RSpec.describe 'Authentication - Logout', type: :request do
         end
 
         run_test! do |response|
-          data = JSON.parse(response.body)
-          expect(data['error']).to eq('Session already expired')
+          expect_error_response(response, code: 'unauthorized', message: 'Session already expired')
         end
       end
 
@@ -79,8 +76,7 @@ RSpec.describe 'Authentication - Logout', type: :request do
         let(:Authorization) { "Bearer #{invalid_token}" }
 
         run_test! do |response|
-          data = JSON.parse(response.body)
-          expect(data['error']).to eq('Invalid token')
+          expect_error_response(response, code: 'unauthorized', message: 'Invalid token')
         end
       end
 
@@ -91,8 +87,7 @@ RSpec.describe 'Authentication - Logout', type: :request do
         end
 
         run_test! do |response|
-          data = JSON.parse(response.body)
-          expect(data['error']).to eq('Session already expired')
+          expect_error_response(response, code: 'unauthorized', message: 'Session already expired')
         end
       end
     end

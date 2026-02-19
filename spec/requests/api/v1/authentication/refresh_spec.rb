@@ -46,8 +46,7 @@ RSpec.describe 'Authentication - Token Refresh', type: :request do
         let(:refresh) { { refresh_token: 'invalid_token' } }
 
         run_test! do |response|
-          data = JSON.parse(response.body)
-          expect(data['error']).to eq('Unable to refresh session')
+          expect_error_response(response, code: 'unauthorized', message: 'Unable to refresh session')
         end
       end
 
@@ -56,8 +55,7 @@ RSpec.describe 'Authentication - Token Refresh', type: :request do
         let(:refresh) { { refresh_token: '' } }
 
         run_test! do |response|
-          data = JSON.parse(response.body)
-          expect(data['error']).to eq('Refresh token is missing')
+          expect_error_response(response, code: 'unauthorized', message: 'Refresh token is missing')
         end
       end
 
@@ -73,8 +71,7 @@ RSpec.describe 'Authentication - Token Refresh', type: :request do
         let(:refresh) { { refresh_token: refresh_token } }
 
         run_test! do |response|
-          data = JSON.parse(response.body)
-          expect(data['error']).to eq('Unable to refresh session')
+          expect_error_response(response, code: 'unauthorized', message: 'Unable to refresh session')
         end
       end
     end

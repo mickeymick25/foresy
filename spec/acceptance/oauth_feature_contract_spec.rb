@@ -162,7 +162,7 @@ RSpec.describe 'OAuth Feature Contract', type: :request do
 
         json_response = JSON.parse(response.body)
         expect(json_response).to include('error')
-        expect(json_response['error']).to eq('invalid_provider')
+        expect(json_response['error']['code']).to eq('invalid_provider')
       end
     end
 
@@ -185,7 +185,7 @@ RSpec.describe 'OAuth Feature Contract', type: :request do
 
         json_response = JSON.parse(response.body)
         expect(json_response).to include('error')
-        expect(json_response['error']).to eq('invalid_payload')
+        expect(json_response['error']['code']).to eq('invalid_payload')
       end
     end
 
@@ -209,7 +209,7 @@ RSpec.describe 'OAuth Feature Contract', type: :request do
 
         json_response = JSON.parse(response.body)
         expect(json_response).to include('error')
-        expect(json_response['error']).to eq('invalid_payload')
+        expect(json_response['error']['code']).to eq('invalid_payload')
       end
     end
 
@@ -233,7 +233,7 @@ RSpec.describe 'OAuth Feature Contract', type: :request do
 
         json_response = JSON.parse(response.body)
         expect(json_response).to include('error')
-        expect(json_response['error']).to eq('oauth_failed')
+        expect(json_response['error']['code']).to eq('oauth_failed')
       end
     end
 
@@ -269,7 +269,7 @@ RSpec.describe 'OAuth Feature Contract', type: :request do
 
         json_response = JSON.parse(response.body)
         expect(json_response).to include('error')
-        expect(json_response['error']).to eq('invalid_payload')
+        expect(json_response['error']['code']).to eq('invalid_payload')
       end
     end
 
@@ -305,7 +305,7 @@ RSpec.describe 'OAuth Feature Contract', type: :request do
 
         json_response = JSON.parse(response.body)
         expect(json_response).to include('error')
-        expect(json_response['error']).to eq('invalid_payload')
+        expect(json_response['error']['code']).to eq('invalid_payload')
       end
     end
 
@@ -347,7 +347,7 @@ RSpec.describe 'OAuth Feature Contract', type: :request do
 
         json_response = JSON.parse(response.body)
         expect(json_response).to include('error')
-        expect(json_response['error']).to eq('internal_error')
+        expect(json_response['error']['code']).to eq('internal_error')
       end
     end
 
@@ -505,7 +505,7 @@ RSpec.describe 'OAuth Feature Contract', type: :request do
         expect(response).to have_http_status(:bad_request)
 
         json_response = JSON.parse(response.body)
-        expect(json_response['error']).to eq('invalid_provider')
+        expect(json_response['error']['code']).to eq('invalid_provider')
       end
     end
 
@@ -525,7 +525,7 @@ RSpec.describe 'OAuth Feature Contract', type: :request do
         expect(response).to have_http_status(:bad_request)
 
         json_response = JSON.parse(response.body)
-        expect(json_response['error']).to eq('invalid_provider')
+        expect(json_response['error']['code']).to eq('invalid_provider')
       end
     end
 
@@ -1073,7 +1073,7 @@ RSpec.describe 'OAuth Feature Contract', type: :request do
 
         expect(response).to have_http_status(:unauthorized)
         json_response = JSON.parse(response.body)
-        expect(json_response['error']).to eq('oauth_failed')
+        expect(json_response['error']['code']).to eq('oauth_failed')
       end
     end
 

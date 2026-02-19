@@ -16,8 +16,16 @@ paths:
           description: user authenticated
         '401':
           description: handles missing X-Forwarded-For by using remote_ip
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
         '403':
           description: inactive user
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
         '429':
           description: fail closed when Redis is down
           content:
@@ -28,14 +36,25 @@ paths:
                     rate_limit_exceeded:
                       summary: Rate limit exceeded (5 requests/minute)
                       value:
-                        error: Rate limit exceeded
+                        error:
+                          code: rate_limit_exceeded
+                          message: Rate limit exceeded
                         retry_after: 42
               schema:
                 type: object
                 properties:
                   error:
-                    type: string
-                    example: Rate limit exceeded
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: rate_limit_exceeded
+                      message:
+                        type: string
+                        example: Rate limit exceeded
+                    required:
+                    - code
+                    - message
                   retry_after:
                     type: integer
                     example: 42
@@ -58,13 +77,6 @@ paths:
               - email
               - password
         required: true
-    get:
-      summary: GET login endpoint - not rate-limited (endpoint does not exist)
-      tags:
-      - Authentication
-      responses:
-        '404':
-          description: get login endpoint does not exist (not rate-limited)
   "/api/v1/auth/logout":
     delete:
       summary: DELETE logout endpoint - not rate-limited (only POST is rate-limited)
@@ -139,53 +151,25 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: invalid_provider
-                    description: Error code
-                required:
-                - error
+                "$ref": "#/components/schemas/Error"
         '401':
           description: OAuth authentication failed - provider returns error
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: oauth_failed
-                    description: Error code
-                required:
-                - error
+                "$ref": "#/components/schemas/Error"
         '422':
           description: invalid payload - missing UID from provider
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: invalid_payload
-                    description: Error code
-                required:
-                - error
+                "$ref": "#/components/schemas/Error"
         '500':
           description: internal server error - token generation failed
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: internal_error
-                    description: Error code
-                required:
-                - error
+                "$ref": "#/components/schemas/Error"
       requestBody:
         content:
           application/json:
@@ -217,19 +201,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: oauth_failed
-                    description: Error code
-                  message:
-                    type: string
-                    example: OAuth authentication failed
-                    description: Error message
-                required:
-                - error
-                - message
+                "$ref": "#/components/schemas/Error"
   "/api/v1/auth/refresh":
     post:
       summary: Refreshes authentication token with rate limiting
@@ -249,16 +221,27 @@ paths:
                 example_0:
                   value:
                     rate_limit_exceeded:
-                      summary: Rate limit exceeded (10 requests/minute)
+                      summary: Rate limit exceeded (5 requests/minute)
                       value:
-                        error: Rate limit exceeded
+                        error:
+                          code: rate_limit_exceeded
+                          message: Rate limit exceeded
                         retry_after: 35
               schema:
                 type: object
                 properties:
                   error:
-                    type: string
-                    example: Rate limit exceeded
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: rate_limit_exceeded
+                      message:
+                        type: string
+                        example: Rate limit exceeded
+                    required:
+                    - code
+                    - message
                   retry_after:
                     type: integer
                     example: 35
@@ -409,14 +392,25 @@ paths:
                     rate_limit_exceeded:
                       summary: Rate limit exceeded (3 requests/minute)
                       value:
-                        error: Rate limit exceeded
+                        error:
+                          code: rate_limit_exceeded
+                          message: Rate limit exceeded
                         retry_after: 55
               schema:
                 type: object
                 properties:
                   error:
-                    type: string
-                    example: Rate limit exceeded
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: rate_limit_exceeded
+                      message:
+                        type: string
+                        example: Rate limit exceeded
+                    required:
+                    - code
+                    - message
                   retry_after:
                     type: integer
                     example: 55
@@ -480,3 +474,28 @@ components:
       required:
       - email
       - password
+    Error:
+      type: object
+      required:
+      - error
+      additionalProperties: false
+      properties:
+        error:
+          type: object
+          required:
+          - code
+          - message
+          additionalProperties: false
+          properties:
+            code:
+              type: string
+              description: Error code (e.g., not_found, validation_failed, internal_error)
+            message:
+              type: string
+              description: Human-readable error message
+            details:
+              type: array
+              description: Optional array of error details
+              items:
+                type: object
+                additionalProperties: true

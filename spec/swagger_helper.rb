@@ -53,6 +53,38 @@ RSpec.configure do |config|
               password: { type: :string, format: :password }
             },
             required: %w[email password]
+          },
+          # Error schema - unified error structure for all API errors
+          # Used by: 400, 401, 403, 404, 422, 500 responses
+          Error: {
+            type: :object,
+            required: %w[error],
+            additionalProperties: false,
+            properties: {
+              error: {
+                type: :object,
+                required: %w[code message],
+                additionalProperties: false,
+                properties: {
+                  code: {
+                    type: :string,
+                    description: 'Error code (e.g., not_found, validation_failed, internal_error)'
+                  },
+                  message: {
+                    type: :string,
+                    description: 'Human-readable error message'
+                  },
+                  details: {
+                    type: :array,
+                    description: 'Optional array of error details',
+                    items: {
+                      type: :object,
+                      additionalProperties: true
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }

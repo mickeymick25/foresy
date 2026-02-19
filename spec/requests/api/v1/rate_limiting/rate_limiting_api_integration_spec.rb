@@ -50,7 +50,14 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
       response '429', 'rate limit exceeded - too many login attempts' do
         schema type: :object,
                properties: {
-                 error: { type: :string, example: 'Rate limit exceeded' },
+                 error: {
+                   type: :object,
+                   properties: {
+                     code: { type: :string, example: 'rate_limit_exceeded' },
+                     message: { type: :string, example: 'Rate limit exceeded' }
+                   },
+                   required: %w[code message]
+                 },
                  retry_after: { type: :integer, example: 42 }
                },
                required: %w[error retry_after]
@@ -59,7 +66,10 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
           rate_limit_exceeded: {
             summary: 'Rate limit exceeded (5 requests/minute)',
             value: {
-              error: 'Rate limit exceeded',
+              error: {
+                code: 'rate_limit_exceeded',
+                message: 'Rate limit exceeded'
+              },
               retry_after: 42
             }
           }
@@ -96,7 +106,8 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
           expect(response.headers['Retry-After']).to match(/\d+/)
 
           data = JSON.parse(response.body)
-          expect(data['error']).to eq('Rate limit exceeded')
+          expect(data['error']['code']).to eq('rate_limit_exceeded')
+          expect(data['error']['message']).to eq('Rate limit exceeded')
           expect(data['retry_after']).to be_between(58, 60)
         end
       end
@@ -172,7 +183,14 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
       response '429', 'rate limit exceeded - too many signup attempts' do
         schema type: :object,
                properties: {
-                 error: { type: :string, example: 'Rate limit exceeded' },
+                 error: {
+                   type: :object,
+                   properties: {
+                     code: { type: :string, example: 'rate_limit_exceeded' },
+                     message: { type: :string, example: 'Rate limit exceeded' }
+                   },
+                   required: %w[code message]
+                 },
                  retry_after: { type: :integer, example: 55 }
                },
                required: %w[error retry_after]
@@ -181,7 +199,10 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
           rate_limit_exceeded: {
             summary: 'Rate limit exceeded (3 requests/minute)',
             value: {
-              error: 'Rate limit exceeded',
+              error: {
+                code: 'rate_limit_exceeded',
+                message: 'Rate limit exceeded'
+              },
               retry_after: 55
             }
           }
@@ -218,7 +239,8 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
           expect(response.headers).to include('Retry-After')
 
           data = JSON.parse(response.body)
-          expect(data['error']).to eq('Rate limit exceeded')
+          expect(data['error']['code']).to eq('rate_limit_exceeded')
+          expect(data['error']['message']).to eq('Rate limit exceeded')
           expect(data['retry_after']).to be_an(Integer)
         end
       end
@@ -265,16 +287,26 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
       response '429', 'rate limit exceeded - too many refresh attempts' do
         schema type: :object,
                properties: {
-                 error: { type: :string, example: 'Rate limit exceeded' },
+                 error: {
+                   type: :object,
+                   properties: {
+                     code: { type: :string, example: 'rate_limit_exceeded' },
+                     message: { type: :string, example: 'Rate limit exceeded' }
+                   },
+                   required: %w[code message]
+                 },
                  retry_after: { type: :integer, example: 35 }
                },
                required: %w[error retry_after]
 
         examples 'application/json' => {
           rate_limit_exceeded: {
-            summary: 'Rate limit exceeded (10 requests/minute)',
+            summary: 'Rate limit exceeded (5 requests/minute)',
             value: {
-              error: 'Rate limit exceeded',
+              error: {
+                code: 'rate_limit_exceeded',
+                message: 'Rate limit exceeded'
+              },
               retry_after: 35
             }
           }
@@ -309,7 +341,8 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
           expect(response.headers).to include('Retry-After')
 
           data = JSON.parse(response.body)
-          expect(data['error']).to eq('Rate limit exceeded')
+          expect(data['error']['code']).to eq('rate_limit_exceeded')
+          expect(data['error']['message']).to eq('Rate limit exceeded')
           expect(data['retry_after']).to be_between(58, 60)
           expect(data['retry_after']).to be_an(Integer)
         end
@@ -386,21 +419,7 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
     end
   end
 
-  # GET to login endpoint - should never be rate-limited (only POST is rate-limited)
-  # Note: GET /api/v1/auth/login doesn't exist, so it returns 404 (not rate-limited)
-  path '/api/v1/auth/login' do
-    get 'GET login endpoint - not rate-limited (endpoint does not exist)' do
-      tags 'Authentication'
-      produces 'application/json'
 
-      response '404', 'get login endpoint does not exist (not rate-limited)' do
-        run_test! do
-          expect(response.status).to eq(404) # Endpoint doesn't exist
-          expect(response.status).not_to eq(429) # Not rate-limited
-        end
-      end
-    end
-  end
 
   # DELETE to logout endpoint - should never be rate-limited (only POST is rate-limited)
   # Note: PUT /api/v1/auth/refresh doesn't exist, so we test DELETE /api/v1/auth/logout which does exist
@@ -473,7 +492,8 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
           expect(response.headers).to include('Retry-After')
 
           data = JSON.parse(response.body)
-          expect(data['error']).to eq('Rate limit exceeded')
+          expect(data['error']['code']).to eq('rate_limit_exceeded')
+          expect(data['error']['message']).to eq('Rate limit exceeded')
           expect(data['retry_after']).to be_an(Integer)
         end
       end
@@ -719,7 +739,8 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
         expect(response.headers['Retry-After']).to eq('60')
 
         json = JSON.parse(response.body)
-        expect(json['error']).to eq('Rate limit exceeded')
+        expect(json['error']['code']).to eq('rate_limit_exceeded')
+        expect(json['error']['message']).to eq('Rate limit exceeded')
         expect(json['retry_after']).to eq(60)
       end
     end

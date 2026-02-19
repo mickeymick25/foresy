@@ -31,7 +31,7 @@ module Api
         Rails.logger.error "Backtrace: #{e.backtrace.join("\n")}"
         Rails.logger.error "Request params at error: #{params.inspect}"
         Rails.logger.error "Request env at error: #{request.env.keys.select { |k| k.include?('omniauth') }.inspect}"
-        render json: { error: 'internal_error', message: e.message }, status: :internal_server_error
+        render_error('internal_error', e.message, :internal_server_error)
       end
 
       # Execute the complete OAuth authentication flow
@@ -59,7 +59,7 @@ module Api
           render_unprocessable_entity('invalid_payload')
         else
           Rails.logger.error "Unknown validation result: #{result}"
-          render json: { error: 'internal_error' }, status: :internal_server_error
+          render_error('internal_error', 'An unexpected error occurred', :internal_server_error)
         end
       end
 
@@ -94,7 +94,7 @@ module Api
       # GET /auth/failure
       # Optional OAuth failure endpoint (recommended by Feature Contract)
       def failure
-        render json: { error: 'oauth_failed', message: 'OAuth authentication failed' }, status: :unauthorized
+        render_error('oauth_failed', 'OAuth authentication failed', :unauthorized)
       end
 
       private
@@ -129,16 +129,16 @@ module Api
       end
 
       # Render helpers for standardized error responses
-      def render_bad_request(error_code)
-        render json: { error: error_code }, status: :bad_request
+      def render_bad_request(error_code, message = 'Bad Request')
+        render_error(error_code, message, :bad_request)
       end
 
-      def render_unauthorized(error_code)
-        render json: { error: error_code }, status: :unauthorized
+      def render_unauthorized(error_code, message = 'Unauthorized')
+        render_error(error_code, message, :unauthorized)
       end
 
-      def render_unprocessable_entity(error_code)
-        render json: { error: error_code }, status: :unprocessable_entity
+      def render_unprocessable_entity(error_code, message = 'Unprocessable Entity')
+        render_error(error_code, message, :unprocessable_entity)
       end
     end
   end
