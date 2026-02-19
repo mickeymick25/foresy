@@ -19,7 +19,7 @@ namespace :swagger do
   desc 'Audit exhaustiveness of Routes vs Swagger documentation'
   task audit_coverage: :environment do
     puts "\n🔍 Phase 1.7: Routes ↔ Swagger Exhaustiveness Audit\n"
-    puts "=" * 60
+    puts '=' * 60
 
     # 1. Extract all API v1 routes
     routes = extract_api_v1_routes
@@ -62,14 +62,14 @@ EXCLUDED_PATHS = [
   '/rails/info',                  # Rails info
   '/rails/routes',                # Rails internal
   '/rails/info/properties',       # Rails internal
-  '/rails/mailers',              # Rails internal
-  '/rails/assets',               # Rails internal assets
+  '/rails/mailers', # Rails internal
+  '/rails/assets' # Rails internal assets
 ].freeze
 
 EXCLUDED_PREFIXES = [
   '/rails/',                      # All Rails internal routes
   '/active_storage/',             # ActiveStorage routes if present
-  '/webpacker/',                  # Webpacker routes if present
+  '/webpacker/' # Webpacker routes if present
 ].freeze
 
 # ============================================================================
@@ -102,7 +102,7 @@ def extract_api_v1_routes
     next if controller.start_with?('rswag/')
 
     # Apply exclusion list to Rails routes
-    path_without_format = path.gsub(/\(\.:format\)/, '')
+    path_without_format = path.gsub('(.:format)', '')
     next if EXCLUDED_PATHS.include?(path_without_format)
     next if EXCLUDED_PREFIXES.any? { |prefix| path_without_format.start_with?(prefix) }
 
@@ -121,12 +121,12 @@ def parse_swagger_yaml
   swagger_path = File.join(Rails.root, 'swagger', 'v1', 'swagger.yaml')
 
   unless File.exist?(swagger_path)
-    puts "❌ ERROR: swagger/v1/swagger.yaml not found"
+    puts '❌ ERROR: swagger/v1/swagger.yaml not found'
     exit 1
   end
 
   require 'yaml'
-  swagger = YAML.safe_load(File.read(swagger_path))
+  swagger = YAML.safe_load_file(swagger_path)
 
   endpoints = []
 
@@ -159,13 +159,13 @@ def normalize_routes(routes)
     verb = route[:verb]
 
     # Remove .(.:format) suffix
-    path = path.gsub(/\(\.:format\)/, '')
+    path = path.gsub('(.:format)', '')
 
     # Convert :id to {id}
     path = path.gsub(/:(\w+)/, '{\1}')
 
     # Remove trailing slashes
-    path = path.gsub(/\/+$/, '')
+    path = path.gsub(%r{/+$}, '')
 
     normalized << "#{verb} #{path}"
   end
@@ -185,7 +185,7 @@ def normalize_swagger_paths(endpoints)
     next if EXCLUDED_PREFIXES.any? { |prefix| path.start_with?(prefix) }
 
     # Remove trailing slashes
-    path = path.gsub(/\/+$/, '')
+    path = path.gsub(%r{/+$}, '')
 
     normalized << "#{verb} #{path}"
   end
@@ -199,7 +199,7 @@ def report_results(routes, swagger, missing_in_swagger, missing_in_routes)
   puts "Total Rails API v1 routes: #{routes.count}"
   puts "Total Swagger documented: #{swagger.count}"
 
-  puts "\n" + "-" * 60
+  puts "\n#{'-' * 60}"
 
   unless missing_in_swagger.empty?
     puts "\n❌ MISSING IN SWAGGER (#{missing_in_swagger.count}):\n"
@@ -217,7 +217,5 @@ def report_results(routes, swagger, missing_in_swagger, missing_in_routes)
     end
   end
 
-  if missing_in_swagger.empty? && missing_in_routes.empty?
-    puts "\n✅ Perfect match - All routes documented!"
-  end
+  puts "\n✅ Perfect match - All routes documented!" if missing_in_swagger.empty? && missing_in_routes.empty?
 end

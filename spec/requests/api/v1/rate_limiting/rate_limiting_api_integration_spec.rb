@@ -419,8 +419,6 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
     end
   end
 
-
-
   # DELETE to logout endpoint - should never be rate-limited (only POST is rate-limited)
   # Note: PUT /api/v1/auth/refresh doesn't exist, so we test DELETE /api/v1/auth/logout which does exist
   path '/api/v1/auth/logout' do

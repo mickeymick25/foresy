@@ -259,6 +259,131 @@ paths:
               required:
               - refresh_token
         required: true
+  "/api/v1/cras":
+    post:
+      summary: Creates a new CRA
+      tags:
+      - CRAs
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
+      responses:
+        '201':
+          description: CRA created successfully
+        '401':
+          description: unauthorized - invalid token
+        '422':
+          description: unprocessable entity - invalid month
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                month:
+                  type: integer
+                  description: Month (1-12)
+                  example: 1
+                year:
+                  type: integer
+                  description: Year (e.g., 2026)
+                  example: 2026
+                currency:
+                  type: string
+                  description: Currency code (e.g., EUR)
+                  example: EUR
+                  nullable: true
+                description:
+                  type: string
+                  description: CRA description
+                  nullable: true
+                status:
+                  type: string
+                  description: CRA status (draft, submitted)
+                  example: draft
+                  nullable: true
+              required:
+              - month
+              - year
+    get:
+      summary: Lists all CRAs for the current user
+      tags:
+      - CRAs
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
+      - name: page
+        in: query
+        type: integer
+        required: false
+        description: 'Page number (default: 1)'
+        schema:
+          type: integer
+          default: 1
+      - name: per_page
+        in: query
+        type: integer
+        required: false
+        description: 'Items per page (default: 20, max: 100)'
+        schema:
+          type: integer
+          default: 20
+      - name: status
+        in: query
+        required: false
+        description: Filter by status (draft, submitted, locked)
+        schema:
+          type: string
+      - name: year
+        in: query
+        required: false
+        description: Filter by year
+        schema:
+          type: integer
+      - name: month
+        in: query
+        required: false
+        description: Filter by month (1-12)
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Returns list of CRAs with pagination
+        '401':
+          description: unauthorized - invalid token
+  "/api/v1/cras/{id}":
+    get:
+      summary: Shows a specific CRA with full details
+      tags:
+      - CRAs
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        description: CRA ID (UUID)
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Returns CRA details with entries
+        '401':
+          description: unauthorized - invalid token
+        '404':
+          description: CRA not found
   "/api/v1/missions":
     post:
       summary: Creates a new mission

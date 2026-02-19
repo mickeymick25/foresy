@@ -105,7 +105,7 @@ module Api
             success: false,
             errors: [result.error],
             timestamp: Time.current.iso8601
-          }, status: :unprocessable_entity
+          }, status: result.status
         end
       end
 

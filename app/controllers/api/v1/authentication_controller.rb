@@ -18,9 +18,7 @@ module Api
         user = find_and_validate_user
         return render_unauthorized('Invalid credentials') unless user
 
-        unless user.active?
-          return render_forbidden('Account is inactive')
-        end
+        return render_forbidden('Account is inactive') unless user.active?
 
         perform_login(user)
       end
