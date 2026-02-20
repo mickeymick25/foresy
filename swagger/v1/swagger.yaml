@@ -9,24 +9,24 @@ paths:
     post:
       summary: Test Redis unavailable - fail closed (HTTP 429)
       tags:
-        - Authentication
+      - Authentication
       parameters: []
       responses:
-        "200":
+        '200':
           description: user authenticated
-        "401":
+        '401':
           description: handles missing X-Forwarded-For by using remote_ip
           content:
             application/json:
               schema:
                 "$ref": "#/components/schemas/Error"
-        "403":
+        '403':
           description: inactive user
           content:
             application/json:
               schema:
                 "$ref": "#/components/schemas/Error"
-        "429":
+        '429':
           description: fail closed when Redis is down
           content:
             application/json:
@@ -53,14 +53,14 @@ paths:
                         type: string
                         example: Rate limit exceeded
                     required:
-                      - code
-                      - message
+                    - code
+                    - message
                   retry_after:
                     type: integer
                     example: 42
                 required:
-                  - error
-                  - retry_after
+                - error
+                - retry_after
       requestBody:
         content:
           application/json:
@@ -74,46 +74,45 @@ paths:
                   type: string
                   format: password
               required:
-                - email
-                - password
+              - email
+              - password
         required: true
   "/api/v1/auth/logout":
     delete:
       summary: DELETE logout endpoint - not rate-limited (only POST is rate-limited)
       tags:
-        - Authentication
+      - Authentication
       parameters:
-        - name: Authorization
-          in: header
-          required: false
-          schema:
-            type: string
+      - name: Authorization
+        in: header
+        required: false
+        schema:
+          type: string
       responses:
-        "200":
+        '200':
           description: user logged out
-        "401":
+        '401':
           description: delete logout unauthorized (not rate-limited)
   "/api/v1/auth/{provider}/callback":
     post:
       summary: OAuth callback for provider authentication
       tags:
-        - OAuth
-      description:
-        Authenticates a user via OAuth provider (Google or GitHub). Returns
+      - OAuth
+      description: Authenticates a user via OAuth provider (Google or GitHub). Returns
         a JWT token on success.
       parameters:
-        - name: provider
-          in: path
+      - name: provider
+        in: path
+        type: string
+        required: true
+        description: OAuth provider (google_oauth2 or github)
+        schema:
           type: string
-          required: true
-          description: OAuth provider (google_oauth2 or github)
-          schema:
-            type: string
-            enum:
-              - google_oauth2
-              - github
+          enum:
+          - google_oauth2
+          - github
       responses:
-        "200":
+        '200':
           description: successful OAuth authentication with GitHub
           content:
             application/json:
@@ -140,32 +139,32 @@ paths:
                         type: string
                         description: User unique identifier from OAuth provider
                     required:
-                      - id
-                      - email
-                      - provider
-                      - provider_uid
+                    - id
+                    - email
+                    - provider
+                    - provider_uid
                 required:
-                  - token
-                  - user
-        "400":
+                - token
+                - user
+        '400':
           description: invalid provider - provider not supported
           content:
             application/json:
               schema:
                 "$ref": "#/components/schemas/Error"
-        "401":
+        '401':
           description: OAuth authentication failed - provider returns error
           content:
             application/json:
               schema:
                 "$ref": "#/components/schemas/Error"
-        "422":
+        '422':
           description: invalid payload - missing UID from provider
           content:
             application/json:
               schema:
                 "$ref": "#/components/schemas/Error"
-        "500":
+        '500':
           description: internal server error - token generation failed
           content:
             application/json:
@@ -185,20 +184,19 @@ paths:
                   format: uri
                   description: Redirect URI used in OAuth flow
               required:
-                - code
-                - redirect_uri
+              - code
+              - redirect_uri
         required: true
         description: OAuth authorization code and redirect URI
   "/api/v1/auth/failure":
     get:
       summary: OAuth failure endpoint - not rate-limited
       tags:
-        - OAuth
-      description:
-        Endpoint called when OAuth authentication fails at the provider
+      - OAuth
+      description: Endpoint called when OAuth authentication fails at the provider
         level
       responses:
-        "401":
+        '401':
           description: oauth failure (not rate-limited)
           content:
             application/json:
@@ -208,14 +206,14 @@ paths:
     post:
       summary: Refreshes authentication token with rate limiting
       tags:
-        - Authentication
+      - Authentication
       parameters: []
       responses:
-        "200":
+        '200':
           description: token refreshed
-        "401":
+        '401':
           description: token refreshed (under rate limit)
-        "429":
+        '429':
           description: rate limit exceeded - too many refresh attempts
           content:
             application/json:
@@ -242,14 +240,14 @@ paths:
                         type: string
                         example: Rate limit exceeded
                     required:
-                      - code
-                      - message
+                    - code
+                    - message
                   retry_after:
                     type: integer
                     example: 35
                 required:
-                  - error
-                  - retry_after
+                - error
+                - retry_after
       requestBody:
         content:
           application/json:
@@ -259,64 +257,259 @@ paths:
                 refresh_token:
                   type: string
               required:
-                - refresh_token
+              - refresh_token
         required: true
   "/api/v1/auth/revoke_all":
     delete:
       summary: Revoke all session tokens for current user
       tags:
-        - Authentication
+      - Authentication
       security:
-        - bearerAuth: []
+      - bearerAuth: []
       parameters:
-        - name: Authorization
-          in: header
-          required: true
-          description: Bearer token
-          schema:
-            type: string
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
       responses:
-        "200":
+        '200':
           description: All tokens revoked successfully
-        "401":
+        '401':
           description: unauthorized - no active session
   "/api/v1/auth/revoke":
     delete:
       summary: Revoke current session token
       tags:
-        - Authentication
+      - Authentication
       security:
-        - bearerAuth: []
+      - bearerAuth: []
       parameters:
-        - name: Authorization
-          in: header
-          required: true
-          description: Bearer token
-          schema:
-            type: string
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
       responses:
-        "200":
+        '200':
           description: Token revoked successfully
-        "401":
+        '401':
           description: unauthorized - no active session
+  "/api/v1/cras/{cra_id}/entries":
+    post:
+      summary: Creates a new CRA entry
+      tags:
+      - CRA Entries
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
+      - name: cra_id
+        in: path
+        required: true
+        description: CRA ID (UUID)
+        schema:
+          type: string
+      responses:
+        '201':
+          description: CRA entry created successfully
+        '401':
+          description: unauthorized - invalid token
+        '404':
+          description: CRA not found
+        '422':
+          description: validation error
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                date:
+                  type: string
+                  format: date
+                  description: Entry date
+                quantity:
+                  type: number
+                  description: Quantity (days or hours)
+                unit_price:
+                  type: integer
+                  description: Unit price in cents
+                description:
+                  type: string
+                  description: Entry description
+                mission_id:
+                  type: string
+                  format: uuid
+                  description: Mission ID (UUID)
+              required:
+              - date
+              - quantity
+    get:
+      summary: Lists all CRA entries for a CRA
+      tags:
+      - CRA Entries
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
+      - name: cra_id
+        in: path
+        required: true
+        description: CRA ID (UUID)
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Returns list of CRA entries
+        '401':
+          description: unauthorized - invalid token
+        '404':
+          description: CRA not found
+  "/api/v1/cras/{cra_id}/entries/{id}":
+    delete:
+      summary: Deletes a CRA entry
+      tags:
+      - CRA Entries
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
+      - name: cra_id
+        in: path
+        required: true
+        description: CRA ID (UUID)
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        description: CRA Entry ID (UUID)
+        schema:
+          type: string
+      responses:
+        '200':
+          description: CRA entry deleted successfully
+        '401':
+          description: unauthorized - invalid token
+        '404':
+          description: CRA or entry not found
+        '409':
+          description: conflict - CRA is locked or submitted
+    get:
+      summary: Shows a specific CRA entry
+      tags:
+      - CRA Entries
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
+      - name: cra_id
+        in: path
+        required: true
+        description: CRA ID (UUID)
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        description: CRA Entry ID (UUID)
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Returns CRA entry details
+        '401':
+          description: unauthorized - invalid token
+        '404':
+          description: CRA or entry not found
+    patch:
+      summary: Updates a CRA entry
+      tags:
+      - CRA Entries
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
+      - name: cra_id
+        in: path
+        required: true
+        description: CRA ID (UUID)
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        description: CRA Entry ID (UUID)
+        schema:
+          type: string
+      responses:
+        '200':
+          description: CRA entry updated successfully
+        '401':
+          description: unauthorized - invalid token
+        '404':
+          description: CRA or entry not found
+        '422':
+          description: validation error
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                date:
+                  type: string
+                  format: date
+                  description: Entry date
+                quantity:
+                  type: number
+                  description: Quantity (days or hours)
+                unit_price:
+                  type: integer
+                  description: Unit price in cents
+                description:
+                  type: string
+                  description: Entry description
+                mission_id:
+                  type: string
+                  format: uuid
+                  description: Mission ID (UUID)
   "/api/v1/cras":
     post:
       summary: Creates a new CRA
       tags:
-        - CRAs
+      - CRAs
       parameters:
-        - name: Authorization
-          in: header
-          required: true
-          description: Bearer token
-          schema:
-            type: string
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
       responses:
-        "201":
+        '201':
           description: CRA created successfully
-        "401":
+        '401':
           description: unauthorized - invalid token
-        "422":
+        '422':
           description: unprocessable entity - invalid month
       requestBody:
         content:
@@ -347,110 +540,136 @@ paths:
                   example: draft
                   nullable: true
               required:
-                - month
-                - year
+              - month
+              - year
     get:
       summary: Lists all CRAs for the current user
       tags:
-        - CRAs
+      - CRAs
       parameters:
-        - name: Authorization
-          in: header
-          required: true
-          description: Bearer token
-          schema:
-            type: string
-        - name: page
-          in: query
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
+      - name: page
+        in: query
+        type: integer
+        required: false
+        description: 'Page number (default: 1)'
+        schema:
           type: integer
-          required: false
-          description: "Page number (default: 1)"
-          schema:
-            type: integer
-            default: 1
-        - name: per_page
-          in: query
+          default: 1
+      - name: per_page
+        in: query
+        type: integer
+        required: false
+        description: 'Items per page (default: 20, max: 100)'
+        schema:
           type: integer
-          required: false
-          description: "Items per page (default: 20, max: 100)"
-          schema:
-            type: integer
-            default: 20
-        - name: status
-          in: query
-          required: false
-          description: Filter by status (draft, submitted, locked)
-          schema:
-            type: string
-        - name: year
-          in: query
-          required: false
-          description: Filter by year
-          schema:
-            type: integer
-        - name: month
-          in: query
-          required: false
-          description: Filter by month (1-12)
-          schema:
-            type: integer
+          default: 20
+      - name: status
+        in: query
+        required: false
+        description: Filter by status (draft, submitted, locked)
+        schema:
+          type: string
+      - name: year
+        in: query
+        required: false
+        description: Filter by year
+        schema:
+          type: integer
+      - name: month
+        in: query
+        required: false
+        description: Filter by month (1-12)
+        schema:
+          type: integer
       responses:
-        "200":
+        '200':
           description: Returns list of CRAs with pagination
-        "401":
+        '401':
           description: unauthorized - invalid token
   "/api/v1/cras/{id}":
+    delete:
+      summary: Deletes a CRA
+      tags:
+      - CRAs
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        description: CRA ID (UUID)
+        schema:
+          type: string
+      responses:
+        '200':
+          description: CRA deleted successfully
+        '401':
+          description: unauthorized - invalid token
+        '404':
+          description: CRA not found
+        '409':
+          description: conflict - CRA is locked or submitted
     get:
       summary: Shows a specific CRA with full details
       tags:
-        - CRAs
+      - CRAs
       parameters:
-        - name: Authorization
-          in: header
-          required: true
-          description: Bearer token
-          schema:
-            type: string
-        - name: id
-          in: path
-          required: true
-          description: CRA ID (UUID)
-          schema:
-            type: string
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        description: CRA ID (UUID)
+        schema:
+          type: string
       responses:
-        "200":
+        '200':
           description: Returns CRA details with entries
-        "401":
+        '401':
           description: unauthorized - invalid token
-        "404":
+        '404':
           description: CRA not found
     patch:
       summary: Updates a CRA
       tags:
-        - CRAs
+      - CRAs
       parameters:
-        - name: Authorization
-          in: header
-          required: true
-          description: Bearer token
-          schema:
-            type: string
-        - name: id
-          in: path
-          required: true
-          description: CRA ID (UUID)
-          schema:
-            type: string
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        description: CRA ID (UUID)
+        schema:
+          type: string
       responses:
-        "200":
+        '200':
           description: CRA updated successfully
-        "401":
+        '401':
           description: unauthorized - invalid token
-        "404":
+        '404':
           description: CRA not found
-        "422":
+        '422':
           description: unprocessable entity - validation failed
-        "409":
+        '409':
           description: conflict - CRA is locked or submitted
       requestBody:
         content:
@@ -473,304 +692,110 @@ paths:
                 status:
                   type: string
                   description: CRA status (draft, submitted, locked)
-    delete:
-      summary: Deletes a CRA
-      tags:
-        - CRAs
-      parameters:
-        - name: Authorization
-          in: header
-          required: true
-          schema:
-            type: string
-        - name: id
-          in: path
-          required: true
-          description: CRA ID
-          schema:
-            type: string
-      responses:
-        "200":
-          description: CRA deleted successfully
-        "401":
-          description: unauthorized - invalid token
-        "404":
-          description: CRA not found
-        "409":
-          description: conflict - CRA is locked or submitted
-  "/api/v1/cras/{id}/submit":
-    post:
-      summary: Submits a CRA for approval
-      tags:
-        - CRAs
-      parameters:
-        - name: Authorization
-          in: header
-          required: true
-          schema:
-            type: string
-        - name: id
-          in: path
-          required: true
-          description: CRA ID
-          schema:
-            type: string
-      responses:
-        "200":
-          description: CRA submitted successfully
-        "401":
-          description: unauthorized - invalid token
-        "404":
-          description: CRA not found
-        "422":
-          description: validation error
-        "409":
-          description: conflict - CRA already submitted or locked
-  "/api/v1/cras/{id}/lock":
-    post:
-      summary: Locks a CRA to prevent modifications
-      tags:
-        - CRAs
-      parameters:
-        - name: Authorization
-          in: header
-          required: true
-          schema:
-            type: string
-        - name: id
-          in: path
-          required: true
-          description: CRA ID
-          schema:
-            type: string
-      responses:
-        "200":
-          description: CRA locked successfully
-        "401":
-          description: unauthorized - invalid token
-        "404":
-          description: CRA not found
-        "409":
-          description: conflict - CRA already locked
   "/api/v1/cras/{id}/export":
     get:
       summary: Exports a CRA in specified format
       tags:
-        - CRAs
-      produces:
-        - text/csv
+      - CRAs
       parameters:
-        - name: Authorization
-          in: header
-          required: true
-          schema:
-            type: string
-        - name: id
-          in: path
-          required: true
-          description: CRA ID
-          schema:
-            type: string
-        - name: export_format
-          in: query
-          required: false
-          description: Export format (csv)
-          schema:
-            type: string
-            default: csv
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        description: CRA ID (UUID)
+        schema:
+          type: string
+      - name: export_format
+        in: query
+        type: string
+        required: false
+        description: Export format (csv)
+        schema:
+          type: string
+          default: csv
       responses:
-        "200":
+        '200':
           description: CRA exported successfully
-          content:
-            text/csv:
-              schema:
-                type: string
-        "401":
+        '401':
           description: unauthorized - invalid token
-        "404":
+        '404':
           description: CRA not found
-  "/api/v1/cras/{cra_id}/entries":
-    get:
-      summary: Lists all CRA entries for a CRA
-      tags:
-        - CRA Entries
-      parameters:
-        - name: Authorization
-          in: header
-          required: true
-          schema:
-            type: string
-        - name: cra_id
-          in: path
-          required: true
-          description: CRA ID
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Returns list of CRA entries
-        "401":
-          description: unauthorized - invalid token
-        "404":
-          description: CRA not found
+  "/api/v1/cras/{id}/lock":
     post:
-      summary: Creates a new CRA entry
+      summary: Locks a CRA to prevent modifications
       tags:
-        - CRA Entries
+      - CRAs
       parameters:
-        - name: Authorization
-          in: header
-          required: true
-          schema:
-            type: string
-        - name: cra_id
-          in: path
-          required: true
-          description: CRA ID
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                date:
-                  type: string
-                  format: date
-                days:
-                  type: number
-                description:
-                  type: string
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        description: CRA ID (UUID)
+        schema:
+          type: string
       responses:
-        "201":
-          description: CRA entry created successfully
-        "401":
+        '200':
+          description: CRA locked successfully
+        '401':
           description: unauthorized - invalid token
-        "404":
+        '404':
           description: CRA not found
-        "422":
+        '409':
+          description: conflict - CRA already locked
+  "/api/v1/cras/{id}/submit":
+    post:
+      summary: Submits a CRA for approval
+      tags:
+      - CRAs
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        description: CRA ID (UUID)
+        schema:
+          type: string
+      responses:
+        '200':
+          description: CRA submitted successfully
+        '401':
+          description: unauthorized - invalid token
+        '404':
+          description: CRA not found
+        '422':
           description: validation error
-  "/api/v1/cras/{cra_id}/entries/{id}":
-    get:
-      summary: Shows a specific CRA entry
-      tags:
-        - CRA Entries
-      parameters:
-        - name: Authorization
-          in: header
-          required: true
-          schema:
-            type: string
-        - name: cra_id
-          in: path
-          required: true
-          description: CRA ID
-          schema:
-            type: string
-        - name: id
-          in: path
-          required: true
-          description: CRA Entry ID
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Returns CRA entry details
-        "401":
-          description: unauthorized - invalid token
-        "404":
-          description: CRA or entry not found
-    patch:
-      summary: Updates a CRA entry
-      tags:
-        - CRA Entries
-      parameters:
-        - name: Authorization
-          in: header
-          required: true
-          schema:
-            type: string
-        - name: cra_id
-          in: path
-          required: true
-          description: CRA ID
-          schema:
-            type: string
-        - name: id
-          in: path
-          required: true
-          description: CRA Entry ID
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                date:
-                  type: string
-                  format: date
-                days:
-                  type: number
-                description:
-                  type: string
-      responses:
-        "200":
-          description: CRA entry updated successfully
-        "401":
-          description: unauthorized - invalid token
-        "404":
-          description: CRA or entry not found
-        "422":
-          description: validation error
-    delete:
-      summary: Deletes a CRA entry
-      tags:
-        - CRA Entries
-      parameters:
-        - name: Authorization
-          in: header
-          required: true
-          schema:
-            type: string
-        - name: cra_id
-          in: path
-          required: true
-          description: CRA ID
-          schema:
-            type: string
-        - name: id
-          in: path
-          required: true
-          description: CRA Entry ID
-          schema:
-            type: string
-      responses:
-        "200":
-          description: CRA entry deleted successfully
-        "401":
-          description: unauthorized - invalid token
-        "404":
-          description: CRA or entry not found
-        "409":
-          description: conflict - CRA is locked or submitted
+        '409':
+          description: conflict - CRA already submitted or locked
   "/api/v1/missions":
     post:
       summary: Creates a new mission
       tags:
-        - Missions
+      - Missions
       parameters:
-        - name: Authorization
-          in: header
-          required: true
-          schema:
-            type: string
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
       responses:
-        "201":
+        '201':
           description: Mission created successfully
-        "401":
+        '401':
           description: Unauthorized - No token
       requestBody:
         content:
@@ -801,85 +826,85 @@ paths:
     get:
       summary: Lists missions accessible to user
       tags:
-        - Missions
+      - Missions
       parameters:
-        - name: Authorization
-          in: header
-          required: true
-          schema:
-            type: string
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
       responses:
-        "200":
+        '200':
           description: Returns empty list
   "/api/v1/missions/{id}":
     get:
       summary: Shows a mission
       tags:
-        - Missions
+      - Missions
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: Authorization
-          in: header
-          required: true
-          schema:
-            type: string
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
       responses:
-        "200":
+        '200':
           description: Mission found
     patch:
       summary: Transitions mission status
       tags:
-        - Missions
+      - Missions
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: Authorization
-          in: header
-          required: true
-          schema:
-            type: string
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
       responses:
-        "200":
+        '200':
           description: allows in_progress -> completed
-        "422":
+        '422':
           description: rejects won -> lead
-        "403":
+        '403':
           description: rejects completed -> in_progress
     delete:
       summary: Archives a mission
       tags:
-        - Missions
+      - Missions
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: Authorization
-          in: header
-          required: true
-          schema:
-            type: string
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
       responses:
-        "200":
+        '200':
           description: Mission archived successfully
   "/api/v1/signup":
     post:
       summary: Crée un nouvel utilisateur
       tags:
-        - Users
+      - Users
       parameters: []
       responses:
-        "422":
+        '422':
           description: Création échouée
-        "429":
+        '429':
           description: rate limit exceeded - too many signup attempts
           content:
             application/json:
@@ -906,15 +931,15 @@ paths:
                         type: string
                         example: Rate limit exceeded
                     required:
-                      - code
-                      - message
+                    - code
+                    - message
                   retry_after:
                     type: integer
                     example: 55
                 required:
-                  - error
-                  - retry_after
-        "201":
+                - error
+                - retry_after
+        '201':
           description: Utilisateur créé
       requestBody:
         content:
@@ -926,16 +951,16 @@ paths:
     get:
       summary: Health check endpoint - not rate-limited
       tags:
-        - Health
+      - Health
       responses:
-        "200":
+        '200':
           description: health check (not rate-limited)
 servers:
-  - url: http://{defaultHost}
-    description: Serveur local de développement
-    variables:
-      defaultHost:
-        default: localhost:3000
+- url: http://{defaultHost}
+  description: Serveur local de développement
+  variables:
+    defaultHost:
+      default: localhost:3000
 components:
   securitySchemes:
     bearer_auth:
@@ -956,9 +981,9 @@ components:
           type: string
           format: password
       required:
-        - email
-        - password
-        - password_confirmation
+      - email
+      - password
+      - password_confirmation
     login:
       type: object
       properties:
@@ -969,19 +994,19 @@ components:
           type: string
           format: password
       required:
-        - email
-        - password
+      - email
+      - password
     Error:
       type: object
       required:
-        - error
+      - error
       additionalProperties: false
       properties:
         error:
           type: object
           required:
-            - code
-            - message
+          - code
+          - message
           additionalProperties: false
           properties:
             code:
