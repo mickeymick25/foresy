@@ -79,12 +79,13 @@ jobs:
           bundle exec rails db:drop db:create db:schema:load
           echo "✅ Database ready"
 
-      - name: 🧪 Run RSpec tests
+      - name: 🧪 Run RSpec tests with Coverage
         env:
           DATABASE_URL: postgres://postgres:password@localhost:5432/foresy_test
           REDIS_URL: redis://localhost:6379/0
           SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE || '' }}
           JWT_SECRET: ${{ secrets.JWT_SECRET || '' }}
+          COVERAGE: true
         run: |
           echo "🧪 Running RSpec with coverage..."
           bundle exec rspec \
@@ -93,12 +94,6 @@ jobs:
             --out rspec.xml \
             --format json \
             --out coverage/rspec.json
-
-      - name: 📊 Generate coverage report
-        if: success()
-        run: |
-          echo "📊 Generating coverage artifacts..."
-          COVERAGE=true bundle exec rspec --format progress
 
       - name: 📋 Upload test results
         if: always()
