@@ -48,7 +48,10 @@ module Api
         unless allowed
           response.headers['Retry-After'] = retry_after.to_s
           render json: {
-            error: 'Rate limit exceeded',
+            error: {
+              code: 'rate_limit_exceeded',
+              message: 'Rate limit exceeded'
+            },
             retry_after: retry_after
           }, status: :too_many_requests
         end

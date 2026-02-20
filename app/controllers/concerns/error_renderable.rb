@@ -2,8 +2,17 @@
 
 # ErrorRenderable
 #
-# Concern that provides error handling methods for controllers.
-# Handles different error rendering strategies based on environment.
+# Concern that provides standardized error handling for controllers.
+# All API errors follow a unified structure:
+#
+# {
+#   "error": {
+#     "code": "not_found",
+#     "message": "Resource not found",
+#     "details": [...]  # optional
+#   }
+# }
+#
 module ErrorRenderable
   extend ActiveSupport::Concern
 
@@ -18,23 +27,23 @@ module ErrorRenderable
   private
 
   def render_bad_request(message = 'Bad Request')
-    render_error(message, :bad_request)
+    render_error('bad_request', message, :bad_request)
   end
 
   def render_unauthorized(message = 'Unauthorized')
-    render_error(message, :unauthorized)
+    render_error('unauthorized', message, :unauthorized)
   end
 
   def render_forbidden(message = 'Forbidden')
-    render_error(message, :forbidden)
+    render_error('forbidden', message, :forbidden)
   end
 
   def render_not_found(message = 'Not Found')
-    render_error(message, :not_found)
+    render_error('not_found', message, :not_found)
   end
 
   def render_unprocessable_entity(message = 'Unprocessable Entity')
-    render_error(message, :unprocessable_entity)
+    render_error('validation_failed', message, :unprocessable_entity)
   end
 
   def render_conditional_server_error(exception = nil)
@@ -50,20 +59,31 @@ module ErrorRenderable
 
     # In test env, include exception details for debugging
     if Rails.env.test? && exception
-      render json: {
-        error: 'Internal server error',
-        exception_class: exception.class.name,
-        exception_message: exception.message,
-        backtrace: exception.backtrace&.first(5)
-      }, status: :internal_server_error
+      render_error(
+        'internal_error',
+        exception.message,
+        :internal_server_error,
+        [
+          { class: exception.class.name, message: exception.message }
+        ]
+      )
     else
-      render_error('Internal server error', :internal_server_error)
+      render_error('internal_error', 'An unexpected error occurred', :internal_server_error)
     end
   end
 
-  def render_error(message, status)
+  # Unified error rendering method
+  # @param code [String] Error code (e.g., 'not_found', 'validation_failed')
+  # @param message [String] Human-readable error message
+  # @param status [Symbol] HTTP status code (e.g., :not_found, :unauthorized)
+  # @param details [Array, nil] Optional array of error details
+  def render_error(code, message, status, details = nil)
     render json: {
-      error: message
+      error: {
+        code: code,
+        message: message,
+        details: details
+      }.compact
     }, status: status
   end
 end
