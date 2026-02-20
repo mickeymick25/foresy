@@ -24,10 +24,13 @@ Rails.application.routes.draw do
       post 'auth/:provider/callback', to: 'oauth#callback'
       get 'auth/failure', to: 'oauth#failure'
       post 'signup', to: 'users#create'
-      resources :missions, only: %i[index show create update destroy]
+      resources :missions, only: %i[index show create destroy] do
+        patch :update, on: :member
+      end
 
       # CRA routes
-      resources :cras, except: %i[new edit] do
+      resources :cras, except: %i[new edit update] do
+        patch :update, on: :member
         member do
           post 'submit'
           post 'lock'
