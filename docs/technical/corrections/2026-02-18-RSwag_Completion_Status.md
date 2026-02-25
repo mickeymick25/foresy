@@ -15,7 +15,7 @@
 | Métrique | Cible | Actuel | Status |
 |----------|-------|--------|--------|
 | Total endpoints à couvrir | 27 | 27 | ✅ Documentés + Testés |
-| RSwag examples | 591 | 616 | ✅ |
+| RSwag examples | 184 | 184 | ✅ |
 | Schemas stricts (required + additionalProperties:false) | 10 schemas | ✅ Implémenté | ✅ Phase 1.6 |
 | Routes ↔ Swagger audit | 27 endpoints exhaustifs | ✅ CI Intégré | ✅ |
 | Negative tests | TBD | Non implémenté | ❌ Phase 1.9 |
@@ -146,8 +146,8 @@
 
 | Item | Status | Notes |
 |------|--------|-------|
-| rake rswag execute | ✅ Fait | 616 examples |
-| RSwag tests pass | ✅ Fait | 0 failures (616/616) |
+| rake rswag execute | ✅ Fait | 184 examples |
+| RSwag tests pass | ✅ Fait | 0 failures (184/184) |
 | YAML syntax valide | ✅ Fait | - |
 
 ---
@@ -168,7 +168,7 @@
 | Specs Phase 3 créées (8 endpoints) | ✅ |
 | Specs Phase 4 créées (5 endpoints) | ✅ |
 | rake rswag exécuté avec succès | ✅ |
-| Tous les tests RSwag passent (0 failures) | ✅ (616/616) |
+| Tous les tests RSwag passent (0 failures) | ✅ (184/184) |
 | swagger/v1/swagger.yaml contient les 27 endpoints | ✅ |
 | Anti-régression: Aucun endpoint manquant dans swagger | ✅ |
 | Platinum Check: rake swagger:validate_schemas passe | ❌ Phase 1.6 |
