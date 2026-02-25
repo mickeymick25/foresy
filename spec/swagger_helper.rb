@@ -102,8 +102,9 @@ RSpec.configure do |config|
             properties: {
               name: { type: :string, description: 'Mission name' },
               description: { type: :string, description: 'Mission description' },
-              mission_type: { type: :string, enum: ['time_based', 'fixed_price'], description: 'Mission type' },
-              status: { type: :string, enum: ['lead', 'pending', 'won', 'in_progress', 'completed'], description: 'Mission status' },
+              mission_type: { type: :string, enum: %w[time_based fixed_price], description: 'Mission type' },
+              status: { type: :string, enum: %w[lead pending won in_progress completed],
+                        description: 'Mission status' },
               start_date: { type: :string, format: :date, description: 'Mission start date' },
               daily_rate: { type: :integer, description: 'Daily rate in cents' },
               fixed_price: { type: :integer, description: 'Fixed price in cents' },
@@ -118,8 +119,9 @@ RSpec.configure do |config|
             properties: {
               name: { type: :string, description: 'Mission name' },
               description: { type: :string, description: 'Mission description' },
-              mission_type: { type: :string, enum: ['time_based', 'fixed_price'], description: 'Mission type' },
-              status: { type: :string, enum: ['lead', 'pending', 'won', 'in_progress', 'completed'], description: 'Mission status' },
+              mission_type: { type: :string, enum: %w[time_based fixed_price], description: 'Mission type' },
+              status: { type: :string, enum: %w[lead pending won in_progress completed],
+                        description: 'Mission status' },
               start_date: { type: :string, format: :date, description: 'Mission start date' },
               daily_rate: { type: :integer, description: 'Daily rate in cents' },
               fixed_price: { type: :integer, description: 'Fixed price in cents' },
@@ -137,7 +139,8 @@ RSpec.configure do |config|
               year: { type: :integer, description: 'Year (e.g., 2026)', example: 2026 },
               currency: { type: :string, description: 'Currency code (e.g., EUR)', example: 'EUR' },
               description: { type: :string, description: 'CRA description' },
-              status: { type: :string, enum: ['draft', 'submitted', 'locked'], description: 'CRA status', example: 'draft' }
+              status: { type: :string, enum: %w[draft submitted locked], description: 'CRA status',
+                        example: 'draft' }
             }
           },
 
@@ -149,7 +152,7 @@ RSpec.configure do |config|
               year: { type: :integer, description: 'Year (e.g., 2026)' },
               currency: { type: :string, description: 'Currency code (e.g., EUR)' },
               description: { type: :string, description: 'CRA description' },
-              status: { type: :string, enum: ['draft', 'submitted', 'locked'], description: 'CRA status' }
+              status: { type: :string, enum: %w[draft submitted locked], description: 'CRA status' }
             }
           },
 

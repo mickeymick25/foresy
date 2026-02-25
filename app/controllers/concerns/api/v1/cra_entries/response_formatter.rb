@@ -12,7 +12,7 @@ module Api
         # @param entry [CraEntry] The CRA entry to format
         # @param cra [Cra, nil] Optional parent CRA for additional context (unused, kept for compatibility)
         # @return [Hash] Formatted entry hash
-        def single(entry, cra = nil)
+        def single(entry, _cra = nil)
           {
             id: entry.id,
             date: entry.date.iso8601,

@@ -116,7 +116,8 @@ class MissionServices
       end
 
       # Validate financial fields based on type
-      if mission_params[:mission_type].present? || mission_params[:daily_rate].present? || mission_params[:fixed_price].present?
+      financial_fields = mission_params.values_at(:mission_type, :daily_rate, :fixed_price)
+      if financial_fields.any?(&:present?)
         financial_result = validate_financial_fields
         return financial_result if financial_result.failure?
       end

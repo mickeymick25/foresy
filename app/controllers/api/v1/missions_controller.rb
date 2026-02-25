@@ -115,7 +115,9 @@ module Api
       # Extract client IP for rate limiting
       def extract_client_ip_for_rate_limiting
         forwarded_for = request.env['HTTP_X_FORWARDED_FOR']
-        forwarded_for.present? ? forwarded_for.split(',').first.strip : request.env['HTTP_X_REAL_IP'] || request.env['REMOTE_ADDR'] || 'unknown'
+        return forwarded_for.split(',').first.strip if forwarded_for.present?
+
+        request.env['HTTP_X_REAL_IP'] || request.env['REMOTE_ADDR'] || 'unknown'
       end
 
       # Strong parameters for mission creation/update

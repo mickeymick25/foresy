@@ -98,8 +98,6 @@ module ErrorRenderable
     end
   end
 
-  private
-
   # Renders a successful result
   # @param result [ApplicationResult]
   # @param serializer [Symbol, nil]
@@ -124,9 +122,7 @@ module ErrorRenderable
     }
 
     # Add meta information if present
-    if result.respond_to?(:meta) && result.meta.present?
-      error_payload[:meta] = result.meta
-    end
+    error_payload[:meta] = result.meta if result.respond_to?(:meta) && result.meta.present?
 
     render json: error_payload, status: result.status
   end
@@ -134,7 +130,7 @@ module ErrorRenderable
   # Serializes a resource using the appropriate serializer
   # @param data [Hash, ActiveRecord::Base] The data to serialize
   # @param serializer [Symbol] The serializer name (e.g., :mission)
-  def serialize_resource(data, serializer)
+  def serialize_resource(data, _serializer)
     return data unless data.is_a?(Hash)
 
     # Handle single resource
@@ -142,8 +138,6 @@ module ErrorRenderable
       data[:mission]
     elsif data[:item].present?
       data[:item]
-    elsif data[:cras]
-      data
     else
       data
     end

@@ -21,7 +21,6 @@ RSpec.describe 'CRA Entries - Index', type: :request do
   end
 
   path '/api/v1/cras/{cra_id}/entries' do
-
     get 'Lists all CRA entries for a CRA' do
       tags 'CRA Entries'
       consumes 'application/json'

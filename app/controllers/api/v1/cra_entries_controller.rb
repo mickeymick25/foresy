@@ -184,9 +184,7 @@ module Api
         }
 
         # Only include unit_price if explicitly provided (allows partial updates)
-        if params[:unit_price].present?
-          attributes[:unit_price] = safe_integer_param(:unit_price, 0)
-        end
+        attributes[:unit_price] = safe_integer_param(:unit_price, 0) if params[:unit_price].present?
 
         attributes.compact
       end
@@ -270,8 +268,6 @@ module Api
       def handle_service_error(result)
         case result.error
         # Existing handlers
-        when :validation_failed
-          render_fc07_error('invalid_payload', result.message, :unprocessable_entity)
         when :business_rule_violation
           render_fc07_error('business_rule_violation', result.message, :unprocessable_entity)
         when :duplicate_entry
@@ -282,22 +278,15 @@ module Api
           render_fc07_error('forbidden', result.message, :forbidden)
         when :conflict, :invalid_cra_state
           render_fc07_error('conflict', result.message, :conflict)
-        # Input validation errors (400 Bad Request)
-        # Validation errors - 422 Unprocessable Entity
-        when :missing_cra, :missing_attributes, :missing_user, :missing_cra_entry
+        # Input validation errors - 422 Unprocessable Entity
+        when :validation_failed, :missing_cra, :missing_attributes, :missing_user,
+           :missing_cra_entry, :invalid_date, :future_date_not_allowed,
+           :invalid_quantity, :invalid_unit_price, :description_too_long
           render_fc07_error('invalid_payload', result.message, :unprocessable_entity)
-        when :invalid_date, :future_date_not_allowed
-          render_fc07_error('invalid_payload', result.message, :unprocessable_entity)
-        when :invalid_quantity
-          render_fc07_error('invalid_payload', result.message, :unprocessable_entity)
-        when :invalid_unit_price
-          render_fc07_error('invalid_payload', result.message, :unprocessable_entity)
-        when :description_too_long
-          render_fc07_error('invalid_payload', result.message, :unprocessable_entity)
-        # Relation errors (422 Unprocessable Entity)
+        # Relation errors - 422 Unprocessable Entity
         when :relation_creation_failed
           render_fc07_error('relation_error', result.message, :unprocessable_entity)
-        # Server errors (500)
+        # Server errors - 500 Internal Server Error
         when :create_failed, :update_failed, :destroy_failed
           render_fc07_error('internal_error', result.message, :internal_server_error)
         else

@@ -41,7 +41,7 @@ module CraEntryServices
     end
 
     def call
-      Rails.logger.debug "[CraEntryServices::Create] Starting call"
+      Rails.logger.debug '[CraEntryServices::Create] Starting call'
       # ---- Input validation -------------------------------------------------
       unless @cra.present?
         return ApplicationResult.bad_request(

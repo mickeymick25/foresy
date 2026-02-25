@@ -97,21 +97,19 @@ class MissionServices
     # === Delete ===
 
     def perform_delete
-      begin
-        unless mission.discard
-          return ApplicationResult.conflict(
-            error: :delete_failed,
-            message: mission.errors.full_messages.join(', ')
-          )
-        end
-
-        ApplicationResult.success(data: { mission: mission })
-      rescue ActiveRecord::RecordInvalid => e
-        ApplicationResult.conflict(
+      unless mission.discard
+        return ApplicationResult.conflict(
           error: :delete_failed,
-          message: e.record.errors.full_messages.join(', ')
+          message: mission.errors.full_messages.join(', ')
         )
       end
+
+      ApplicationResult.success(data: { mission: mission })
+    rescue ActiveRecord::RecordInvalid => e
+      ApplicationResult.conflict(
+        error: :delete_failed,
+        message: e.record.errors.full_messages.join(', ')
+      )
     end
   end
 end

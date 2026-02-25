@@ -21,7 +21,6 @@ RSpec.describe 'CRAs - Lock', type: :request do
   end
 
   path '/api/v1/cras/{id}/lock' do
-
     post 'Locks a CRA to prevent modifications' do
       tags 'CRAs'
       consumes 'application/json'

@@ -11,7 +11,9 @@ RSpec.describe 'CRA Entries - Delete', type: :request do
   let(:mission) { create(:mission, :time_based, created_by_user_id: user.id) }
 
   let(:cra) { create(:cra, created_by_user_id: user.id, year: 2026, month: 1, status: 'draft') }
-  let(:cra_entry) { create(:cra_entry, date: Date.new(2026, 1, 15), quantity: 1.0, unit_price: 50_000, description: 'Development work') }
+  let(:cra_entry) do
+    create(:cra_entry, date: Date.new(2026, 1, 15), quantity: 1.0, unit_price: 50_000, description: 'Development work')
+  end
 
   before do
     create(:user_company, user: user, company: company, role: 'independent')

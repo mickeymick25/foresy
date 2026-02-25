@@ -21,7 +21,6 @@ RSpec.describe 'CRA Entries - Create', type: :request do
   end
 
   path '/api/v1/cras/{cra_id}/entries' do
-
     post 'Creates a new CRA entry' do
       tags 'CRA Entries'
       consumes 'application/json'
