@@ -31,7 +31,6 @@ namespace :swagger do
 
     # Track validation results
     errors = []
-    warnings = []
 
     schemas.each do |name, schema|
       next unless schema.is_a?(Hash)
@@ -47,14 +46,14 @@ namespace :swagger do
       end
 
       # Check nested schemas in properties
-      if schema['properties'].is_a?(Hash)
-        schema['properties'].each do |prop_name, prop_schema|
-          next unless prop_schema.is_a?(Hash)
+      next unless schema['properties'].is_a?(Hash)
 
-          # Check object properties
-          if prop_schema['properties'].present? && prop_schema['additionalProperties'] != false
-            errors << "Schema '#{name}' property '#{prop_name}' should have additionalProperties: false"
-          end
+      schema['properties'].each do |prop_name, prop_schema|
+        next unless prop_schema.is_a?(Hash)
+
+        # Check object properties
+        if prop_schema['properties'].present? && prop_schema['additionalProperties'] != false
+          errors << "Schema '#{name}' property '#{prop_name}' should have additionalProperties: false"
         end
       end
     end
@@ -62,8 +61,8 @@ namespace :swagger do
     # Report results
     if errors.empty?
       puts "\n✅ VALIDATION PASSED - All schemas are compliant"
-      puts "   - All schemas have required fields"
-      puts "   - All schemas have additionalProperties: false"
+      puts '   - All schemas have required fields'
+      puts '   - All schemas have additionalProperties: false'
       puts "\n📊 Summary: #{schemas.count} schemas validated"
       exit 0
     else
