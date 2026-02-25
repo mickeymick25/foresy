@@ -14,18 +14,9 @@ RSpec.describe 'API V1 Missions', type: :request do
         produces 'application/json'
 
         parameter name: :Authorization, in: :header, type: :string, required: true
+        # Phase 1.6 - Using centralized MissionCreateRequest schema with additionalProperties: false
         parameter name: :mission_params, in: :body, required: true, schema: {
-          type: :object,
-          properties: {
-            name: { type: :string },
-            mission_type: { type: :string },
-            status: { type: :string },
-            start_date: { type: :string, format: :date },
-            daily_rate: { type: :integer },
-            fixed_price: { type: :integer },
-            currency: { type: :string },
-            client_company_id: { type: :string, format: :uuid, nullable: true }
-          }
+          '$ref' => '#/components/schemas/missionCreateRequest'
         }
 
         response '201', 'Mission created successfully' do
@@ -159,7 +150,10 @@ RSpec.describe 'API V1 Missions', type: :request do
 
         parameter name: :id, in: :path, type: :string
         parameter name: :Authorization, in: :header, type: :string, required: true
-        parameter name: :mission_params, in: :body, required: true
+        # Phase 1.6 - Using centralized MissionUpdateRequest schema with additionalProperties: false
+        parameter name: :mission_params, in: :body, required: true, schema: {
+          '$ref' => '#/components/schemas/missionUpdateRequest'
+        }
 
         response '200', 'Mission updated successfully' do
           let(:id) { @mission.id }
@@ -216,7 +210,10 @@ RSpec.describe 'API V1 Missions', type: :request do
 
         parameter name: :id, in: :path, type: :string
         parameter name: :Authorization, in: :header, type: :string, required: true
-        parameter name: :mission_params, in: :body, required: true
+        # Phase 1.6 - Using centralized MissionUpdateRequest schema with additionalProperties: false
+        parameter name: :mission_params, in: :body, required: true, schema: {
+          '$ref' => '#/components/schemas/missionUpdateRequest'
+        }
 
         context 'lead -> pending' do
           response '200', 'allows lead -> pending' do

@@ -10,8 +10,8 @@ RSpec.describe 'CRA Entries - Update', type: :request do
   let(:company) { create(:company) }
   let(:mission) { create(:mission, :time_based, created_by_user_id: user.id) }
 
-  let!(:cra) { create(:cra, created_by_user_id: user.id, year: 2026, month: 1, status: 'draft') }
-  let!(:cra_entry) { create(:cra_entry, date: Date.new(2026, 1, 15), quantity: 1.0, unit_price: 50_000, description: 'Development work') }
+  let(:cra) { create(:cra, created_by_user_id: user.id, year: 2026, month: 1, status: 'draft') }
+  let(:cra_entry) { create(:cra_entry, date: Date.new(2026, 1, 15), quantity: 1.0, unit_price: 50_000, description: 'Development work') }
 
   before do
     create(:user_company, user: user, company: company, role: 'independent')
@@ -35,15 +35,9 @@ RSpec.describe 'CRA Entries - Update', type: :request do
                 description: 'CRA ID (UUID)'
       parameter name: :id, in: :path, type: :string, required: true,
                 description: 'CRA Entry ID (UUID)'
+      # Phase 1.6 - Using centralized CraEntryUpdateRequest schema with additionalProperties: false
       parameter name: :entry, in: :body, schema: {
-        type: :object,
-        properties: {
-          date: { type: :string, format: :date, description: 'Entry date' },
-          quantity: { type: :number, description: 'Quantity (days or hours)' },
-          unit_price: { type: :integer, description: 'Unit price in cents' },
-          description: { type: :string, description: 'Entry description' },
-          mission_id: { type: :string, format: :uuid, description: 'Mission ID (UUID)' }
-        }
+        '$ref' => '#/components/schemas/craEntryUpdateRequest'
       }
 
       response '200', 'CRA entry updated successfully' do

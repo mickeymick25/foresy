@@ -25,13 +25,9 @@ RSpec.describe 'Authentication - Login', type: :request do
       consumes 'application/json'
       produces 'application/json'
 
-      parameter name: :auth, in: :body, schema: {
-        type: :object,
-        properties: {
-          email: { type: :string },
-          password: { type: :string }
-        },
-        required: %w[email password]
+      # Phase 1.6 - Using centralized LoginRequest schema with additionalProperties: false
+      parameter name: :auth, in: :body, required: true, schema: {
+        '$ref' => '#/components/schemas/loginRequest'
       }
 
       response '200', 'user authenticated' do

@@ -7,6 +7,10 @@ RSpec.configure do |config|
   # Dossier où seront générés les fichiers Swagger
   config.openapi_root = Rails.root.join('swagger').to_s
 
+  # Mode strict : rejecte les champs inconnus (additionalProperties: false)
+  # Phase 1.6 - API Contract Hardening
+  config.openapi_no_additional_properties = true
+
   # Définition des spécifications OpenAPI
   config.openapi_specs = {
     'v1/swagger.yaml' => {
@@ -46,6 +50,134 @@ RSpec.configure do |config|
             },
             required: %w[email password password_confirmation]
           },
+          # =============================================
+          # REQUEST SCHEMAS - Centralized with strict mode
+          # Phase 1.6 - All have additionalProperties: false
+          # =============================================
+
+          loginRequest: {
+            type: :object,
+            additionalProperties: false,
+            required: %w[email password],
+            properties: {
+              email: { type: :string, format: :email, description: 'User email address' },
+              password: { type: :string, format: :password, description: 'User password' }
+            }
+          },
+
+          RefreshTokenRequest: {
+            type: :object,
+            additionalProperties: false,
+            required: %w[refresh_token],
+            properties: {
+              refresh_token: { type: :string, description: 'Refresh token to renew access token' }
+            }
+          },
+
+          OAuthCallbackRequest: {
+            type: :object,
+            additionalProperties: false,
+            required: %w[code redirect_uri],
+            properties: {
+              code: { type: :string, description: 'OAuth authorization code from provider' },
+              redirect_uri: { type: :string, format: :uri, description: 'Redirect URI used in OAuth flow' }
+            }
+          },
+
+          UserCreateRequest: {
+            type: :object,
+            additionalProperties: false,
+            required: %w[email password password_confirmation],
+            properties: {
+              email: { type: :string, format: :email, description: 'User email address' },
+              password: { type: :string, format: :password, description: 'User password' },
+              password_confirmation: { type: :string, format: :password, description: 'Password confirmation' }
+            }
+          },
+
+          MissionCreateRequest: {
+            type: :object,
+            additionalProperties: false,
+            required: %w[name mission_type],
+            properties: {
+              name: { type: :string, description: 'Mission name' },
+              description: { type: :string, description: 'Mission description' },
+              mission_type: { type: :string, enum: ['time_based', 'fixed_price'], description: 'Mission type' },
+              status: { type: :string, enum: ['lead', 'pending', 'won', 'in_progress', 'completed'], description: 'Mission status' },
+              start_date: { type: :string, format: :date, description: 'Mission start date' },
+              daily_rate: { type: :integer, description: 'Daily rate in cents' },
+              fixed_price: { type: :integer, description: 'Fixed price in cents' },
+              currency: { type: :string, description: 'Currency code (e.g., EUR)' },
+              client_company_id: { type: :string, format: :uuid, description: 'Client company UUID' }
+            }
+          },
+
+          MissionUpdateRequest: {
+            type: :object,
+            additionalProperties: false,
+            properties: {
+              name: { type: :string, description: 'Mission name' },
+              description: { type: :string, description: 'Mission description' },
+              mission_type: { type: :string, enum: ['time_based', 'fixed_price'], description: 'Mission type' },
+              status: { type: :string, enum: ['lead', 'pending', 'won', 'in_progress', 'completed'], description: 'Mission status' },
+              start_date: { type: :string, format: :date, description: 'Mission start date' },
+              daily_rate: { type: :integer, description: 'Daily rate in cents' },
+              fixed_price: { type: :integer, description: 'Fixed price in cents' },
+              currency: { type: :string, description: 'Currency code (e.g., EUR)' },
+              client_company_id: { type: :string, format: :uuid, description: 'Client company UUID' }
+            }
+          },
+
+          CraCreateRequest: {
+            type: :object,
+            additionalProperties: false,
+            required: %w[month year],
+            properties: {
+              month: { type: :integer, description: 'Month (1-12)', example: 1 },
+              year: { type: :integer, description: 'Year (e.g., 2026)', example: 2026 },
+              currency: { type: :string, description: 'Currency code (e.g., EUR)', example: 'EUR' },
+              description: { type: :string, description: 'CRA description' },
+              status: { type: :string, enum: ['draft', 'submitted', 'locked'], description: 'CRA status', example: 'draft' }
+            }
+          },
+
+          CraUpdateRequest: {
+            type: :object,
+            additionalProperties: false,
+            properties: {
+              month: { type: :integer, description: 'Month (1-12)' },
+              year: { type: :integer, description: 'Year (e.g., 2026)' },
+              currency: { type: :string, description: 'Currency code (e.g., EUR)' },
+              description: { type: :string, description: 'CRA description' },
+              status: { type: :string, enum: ['draft', 'submitted', 'locked'], description: 'CRA status' }
+            }
+          },
+
+          CraEntryCreateRequest: {
+            type: :object,
+            additionalProperties: false,
+            required: %w[date quantity unit_price description mission_id],
+            properties: {
+              date: { type: :string, format: :date, description: 'Entry date' },
+              quantity: { type: :number, description: 'Quantity (days or hours)' },
+              unit_price: { type: :integer, description: 'Unit price in cents' },
+              description: { type: :string, description: 'Entry description' },
+              mission_id: { type: :string, format: :uuid, description: 'Mission ID (UUID)' }
+            }
+          },
+
+          CraEntryUpdateRequest: {
+            type: :object,
+            additionalProperties: false,
+            properties: {
+              date: { type: :string, format: :date, description: 'Entry date' },
+              quantity: { type: :number, description: 'Quantity (days or hours)' },
+              unit_price: { type: :integer, description: 'Unit price in cents' },
+              description: { type: :string, description: 'Entry description' },
+              mission_id: { type: :string, format: :uuid, description: 'Mission ID (UUID)' }
+            }
+          },
+
           login: {
             type: :object,
             properties: {

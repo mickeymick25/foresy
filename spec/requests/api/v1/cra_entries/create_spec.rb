@@ -10,7 +10,7 @@ RSpec.describe 'CRA Entries - Create', type: :request do
   let(:company) { create(:company) }
   let(:mission) { create(:mission, :time_based, created_by_user_id: user.id) }
 
-  let!(:cra) { create(:cra, created_by_user_id: user.id, year: 2026, month: 1, status: 'draft') }
+  let(:cra) { create(:cra, created_by_user_id: user.id, year: 2026, month: 1, status: 'draft') }
 
   before do
     create(:user_company, user: user, company: company, role: 'independent')
@@ -21,6 +21,7 @@ RSpec.describe 'CRA Entries - Create', type: :request do
   end
 
   path '/api/v1/cras/{cra_id}/entries' do
+
     post 'Creates a new CRA entry' do
       tags 'CRA Entries'
       consumes 'application/json'
@@ -30,16 +31,9 @@ RSpec.describe 'CRA Entries - Create', type: :request do
                 description: 'Bearer token'
       parameter name: :cra_id, in: :path, type: :string, required: true,
                 description: 'CRA ID (UUID)'
+      # Phase 1.6 - Using centralized CraEntryCreateRequest schema with additionalProperties: false
       parameter name: :entry, in: :body, schema: {
-        type: :object,
-        properties: {
-          date: { type: :string, format: :date, description: 'Entry date' },
-          quantity: { type: :number, description: 'Quantity (days or hours)' },
-          unit_price: { type: :integer, description: 'Unit price in cents' },
-          description: { type: :string, description: 'Entry description' },
-          mission_id: { type: :string, format: :uuid, description: 'Mission ID (UUID)' }
-        },
-        required: %w[date quantity]
+        '$ref' => '#/components/schemas/craEntryCreateRequest'
       }
 
       response '201', 'CRA entry created successfully' do

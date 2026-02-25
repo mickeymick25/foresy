@@ -33,15 +33,9 @@ RSpec.describe 'CRAs - Update', type: :request do
                 description: 'Bearer token'
       parameter name: :id, in: :path, type: :string, required: true,
                 description: 'CRA ID (UUID)'
+      # Phase 1.6 - Using centralized CraUpdateRequest schema with additionalProperties: false
       parameter name: :cra_params, in: :body, schema: {
-        type: :object,
-        properties: {
-          month: { type: :integer, description: 'Month (1-12)' },
-          year: { type: :integer, description: 'Year (e.g., 2026)' },
-          currency: { type: :string, description: 'Currency code (e.g., EUR)' },
-          description: { type: :string, description: 'CRA description' },
-          status: { type: :string, description: 'CRA status (draft, submitted, locked)' }
-        }
+        '$ref' => '#/components/schemas/craUpdateRequest'
       }
 
       response '200', 'CRA updated successfully' do

@@ -27,16 +27,9 @@ RSpec.describe 'CRAs - Create', type: :request do
       parameter name: :Authorization, in: :header, type: :string, required: true,
                 description: 'Bearer token'
 
+      # Phase 1.6 - Using centralized CraCreateRequest schema with additionalProperties: false
       parameter name: :cra, in: :body, schema: {
-        type: :object,
-        properties: {
-          month: { type: :integer, description: 'Month (1-12)', example: 1 },
-          year: { type: :integer, description: 'Year (e.g., 2026)', example: 2026 },
-          currency: { type: :string, description: 'Currency code (e.g., EUR)', example: 'EUR', nullable: true },
-          description: { type: :string, description: 'CRA description', nullable: true },
-          status: { type: :string, description: 'CRA status (draft, submitted)', example: 'draft', nullable: true }
-        },
-        required: %w[month year]
+        '$ref' => '#/components/schemas/craCreateRequest'
       }
 
       response '201', 'CRA created successfully' do
