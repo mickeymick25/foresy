@@ -43,6 +43,7 @@ RSpec.configure do |config|
         schemas: {
           user: {
             type: :object,
+            additionalProperties: false,
             properties: {
               email: { type: :string, format: :email },
               password: { type: :string, format: :password },
@@ -116,6 +117,7 @@ RSpec.configure do |config|
           MissionUpdateRequest: {
             type: :object,
             additionalProperties: false,
+            required: [],
             properties: {
               name: { type: :string, description: 'Mission name' },
               description: { type: :string, description: 'Mission description' },
@@ -147,6 +149,7 @@ RSpec.configure do |config|
           CraUpdateRequest: {
             type: :object,
             additionalProperties: false,
+            required: [],
             properties: {
               month: { type: :integer, description: 'Month (1-12)' },
               year: { type: :integer, description: 'Year (e.g., 2026)' },
@@ -172,6 +175,7 @@ RSpec.configure do |config|
           CraEntryUpdateRequest: {
             type: :object,
             additionalProperties: false,
+            required: [],
             properties: {
               date: { type: :string, format: :date, description: 'Entry date' },
               quantity: { type: :number, description: 'Quantity (days or hours)' },
@@ -183,6 +187,7 @@ RSpec.configure do |config|
 
           login: {
             type: :object,
+            additionalProperties: false,
             properties: {
               email: { type: :string, format: :email },
               password: { type: :string, format: :password }

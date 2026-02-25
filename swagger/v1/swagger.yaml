@@ -875,6 +875,7 @@ components:
   schemas:
     user:
       type: object
+      additionalProperties: false
       properties:
         email:
           type: string
@@ -995,6 +996,7 @@ components:
     MissionUpdateRequest:
       type: object
       additionalProperties: false
+      required: []
       properties:
         name:
           type: string
@@ -1067,6 +1069,7 @@ components:
     CraUpdateRequest:
       type: object
       additionalProperties: false
+      required: []
       properties:
         month:
           type: integer
@@ -1117,6 +1120,7 @@ components:
     CraEntryUpdateRequest:
       type: object
       additionalProperties: false
+      required: []
       properties:
         date:
           type: string
@@ -1137,6 +1141,7 @@ components:
           description: Mission ID (UUID)
     login:
       type: object
+      additionalProperties: false
       properties:
         email:
           type: string
