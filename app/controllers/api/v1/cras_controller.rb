@@ -123,6 +123,12 @@ module Api
             message: 'CRA archived successfully',
             timestamp: Time.current.iso8601
           }, status: :ok
+        elsif result.status == :conflict
+          render json: {
+            success: false,
+            errors: [result.error],
+            timestamp: Time.current.iso8601
+          }, status: :conflict
         else
           render json: {
             success: false,
@@ -143,6 +149,12 @@ module Api
 
         if result.success?
           render json: Api::V1::Cras::ResponseFormatter.single(result.data[:cra], include_entries: true), status: :ok
+        elsif result.status == :conflict
+          render json: {
+            success: false,
+            errors: [result.error],
+            timestamp: Time.current.iso8601
+          }, status: :conflict
         else
           render json: {
             success: false,
@@ -163,6 +175,12 @@ module Api
 
         if result.success?
           render json: Api::V1::Cras::ResponseFormatter.single(result.data[:cra], include_entries: true), status: :ok
+        elsif result.status == :conflict
+          render json: {
+            success: false,
+            errors: [result.error],
+            timestamp: Time.current.iso8601
+          }, status: :conflict
         else
           render json: {
             success: false,

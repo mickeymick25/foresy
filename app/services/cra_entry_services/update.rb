@@ -50,7 +50,7 @@ class CraEntryServices::Update
       )
     end
 
-    # Vérification du lifecycle - только draft
+    # Vérification du lifecycle - seulement draft
     unless @cra_entry.cra.draft?
       return ApplicationResult.conflict(
         error: :invalid_transition,
@@ -58,28 +58,25 @@ class CraEntryServices::Update
       )
     end
 
-    # Effectuer la mise à jour dans une transaction
-    begin
-      ActiveRecord::Base.transaction do
-        @cra_entry.update!(@attributes)
-        @cra_entry.cra.recalculate_totals
+    # Effectuer la mise à jour - utilise update (non-bang) pour éviter les exceptions
+    if @cra_entry.update(@attributes)
+      @cra_entry.cra.recalculate_totals
 
-        ApplicationResult.success(
-          data: { cra_entry: @cra_entry },
-          message: 'CRA Entry updated successfully'
-        )
-      end
-    rescue ActiveRecord::RecordInvalid => e
+      ApplicationResult.success(
+        data: { cra_entry: @cra_entry },
+        message: 'CRA Entry updated successfully'
+      )
+    else
       ApplicationResult.unprocessable_entity(
         error: :validation_failed,
-        message: e.record.errors.full_messages.join(', ')
-      )
-    rescue StandardError => e
-      Rails.logger.error "CraEntryServices::Update error: #{e.message}" if defined?(Rails)
-      ApplicationResult.internal_error(
-        error: :update_failed,
-        message: "Failed to update CRA Entry: #{e.message}"
+        message: @cra_entry.errors.full_messages.join(', ')
       )
     end
+  rescue StandardError => e
+    Rails.logger.error "CraEntryServices::Update error: #{e.message}" if defined?(Rails)
+    ApplicationResult.internal_error(
+      error: :update_failed,
+      message: "Failed to update CRA Entry: #{e.message}"
+    )
   end
 end

@@ -10,7 +10,8 @@ RSpec.describe 'CRAs - Submit', type: :request do
   let(:company) { create(:company) }
   let(:mission) { create(:mission, :time_based, created_by_user_id: user.id) }
 
-  let!(:cra) { create(:cra, created_by_user_id: user.id, year: 2026, month: 1, status: 'draft') }
+  let(:cra) { create(:cra, created_by_user_id: user.id, year: 2026, month: 1, status: 'draft') }
+  let(:cra_entry) { create(:cra_entry, date: Date.new(2026, 1, 15), quantity: 1.0, unit_price: 50_000, description: 'Development work') }
 
   before do
     create(:user_company, user: user, company: company, role: 'independent')
@@ -33,6 +34,11 @@ RSpec.describe 'CRAs - Submit', type: :request do
 
       response '200', 'CRA submitted successfully' do
         let(:id) { cra.id }
+
+        before do
+          create(:cra_entry_cra, cra: cra, cra_entry: cra_entry)
+          create(:cra_entry_mission, cra_entry: cra_entry, mission: mission)
+        end
 
         run_test! do |response|
           expect(response).to have_http_status(:ok)
@@ -62,10 +68,7 @@ RSpec.describe 'CRAs - Submit', type: :request do
       response '422', 'validation error' do
         let(:id) { cra.id }
 
-        before do
-          # Make CRA invalid (e.g., no entries when required)
-          cra.update!(status: 'draft')
-        end
+        # No CRA Entry created - CRA will be invalid
 
         run_test! do |response|
           expect(response).to have_http_status(:unprocessable_entity)
@@ -76,7 +79,15 @@ RSpec.describe 'CRAs - Submit', type: :request do
         let(:id) { cra.id }
 
         before do
-          cra.update!(status: 'submitted')
+          # Add CRA Entry first, then submit
+          create(:cra_entry_cra, cra: cra, cra_entry: cra_entry)
+          create(:cra_entry_mission, cra_entry: cra_entry, mission: mission)
+
+          # First submit the CRA using the Lifecycle service
+          CraServices::Lifecycle.call(cra: cra, action: 'submit', current_user: user)
+
+          # Reload the CRA to get the updated status from the database
+          cra.reload
         end
 
         run_test! do |response|

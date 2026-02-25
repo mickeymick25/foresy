@@ -5,95 +5,38 @@ module Api
     # MissionsController handles CRUD operations for Mission entities
     # Implements FC 06 - Mission Management with Domain-Driven Architecture
     #
-    # Features:
-    # - JWT authentication required
-    # - Role-based access control (independent/client)
-    # - Mission lifecycle management (lead → completed)
-    # - Financial validation (time_based vs fixed_price)
-    # - Soft delete with business rules
-    # - Rate limiting on create/update operations
+    # Architecture:
+    # - Controller is thin - delegates to MissionServices
+    # - Uses ApplicationResult for consistent service → controller communication
+    # - ErrorRenderable for standardized error responses
     #
     # API Endpoints:
     # - POST /api/v1/missions           # Create mission
     # - GET /api/v1/missions            # List missions
-    # - GET /api/v1/missions/:id        # Show mission
-    # - PATCH /api/v1/missions/:id      # Update mission
-    # - DELETE /api/v1/missions/:id     # Archive mission
-    #
-    # Error Handling:
-    # - 401 unauthorized: Invalid JWT
-    # - 403 forbidden: No company access
-    # - 404 not_found: Mission not accessible
-    # - 422 invalid_payload: Business validation failed
-    # - 422 invalid_transition: Invalid status transition
-    # - 409 mission_in_use: Mission linked to CRA
-    # - 500 internal_error: Server error
+    # - GET /api/v1/missions/:id       # Show mission
+    # - PATCH /api/v1/missions/:id     # Update mission
+    # - DELETE /api/v1/missions/:id    # Archive mission
     class MissionsController < ApplicationController
-      rescue_from ActiveRecord::RecordNotFound, with: :record_not_found
+      include ErrorRenderable
+
       before_action :authenticate_access_token!
       before_action :set_mission, only: %i[show update destroy]
       before_action :check_rate_limit!, only: %i[create update]
       before_action :validate_mission_access!, only: %i[show update destroy]
 
       # POST /api/v1/missions
-      # Creates a new mission with business rule validation
-      # Requires: JWT authentication, user must have independent company
-      # Params: name, description, mission_type, status, start_date, end_date,
-      #         daily_rate/fixed_price, currency, client_company_id
+      # Creates a new mission via MissionServices::Create
       def create
-        # Validate user has independent company access
-        unless user_has_independent_company_access?
-          render json: {
-            error: 'Forbidden',
-            message: 'User must have an independent company to create missions'
-          }, status: :forbidden
-          return
-        end
+        result = MissionServices::Create.call(
+          mission_params: mission_params.to_h,
+          current_user: current_user
+        )
 
-        # Build mission with current user as creator
-        mission = Mission.new(mission_attributes.merge(created_by_user_id: current_user.id))
-
-        if mission.save
-          # Create MissionCompany relationship for independent company
-          independent_company = get_user_independent_company
-          mission.mission_companies.create!(
-            company_id: independent_company.id,
-            role: 'independent'
-          )
-
-          # Create MissionCompany relationship for client company if provided
-          if client_company_id.present?
-            mission.mission_companies.create!(
-              company_id: client_company_id,
-              role: 'client'
-            )
-          end
-
-          render json: mission_response(mission), status: :created
-        else
-          render json: {
-            error: 'Invalid Payload',
-            message: mission.errors.full_messages
-          }, status: :unprocessable_entity
-        end
-      rescue ActiveRecord::RecordInvalid => e
-        handle_mission_validation_error(e)
-      rescue ArgumentError => e
-        # Handle invalid enum values that bypass model validation
-        render json: {
-          error: 'Invalid Payload',
-          message: [e.message]
-        }, status: :unprocessable_entity
-      rescue StandardError
-        render json: {
-          error: 'Internal Error',
-          message: 'An unexpected error occurred'
-        }, status: :internal_server_error
+        render_result(result)
       end
 
       # GET /api/v1/missions
       # Lists missions accessible to the current user
-      # Accessible missions: missions where user's companies have independent or client role
       def index
         missions = Mission.accessible_to(current_user).active.includes(
           mission_companies: :company
@@ -101,175 +44,57 @@ module Api
 
         render json: {
           data: missions.map { |mission| mission_response(mission, include_companies: true) },
-          meta: {
-            total: missions.count
-          }
+          meta: { total: missions.count }
         }
-      rescue StandardError
-        render json: {
-          error: 'Internal Error',
-          message: 'An unexpected error occurred'
-        }, status: :internal_server_error
       end
 
       # GET /api/v1/missions/:id
       # Shows a specific mission if user has access
       def show
         render json: mission_response(@mission, include_companies: true)
-      rescue StandardError
-        render json: {
-          error: 'Internal Error',
-          message: 'An unexpected error occurred'
-        }, status: :internal_server_error
       end
 
       # PATCH /api/v1/missions/:id
-      # Updates a mission with business rule validation
-      # MVP Rule: Only creator can modify
+      # Updates a mission via MissionServices::Update
       def update
-        # Check if user is creator (MVP rule)
-        unless @mission.modifiable_by?(current_user)
-          render json: {
-            error: 'Forbidden',
-            message: 'Only the mission creator can modify this mission'
-          }, status: :forbidden
-          return
-        end
+        result = MissionServices::Update.call(
+          mission: @mission,
+          mission_params: mission_params.to_h,
+          current_user: current_user
+        )
 
-        # Handle status transition using transition_to (validation-style)
-        new_status = mission_params[:status]
-
-        # 1. Status transition if needed (no early return - allows composability with other updates)
-        if new_status.present? && @mission.status != new_status
-          transition_result = @mission.transition_to(new_status)
-          unless transition_result
-            render json: {
-              error: 'Invalid Transition',
-              message: @mission.errors[:status]
-            }, status: :unprocessable_entity
-            return
-          end
-        end
-
-        # 2. Non-status updates (name, description, etc.)
-        updates = mission_params.except(:status).to_h
-        if updates.any? { |_k, v| v.present? }
-          if @mission.update(updates)
-            render json: mission_response(@mission, include_companies: true)
-          else
-            render json: {
-              error: 'Invalid Payload',
-              message: @mission.errors.full_messages
-            }, status: :unprocessable_entity
-          end
-          return
-        end
-
-        # 3. Default: render mission response (status-only change or GET-like request)
-        render json: mission_response(@mission, include_companies: true)
-      rescue ActiveRecord::RecordInvalid => e
-        handle_mission_validation_error(e)
+        render_result(result)
       end
-
-      private
-
-      def record_not_found
-        render json: {
-          error: 'Not Found',
-          message: 'Mission not found'
-        }, status: :not_found
-      end
-
-      public
 
       # DELETE /api/v1/missions/:id
-      # Archives a mission (soft delete) with business rules
-      # Rule: Cannot delete if mission has CRA entries
+      # Archives a mission via MissionServices::Delete
       def destroy
-        # Check if user is creator (MVP rule)
-        unless @mission.modifiable_by?(current_user)
-          render json: {
-            error: 'Forbidden',
-            message: 'Only the mission creator can archive this mission'
-          }, status: :forbidden
-          return
-        end
+        result = MissionServices::Delete.call(
+          mission: @mission,
+          current_user: current_user
+        )
 
-        if @mission.discard
-          render json: {
-            message: 'Mission archived successfully'
-          }, status: :ok
-        else
-          render json: {
-            error: 'Mission In Use',
-            message: @mission.errors.full_messages.join(', ')
-          }, status: :conflict
-        end
-      rescue StandardError
-        render json: {
-          error: 'Internal Error',
-          message: 'An unexpected error occurred'
-        }, status: :internal_server_error
+        render_result(result)
       end
 
       private
 
       def set_mission
-        puts "\n=== DEBUG: set_mission ==="
-        puts "params[:id] = #{params[:id]}"
         @mission = Mission.find_by(id: params[:id])
-        puts "@mission.present? = #{@mission.present?}"
-        puts "@mission.id = #{@mission&.id}"
-        unless @mission
-          render json: {
-            error: 'Not Found',
-            message: 'Mission not found'
-          }, status: :not_found
-          return
-        end
-        puts "=== END DEBUG: set_mission ===\n"
+
+        return render_not_found('Mission not found') unless @mission
       rescue ActiveRecord::RecordNotFound
-        render json: {
-          error: 'Not Found',
-          message: 'Mission not found'
-        }, status: :not_found
+        render_not_found('Mission not found')
       end
 
       # Validate user has access to the mission
-      # FC 06 Rule: User must belong to a company linked to the mission with role independent or client
       def validate_mission_access!
-        puts "\n=== DEBUG: validate_mission_access! ==="
-        puts "@mission.present? = #{@mission.present?}"
         return unless @mission
 
-        puts "current_user.id = #{current_user.id}"
-
-        # Check if user can access this mission
         accessible_missions = Mission.accessible_to(current_user)
-        puts "accessible_missions.count = #{accessible_missions.count}"
-        puts "accessible_missions.ids = #{accessible_missions.ids}"
-        puts "@mission.id = #{@mission.id}"
-        puts "@mission.id in accessible_missions? #{accessible_missions.ids.include?(@mission.id)}"
+        return if accessible_missions.exists?(id: @mission.id)
 
-        unless accessible_missions.exists?(id: @mission.id)
-          puts 'Rendering 404 - Mission not accessible'
-          render json: {
-            error: 'Not Found',
-            message: 'Mission not accessible'
-          }, status: :not_found
-          return
-        end
-        puts "=== END DEBUG: validate_mission_access! ===\n"
-      end
-
-      # Check if user has independent company access
-      def user_has_independent_company_access?
-        current_user.user_companies.joins(:company).where(role: 'independent').any?
-      end
-
-      # Get user's independent company
-      def get_user_independent_company
-        current_user.user_companies.joins(:company).where(role: 'independent').first.company
+        render_not_found('Mission not accessible')
       end
 
       # Rate limiting check for create/update endpoints
@@ -279,27 +104,21 @@ module Api
 
         allowed, retry_after = RateLimitService.check_rate_limit(endpoint, client_ip)
 
-        unless allowed
-          response.headers['Retry-After'] = retry_after.to_s
-          render json: {
-            error: 'Rate limit exceeded',
-            retry_after: retry_after
-          }, status: :too_many_requests
-          return
-        end
+        return if allowed
+
+        response.headers['Retry-After'] = retry_after.to_s
+        render json: {
+          error: { code: 'rate_limit_exceeded', message: 'Rate limit exceeded', retry_after: retry_after }
+        }, status: :too_many_requests
       end
 
       # Extract client IP for rate limiting
       def extract_client_ip_for_rate_limiting
         forwarded_for = request.env['HTTP_X_FORWARDED_FOR']
-        if forwarded_for.present?
-          forwarded_for.split(',').first.strip
-        else
-          request.env['HTTP_X_REAL_IP'] || request.env['REMOTE_ADDR'] || 'unknown'
-        end
+        forwarded_for.present? ? forwarded_for.split(',').first.strip : request.env['HTTP_X_REAL_IP'] || request.env['REMOTE_ADDR'] || 'unknown'
       end
 
-      # Strong parameters for mission creation/update (excludes client_company_id)
+      # Strong parameters for mission creation/update
       def mission_params
         params.permit(
           :name,
@@ -313,16 +132,6 @@ module Api
           :currency,
           :client_company_id
         )
-      end
-
-      # Mission attributes only (without relation data)
-      def mission_attributes
-        mission_params.except(:client_company_id)
-      end
-
-      # Extract client_company_id from params
-      def client_company_id
-        params[:client_company_id]
       end
 
       # Format mission response according to FC 06
@@ -363,29 +172,6 @@ module Api
         end
 
         response
-      end
-
-      # Handle mission-specific validation errors
-      def handle_mission_validation_error(error)
-        mission = error.record
-
-        if mission.errors[:status]&.include?('invalid_transition')
-          render json: {
-            error: 'Invalid Transition',
-            message: mission.errors.full_messages
-          }, status: :unprocessable_entity
-        elsif mission.errors[:daily_rate]&.include?('required') ||
-              mission.errors[:fixed_price]&.include?('required')
-          render json: {
-            error: 'Invalid Payload',
-            message: mission.errors.full_messages
-          }, status: :unprocessable_entity
-        else
-          render json: {
-            error: 'Invalid Payload',
-            message: mission.errors.full_messages
-          }, status: :unprocessable_entity
-        end
       end
     end
   end

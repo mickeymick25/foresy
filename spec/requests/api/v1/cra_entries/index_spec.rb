@@ -10,7 +10,7 @@ RSpec.describe 'CRA Entries - Index', type: :request do
   let(:company) { create(:company) }
   let(:mission) { create(:mission, :time_based, created_by_user_id: user.id) }
 
-  let!(:cra) { create(:cra, created_by_user_id: user.id, year: 2026, month: 1, status: 'draft') }
+  let(:cra) { create(:cra, created_by_user_id: user.id, year: 2026, month: 1, status: 'draft') }
 
   before do
     create(:user_company, user: user, company: company, role: 'independent')
@@ -21,6 +21,7 @@ RSpec.describe 'CRA Entries - Index', type: :request do
   end
 
   path '/api/v1/cras/{cra_id}/entries' do
+
     get 'Lists all CRA entries for a CRA' do
       tags 'CRA Entries'
       consumes 'application/json'

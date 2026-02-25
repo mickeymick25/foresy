@@ -41,6 +41,7 @@ module CraEntryServices
     end
 
     def call
+      Rails.logger.debug "[CraEntryServices::Create] Starting call"
       # ---- Input validation -------------------------------------------------
       unless @cra.present?
         return ApplicationResult.bad_request(
@@ -84,7 +85,7 @@ module CraEntryServices
 
       # ---- Success response ---------------------------------------------------
       ApplicationResult.success(
-        data: { cra_entry: serialize_entry(create_result.data[:cra_entry]) },
+        data: { cra_entry: create_result.data[:cra_entry] },
         message: 'CRA entry created successfully'
       )
     rescue ActiveRecord::RecordInvalid => e
@@ -164,31 +165,44 @@ module CraEntryServices
 
     # ==== Entry Creation =====================================================
     def create_entry
-      cra_entry = CraEntry.transaction do
-        new_entry = CraEntry.create!(
-          date: extract_date,
-          quantity: extract_quantity,
-          unit_price: extract_unit_price,
-          description: extract_description
+      # Use non-bang methods to avoid exceptions on validation failure
+      new_entry = CraEntry.new(
+        date: extract_date,
+        quantity: extract_quantity,
+        unit_price: extract_unit_price,
+        description: extract_description
+      )
+
+      unless new_entry.save
+        return ApplicationResult.unprocessable_entity(
+          error: :validation_failed,
+          message: new_entry.errors.full_messages.join(', ')
         )
+      end
 
-        CraEntryCra.create!(cra_entry_id: new_entry.id, cra_id: cra.id)
+      # Create relations
+      cra_entry_cra = CraEntryCra.new(cra_entry_id: new_entry.id, cra_id: cra.id)
+      unless cra_entry_cra.save
+        new_entry.destroy
+        return ApplicationResult.unprocessable_entity(
+          error: :relation_creation_failed,
+          message: 'Failed to link CRA entry to CRA'
+        )
+      end
 
-        if (mission_id = extract_mission_id).present?
-          CraEntryMission.create!(cra_entry_id: new_entry.id, mission_id: mission_id)
+      if (mission_id = extract_mission_id).present?
+        cra_entry_mission = CraEntryMission.new(cra_entry_id: new_entry.id, mission_id: mission_id)
+        unless cra_entry_mission.save
+          new_entry.destroy
+          cra_entry_cra.destroy
+          return ApplicationResult.unprocessable_entity(
+            error: :relation_creation_failed,
+            message: 'Failed to link CRA entry to mission'
+          )
         end
-
-        new_entry
       end
 
-      ApplicationResult.success(data: { cra_entry: cra_entry })
-    rescue ActiveRecord::RecordInvalid => e
-      if e.record.errors[:base]&.any? { |msg| msg.include?('already exists') }
-        return ApplicationResult.conflict(error: :duplicate_entry,
-                                          message: 'An entry already exists for this mission and date')
-      end
-
-      raise
+      ApplicationResult.success(data: { cra_entry: new_entry })
     end
 
     # ==== CRA Recalculation (Explicit) =======================================

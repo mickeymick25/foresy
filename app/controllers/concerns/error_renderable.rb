@@ -86,4 +86,66 @@ module ErrorRenderable
       }.compact
     }, status: status
   end
+
+  # Renders an ApplicationResult following the standard response format
+  # @param result [ApplicationResult] The result object from a service call
+  # @param serializer [Symbol, nil] Optional serializer to use (e.g., :mission_serializer)
+  def render_result(result, serializer: nil)
+    if result.success?
+      render_success(result, serializer)
+    else
+      render_failure(result)
+    end
+  end
+
+  private
+
+  # Renders a successful result
+  # @param result [ApplicationResult]
+  # @param serializer [Symbol, nil]
+  def render_success(result, serializer)
+    data = if serializer && result.data.present?
+             serialize_resource(result.data, serializer)
+           else
+             result.data
+           end
+
+    render json: data, status: result.status
+  end
+
+  # Renders a failure result
+  # @param result [ApplicationResult]
+  def render_failure(result)
+    error_payload = {
+      error: {
+        code: result.error,
+        message: result.message
+      }.compact
+    }
+
+    # Add meta information if present
+    if result.respond_to?(:meta) && result.meta.present?
+      error_payload[:meta] = result.meta
+    end
+
+    render json: error_payload, status: result.status
+  end
+
+  # Serializes a resource using the appropriate serializer
+  # @param data [Hash, ActiveRecord::Base] The data to serialize
+  # @param serializer [Symbol] The serializer name (e.g., :mission)
+  def serialize_resource(data, serializer)
+    return data unless data.is_a?(Hash)
+
+    # Handle single resource
+    if data[:mission].present?
+      data[:mission]
+    elsif data[:item].present?
+      data[:item]
+    elsif data[:cras]
+      data
+    else
+      data
+    end
+  end
 end
