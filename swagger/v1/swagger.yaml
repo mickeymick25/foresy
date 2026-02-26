@@ -3,7 +3,25 @@ openapi: 3.0.1
 info:
   title: API Foresy
   version: v1
-  description: Documentation de l'API Foresy
+  description: |2
+              Documentation de l'API Foresy
+
+              ## API Versioning Policy
+              L'API Foresy utilise le versioning par URL : `/api/v1/`, `/api/v2/`, etc.
+
+              ### Breaking Changes
+              - Breaking changes nécessitent une nouvelle version majeure
+              - Période de dépréciation : 12 mois (actif) + 3 mois (deprecated)
+              - Voir : [API Versioning Policy](./docs/technical/corrections/2026-02-18-RSwag_Completion_Status-Phase_1.8-API_Versioning_Policy.md)
+
+              ### Deprecation Headers
+              Les endpoints dépréciés retournent les headers suivants :
+              - `X-API-Deprecated` : true si l'endpoint est déprécié
+              - `X-API-Sunset` : Date de suppression (YYYY-MM-DD)
+              - `X-API-Warning` : Message d'avertissement
+              - `Deprecation` : Header RFC 8244 compliant
+
+              Ces headers sont optionnels et seulement présents quand l'endpoint est déprécié.
 paths:
   "/api/v1/auth/login":
     post:
@@ -16,8 +34,16 @@ paths:
           description: user authenticated
         '401':
           description: handles missing X-Forwarded-For by using remote_ip
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
         '403':
           description: inactive user
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
         '429':
           description: fail closed when Redis is down
           content:
@@ -28,14 +54,25 @@ paths:
                     rate_limit_exceeded:
                       summary: Rate limit exceeded (5 requests/minute)
                       value:
-                        error: Rate limit exceeded
+                        error:
+                          code: rate_limit_exceeded
+                          message: Rate limit exceeded
                         retry_after: 42
               schema:
                 type: object
                 properties:
                   error:
-                    type: string
-                    example: Rate limit exceeded
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: rate_limit_exceeded
+                      message:
+                        type: string
+                        example: Rate limit exceeded
+                    required:
+                    - code
+                    - message
                   retry_after:
                     type: integer
                     example: 42
@@ -58,13 +95,6 @@ paths:
               - email
               - password
         required: true
-    get:
-      summary: GET login endpoint - not rate-limited (endpoint does not exist)
-      tags:
-      - Authentication
-      responses:
-        '404':
-          description: get login endpoint does not exist (not rate-limited)
   "/api/v1/auth/logout":
     delete:
       summary: DELETE logout endpoint - not rate-limited (only POST is rate-limited)
@@ -139,53 +169,25 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: invalid_provider
-                    description: Error code
-                required:
-                - error
+                "$ref": "#/components/schemas/Error"
         '401':
           description: OAuth authentication failed - provider returns error
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: oauth_failed
-                    description: Error code
-                required:
-                - error
+                "$ref": "#/components/schemas/Error"
         '422':
           description: invalid payload - missing UID from provider
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: invalid_payload
-                    description: Error code
-                required:
-                - error
+                "$ref": "#/components/schemas/Error"
         '500':
           description: internal server error - token generation failed
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: internal_error
-                    description: Error code
-                required:
-                - error
+                "$ref": "#/components/schemas/Error"
       requestBody:
         content:
           application/json:
@@ -217,19 +219,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: oauth_failed
-                    description: Error code
-                  message:
-                    type: string
-                    example: OAuth authentication failed
-                    description: Error message
-                required:
-                - error
-                - message
+                "$ref": "#/components/schemas/Error"
   "/api/v1/auth/refresh":
     post:
       summary: Refreshes authentication token with rate limiting
@@ -249,16 +239,27 @@ paths:
                 example_0:
                   value:
                     rate_limit_exceeded:
-                      summary: Rate limit exceeded (10 requests/minute)
+                      summary: Rate limit exceeded (5 requests/minute)
                       value:
-                        error: Rate limit exceeded
+                        error:
+                          code: rate_limit_exceeded
+                          message: Rate limit exceeded
                         retry_after: 35
               schema:
                 type: object
                 properties:
                   error:
-                    type: string
-                    example: Rate limit exceeded
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: rate_limit_exceeded
+                      message:
+                        type: string
+                        example: Rate limit exceeded
+                    required:
+                    - code
+                    - message
                   retry_after:
                     type: integer
                     example: 35
@@ -276,6 +277,447 @@ paths:
               required:
               - refresh_token
         required: true
+  "/api/v1/auth/revoke_all":
+    delete:
+      summary: Revoke all session tokens for current user
+      tags:
+      - Authentication
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
+      responses:
+        '200':
+          description: All tokens revoked successfully
+        '401':
+          description: unauthorized - no active session
+  "/api/v1/auth/revoke":
+    delete:
+      summary: Revoke current session token
+      tags:
+      - Authentication
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Token revoked successfully
+        '401':
+          description: unauthorized - no active session
+  "/api/v1/cras/{cra_id}/entries":
+    post:
+      summary: Creates a new CRA entry
+      tags:
+      - CRA Entries
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
+      - name: cra_id
+        in: path
+        required: true
+        description: CRA ID (UUID)
+        schema:
+          type: string
+      responses:
+        '201':
+          description: CRA entry created successfully
+        '401':
+          description: unauthorized - invalid token
+        '404':
+          description: CRA not found
+        '422':
+          description: validation error
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/craEntryCreateRequest"
+    get:
+      summary: Lists all CRA entries for a CRA
+      tags:
+      - CRA Entries
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
+      - name: cra_id
+        in: path
+        required: true
+        description: CRA ID (UUID)
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Returns list of CRA entries
+        '401':
+          description: unauthorized - invalid token
+        '404':
+          description: CRA not found
+  "/api/v1/cras/{cra_id}/entries/{id}":
+    delete:
+      summary: Deletes a CRA entry
+      tags:
+      - CRA Entries
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
+      - name: cra_id
+        in: path
+        required: true
+        description: CRA ID (UUID)
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        description: CRA Entry ID (UUID)
+        schema:
+          type: string
+      responses:
+        '200':
+          description: CRA entry deleted successfully
+        '401':
+          description: unauthorized - invalid token
+        '404':
+          description: CRA or entry not found
+        '409':
+          description: conflict - CRA is locked or submitted
+    get:
+      summary: Shows a specific CRA entry
+      tags:
+      - CRA Entries
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
+      - name: cra_id
+        in: path
+        required: true
+        description: CRA ID (UUID)
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        description: CRA Entry ID (UUID)
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Returns CRA entry details
+        '401':
+          description: unauthorized - invalid token
+        '404':
+          description: CRA or entry not found
+    patch:
+      summary: Updates a CRA entry
+      tags:
+      - CRA Entries
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
+      - name: cra_id
+        in: path
+        required: true
+        description: CRA ID (UUID)
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        description: CRA Entry ID (UUID)
+        schema:
+          type: string
+      responses:
+        '200':
+          description: CRA entry updated successfully
+        '401':
+          description: unauthorized - invalid token
+        '404':
+          description: CRA or entry not found
+        '422':
+          description: validation error
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/craEntryUpdateRequest"
+  "/api/v1/cras":
+    post:
+      summary: Creates a new CRA
+      tags:
+      - CRAs
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
+      responses:
+        '201':
+          description: CRA created successfully
+        '401':
+          description: unauthorized - invalid token
+        '422':
+          description: unprocessable entity - invalid month
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/craCreateRequest"
+    get:
+      summary: Lists all CRAs for the current user
+      tags:
+      - CRAs
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
+      - name: page
+        in: query
+        type: integer
+        required: false
+        description: 'Page number (default: 1)'
+        schema:
+          type: integer
+          default: 1
+      - name: per_page
+        in: query
+        type: integer
+        required: false
+        description: 'Items per page (default: 20, max: 100)'
+        schema:
+          type: integer
+          default: 20
+      - name: status
+        in: query
+        required: false
+        description: Filter by status (draft, submitted, locked)
+        schema:
+          type: string
+      - name: year
+        in: query
+        required: false
+        description: Filter by year
+        schema:
+          type: integer
+      - name: month
+        in: query
+        required: false
+        description: Filter by month (1-12)
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Returns list of CRAs with pagination
+        '401':
+          description: unauthorized - invalid token
+  "/api/v1/cras/{id}":
+    delete:
+      summary: Deletes a CRA
+      tags:
+      - CRAs
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        description: CRA ID (UUID)
+        schema:
+          type: string
+      responses:
+        '200':
+          description: CRA deleted successfully
+        '401':
+          description: unauthorized - invalid token
+        '404':
+          description: CRA not found
+        '409':
+          description: conflict - CRA is locked or submitted
+    get:
+      summary: Shows a specific CRA with full details
+      tags:
+      - CRAs
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        description: CRA ID (UUID)
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Returns CRA details with entries
+        '401':
+          description: unauthorized - invalid token
+        '404':
+          description: CRA not found
+    patch:
+      summary: Updates a CRA
+      tags:
+      - CRAs
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        description: CRA ID (UUID)
+        schema:
+          type: string
+      responses:
+        '200':
+          description: CRA updated successfully
+        '401':
+          description: unauthorized - invalid token
+        '404':
+          description: CRA not found
+        '422':
+          description: unprocessable entity - validation failed
+        '409':
+          description: conflict - CRA is locked or submitted
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/craUpdateRequest"
+  "/api/v1/cras/{id}/export":
+    get:
+      summary: Exports a CRA in specified format
+      tags:
+      - CRAs
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        description: CRA ID (UUID)
+        schema:
+          type: string
+      - name: export_format
+        in: query
+        type: string
+        required: false
+        description: Export format (csv)
+        schema:
+          type: string
+          default: csv
+      responses:
+        '200':
+          description: CRA exported successfully
+        '401':
+          description: unauthorized - invalid token
+        '404':
+          description: CRA not found
+  "/api/v1/cras/{id}/lock":
+    post:
+      summary: Locks a CRA to prevent modifications
+      tags:
+      - CRAs
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        description: CRA ID (UUID)
+        schema:
+          type: string
+      responses:
+        '200':
+          description: CRA locked successfully
+        '401':
+          description: unauthorized - invalid token
+        '404':
+          description: CRA not found
+        '409':
+          description: conflict - CRA already locked
+  "/api/v1/cras/{id}/submit":
+    post:
+      summary: Submits a CRA for approval
+      tags:
+      - CRAs
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        description: CRA ID (UUID)
+        schema:
+          type: string
+      responses:
+        '200':
+          description: CRA submitted successfully
+        '401':
+          description: unauthorized - invalid token
+        '404':
+          description: CRA not found
+        '422':
+          description: validation error
+        '409':
+          description: conflict - CRA already submitted or locked
   "/api/v1/missions":
     post:
       summary: Creates a new mission
@@ -296,27 +738,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                mission_type:
-                  type: string
-                status:
-                  type: string
-                start_date:
-                  type: string
-                  format: date
-                daily_rate:
-                  type: integer
-                fixed_price:
-                  type: integer
-                currency:
-                  type: string
-                client_company_id:
-                  type: string
-                  format: uuid
-                  nullable: true
+              "$ref": "#/components/schemas/missionCreateRequest"
         required: true
     get:
       summary: Lists missions accessible to user
@@ -372,6 +794,12 @@ paths:
           description: rejects won -> lead
         '403':
           description: rejects completed -> in_progress
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/missionUpdateRequest"
+        required: true
     delete:
       summary: Archives a mission
       tags:
@@ -409,14 +837,25 @@ paths:
                     rate_limit_exceeded:
                       summary: Rate limit exceeded (3 requests/minute)
                       value:
-                        error: Rate limit exceeded
+                        error:
+                          code: rate_limit_exceeded
+                          message: Rate limit exceeded
                         retry_after: 55
               schema:
                 type: object
                 properties:
                   error:
-                    type: string
-                    example: Rate limit exceeded
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: rate_limit_exceeded
+                      message:
+                        type: string
+                        example: Rate limit exceeded
+                    required:
+                    - code
+                    - message
                   retry_after:
                     type: integer
                     example: 55
@@ -451,9 +890,32 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+  headers:
+    X-API-Deprecated:
+      schema:
+        type: string
+      description: Set to true if the endpoint is deprecated. Optional - only present
+        when endpoint is deprecated.
+    X-API-Sunset:
+      schema:
+        type: string
+        format: date
+      description: Date when the endpoint will be removed (YYYY-MM-DD). Optional -
+        only present when endpoint is deprecated.
+    X-API-Warning:
+      schema:
+        type: string
+      description: Warning message about deprecation and migration path. Optional
+        - only present when endpoint is deprecated.
+    Deprecation:
+      schema:
+        type: string
+      description: RFC 8244 compliant Deprecation header. See RFC 8244 for format.
+        Optional - only present when endpoint is deprecated.
   schemas:
     user:
       type: object
+      additionalProperties: false
       properties:
         email:
           type: string
@@ -468,8 +930,258 @@ components:
       - email
       - password
       - password_confirmation
+    loginRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - email
+      - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: User email address
+        password:
+          type: string
+          format: password
+          description: User password
+    RefreshTokenRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - refresh_token
+      properties:
+        refresh_token:
+          type: string
+          description: Refresh token to renew access token
+    OAuthCallbackRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - code
+      - redirect_uri
+      properties:
+        code:
+          type: string
+          description: OAuth authorization code from provider
+        redirect_uri:
+          type: string
+          format: uri
+          description: Redirect URI used in OAuth flow
+    UserCreateRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - email
+      - password
+      - password_confirmation
+      properties:
+        email:
+          type: string
+          format: email
+          description: User email address
+        password:
+          type: string
+          format: password
+          description: User password
+        password_confirmation:
+          type: string
+          format: password
+          description: Password confirmation
+    MissionCreateRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - mission_type
+      properties:
+        name:
+          type: string
+          description: Mission name
+        description:
+          type: string
+          description: Mission description
+        mission_type:
+          type: string
+          enum:
+          - time_based
+          - fixed_price
+          description: Mission type
+        status:
+          type: string
+          enum:
+          - lead
+          - pending
+          - won
+          - in_progress
+          - completed
+          description: Mission status
+        start_date:
+          type: string
+          format: date
+          description: Mission start date
+        daily_rate:
+          type: integer
+          description: Daily rate in cents
+        fixed_price:
+          type: integer
+          description: Fixed price in cents
+        currency:
+          type: string
+          description: Currency code (e.g., EUR)
+        client_company_id:
+          type: string
+          format: uuid
+          description: Client company UUID
+    MissionUpdateRequest:
+      type: object
+      additionalProperties: false
+      required: []
+      properties:
+        name:
+          type: string
+          description: Mission name
+        description:
+          type: string
+          description: Mission description
+        mission_type:
+          type: string
+          enum:
+          - time_based
+          - fixed_price
+          description: Mission type
+        status:
+          type: string
+          enum:
+          - lead
+          - pending
+          - won
+          - in_progress
+          - completed
+          description: Mission status
+        start_date:
+          type: string
+          format: date
+          description: Mission start date
+        daily_rate:
+          type: integer
+          description: Daily rate in cents
+        fixed_price:
+          type: integer
+          description: Fixed price in cents
+        currency:
+          type: string
+          description: Currency code (e.g., EUR)
+        client_company_id:
+          type: string
+          format: uuid
+          description: Client company UUID
+    CraCreateRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - month
+      - year
+      properties:
+        month:
+          type: integer
+          description: Month (1-12)
+          example: 1
+        year:
+          type: integer
+          description: Year (e.g., 2026)
+          example: 2026
+        currency:
+          type: string
+          description: Currency code (e.g., EUR)
+          example: EUR
+        description:
+          type: string
+          description: CRA description
+        status:
+          type: string
+          enum:
+          - draft
+          - submitted
+          - locked
+          description: CRA status
+          example: draft
+    CraUpdateRequest:
+      type: object
+      additionalProperties: false
+      required: []
+      properties:
+        month:
+          type: integer
+          description: Month (1-12)
+        year:
+          type: integer
+          description: Year (e.g., 2026)
+        currency:
+          type: string
+          description: Currency code (e.g., EUR)
+        description:
+          type: string
+          description: CRA description
+        status:
+          type: string
+          enum:
+          - draft
+          - submitted
+          - locked
+          description: CRA status
+    CraEntryCreateRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - date
+      - quantity
+      - unit_price
+      - description
+      - mission_id
+      properties:
+        date:
+          type: string
+          format: date
+          description: Entry date
+        quantity:
+          type: number
+          description: Quantity (days or hours)
+        unit_price:
+          type: integer
+          description: Unit price in cents
+        description:
+          type: string
+          description: Entry description
+        mission_id:
+          type: string
+          format: uuid
+          description: Mission ID (UUID)
+    CraEntryUpdateRequest:
+      type: object
+      additionalProperties: false
+      required: []
+      properties:
+        date:
+          type: string
+          format: date
+          description: Entry date
+        quantity:
+          type: number
+          description: Quantity (days or hours)
+        unit_price:
+          type: integer
+          description: Unit price in cents
+        description:
+          type: string
+          description: Entry description
+        mission_id:
+          type: string
+          format: uuid
+          description: Mission ID (UUID)
     login:
       type: object
+      additionalProperties: false
       properties:
         email:
           type: string
@@ -480,3 +1192,28 @@ components:
       required:
       - email
       - password
+    Error:
+      type: object
+      required:
+      - error
+      additionalProperties: false
+      properties:
+        error:
+          type: object
+          required:
+          - code
+          - message
+          additionalProperties: false
+          properties:
+            code:
+              type: string
+              description: Error code (e.g., not_found, validation_failed, internal_error)
+            message:
+              type: string
+              description: Human-readable error message
+            details:
+              type: array
+              description: Optional array of error details
+              items:
+                type: object
+                additionalProperties: true

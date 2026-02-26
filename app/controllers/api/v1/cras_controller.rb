@@ -14,7 +14,7 @@ module Api
     # - Rate limiting on create/update operations
     # - Git Ledger versioning for locked CRAs
     # - Modular architecture with concerns and services
-    class CrasController < ApplicationController
+    class CrasController < Api::V1::BaseController
       include Pagy::Backend
       include Api::V1::Cras::ErrorHandler
       include Api::V1::Cras::RateLimitable
@@ -105,7 +105,7 @@ module Api
             success: false,
             errors: [result.error],
             timestamp: Time.current.iso8601
-          }, status: :unprocessable_entity
+          }, status: result.status
         end
       end
 
@@ -123,6 +123,12 @@ module Api
             message: 'CRA archived successfully',
             timestamp: Time.current.iso8601
           }, status: :ok
+        elsif result.status == :conflict
+          render json: {
+            success: false,
+            errors: [result.error],
+            timestamp: Time.current.iso8601
+          }, status: :conflict
         else
           render json: {
             success: false,
@@ -143,6 +149,12 @@ module Api
 
         if result.success?
           render json: Api::V1::Cras::ResponseFormatter.single(result.data[:cra], include_entries: true), status: :ok
+        elsif result.status == :conflict
+          render json: {
+            success: false,
+            errors: [result.error],
+            timestamp: Time.current.iso8601
+          }, status: :conflict
         else
           render json: {
             success: false,
@@ -163,6 +175,12 @@ module Api
 
         if result.success?
           render json: Api::V1::Cras::ResponseFormatter.single(result.data[:cra], include_entries: true), status: :ok
+        elsif result.status == :conflict
+          render json: {
+            success: false,
+            errors: [result.error],
+            timestamp: Time.current.iso8601
+          }, status: :conflict
         else
           render json: {
             success: false,

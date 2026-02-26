@@ -19,7 +19,7 @@ RSpec.describe 'JWT Rescue From Behavior', type: :request do
       delete '/api/v1/auth/logout', headers: headers
 
       expect(response).to have_http_status(:unauthorized)
-      expect(response.parsed_body).to include('error' => 'Invalid token')
+      expect(response.parsed_body).to include('error' => { 'code' => 'unauthorized', 'message' => 'Invalid token' })
     end
 
     it 'should handle JWT::ExpiredSignature with specific handler from Authenticatable' do
@@ -29,7 +29,7 @@ RSpec.describe 'JWT Rescue From Behavior', type: :request do
       delete '/api/v1/auth/logout', headers: headers
 
       expect(response).to have_http_status(:unauthorized)
-      expect(response.parsed_body).to include('error' => 'Token has expired')
+      expect(response.parsed_body).to include('error' => { 'code' => 'unauthorized', 'message' => 'Token has expired' })
     end
   end
 

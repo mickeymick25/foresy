@@ -2,7 +2,7 @@
 
 require 'swagger_helper'
 
-RSpec.describe 'CRAs - Export', type: :request do
+RSpec.describe 'CRAs - Delete', type: :request do
   let(:user) { create(:user) }
   let(:user_token) { AuthenticationService.login(user, '127.0.0.1', 'Test Agent')[:token] }
   let(:Authorization) { "Bearer #{user_token}" }
@@ -10,48 +10,32 @@ RSpec.describe 'CRAs - Export', type: :request do
   let(:company) { create(:company) }
   let(:mission) { create(:mission, :time_based, created_by_user_id: user.id) }
 
-  let!(:cra) { create(:cra, created_by_user_id: user.id, year: 2026, month: 1, status: 'submitted') }
+  let!(:cra) { create(:cra, created_by_user_id: user.id, year: 2026, month: 1, status: 'draft') }
 
   before do
     create(:user_company, user: user, company: company, role: 'independent')
     create(:mission_company, mission: mission, company: company, role: 'independent')
 
-    # Create CRA entries
-    entry1 = create(:cra_entry, date: Date.new(2026, 1, 10), quantity: 1.0, unit_price: 50_000, description: 'Dev work')
-    entry2 = create(:cra_entry, date: Date.new(2026, 1, 11), quantity: 0.5, unit_price: 50_000, description: 'Meeting')
-
-    create(:cra_entry_cra, cra: cra, cra_entry: entry1)
-    create(:cra_entry_cra, cra: cra, cra_entry: entry2)
-    create(:cra_entry_mission, cra_entry: entry1, mission: mission)
-    create(:cra_entry_mission, cra_entry: entry2, mission: mission)
-
     # Stub RateLimitService
     allow(RateLimitService).to receive(:check_rate_limit).and_return([true, nil])
   end
 
-  path '/api/v1/cras/{id}/export' do
-    get 'Exports a CRA in specified format' do
+  path '/api/v1/cras/{id}' do
+    delete 'Deletes a CRA' do
       tags 'CRAs'
       consumes 'application/json'
-      produces 'text/csv'
+      produces 'application/json'
 
       parameter name: :Authorization, in: :header, type: :string, required: true,
                 description: 'Bearer token'
       parameter name: :id, in: :path, type: :string, required: true,
                 description: 'CRA ID (UUID)'
-      parameter name: :export_format, in: :query, type: :string, required: false,
-                description: 'Export format (csv)', schema: { type: :string, default: 'csv' }
 
-      response '200', 'CRA exported successfully' do
+      response '200', 'CRA deleted successfully' do
         let(:id) { cra.id }
-        let(:export_format) { 'csv' }
 
         run_test! do |response|
           expect(response).to have_http_status(:ok)
-          expect(response.content_type).to include('text/csv')
-          expect(response.headers['Content-Disposition']).to include('attachment')
-          expect(response.headers['Content-Disposition']).to include('cra_2026_01.csv')
-          expect(response.body).to include('TOTAL')
         end
       end
 
@@ -69,6 +53,18 @@ RSpec.describe 'CRAs - Export', type: :request do
 
         run_test! do |response|
           expect(response).to have_http_status(:not_found)
+        end
+      end
+
+      response '409', 'conflict - CRA is locked or submitted' do
+        let(:id) { cra.id }
+
+        before do
+          cra.update!(status: 'locked', locked_at: Time.current)
+        end
+
+        run_test! do |response|
+          expect(response).to have_http_status(:conflict)
         end
       end
     end

@@ -60,8 +60,9 @@ class CraEntryServices::Destroy
     # Effectuer la suppression dans une transaction
     begin
       ActiveRecord::Base.transaction do
+        cra = @cra_entry.cra
         @cra_entry.destroy!
-        @cra_entry.cra.recalculate_totals
+        cra.recalculate_totals if cra.present?
 
         ApplicationResult.success(
           data: { cra_entry_id: @cra_entry.id },

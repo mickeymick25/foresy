@@ -34,21 +34,21 @@ class CraServices
     def call
       # Input validation
       unless cra.present?
-        return ApplicationResult.bad_request(
+        return ApplicationResult.unprocessable_entity(
           error: :missing_cra,
           message: 'CRA is required'
         )
       end
 
       unless cra_params.present?
-        return ApplicationResult.bad_request(
+        return ApplicationResult.unprocessable_entity(
           error: :missing_parameters,
           message: 'CRA parameters are required'
         )
       end
 
       unless current_user.present?
-        return ApplicationResult.bad_request(
+        return ApplicationResult.unprocessable_entity(
           error: :missing_user,
           message: 'Current user is required'
         )
@@ -90,11 +90,12 @@ class CraServices
     # === Validation ===
 
     def validate_cra_params
+      Rails.logger.error "DEBUG validate_cra_params: cra_params = #{cra_params.inspect}"
       # Validate month if provided
       if cra_params[:month].present?
         month = cra_params[:month].to_i
         unless month.between?(1, 12)
-          return ApplicationResult.bad_request(
+          return ApplicationResult.unprocessable_entity(
             error: :invalid_month,
             message: 'Month must be between 1 and 12'
           )
@@ -105,7 +106,7 @@ class CraServices
       if cra_params[:year].present?
         year = cra_params[:year].to_i
         if year < 2000
-          return ApplicationResult.bad_request(
+          return ApplicationResult.unprocessable_entity(
             error: :invalid_year,
             message: 'Year must be 2000 or later'
           )
@@ -116,7 +117,7 @@ class CraServices
       if cra_params[:status].present?
         new_status = cra_params[:status].to_s
         unless Cra::VALID_STATUSES.include?(new_status)
-          return ApplicationResult.bad_request(
+          return ApplicationResult.unprocessable_entity(
             error: :invalid_status,
             message: "Status must be one of: #{Cra::VALID_STATUSES.join(', ')}"
           )
@@ -127,7 +128,7 @@ class CraServices
       if cra_params[:description].present?
         description = cra_params[:description].to_s.strip
         if description.length > 2000
-          return ApplicationResult.bad_request(
+          return ApplicationResult.unprocessable_entity(
             error: :description_too_long,
             message: 'Description cannot exceed 2000 characters'
           )
@@ -138,28 +139,20 @@ class CraServices
       if cra_params[:currency].present?
         currency = cra_params[:currency].to_s.upcase
         unless currency.match?(/\A[A-Z]{3}\z/)
-          return ApplicationResult.bad_request(
+          return ApplicationResult.unprocessable_entity(
             error: :invalid_currency,
             message: 'Currency must be a valid ISO 4217 code'
           )
         end
       end
 
-      ApplicationResult.success
+      return ApplicationResult.success(data: {})
     end
 
     # === Permissions ===
 
     def check_user_permissions
-      # Check ownership using modifiable_by? (handles both flag ON and OFF)
-      unless cra.modifiable_by?(current_user)
-        return ApplicationResult.forbidden(
-          error: :insufficient_permissions,
-          message: 'Only the CRA creator can modify this CRA'
-        )
-      end
-
-      # Check if CRA is modifiable
+      # Check if CRA is locked first - return conflict before checking ownership
       if cra.locked?
         return ApplicationResult.conflict(
           error: :cra_locked,
@@ -174,12 +167,20 @@ class CraServices
         )
       end
 
+      # Check ownership - only creator can modify (after checking locked/submitted)
+      unless cra.modifiable_by?(current_user)
+        return ApplicationResult.forbidden(
+          error: :insufficient_permissions,
+          message: 'Only the CRA creator can modify this CRA'
+        )
+      end
+
       # Check status transition if status is being changed
       if cra_params[:status].present? && cra_params[:status].to_s != cra.status
         return check_status_transition(cra_params[:status].to_s)
       end
 
-      nil # Permission checks passed
+      ApplicationResult.success(data: {}) # Permission checks passed
     end
 
     def check_status_transition(new_status)
@@ -230,7 +231,7 @@ class CraServices
 
       # Check if there are any attributes to update
       if attributes.empty?
-        return ApplicationResult.bad_request(
+        return ApplicationResult.unprocessable_entity(
           error: :no_valid_attributes,
           message: 'No valid attributes provided for update'
         )
@@ -247,20 +248,20 @@ class CraServices
     # === Perform Update ===
 
     def perform_update(attributes)
-      ActiveRecord::Base.transaction do
-        return handle_update_errors unless cra.update(attributes)
+      # Perform update - no transaction needed for single record update
+      return handle_update_errors unless cra.update(attributes)
 
-        cra.reload
-      rescue ActiveRecord::RecordInvalid => e
-        return handle_record_invalid_errors(e.record)
-      rescue ActiveRecord::RecordNotFound
-        return ApplicationResult.not_found(
-          error: :cra_not_found,
-          message: 'CRA not found during update'
-        )
-      end
+      # Reload to get fresh data from database
+      cra.reload
 
       ApplicationResult.success(data: { cra: cra })
+    rescue ActiveRecord::RecordInvalid => e
+      handle_record_invalid_errors(e.record)
+    rescue ActiveRecord::RecordNotFound
+      ApplicationResult.not_found(
+        error: :cra_not_found,
+        message: 'CRA not found during update'
+      )
     rescue StandardError => e
       ApplicationResult.internal_error(
         error: :update_failed,

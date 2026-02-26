@@ -61,7 +61,7 @@ class MissionServices
       return save_result if save_result.failure?
 
       # Success
-      ApplicationResult.success(
+      ApplicationResult.created(
         data: { mission: save_result.data[:mission] },
         message: 'Mission created successfully'
       )
