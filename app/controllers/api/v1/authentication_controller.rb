@@ -12,16 +12,13 @@ module Api
 
       # === POST /api/v1/auth/login ===
       def login
-        return render_unauthorized('Email is required') if login_params[:email].blank?
-        return render_unauthorized('Password is required') if login_params[:password].blank?
+        return error_bad_request('Email is required') if login_params[:email].blank?
+        return error_bad_request('Password is required') if login_params[:password].blank?
 
         user = find_and_validate_user
-        return render_unauthorized('Invalid credentials') unless user
+        return error_unauthorized('Invalid credentials') unless user
 
-        unless user.active?
-          return render json: { error: 'Forbidden', message: 'Account is inactive' },
-                        status: :forbidden
-        end
+        return error_forbidden('Account is inactive') unless user.active?
 
         perform_login(user)
       end
@@ -44,11 +41,11 @@ module Api
       # === POST /api/v1/auth/refresh ===
       def refresh
         token = extract_refresh_token
-        return render_unauthorized('Refresh token is missing') unless token.present?
+        return error_bad_request('Refresh token is missing') unless token.present?
 
         # Utilise AuthenticationService qui valide maintenant directement le refresh token
         result = AuthenticationService.refresh(token, request.remote_ip, request.user_agent)
-        return render_unauthorized('Unable to refresh session') if result.nil?
+        return error_unauthorized('Unable to refresh session') if result.nil?
 
         render json: {
           token: result[:token],
@@ -59,8 +56,8 @@ module Api
 
       # === DELETE /api/v1/auth/logout ===
       def logout
-        return render_unauthorized('No active session') if current_session.nil?
-        return render_unauthorized('Session already expired') if current_session.expired?
+        return error_unauthorized('No active session') if current_session.nil?
+        return error_unauthorized('Session already expired') if current_session.expired?
 
         current_session.update(expires_at: Time.current)
         render json: { message: 'Logged out successfully' }, status: :ok
@@ -69,7 +66,7 @@ module Api
       # === DELETE /api/v1/auth/revoke ===
       # Revokes the current session token
       def revoke
-        return render_unauthorized('No active session') if current_session.nil?
+        return error_unauthorized('No active session') if current_session.nil?
 
         current_session.update(expires_at: Time.current)
         Rails.logger.info "[Auth] Token revoked for user #{current_user.id}"
@@ -83,7 +80,7 @@ module Api
       # === DELETE /api/v1/auth/revoke_all ===
       # Revokes all sessions for the current user
       def revoke_all
-        return render_unauthorized('No active session') if current_user.nil?
+        return error_unauthorized('No active session') if current_user.nil?
 
         revoked_count = current_user.sessions.active.count
         current_user.invalidate_all_sessions!
@@ -130,10 +127,7 @@ module Api
         # If rate limit exceeded, return 429 response
         unless allowed
           response.headers['Retry-After'] = retry_after.to_s
-          render json: {
-            error: 'Rate limit exceeded',
-            retry_after: retry_after
-          }, status: :too_many_requests
+          error_too_many_requests('Rate limit exceeded', { retry_after: retry_after })
         end
       end
 

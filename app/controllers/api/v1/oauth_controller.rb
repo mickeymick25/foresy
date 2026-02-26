@@ -20,8 +20,6 @@ module Api
     # Handles OAuth authentication for Google & GitHub providers
     # Implements stateless JWT authentication without server-side sessions
     class OauthController < ApplicationController
-      include ErrorRenderable
-
       # POST /auth/:provider/callback
       # OAuth callback endpoint for Google & GitHub authentication
       def callback
@@ -31,14 +29,14 @@ module Api
         Rails.logger.error "Backtrace: #{e.backtrace.join("\n")}"
         Rails.logger.error "Request params at error: #{params.inspect}"
         Rails.logger.error "Request env at error: #{request.env.keys.select { |k| k.include?('omniauth') }.inspect}"
-        render json: { error: 'internal_error', message: e.message }, status: :internal_server_error
+        error_internal("OAuth callback error: #{e.message}")
       end
 
       # Execute the complete OAuth authentication flow
       def execute_oauth_flow
         Rails.logger.info "Starting OAuth flow for provider: #{params[:provider]}"
 
-        return render_bad_request('invalid_provider') unless valid_provider?
+        return error_bad_request('Invalid OAuth provider') unless valid_provider?
 
         validation_result = process_oauth_validation
         return handle_validation_error(validation_result) if validation_result.is_a?(Symbol)
@@ -54,12 +52,12 @@ module Api
       def handle_validation_error(result)
         case result
         when :oauth_failed
-          render_unauthorized('oauth_failed')
+          error_unauthorized('OAuth authentication failed')
         when :invalid_payload
-          render_unprocessable_entity('invalid_payload')
+          error_invalid_payload('Invalid OAuth payload')
         else
           Rails.logger.error "Unknown validation result: #{result}"
-          render json: { error: 'internal_error' }, status: :internal_server_error
+          error_internal("Unknown validation result: #{result}")
         end
       end
 
@@ -94,7 +92,7 @@ module Api
       # GET /auth/failure
       # Optional OAuth failure endpoint (recommended by Feature Contract)
       def failure
-        render json: { error: 'oauth_failed', message: 'OAuth authentication failed' }, status: :unauthorized
+        error_unauthorized('OAuth authentication failed')
       end
 
       private
@@ -129,17 +127,6 @@ module Api
       end
 
       # Render helpers for standardized error responses
-      def render_bad_request(error_code)
-        render json: { error: error_code }, status: :bad_request
-      end
-
-      def render_unauthorized(error_code)
-        render json: { error: error_code }, status: :unauthorized
-      end
-
-      def render_unprocessable_entity(error_code)
-        render json: { error: error_code }, status: :unprocessable_entity
-      end
     end
   end
 end

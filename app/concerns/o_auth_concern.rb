@@ -9,12 +9,14 @@ module OAuthConcern
   extend ActiveSupport::Concern
 
   included do
+    include StandardizedError
+
     def oauth_callback
       auth = extract_oauth_data
-      return render_unauthorized('OAuth data missing') unless auth
+      return error_unauthorized('OAuth data missing') unless auth
 
       user = find_or_create_user_from_auth(auth)
-      return render_unprocessable_entity('User creation failed') unless user.persisted?
+      return error_invalid_payload('User creation failed') unless user.persisted?
 
       perform_oauth_login(user)
     end

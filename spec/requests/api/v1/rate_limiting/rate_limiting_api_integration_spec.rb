@@ -50,17 +50,26 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
       response '429', 'rate limit exceeded - too many login attempts' do
         schema type: :object,
                properties: {
-                 error: { type: :string, example: 'Rate limit exceeded' },
-                 retry_after: { type: :integer, example: 42 }
+                 code: { type: :string, example: 'RATE_LIMIT_EXCEEDED' },
+                 message: { type: :string, example: 'Rate limit exceeded' },
+                 details: {
+                   type: :object,
+                   properties: {
+                     retry_after: { type: :integer, example: 42 }
+                   }
+                 }
                },
-               required: %w[error retry_after]
+               required: %w[code message]
 
         examples 'application/json' => {
           rate_limit_exceeded: {
             summary: 'Rate limit exceeded (5 requests/minute)',
             value: {
-              error: 'Rate limit exceeded',
-              retry_after: 42
+              code: 'RATE_LIMIT_EXCEEDED',
+              message: 'Rate limit exceeded',
+              details: {
+                retry_after: 42
+              }
             }
           }
         }
@@ -96,8 +105,11 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
           expect(response.headers['Retry-After']).to match(/\d+/)
 
           data = JSON.parse(response.body)
-          expect(data['error']).to eq('Rate limit exceeded')
-          expect(data['retry_after']).to be_between(58, 60)
+          expect(data['code']).to eq('RATE_LIMIT_EXCEEDED')
+          expect(data['message']).to eq('Rate limit exceeded')
+          expect(data['details']['retry_after']).to be_between(58, 60)
+          expect(data.key?('error')).to be false
+          expect(data.key?('timestamp')).to be false
         end
       end
 
@@ -265,17 +277,26 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
       response '429', 'rate limit exceeded - too many refresh attempts' do
         schema type: :object,
                properties: {
-                 error: { type: :string, example: 'Rate limit exceeded' },
-                 retry_after: { type: :integer, example: 35 }
+                 code: { type: :string, example: 'RATE_LIMIT_EXCEEDED' },
+                 message: { type: :string, example: 'Rate limit exceeded' },
+                 details: {
+                   type: :object,
+                   properties: {
+                     retry_after: { type: :integer, example: 35 }
+                   }
+                 }
                },
-               required: %w[error retry_after]
+               required: %w[code message]
 
         examples 'application/json' => {
           rate_limit_exceeded: {
             summary: 'Rate limit exceeded (10 requests/minute)',
             value: {
-              error: 'Rate limit exceeded',
-              retry_after: 35
+              code: 'RATE_LIMIT_EXCEEDED',
+              message: 'Rate limit exceeded',
+              details: {
+                retry_after: 35
+              }
             }
           }
         }
@@ -309,9 +330,12 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
           expect(response.headers).to include('Retry-After')
 
           data = JSON.parse(response.body)
-          expect(data['error']).to eq('Rate limit exceeded')
-          expect(data['retry_after']).to be_between(58, 60)
-          expect(data['retry_after']).to be_an(Integer)
+          expect(data['code']).to eq('RATE_LIMIT_EXCEEDED')
+          expect(data['message']).to eq('Rate limit exceeded')
+          expect(data['details']['retry_after']).to be_between(58, 60)
+          expect(data['details']['retry_after']).to be_an(Integer)
+          expect(data.key?('error')).to be false
+          expect(data.key?('timestamp')).to be false
         end
       end
     end
@@ -473,8 +497,11 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
           expect(response.headers).to include('Retry-After')
 
           data = JSON.parse(response.body)
-          expect(data['error']).to eq('Rate limit exceeded')
-          expect(data['retry_after']).to be_an(Integer)
+          expect(data['code']).to eq('RATE_LIMIT_EXCEEDED')
+          expect(data['message']).to eq('Rate limit exceeded')
+          expect(data['details']['retry_after']).to be_an(Integer)
+          expect(data.key?('error')).to be false
+          expect(data.key?('timestamp')).to be false
         end
       end
     end
@@ -719,8 +746,11 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
         expect(response.headers['Retry-After']).to eq('60')
 
         json = JSON.parse(response.body)
-        expect(json['error']).to eq('Rate limit exceeded')
-        expect(json['retry_after']).to eq(60)
+        expect(json['code']).to eq('RATE_LIMIT_EXCEEDED')
+        expect(json['message']).to eq('Rate limit exceeded')
+        expect(json['details']['retry_after']).to eq(60)
+        expect(json.key?('error')).to be false
+        expect(json.key?('timestamp')).to be false
       end
     end
 

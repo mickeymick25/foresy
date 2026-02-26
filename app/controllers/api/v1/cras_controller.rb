@@ -14,6 +14,10 @@ module Api
     # - Rate limiting on create/update operations
     # - Git Ledger versioning for locked CRAs
     # - Modular architecture with concerns and services
+    #
+    # Error Handling (Phase 1.9):
+    # - All error responses follow standardized format: { code, message, details }
+    # - Uses StandardizedError concern methods
     class CrasController < ApplicationController
       include Pagy::Backend
       include Api::V1::Cras::ErrorHandler
@@ -51,11 +55,7 @@ module Api
         if result.success?
           render json: Api::V1::Cras::ResponseFormatter.single(result.data[:cra]), status: :created
         else
-          render json: {
-            success: false,
-            errors: [result.error],
-            timestamp: Time.current.iso8601
-          }, status: :unprocessable_entity
+          error_invalid_payload(result.error)
         end
       end
 
@@ -75,11 +75,7 @@ module Api
             pagination: result.data[:pagination]
           ), status: :ok
         else
-          render json: {
-            success: false,
-            errors: [result.error],
-            timestamp: Time.current.iso8601
-          }, status: :unprocessable_entity
+          error_invalid_payload(result.error)
         end
       end
 
@@ -101,11 +97,7 @@ module Api
         if result.success?
           render json: Api::V1::Cras::ResponseFormatter.single(result.data[:cra], include_entries: true), status: :ok
         else
-          render json: {
-            success: false,
-            errors: [result.error],
-            timestamp: Time.current.iso8601
-          }, status: :unprocessable_entity
+          error_invalid_payload(result.error)
         end
       end
 
@@ -118,17 +110,9 @@ module Api
         )
 
         if result.success?
-          render json: {
-            success: true,
-            message: 'CRA archived successfully',
-            timestamp: Time.current.iso8601
-          }, status: :ok
+          render json: { message: 'CRA archived successfully' }, status: :ok
         else
-          render json: {
-            success: false,
-            errors: [result.error],
-            timestamp: Time.current.iso8601
-          }, status: :unprocessable_entity
+          error_unprocessable_entity(result.error)
         end
       end
 
@@ -144,11 +128,7 @@ module Api
         if result.success?
           render json: Api::V1::Cras::ResponseFormatter.single(result.data[:cra], include_entries: true), status: :ok
         else
-          render json: {
-            success: false,
-            errors: [result.error],
-            timestamp: Time.current.iso8601
-          }, status: :unprocessable_entity
+          error_unprocessable_entity(result.error)
         end
       end
 
@@ -164,11 +144,7 @@ module Api
         if result.success?
           render json: Api::V1::Cras::ResponseFormatter.single(result.data[:cra], include_entries: true), status: :ok
         else
-          render json: {
-            success: false,
-            errors: [result.error],
-            timestamp: Time.current.iso8601
-          }, status: :unprocessable_entity
+          error_unprocessable_entity(result.error)
         end
       end
 
@@ -189,11 +165,7 @@ module Api
                     type: 'text/csv',
                     disposition: 'attachment'
         else
-          render json: {
-            success: false,
-            errors: [result.error],
-            timestamp: Time.current.iso8601
-          }, status: :unprocessable_entity
+          error_unprocessable_entity(result.error)
         end
       end
 
@@ -228,82 +200,58 @@ module Api
         params.permit(:month, :year, :currency, :description, :status)
       end
 
-      # Options for export
-
       # FC07 Centralized CRA error handler
-      # Handles all CraErrors exceptions and returns JSON according to FC07 specifications
+      # Handles all CraErrors exceptions and returns JSON according to Phase 1.9 standardized format
+      # Format: { code, message, details }
       def handle_cra_error(exception)
         Rails.logger.error "[CrasController] CRA Error: #{exception.class.name} - #{exception.message}"
 
         case exception
         when CraErrors::InvalidPayloadError
-          render json: {
-            error: 'invalid_payload',
-            message: exception.message,
-            field: exception.respond_to?(:field) ? exception.field : nil,
-            timestamp: Time.current.iso8601
-          }.compact, status: :unprocessable_entity
+          details = {}
+          details[:field] = exception.field if exception.respond_to?(:field) && exception.field
+          error_invalid_payload(exception.message, details)
+
         when CraErrors::InvalidTransitionError
-          render json: {
-            error: 'invalid_transition',
-            message: exception.message,
-            timestamp: Time.current.iso8601
-          }, status: :unprocessable_entity
+          details = { field: 'status' }
+          error_unprocessable_entity(exception.message, details)
+
         when CraErrors::CraLockedError
-          render json: {
-            error: 'cra_locked',
-            message: exception.message,
-            timestamp: Time.current.iso8601
-          }, status: :conflict
+          details = { cra_id: @cra&.id, status: @cra&.status }
+          error_conflict(exception.message, details)
+
         when CraErrors::CraSubmittedError
-          render json: {
-            error: 'cra_submitted',
-            message: exception.message,
-            timestamp: Time.current.iso8601
-          }, status: :unprocessable_entity
+          details = { cra_id: @cra&.id, status: @cra&.status }
+          error_unprocessable_entity(exception.message, details)
+
         when CraErrors::DuplicateEntryError
-          render json: {
-            error: 'duplicate_entry',
-            message: exception.message,
-            timestamp: Time.current.iso8601
-          }, status: :conflict
+          details = {}
+          error_conflict(exception.message, details)
+
         when CraErrors::CraNotFoundError
-          render json: {
-            error: 'not_found',
-            message: exception.message,
-            timestamp: Time.current.iso8601
-          }, status: :not_found
+          details = { cra_id: params[:id] }
+          error_not_found(exception.message, details)
+
         when CraErrors::UnauthorizedError
-          render json: {
-            error: 'unauthorized',
-            message: exception.message,
-            timestamp: Time.current.iso8601
-          }, status: :forbidden
+          details = {}
+          error_forbidden(exception.message, details)
+
         when CraErrors::NoIndependentCompanyError
-          render json: {
-            error: 'forbidden',
-            message: exception.message,
-            timestamp: Time.current.iso8601
-          }, status: :forbidden
+          details = {}
+          error_forbidden(exception.message, details)
+
         when CraErrors::MissionNotFoundError
-          render json: {
-            error: 'not_found',
-            message: exception.message,
-            timestamp: Time.current.iso8601
-          }, status: :not_found
+          details = {}
+          error_not_found(exception.message, details)
+
         when CraErrors::InternalError
-          render json: {
-            error: 'internal_error',
-            message: exception.message,
-            timestamp: Time.current.iso8601
-          }, status: :internal_server_error
+          details = {}
+          error_internal(exception.message, details)
+
         else
           # Fallback for any other CraErrors::BaseError
-          render json: {
-            error: 'cra_error',
-            message: exception.message,
-            timestamp: Time.current.iso8601
-          }, status: :unprocessable_entity
+          details = { exception_class: exception.class.name }
+          error_unprocessable_entity(exception.message, details)
         end
       end
     end

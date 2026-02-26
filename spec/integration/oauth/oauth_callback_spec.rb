@@ -154,8 +154,9 @@ RSpec.describe 'OAuth Callback Integration', type: :request do
         expect(response).to have_http_status(:unauthorized)
 
         json_response = JSON.parse(response.body)
-        expect(json_response).to include('error')
-        expect(json_response['error']).to eq('oauth_failed')
+        expect(json_response).to include('code')
+        expect(json_response['code']).to eq('UNAUTHORIZED')
+        expect(json_response['message']).to eq('OAuth authentication failed')
       end
     end
 
@@ -176,8 +177,9 @@ RSpec.describe 'OAuth Callback Integration', type: :request do
         expect(response).to have_http_status(:bad_request)
 
         json_response = JSON.parse(response.body)
-        expect(json_response).to include('error')
-        expect(json_response['error']).to eq('invalid_provider')
+        expect(json_response).to include('code')
+        expect(json_response['code']).to eq('BAD_REQUEST')
+        expect(json_response['message']).to eq('Invalid OAuth provider')
       end
     end
 
@@ -210,8 +212,9 @@ RSpec.describe 'OAuth Callback Integration', type: :request do
         expect(response).to have_http_status(:unprocessable_content)
 
         json_response = JSON.parse(response.body)
-        expect(json_response).to include('error')
-        expect(json_response['error']).to eq('invalid_payload')
+        expect(json_response).to include('code')
+        expect(json_response['code']).to eq('INVALID_PAYLOAD')
+        expect(json_response['message']).to eq('Invalid OAuth payload')
       end
     end
 
@@ -246,8 +249,8 @@ RSpec.describe 'OAuth Callback Integration', type: :request do
         expect(response).to have_http_status(:internal_server_error)
 
         json_response = JSON.parse(response.body)
-        expect(json_response).to include('error')
-        expect(json_response['error']).to eq('internal_error')
+        expect(json_response).to include('code')
+        expect(json_response['code']).to eq('INTERNAL_SERVER_ERROR')
       end
     end
   end
@@ -259,8 +262,9 @@ RSpec.describe 'OAuth Callback Integration', type: :request do
       expect(response).to have_http_status(:unauthorized)
 
       json_response = JSON.parse(response.body)
-      expect(json_response).to include('error')
-      expect(json_response['error']).to eq('oauth_failed')
+      expect(json_response).to include('code')
+      expect(json_response['code']).to eq('UNAUTHORIZED')
+      expect(json_response['message']).to eq('OAuth authentication failed')
     end
   end
 end

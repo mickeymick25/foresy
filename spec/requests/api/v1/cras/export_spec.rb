@@ -91,7 +91,12 @@ RSpec.describe 'CRA Export', type: :request do
         get "/api/v1/cras/#{cra.id}/export", params: { export_format: 'xml' }, headers: headers
 
         expect(response).to have_http_status(:unprocessable_content)
-        expect(JSON.parse(response.body)['errors']).to eq(['invalid_payload'])
+        json = JSON.parse(response.body)
+        expect(json['code']).to eq('UNPROCESSABLE_ENTITY')
+        expect(json['message']).to be_present
+        expect(json.key?('errors')).to be false
+        expect(json.key?('error')).to be false
+        expect(json.key?('timestamp')).to be false
       end
     end
 

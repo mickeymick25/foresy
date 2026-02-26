@@ -48,9 +48,17 @@ module TestSupport
 
         render json: build_response(user, company, user_company, token), status: :created
       rescue ActiveRecord::RecordInvalid => e
-        render json: { error: 'Setup failed', message: e.record.errors.full_messages }, status: :unprocessable_entity
+        render json: {
+          code: 'UNPROCESSABLE_ENTITY',
+          message: 'Setup failed',
+          details: { errors: e.record.errors.full_messages }
+        }, status: :unprocessable_entity
       rescue StandardError => e
-        render json: { error: 'Setup failed', message: e.message }, status: :internal_server_error
+        render json: {
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Setup failed',
+          details: { error: e.message }
+        }, status: :internal_server_error
       end
 
       # DELETE /__test_support__/e2e/cleanup

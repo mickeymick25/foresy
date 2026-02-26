@@ -40,7 +40,7 @@ module Authenticatable
 
     token = bearer_token
     puts "token present? = #{token.present?}"
-    return render_unauthorized('Missing token') unless token
+    return error_unauthorized('Missing token') unless token
 
     payload = decode_token(token)
     puts "payload = #{payload.inspect}"
@@ -112,9 +112,9 @@ module Authenticatable
   # @return [void] Renders JSON error with 401 status
   def handle_invalid_payload(payload)
     if payload == :expired_token
-      render_unauthorized('Token has expired')
+      error_unauthorized('Token has expired')
     else
-      render_unauthorized('Invalid token')
+      error_unauthorized('Invalid token')
     end
   end
 
@@ -142,9 +142,9 @@ module Authenticatable
   # @return [void] Renders JSON error with 401 status
   def handle_invalid_session
     if current_user && current_session
-      render_unauthorized('Session already expired')
+      error_unauthorized('Session already expired')
     else
-      render_unauthorized('Invalid token')
+      error_unauthorized('Invalid token')
     end
   end
 

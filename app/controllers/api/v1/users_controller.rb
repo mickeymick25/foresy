@@ -21,8 +21,8 @@ module Api
             email: result[:email]
           }, status: :created
         else
-          render json: { error: 'Validation Failed', message: user.errors.full_messages },
-                 status: :unprocessable_entity
+          error_invalid_payload(user.errors.full_messages.join(', '),
+                                { errors: user.errors.full_messages, model: 'User' })
         end
       end
 

@@ -63,11 +63,14 @@ RSpec.describe 'CRA Permissions', type: :request do
         expect(response).to have_http_status(:forbidden)
       end
 
-      it 'returns appropriate error message' do
+      it 'returns appropriate error message in standardized format' do
         get "/api/v1/cras/#{cra.id}", headers: other_headers
 
         json = JSON.parse(response.body)
-        expect(json['error']).to eq('unauthorized')
+        expect(json['code']).to eq('FORBIDDEN')
+        expect(json['message']).to be_present
+        expect(json.key?('error')).to be false
+        expect(json.key?('timestamp')).to be false
       end
     end
 

@@ -43,10 +43,7 @@ module Api
       def create
         # Validate user has independent company access
         unless user_has_independent_company_access?
-          render json: {
-            error: 'Forbidden',
-            message: 'User must have an independent company to create missions'
-          }, status: :forbidden
+          error_forbidden('User must have an independent company to create missions')
           return
         end
 
@@ -71,24 +68,15 @@ module Api
 
           render json: mission_response(mission), status: :created
         else
-          render json: {
-            error: 'Invalid Payload',
-            message: mission.errors.full_messages
-          }, status: :unprocessable_entity
+          error_invalid_payload(mission.errors.full_messages.join(', '), { errors: mission.errors.full_messages })
         end
       rescue ActiveRecord::RecordInvalid => e
         handle_mission_validation_error(e)
       rescue ArgumentError => e
         # Handle invalid enum values that bypass model validation
-        render json: {
-          error: 'Invalid Payload',
-          message: [e.message]
-        }, status: :unprocessable_entity
-      rescue StandardError
-        render json: {
-          error: 'Internal Error',
-          message: 'An unexpected error occurred'
-        }, status: :internal_server_error
+        error_invalid_payload(e.message)
+      rescue StandardError => e
+        error_internal(e.message)
       end
 
       # GET /api/v1/missions
@@ -105,22 +93,16 @@ module Api
             total: missions.count
           }
         }
-      rescue StandardError
-        render json: {
-          error: 'Internal Error',
-          message: 'An unexpected error occurred'
-        }, status: :internal_server_error
+      rescue StandardError => e
+        error_internal(e.message)
       end
 
       # GET /api/v1/missions/:id
       # Shows a specific mission if user has access
       def show
         render json: mission_response(@mission, include_companies: true)
-      rescue StandardError
-        render json: {
-          error: 'Internal Error',
-          message: 'An unexpected error occurred'
-        }, status: :internal_server_error
+      rescue StandardError => e
+        error_internal(e.message)
       end
 
       # PATCH /api/v1/missions/:id
@@ -129,10 +111,7 @@ module Api
       def update
         # Check if user is creator (MVP rule)
         unless @mission.modifiable_by?(current_user)
-          render json: {
-            error: 'Forbidden',
-            message: 'Only the mission creator can modify this mission'
-          }, status: :forbidden
+          error_forbidden('Only the mission creator can modify this mission')
           return
         end
 
@@ -143,10 +122,7 @@ module Api
         if new_status.present? && @mission.status != new_status
           transition_result = @mission.transition_to(new_status)
           unless transition_result
-            render json: {
-              error: 'Invalid Transition',
-              message: @mission.errors[:status]
-            }, status: :unprocessable_entity
+            error_unprocessable_entity(@mission.errors[:status].join(', '), { field: 'status' })
             return
           end
         end
@@ -157,10 +133,7 @@ module Api
           if @mission.update(updates)
             render json: mission_response(@mission, include_companies: true)
           else
-            render json: {
-              error: 'Invalid Payload',
-              message: @mission.errors.full_messages
-            }, status: :unprocessable_entity
+            error_invalid_payload(@mission.errors.full_messages.join(', '), { errors: @mission.errors.full_messages })
           end
           return
         end
@@ -174,10 +147,7 @@ module Api
       private
 
       def record_not_found
-        render json: {
-          error: 'Not Found',
-          message: 'Mission not found'
-        }, status: :not_found
+        error_not_found('Mission not found')
       end
 
       public
@@ -188,10 +158,7 @@ module Api
       def destroy
         # Check if user is creator (MVP rule)
         unless @mission.modifiable_by?(current_user)
-          render json: {
-            error: 'Forbidden',
-            message: 'Only the mission creator can archive this mission'
-          }, status: :forbidden
+          error_forbidden('Only the mission creator can archive this mission')
           return
         end
 
@@ -200,16 +167,10 @@ module Api
             message: 'Mission archived successfully'
           }, status: :ok
         else
-          render json: {
-            error: 'Mission In Use',
-            message: @mission.errors.full_messages.join(', ')
-          }, status: :conflict
+          error_conflict(@mission.errors.full_messages.join(', '))
         end
-      rescue StandardError
-        render json: {
-          error: 'Internal Error',
-          message: 'An unexpected error occurred'
-        }, status: :internal_server_error
+      rescue StandardError => e
+        error_internal(e.message)
       end
 
       private
@@ -221,18 +182,11 @@ module Api
         puts "@mission.present? = #{@mission.present?}"
         puts "@mission.id = #{@mission&.id}"
         unless @mission
-          render json: {
-            error: 'Not Found',
-            message: 'Mission not found'
-          }, status: :not_found
+          error_not_found('Mission not found')
           return
         end
-        puts "=== END DEBUG: set_mission ===\n"
       rescue ActiveRecord::RecordNotFound
-        render json: {
-          error: 'Not Found',
-          message: 'Mission not found'
-        }, status: :not_found
+        error_not_found('Mission not found')
       end
 
       # Validate user has access to the mission
@@ -252,11 +206,7 @@ module Api
         puts "@mission.id in accessible_missions? #{accessible_missions.ids.include?(@mission.id)}"
 
         unless accessible_missions.exists?(id: @mission.id)
-          puts 'Rendering 404 - Mission not accessible'
-          render json: {
-            error: 'Not Found',
-            message: 'Mission not accessible'
-          }, status: :not_found
+          error_not_found('Mission not accessible')
           return
         end
         puts "=== END DEBUG: validate_mission_access! ===\n"
@@ -281,10 +231,7 @@ module Api
 
         unless allowed
           response.headers['Retry-After'] = retry_after.to_s
-          render json: {
-            error: 'Rate limit exceeded',
-            retry_after: retry_after
-          }, status: :too_many_requests
+          error_too_many_requests('Rate limit exceeded', { retry_after: retry_after })
           return
         end
       end
@@ -370,21 +317,15 @@ module Api
         mission = error.record
 
         if mission.errors[:status]&.include?('invalid_transition')
-          render json: {
-            error: 'Invalid Transition',
-            message: mission.errors.full_messages
-          }, status: :unprocessable_entity
+          error_unprocessable_entity(mission.errors.full_messages.join(', '),
+                                     { errors: mission.errors.full_messages, field: 'status' })
         elsif mission.errors[:daily_rate]&.include?('required') ||
               mission.errors[:fixed_price]&.include?('required')
-          render json: {
-            error: 'Invalid Payload',
-            message: mission.errors.full_messages
-          }, status: :unprocessable_entity
+          error_invalid_payload(mission.errors.full_messages.join(', '),
+                                { errors: mission.errors.full_messages })
         else
-          render json: {
-            error: 'Invalid Payload',
-            message: mission.errors.full_messages
-          }, status: :unprocessable_entity
+          error_invalid_payload(mission.errors.full_messages.join(', '),
+                                { errors: mission.errors.full_messages })
         end
       end
     end

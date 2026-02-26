@@ -64,35 +64,41 @@ RSpec.describe 'Authentication - Login', type: :request do
           rescue StandardError
             {}
           end
-          expect(data['error']).to be_present
+          expect(data['code']).to eq('UNAUTHORIZED')
+          expect(data['message']).to be_present
+          expect(data.key?('error')).to be false
         end
       end
 
-      response '401', 'missing password' do
+      response '400', 'missing password' do
         let(:auth) { { email: valid_user.email, password: '' } }
 
         run_test! do |response|
-          expect(response).to have_http_status(:unauthorized)
+          expect(response).to have_http_status(:bad_request)
           data = begin
             JSON.parse(response.body)
           rescue StandardError
             {}
           end
-          expect(data['error']).to eq('Password is required')
+          expect(data['code']).to eq('BAD_REQUEST')
+          expect(data['message']).to eq('Password is required')
+          expect(data.key?('error')).to be false
         end
       end
 
-      response '401', 'missing email' do
+      response '400', 'missing email' do
         let(:auth) { { email: '', password: 'password123' } }
 
         run_test! do |response|
-          expect(response).to have_http_status(:unauthorized)
+          expect(response).to have_http_status(:bad_request)
           data = begin
             JSON.parse(response.body)
           rescue StandardError
             {}
           end
-          expect(data['error']).to eq('Email is required')
+          expect(data['code']).to eq('BAD_REQUEST')
+          expect(data['message']).to eq('Email is required')
+          expect(data.key?('error')).to be false
         end
       end
 
@@ -106,8 +112,9 @@ RSpec.describe 'Authentication - Login', type: :request do
           rescue StandardError
             {}
           end
-          expect(data['error']).to eq('Forbidden')
+          expect(data['code']).to eq('FORBIDDEN')
           expect(data['message']).to include('Account is inactive')
+          expect(data.key?('error')).to be false
         end
       end
     end
