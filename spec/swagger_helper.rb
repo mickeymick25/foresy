@@ -18,7 +18,26 @@ RSpec.configure do |config|
       info: {
         title: 'API Foresy',
         version: 'v1',
-        description: 'Documentation de l\'API Foresy'
+        description: <<-DESC
+          Documentation de l'API Foresy
+
+          ## API Versioning Policy
+          L'API Foresy utilise le versioning par URL : `/api/v1/`, `/api/v2/`, etc.
+
+          ### Breaking Changes
+          - Breaking changes nécessitent une nouvelle version majeure
+          - Période de dépréciation : 12 mois (actif) + 3 mois (deprecated)
+          - Voir : [API Versioning Policy](./docs/technical/corrections/2026-02-18-RSwag_Completion_Status-Phase_1.8-API_Versioning_Policy.md)
+
+          ### Deprecation Headers
+          Les endpoints dépréciés retournent les headers suivants :
+          - `X-API-Deprecated` : true si l'endpoint est déprécié
+          - `X-API-Sunset` : Date de suppression (YYYY-MM-DD)
+          - `X-API-Warning` : Message d'avertissement
+          - `Deprecation` : Header RFC 8244 compliant
+
+          Ces headers sont optionnels et seulement présents quand l'endpoint est déprécié.
+        DESC
       },
       paths: {},
       servers: [
@@ -38,6 +57,24 @@ RSpec.configure do |config|
             type: :http,
             scheme: :bearer,
             bearerFormat: 'JWT'
+          }
+        },
+        headers: {
+          'X-API-Deprecated' => {
+            schema: { type: :string },
+            description: 'Set to true if the endpoint is deprecated. Optional - only when deprecated.'
+          },
+          'X-API-Sunset' => {
+            schema: { type: :string, format: :date },
+            description: 'Date when the endpoint will be removed (YYYY-MM-DD). Optional - only when deprecated.'
+          },
+          'X-API-Warning' => {
+            schema: { type: :string },
+            description: 'Warning message about deprecation and migration. Optional - only when deprecated.'
+          },
+          'Deprecation' => {
+            schema: { type: :string },
+            description: 'RFC 8244 compliant header. Optional - only when deprecated.'
           }
         },
         schemas: {

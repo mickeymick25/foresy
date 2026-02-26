@@ -16,7 +16,7 @@ module Api
     # - GET /api/v1/missions/:id       # Show mission
     # - PATCH /api/v1/missions/:id     # Update mission
     # - DELETE /api/v1/missions/:id    # Archive mission
-    class MissionsController < ApplicationController
+    class MissionsController < Api::V1::BaseController
       include ErrorRenderable
 
       before_action :authenticate_access_token!

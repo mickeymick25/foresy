@@ -14,7 +14,7 @@ module Api
     # - Rate limiting on create/update operations
     # - Git Ledger versioning for locked CRAs
     # - Modular architecture with concerns and services
-    class CrasController < ApplicationController
+    class CrasController < Api::V1::BaseController
       include Pagy::Backend
       include Api::V1::Cras::ErrorHandler
       include Api::V1::Cras::RateLimitable

@@ -15,7 +15,7 @@ module Api
     # - Automatic CRA-Mission linking via CraMissionLinker service
     # - Rate limiting on create/update operations
     # - Modular architecture with concerns and services
-    class CraEntriesController < ApplicationController
+    class CraEntriesController < Api::V1::BaseController
       include CraEntries::ErrorHandler
       include CraEntries::RateLimitable
       include CraEntries::ParameterExtractor
