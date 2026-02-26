@@ -15,9 +15,8 @@ module Api
     # - Automatic CRA-Mission linking via CraMissionLinker service
     # - Rate limiting on create/update operations
     # - Modular architecture with concerns and services
-    class CraEntriesController < ApplicationController
+    class CraEntriesController < Api::V1::BaseController
       include CraEntries::ErrorHandler
-      include CraEntries::ResponseFormatter
       include CraEntries::RateLimitable
       include CraEntries::ParameterExtractor
 
@@ -45,32 +44,34 @@ module Api
       # POST /api/v1/cras/:cra_id/entries
       # Creates a new CRA entry with comprehensive business rule validation
       def create
-        result = Services::CraEntries::Create.call(
+        result = CraEntryServices::Create.call(
           cra: @cra,
-          entry_params: cra_entry_attributes.merge(mission_id: mission_id),
+          attributes: cra_entry_attributes,
           current_user: current_user
         )
 
         if result.success?
-          render json: CraEntries::ResponseFormatter.single(result.entry, @cra), status: :created
+          render json: Api::V1::CraEntries::ResponseFormatter.single(result.data[:cra_entry], @cra), status: :created
         else
           handle_service_error(result)
         end
       rescue StandardError => e
+        Rails.logger.error "[CREATE] EXCEPTION: #{e.class}: #{e.message}"
+        Rails.logger.error "[CREATE] BACKTRACE: #{e.backtrace.first(3).join("\n")}"
         log_api_error(e, { action: 'create', cra_id: @cra&.id, user_id: current_user&.id })
-        render_fc07_error('internal_error', 'An unexpected error occurred', :internal_server_error)
+        render json: { error: 'internal_error', message: e.message }, status: :internal_server_error
       end
 
       # GET /api/v1/cras/:cra_id/entries
       # Lists CRA entries with optimized queries and pagination
       def index
-        result = Services::CraEntries::List.call(
+        result = CraEntryServices::List.call(
           cra: @cra,
           current_user: current_user
         )
 
         if result.success?
-          render json: CraEntries::ResponseFormatter.collection(result.value!, @cra), status: :ok
+          render json: Api::V1::CraEntries::ResponseFormatter.collection(result.data[:cra_entries], @cra), status: :ok
         else
           handle_service_error(result)
         end
@@ -82,7 +83,7 @@ module Api
       # GET /api/v1/cras/:cra_id/entries/:id
       # Shows a specific CRA entry with full details
       def show
-        render json: CraEntries::ResponseFormatter.single(@cra_entry, @cra), status: :ok
+        render json: Api::V1::CraEntries::ResponseFormatter.single(@cra_entry, @cra), status: :ok
       rescue StandardError => e
         log_api_error(e, { action: 'show', cra_id: @cra&.id, cra_entry_id: @cra_entry&.id, user_id: current_user&.id })
         render_fc07_error('internal_error', 'An unexpected error occurred', :internal_server_error)
@@ -91,27 +92,29 @@ module Api
       # PATCH /api/v1/cras/:cra_id/entries/:id
       # Updates a CRA entry with business rule validation
       def update
-        result = Services::CraEntries::Update.call(
+        result = CraEntryServices::Update.call(
           cra_entry: @cra_entry,
-          entry_params: cra_entry_params.merge(mission_id: mission_id),
+          attributes: cra_entry_attributes,
           current_user: current_user
         )
 
         if result.success?
-          render json: CraEntries::ResponseFormatter.single(result.entry, @cra), status: :ok
+          render json: Api::V1::CraEntries::ResponseFormatter.single(result.data[:cra_entry], @cra), status: :ok
         else
           handle_service_error(result)
         end
       rescue StandardError => e
+        Rails.logger.error "[UPDATE] EXCEPTION: #{e.class}: #{e.message}"
+        Rails.logger.error "[UPDATE] BACKTRACE: #{e.backtrace.first(3).join("\n")}"
         log_api_error(e,
                       { action: 'update', cra_id: @cra&.id, cra_entry_id: @cra_entry&.id, user_id: current_user&.id })
-        render_fc07_error('internal_error', 'An unexpected error occurred', :internal_server_error)
+        render json: { error: 'internal_error', message: e.message }, status: :internal_server_error
       end
 
       # DELETE /api/v1/cras/:cra_id/entries/:id
       # Deletes a CRA entry (soft delete) with business rules
       def destroy
-        result = Services::CraEntries::Destroy.call(
+        result = CraEntryServices::Destroy.call(
           cra_entry: @cra_entry,
           current_user: current_user
         )
@@ -174,12 +177,16 @@ module Api
 
       # Extract CRA entry parameters from request
       def cra_entry_attributes
-        {
+        attributes = {
           date: parse_date_param(params[:date]),
           quantity: safe_decimal_param(:quantity),
-          unit_price: safe_integer_param(:unit_price, 0),
           description: params[:description]&.strip&.presence
-        }.compact
+        }
+
+        # Only include unit_price if explicitly provided (allows partial updates)
+        attributes[:unit_price] = safe_integer_param(:unit_price, 0) if params[:unit_price].present?
+
+        attributes.compact
       end
 
       # Extract mission_id from request
@@ -259,19 +266,29 @@ module Api
 
       # Handle service result errors with appropriate HTTP status
       def handle_service_error(result)
-        case result.error_type
-        when :validation_failed
-          render_fc07_error('invalid_payload', result.errors, :unprocessable_entity)
+        case result.error
+        # Existing handlers
         when :business_rule_violation
-          render_fc07_error('business_rule_violation', result.errors, :unprocessable_entity)
+          render_fc07_error('business_rule_violation', result.message, :unprocessable_entity)
         when :duplicate_entry
-          render_fc07_error('duplicate_entry', result.errors, :conflict)
+          render_fc07_error('duplicate_entry', result.message, :conflict)
         when :not_found
-          render_fc07_error('not_found', result.errors, :not_found)
-        when :forbidden
-          render_fc07_error('forbidden', result.errors, :forbidden)
-        when :conflict
-          render_fc07_error('conflict', result.errors, :conflict)
+          render_fc07_error('not_found', result.message, :not_found)
+        when :forbidden, :insufficient_permissions
+          render_fc07_error('forbidden', result.message, :forbidden)
+        when :conflict, :invalid_cra_state
+          render_fc07_error('conflict', result.message, :conflict)
+        # Input validation errors - 422 Unprocessable Entity
+        when :validation_failed, :missing_cra, :missing_attributes, :missing_user,
+           :missing_cra_entry, :invalid_date, :future_date_not_allowed,
+           :invalid_quantity, :invalid_unit_price, :description_too_long
+          render_fc07_error('invalid_payload', result.message, :unprocessable_entity)
+        # Relation errors - 422 Unprocessable Entity
+        when :relation_creation_failed
+          render_fc07_error('relation_error', result.message, :unprocessable_entity)
+        # Server errors - 500 Internal Server Error
+        when :create_failed, :update_failed, :destroy_failed
+          render_fc07_error('internal_error', result.message, :internal_server_error)
         else
           render_fc07_error('internal_error', 'An unexpected error occurred', :internal_server_error)
         end

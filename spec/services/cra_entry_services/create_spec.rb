@@ -64,7 +64,7 @@ RSpec.describe CraEntryServices::Create, type: :service do
 
     it 'returns CRA entry in data' do
       expect(result.data).to have_key(:cra_entry)
-      expect(result.data[:cra_entry]).to be_a(Hash)
+      expect(result.data[:cra_entry]).to be_a(CraEntry)
     end
 
     it 'has success message' do

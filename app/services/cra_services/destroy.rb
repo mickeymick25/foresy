@@ -100,7 +100,7 @@ class CraServices
         )
       end
 
-      ApplicationResult.success
+      ApplicationResult.success(data: nil)
     end
 
     # === Permissions ===
@@ -113,16 +113,16 @@ class CraServices
         )
       end
 
-      nil # Permission check passed
+      ApplicationResult.success(data: nil) # Permission check passed
     end
 
     def user_has_destroy_permission?
       return false unless current_user.present?
 
       # User can destroy if they are the creator (via modifiable_by? - handles flag ON/OFF)
-      # or have admin/manager role
+      # or have independent/client role in their company
       cra.modifiable_by?(current_user) ||
-        current_user.user_companies.joins(:company).where(role: %w[admin manager]).exists?
+        current_user.user_companies.joins(:company).where(role: %w[independent client]).exists?
     end
 
     # === State Check ===
@@ -143,7 +143,7 @@ class CraServices
         )
       end
 
-      ApplicationResult.success
+      ApplicationResult.success(data: nil)
     end
 
     # === Destroy ===
@@ -163,7 +163,7 @@ class CraServices
         )
       end
 
-      ApplicationResult.success
+      ApplicationResult.success(data: nil)
     end
   end
 end

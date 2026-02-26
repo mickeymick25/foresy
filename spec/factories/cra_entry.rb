@@ -17,14 +17,15 @@ FactoryBot.define do
     created_at { Time.current }
     updated_at { Time.current }
 
-    # Auto-associate with CRA via CraEntryCra relation table (DDD pattern)
-    after(:create) do |entry|
-      # Associate with a CRA if one exists via CraEntryCra
-      create(:cra_entry_cra, cra_entry: entry) if entry.cra_entry_cras.empty?
-      # Auto-associate with mission for export compatibility
-      mission = create(:mission) if entry.missions.empty?
-      create(:cra_entry_mission, mission: mission, cra_entry: entry) if mission && entry.missions.empty?
-    end
+    # NOTE: Auto-association removed to fix test isolation issues.
+    # Tests MUST explicitly create cra_entry_cra and cra_entry_mission associations.
+    # See cra_entry_services specs for correct pattern.
+    #
+    # Old behavior caused race condition:
+    # 1. Factory created CraEntry
+    # 2. after(:create) auto-created cra_entry_cra with NEW random CRA
+    # 3. Test created cra_entry_cra with CORRECT CRA
+    # 4. Service called @cra_entry.cra -> returned WRONG CRA (first one found)
 
     # Callback to handle data validation and realistic values
     after(:build) do |cra_entry|

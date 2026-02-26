@@ -4,7 +4,7 @@ module Api
   module V1
     # Handles user signup by creating a new user and returning a JWT token upon success.
     # Endpoint: POST /api/v1/signup
-    class UsersController < ApplicationController
+    class UsersController < Api::V1::BaseController
       before_action :check_rate_limit!, only: [:create]
 
       # POST /api/v1/signup
@@ -48,7 +48,10 @@ module Api
         unless allowed
           response.headers['Retry-After'] = retry_after.to_s
           render json: {
-            error: 'Rate limit exceeded',
+            error: {
+              code: 'rate_limit_exceeded',
+              message: 'Rate limit exceeded'
+            },
             retry_after: retry_after
           }, status: :too_many_requests
         end
