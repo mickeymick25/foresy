@@ -176,40 +176,22 @@ module Api
       private
 
       def set_mission
-        puts "\n=== DEBUG: set_mission ==="
-        puts "params[:id] = #{params[:id]}"
         @mission = Mission.find_by(id: params[:id])
-        puts "@mission.present? = #{@mission.present?}"
-        puts "@mission.id = #{@mission&.id}"
-        unless @mission
-          error_not_found('Mission not found')
-          return
-        end
-      rescue ActiveRecord::RecordNotFound
+        return if @mission
+
         error_not_found('Mission not found')
       end
 
       # Validate user has access to the mission
       # FC 06 Rule: User must belong to a company linked to the mission with role independent or client
       def validate_mission_access!
-        puts "\n=== DEBUG: validate_mission_access! ==="
-        puts "@mission.present? = #{@mission.present?}"
         return unless @mission
 
-        puts "current_user.id = #{current_user.id}"
-
-        # Check if user can access this mission
         accessible_missions = Mission.accessible_to(current_user)
-        puts "accessible_missions.count = #{accessible_missions.count}"
-        puts "accessible_missions.ids = #{accessible_missions.ids}"
-        puts "@mission.id = #{@mission.id}"
-        puts "@mission.id in accessible_missions? #{accessible_missions.ids.include?(@mission.id)}"
 
-        unless accessible_missions.exists?(id: @mission.id)
-          error_not_found('Mission not accessible')
-          return
-        end
-        puts "=== END DEBUG: validate_mission_access! ===\n"
+        return if accessible_missions.exists?(id: @mission.id)
+
+        error_not_found('Mission not accessible')
       end
 
       # Check if user has independent company access
