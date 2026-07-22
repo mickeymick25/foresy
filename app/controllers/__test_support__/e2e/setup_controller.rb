@@ -109,18 +109,28 @@ module TestSupport
       end
 
       # Security gate: Block if not in E2E mode (defense in depth)
-      # Routes are already conditional, but this adds extra protection
+      #
+      # 🔐 Renders a 404 JSON response instead of raising RoutingError.
+      # Raising RoutingError in test env produces a 500 (show_exceptions = false),
+      # and we want deterministic 404 behavior across all environments.
       def verify_e2e_mode!
         return if e2e_mode_enabled?
 
-        # In production, this should never be reached (routes don't exist)
-        # But if somehow reached, fail hard
-        raise ActionController::RoutingError, 'Not Found'
+        render json: {
+          code: 'NOT_FOUND',
+          message: 'Not Found'
+        }, status: :not_found
+        return
       end
 
       # Check if E2E mode is enabled
+      #
+      # 🔐 SECURITY: E2E_MODE must NEVER bypass the production gate.
+      # Even if E2E_MODE=true is accidentally set in production, we refuse
+      # to run any test-support action. Defense in depth on top of the
+      # conditional route mounting in config/routes.rb.
       def e2e_mode_enabled?
-        Rails.env.test? || ENV['E2E_MODE'] == 'true'
+        (Rails.env.test? || ENV['E2E_MODE'] == 'true') && !Rails.env.production?
       end
 
       # Create or find user from params
