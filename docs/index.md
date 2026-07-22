@@ -177,6 +177,17 @@ docker compose exec web bundle exec brakeman -q
 3. **[🧪 Organisation des Tests](./technical/tests_organization.md)** - Guide complet de l'organisation des tests RSpec (Acceptance, Integration, Unit, API)
 4. **[Corrections 19 Décembre 2025](./technical/corrections/2025-12-19-CI_Configuration_Fix_Resolution.md)** - Résolution problèmes CI historiques
 
+### 🏗️ **Plan de Remédiation Architecture (22/07/2026)**
+1. **[📋 Audit & Plan Principal](./technical/audits/2026-07-22-Architecture_Debt_Audit_and_Plan.md)** - Audit complet (25 points) + plan d'implémentation (23 tâches en 6 phases) + tableau de bord de suivi
+2. **[📁 Suivi par Phase](./technical/remediation/README.md)** - Navigation vers les 7 sous-documents de suivi détaillé (P0 à P6)
+3. **[🔴 Phase 0 — Sécurité Critique](./technical/remediation/phase-0-securite.md)** - Routes test, `puts` JWT, fuite erreurs OAuth
+4. **[🔴 Phase 1 — Stabilisation Runtime](./technical/remediation/phase-1-stabilisation.md)** - Crash `Domain::CraEntry`, conflit `rescue_from`
+5. **[🟡 Phase 2 — Unification Erreurs](./technical/remediation/phase-2-unification-erreurs.md)** - Phase 1.9 + suppression `ErrorRenderable` + `render_fc07_error`
+6. **[🟡 Phase 3 — Nettoyage Code Mort](./technical/remediation/phase-3-nettoyage-code-mort.md)** - ~2700 lignes `app/lib` + concerns orphelins
+7. **[🟡 Phase 4 — Cohérence Architecturale](./technical/remediation/phase-4-coherence-architecturale.md)** - Héritage contrôleurs, IP rate limit, services missions
+8. **[🟢 Phase 5 — DB & Config](./technical/remediation/phase-5-db-config.md)** - UUID natif, enum PG, module `Foresy`, `load_defaults`
+9. **[🟢 Phase 6 — Hardening Final](./technical/remediation/phase-6-hardening-final.md)** - GitLedger shell, `CraEntry` nettoyage, `users` PK
+
 ### 🔍 **Analyses Techniques Récentes (Décembre 2025)**
 1. **[🔧 pgcrypto UUID Alternatives](./technical/analysis/pgcrypto_alternatives_analysis.md)** - **CRITIQUE** - Migration UUID sans pgcrypto
 2. **[🚫 GoogleOAuth2Service Mock Removal](./technical/analysis/google_oauth_service_mock_solution.md)** - **CRITIQUE** - Suppression service mock mal placé
