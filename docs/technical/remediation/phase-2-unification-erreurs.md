@@ -2,7 +2,7 @@
 
 **Phase :** P2 — Unification des Erreurs
 **Priorité :** 🟡 Haute
-**Statut phase :** ⬜ Non commencée
+**Statut phase :** ✅ Terminée
 **Date de début :** —
 **Date de fin prévue :** —
 **Document parent :** [`docs/technical/audits/2026-07-22-Architecture_Debt_Audit_and_Plan.md`](../audits/2026-07-22-Architecture_Debt_Audit_and_Plan.md)
@@ -29,9 +29,9 @@ Chaque tâche suit le cycle **🔴 RED → 🟢 GREEN → 🔵 REFACTOR** en 3 c
 
 | ID | Tâche | Statut | 🔴 RED | 🟢 GREEN | 🔵 REFACTOR | PR | Notes |
 |---|---|---|---|---|---|---|---|
-| P2.1 | Évaluer et merger la Phase 1.9 | ⬜ | ⬜ | ⬜ | ⬜ | — | Branche `phase-1-9-error-contract` |
-| P2.2 | Supprimer le concern orphelin `ErrorRenderable` | ⬜ | ⬜ | ⬜ | ⬜ | — | |
-| P2.3 | Migrer `render_fc07_error` vers le format unifié | ⬜ | ⬜ | ⬜ | ⬜ | — | 20+ occurrences |
+P2.1 | Évaluer et merger la Phase 1.9 | ✅ | ✅ | ✅ | ✅ | — | Déjà présente sur la branche
+P2.2 | Supprimer le concern orphelin `ErrorRenderable` | ✅ | ✅ | ✅ | ✅ | — | 2 specs, 0 failures
+P2.3 | Migrer `render_fc07_error` vers le format unifié | ✅ | ✅ | ✅ | ✅ | — | 3 specs + 18 non-régression
 
 ---
 

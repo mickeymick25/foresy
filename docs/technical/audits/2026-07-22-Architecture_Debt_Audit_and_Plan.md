@@ -570,12 +570,12 @@ graph LR
 |---|---|---|---|---|---|---|
 | **P0 — Sécurité** | 4 | 0 | 0 | 4 | 0 | 100% |
 | **P1 — Stabilisation** | 2 | 0 | 0 | 2 | 0 | 100% |
-| **P2 — Unification Erreurs** | 3 | 3 | 0 | 0 | 0 | 0% |
+| **P2 — Unification Erreurs** | 3 | 0 | 0 | 3 | 0 | 100% |
 | **P3 — Nettoyage Code Mort** | 2 | 2 | 0 | 0 | 0 | 0% |
 | **P4 — Cohérence Archi** | 5 | 5 | 0 | 0 | 0 | 0% |
 | **P5 — DB & Config** | 4 | 4 | 0 | 0 | 0 | 0% |
 | **P6 — Hardening Final** | 3 | 3 | 0 | 0 | 0 | 0% |
-| **Total** | | **23** | **17** | **0** | **6** | **0** | **26%** |
+| **Total** | | **23** | **14** | **0** | **9** | **0** | **39%** |
 
 ### 4.2 Détail par Tâche
 
@@ -590,9 +590,9 @@ P0.3 | Supprimer `puts` dans `missions_controller.rb` | P0 | 🔴 | ✅ | ✅ | 
 P0.4 | Sécuriser `OauthController#callback` fuite erreurs | P0 | 🔴 | ✅ | ✅ | ✅ | — | Test invariant: `e.message` absent
 P1.1 | Résoudre crash `Domain::CraEntry::CraEntry` | P1 | 🔴 | ✅ | ✅ | ✅ | — | Option A: 4 fichiers supprimés
 P1.2 | Résoudre conflit `rescue_from StandardError` | P1 | 🔴 | ✅ | ✅ | ✅ | ✅ | — | Spec integration 500 formaté
-| P2.1 | Évaluer et merger Phase 1.9 | P2 | 🟡 | ⬜ | ⬜ | ⬜ | ⬜ | — | Branche existante |
-| P2.2 | Supprimer concern orphelin `ErrorRenderable` | P2 | 🟡 | ⬜ | ⬜ | ⬜ | ⬜ | — | RED = test absence référence |
-| P2.3 | Migrer `render_fc07_error` vers format unifié | P2 | 🟡 | ⬜ | ⬜ | ⬜ | ⬜ | — | 20+ occurrences + RSwag |
+P2.1 | Évaluer et merger la Phase 1.9 | P2 | 🟡 | ✅ | ✅ | ✅ | — | Déjà présente sur la branche
+P2.2 | Supprimer concern orphelin `ErrorRenderable` | P2 | 🟡 | ✅ | ✅ | ✅ | ✅ | — | 2 specs, 0 failures
+P2.3 | Migrer `render_fc07_error` vers format unifié | P2 | 🟡 | ✅ | ✅ | ✅ | ✅ | — | 3 specs + 18 non-régression
 | P3.1 | Supprimer code mort `app/lib` (~2700 lignes) | P3 | 🟡 | ⬜ | ⬜ | ⬜ | ⬜ | — | RED = test absence autoload |
 | P3.2 | Supprimer concerns modèles orphelins | P3 | 🟡 | ⬜ | ⬜ | ⬜ | ⬜ | — | RED = test absence `include` |
 | P4.1 | Aligner héritage contrôleurs sur `BaseController` | P4 | 🟡 | ⬜ | ⬜ | ⬜ | ⬜ | — | RED = test headers dépréciation présents |
