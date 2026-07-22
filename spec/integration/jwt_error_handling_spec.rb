@@ -22,7 +22,7 @@ RSpec.describe 'JWT Error Handling Integration', type: :request do
            params: { refresh_token: '' },
            headers: { 'REMOTE_ADDR' => '127.0.0.1' }
 
-      expect(response).to have_http_status(:bad_request)
+      expect(response).to have_http_status(:unauthorized)
     end
 
     it 'handles expired token' do

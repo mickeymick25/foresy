@@ -12,8 +12,8 @@ module Api
 
       # === POST /api/v1/auth/login ===
       def login
-        return error_bad_request('Email is required') if login_params[:email].blank?
-        return error_bad_request('Password is required') if login_params[:password].blank?
+        return error_unauthorized('Email is required') if login_params[:email].blank?
+        return error_unauthorized('Password is required') if login_params[:password].blank?
 
         user = find_and_validate_user
         return error_unauthorized('Invalid credentials') unless user
@@ -41,7 +41,7 @@ module Api
       # === POST /api/v1/auth/refresh ===
       def refresh
         token = extract_refresh_token
-        return error_bad_request('Refresh token is missing') unless token.present?
+        return error_unauthorized('Refresh token is missing') unless token.present?
 
         # Utilise AuthenticationService qui valide maintenant directement le refresh token
         result = AuthenticationService.refresh(token, request.remote_ip, request.user_agent)

@@ -54,12 +54,12 @@ RSpec.describe 'Authentication - Token Refresh', type: :request do
       end
 
       # === MISSING TOKEN ===
-      response '400', 'refresh token missing' do
+      response '401', 'refresh token missing' do
         let(:refresh) { { refresh_token: '' } }
 
         run_test! do |response|
           data = JSON.parse(response.body)
-          expect(data['code']).to eq('BAD_REQUEST')
+          expect(data['code']).to eq('UNAUTHORIZED')
           expect(data['message']).to eq('Refresh token is missing')
           expect(data.key?('error')).to be false
         end

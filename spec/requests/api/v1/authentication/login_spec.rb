@@ -70,33 +70,33 @@ RSpec.describe 'Authentication - Login', type: :request do
         end
       end
 
-      response '400', 'missing password' do
+      response '401', 'missing password' do
         let(:auth) { { email: valid_user.email, password: '' } }
 
         run_test! do |response|
-          expect(response).to have_http_status(:bad_request)
+          expect(response).to have_http_status(:unauthorized)
           data = begin
             JSON.parse(response.body)
           rescue StandardError
             {}
           end
-          expect(data['code']).to eq('BAD_REQUEST')
+          expect(data['code']).to eq('UNAUTHORIZED')
           expect(data['message']).to eq('Password is required')
           expect(data.key?('error')).to be false
         end
       end
 
-      response '400', 'missing email' do
+      response '401', 'missing email' do
         let(:auth) { { email: '', password: 'password123' } }
 
         run_test! do |response|
-          expect(response).to have_http_status(:bad_request)
+          expect(response).to have_http_status(:unauthorized)
           data = begin
             JSON.parse(response.body)
           rescue StandardError
             {}
           end
-          expect(data['code']).to eq('BAD_REQUEST')
+          expect(data['code']).to eq('UNAUTHORIZED')
           expect(data['message']).to eq('Email is required')
           expect(data.key?('error')).to be false
         end
