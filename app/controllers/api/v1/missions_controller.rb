@@ -28,7 +28,7 @@ module Api
     # - 422 invalid_transition: Invalid status transition
     # - 409 mission_in_use: Mission linked to CRA
     # - 500 internal_error: Server error
-    class MissionsController < ApplicationController
+    class MissionsController < Api::V1::BaseController
       rescue_from ActiveRecord::RecordNotFound, with: :record_not_found
       before_action :authenticate_access_token!
       before_action :set_mission, only: %i[show update destroy]

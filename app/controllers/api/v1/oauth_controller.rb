@@ -19,7 +19,7 @@ module Api
     # OAuth Controller for Feature Contract endpoints
     # Handles OAuth authentication for Google & GitHub providers
     # Implements stateless JWT authentication without server-side sessions
-    class OauthController < ApplicationController
+    class OauthController < Api::V1::BaseController
       # POST /auth/:provider/callback
       # OAuth callback endpoint for Google & GitHub authentication
       def callback

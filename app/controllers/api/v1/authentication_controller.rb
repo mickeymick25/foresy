@@ -4,7 +4,7 @@ module Api
   module V1
     # Controller for authentication API endpoints
     # Handles user login, logout, token refresh, and OAuth authentication
-    class AuthenticationController < ApplicationController
+    class AuthenticationController < Api::V1::BaseController
       include ::OAuthConcern
 
       before_action :authenticate_access_token!, only: %i[logout revoke revoke_all]

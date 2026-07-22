@@ -147,9 +147,9 @@ RSpec.describe CraServices::Lifecycle, type: :service do
     context 'with CRA without entries' do
       let(:cra) { create(:cra, status: 'draft', created_by_user_id: current_user.id) }
 
-      it 'returns bad_request when CRA has no entries' do
+      it 'returns unprocessable_entity when CRA has no entries' do
         expect(result).to be_failure
-        expect(result.status).to eq(:bad_request)
+        expect(result.status).to eq(:unprocessable_entity)
         expect(result.error).to eq(:cra_has_no_entries)
         expect(result.message).to include('must have at least one entry')
       end

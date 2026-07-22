@@ -18,7 +18,7 @@ module Api
     # Error Handling (Phase 1.9):
     # - All error responses follow standardized format: { code, message, details }
     # - Uses StandardizedError concern methods
-    class CrasController < ApplicationController
+    class CrasController < Api::V1::BaseController
       include Pagy::Backend
       include Api::V1::Cras::ErrorHandler
       include Api::V1::Cras::RateLimitable
@@ -97,7 +97,7 @@ module Api
         if result.success?
           render json: Api::V1::Cras::ResponseFormatter.single(result.data[:cra], include_entries: true), status: :ok
         else
-          error_invalid_payload(result.error)
+          render_result_error(result)
         end
       end
 
@@ -112,7 +112,7 @@ module Api
         if result.success?
           render json: { message: 'CRA archived successfully' }, status: :ok
         else
-          error_unprocessable_entity(result.error)
+          render_result_error(result)
         end
       end
 
@@ -128,7 +128,7 @@ module Api
         if result.success?
           render json: Api::V1::Cras::ResponseFormatter.single(result.data[:cra], include_entries: true), status: :ok
         else
-          error_unprocessable_entity(result.error)
+          render_result_error(result)
         end
       end
 
@@ -144,7 +144,7 @@ module Api
         if result.success?
           render json: Api::V1::Cras::ResponseFormatter.single(result.data[:cra], include_entries: true), status: :ok
         else
-          error_unprocessable_entity(result.error)
+          render_result_error(result)
         end
       end
 
@@ -165,11 +165,31 @@ module Api
                     type: 'text/csv',
                     disposition: 'attachment'
         else
-          error_unprocessable_entity(result.error)
+          render_result_error(result)
         end
       end
 
       private
+
+      # Dispatch a service result error to the appropriate standardized
+      # error method based on the result's HTTP status.
+      def render_result_error(result)
+        message = result.message || result.error.to_s
+        case result.status
+        when :conflict
+          error_conflict(message)
+        when :forbidden
+          error_forbidden(message)
+        when :not_found
+          error_not_found(message)
+        when :bad_request
+          error_bad_request(message)
+        when :internal_server_error, :internal_error
+          error_internal(message)
+        else
+          error_unprocessable_entity(message)
+        end
+      end
 
       def set_cra
         @cra = Cra.find_by(id: params[:id])
@@ -214,7 +234,7 @@ module Api
 
         when CraErrors::InvalidTransitionError
           details = { field: 'status' }
-          error_unprocessable_entity(exception.message, details)
+          error_conflict(exception.message, details)
 
         when CraErrors::CraLockedError
           details = { cra_id: @cra&.id, status: @cra&.status }
@@ -222,7 +242,7 @@ module Api
 
         when CraErrors::CraSubmittedError
           details = { cra_id: @cra&.id, status: @cra&.status }
-          error_unprocessable_entity(exception.message, details)
+          error_conflict(exception.message, details)
 
         when CraErrors::DuplicateEntryError
           details = {}

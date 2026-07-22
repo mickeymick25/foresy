@@ -103,7 +103,7 @@ class CraServices
 
       # Business rule - must have entries to submit
       unless cra.cra_entries.active.any?
-        return ApplicationResult.bad_request(
+        return ApplicationResult.unprocessable_entity(
           error: :cra_has_no_entries,
           message: 'CRA must have at least one entry to be submitted'
         )
