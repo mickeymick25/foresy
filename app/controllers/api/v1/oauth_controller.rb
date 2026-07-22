@@ -29,7 +29,7 @@ module Api
         Rails.logger.error "Backtrace: #{e.backtrace.join("\n")}"
         Rails.logger.error "Request params at error: #{params.inspect}"
         Rails.logger.error "Request env at error: #{request.env.keys.select { |k| k.include?('omniauth') }.inspect}"
-        error_internal("OAuth callback error: #{e.message}")
+        error_internal
       end
 
       # Execute the complete OAuth authentication flow
