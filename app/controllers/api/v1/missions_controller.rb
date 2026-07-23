@@ -34,6 +34,7 @@ module Api
       before_action :set_mission, only: %i[show update destroy]
       before_action :check_rate_limit!, only: %i[create update]
       before_action :validate_mission_access!, only: %i[show update destroy]
+      include Common::RateLimitable
 
       # POST /api/v1/missions
       # Creates a new mission with business rule validation
@@ -215,16 +216,6 @@ module Api
           response.headers['Retry-After'] = retry_after.to_s
           error_too_many_requests('Rate limit exceeded', { retry_after: retry_after })
           return
-        end
-      end
-
-      # Extract client IP for rate limiting
-      def extract_client_ip_for_rate_limiting
-        forwarded_for = request.env['HTTP_X_FORWARDED_FOR']
-        if forwarded_for.present?
-          forwarded_for.split(',').first.strip
-        else
-          request.env['HTTP_X_REAL_IP'] || request.env['REMOTE_ADDR'] || 'unknown'
         end
       end
 

@@ -5,6 +5,8 @@ module Api
     # Handles user signup by creating a new user and returning a JWT token upon success.
     # Endpoint: POST /api/v1/signup
     class UsersController < Api::V1::BaseController
+      include Common::RateLimitable
+
       before_action :check_rate_limit!, only: [:create]
 
       # POST /api/v1/signup
@@ -48,19 +50,6 @@ module Api
         unless allowed
           response.headers['Retry-After'] = retry_after.to_s
           error_too_many_requests('Rate limit exceeded', { retry_after: retry_after })
-        end
-      end
-
-      # Extract client IP for rate limiting
-      # Handles reverse proxies and follows Feature Contract specification
-      def extract_client_ip_for_rate_limiting
-        # Priority: X-Forwarded-For > X-Real-IP > REMOTE_ADDR
-        forwarded_for = request.env['HTTP_X_FORWARDED_FOR']
-        if forwarded_for.present?
-          # X-Forwarded-For can contain multiple IPs, take the first one
-          forwarded_for.split(',').first.strip
-        else
-          request.env['HTTP_X_REAL_IP'] || request.env['REMOTE_ADDR'] || 'unknown'
         end
       end
     end
