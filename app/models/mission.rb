@@ -46,10 +46,12 @@
 # - .accessible_to: missions accessible to a user (via user_missions pivot or companies)
 class Mission < ApplicationRecord
   # Soft delete implementation (manual, no gem dependency)
-  default_scope { where(deleted_at: nil) }
+  # NOTE: Pas de default_scope (anti-pattern) — utiliser les scopes explicites
+  #       .active / .with_deleted / .only_deleted (audit point M2 / P4.6).
 
   # Scope to include deleted records
   scope :with_deleted, -> { unscope(where: :deleted_at) }
+  scope :only_deleted, -> { where.not(deleted_at: nil) }
 
   # Instance methods for soft delete
   def discarded?
@@ -90,19 +92,25 @@ class Mission < ApplicationRecord
 
   # Associations via relation tables (Domain-Driven Architecture)
   has_many :mission_companies, dependent: :destroy
-  has_many :companies, through: :mission_companies
+  # Scope explicite sur l'association : ne retourner que les companies non supprimées
+  # (audit point M2 / P4.6 — remplacement du default_scope de Company).
+  has_many :companies, -> { where(deleted_at: nil) }, through: :mission_companies
 
   # CRA-related associations
   has_many :cra_missions
-  has_many :cras, through: :cra_missions
+  # Scope explicite sur l'association : ne retourner que les CRAs non supprimés
+  # (audit point M2 / P4.6 — remplacement du default_scope de Cra).
+  has_many :cras, -> { where(deleted_at: nil) }, through: :cra_missions
   has_many :cra_entry_missions, dependent: :destroy
-  has_many :cra_entries, through: :cra_entry_missions
+  # Scope explicite sur l'association : ne retourner que les entries non supprimées
+  # (audit point M2 / P4.6 — remplacement du default_scope de CraEntry).
+  has_many :cra_entries, -> { where(deleted_at: nil) }, through: :cra_entry_missions
 
   # Role-based associations
-  has_one :independent_company, -> { where(mission_companies: { role: 'independent' }) },
+  has_one :independent_company, -> { where(mission_companies: { role: 'independent' }).where(deleted_at: nil) },
           through: :mission_companies, source: :company
 
-  has_one :client_company, -> { where(mission_companies: { role: 'client' }) },
+  has_one :client_company, -> { where(mission_companies: { role: 'client' }).where(deleted_at: nil) },
           through: :mission_companies, source: :company
 
   # DDD Relation-Driven: Mission ↔ User via pivot table (ONLY path)

@@ -54,10 +54,12 @@
 
 class Cra < ApplicationRecord
   # Soft delete implementation (manual, no gem dependency)
-  default_scope { where(deleted_at: nil) }
+  # NOTE: Pas de default_scope (anti-pattern) — utiliser les scopes explicites
+  #       .active / .with_deleted / .only_deleted (audit point M2 / P4.6).
 
   # Scope to include deleted records
   scope :with_deleted, -> { unscope(where: :deleted_at) }
+  scope :only_deleted, -> { where.not(deleted_at: nil) }
 
   # Instance methods for soft delete
   def discarded?
@@ -97,10 +99,14 @@ class Cra < ApplicationRecord
 
   # Associations via relation tables (Domain-Driven Architecture)
   has_many :cra_missions
-  has_many :missions, through: :cra_missions
+  # Scope explicite sur l'association : ne retourner que les missions non supprimées
+  # (audit point M2 / P4.6 — remplacement du default_scope de Mission).
+  has_many :missions, -> { where(deleted_at: nil) }, through: :cra_missions
 
   has_many :cra_entry_cras, dependent: :destroy
-  has_many :cra_entries, through: :cra_entry_cras
+  # Scope explicite sur l'association : ne retourner que les entries non supprimées
+  # (audit point M2 / P4.6 — remplacement du default_scope de CraEntry).
+  has_many :cra_entries, -> { where(deleted_at: nil) }, through: :cra_entry_cras
 
   # DDD Relation-Driven: CRA ↔ User via pivot table (ONLY path)
   has_many :user_cras, dependent: :destroy

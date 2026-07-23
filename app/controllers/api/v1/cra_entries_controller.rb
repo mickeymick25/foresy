@@ -137,7 +137,7 @@ module Api
       private
 
       def set_cra
-        @cra = Cra.find_by(id: params[:cra_id])
+        @cra = Cra.active.find_by(id: params[:cra_id])
         error_not_found('CRA not found') unless @cra
       rescue ActiveRecord::RecordNotFound
         error_not_found('CRA not found')
@@ -155,7 +155,7 @@ module Api
       def validate_cra_access!
         return unless @cra
 
-        accessible_cras = Cra.accessible_to(current_user)
+        accessible_cras = Cra.accessible_to(current_user).active
         error_forbidden('CRA not accessible') unless accessible_cras.exists?(id: @cra.id)
       end
 

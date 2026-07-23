@@ -192,7 +192,7 @@ module Api
       end
 
       def set_cra
-        @cra = Cra.find_by(id: params[:id])
+        @cra = Cra.active.find_by(id: params[:id])
         raise CraErrors::CraNotFoundError, "CRA with ID #{params[:id]} not found" unless @cra
       end
 
@@ -201,7 +201,7 @@ module Api
       def validate_cra_access!
         return unless @cra
 
-        accessible_cras = Cra.accessible_to(current_user)
+        accessible_cras = Cra.accessible_to(current_user).active
         raise CraErrors::UnauthorizedError, 'CRA not accessible' unless accessible_cras.exists?(id: @cra.id)
       end
 

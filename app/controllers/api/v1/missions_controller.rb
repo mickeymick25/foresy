@@ -146,7 +146,7 @@ module Api
       end
 
       def set_mission
-        @mission = Mission.find_by(id: params[:id])
+        @mission = Mission.active.find_by(id: params[:id])
         return if @mission
 
         error_not_found('Mission not found')
@@ -157,7 +157,7 @@ module Api
       def validate_mission_access!
         return unless @mission
 
-        accessible_missions = Mission.accessible_to(current_user)
+        accessible_missions = Mission.accessible_to(current_user).active
 
         return if accessible_missions.exists?(id: @mission.id)
 
