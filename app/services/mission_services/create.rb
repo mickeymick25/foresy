@@ -312,8 +312,10 @@ class MissionServices
         # - 1 client company (optional) if client_company_id provided in params
         create_mission_company_relations!(mission)
 
-        # Relation-driven: create UserMission pivot record when flag is ON
-        create_user_mission_relation!(mission, current_user) if FeatureFlags.relation_driven?
+        # Relation-driven: create UserMission pivot record (P4.7 — toujours créé, la
+        # colonne legacy created_by_user_id reste comme fallback tant que la migration
+        # DB de suppression n'est pas appliquée — audit point M3).
+        create_user_mission_relation!(mission, current_user)
       rescue ActiveRecord::RecordInvalid => e
         ApplicationResult.unprocessable_entity(
           error: :save_failed,

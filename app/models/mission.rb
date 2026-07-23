@@ -180,6 +180,14 @@ class Mission < ApplicationRecord
     @relation_creator ||= users.joins(:user_missions).where(user_missions: { role: 'creator' }).first
   end
 
+  # P4.7 — Lit l'id du créateur via la table pivot user_missions (DDD Relation-Driven).
+  # La colonne legacy `created_by_user_id` reste en base comme fallback tant que la
+  # migration de suppression n'est pas appliquée (audit point M3).
+  # @return [Integer, nil] the creator user id via user_missions pivot (fallback: column)
+  def creator_user_id
+    user_missions.find_by(role: 'creator')&.user_id || created_by_user_id
+  end
+
   def display_name
     "#{name} (#{status.humanize})"
   end

@@ -52,7 +52,7 @@ module Api
               total_days: cra.total_days,
               total_amount: cra.total_amount,
               currency: cra.currency,
-              created_by_user_id: cra.created_by_user_id,
+              created_by_user_id: cra.creator_user_id,
               locked_at: cra.locked_at&.iso8601,
               created_at: cra.created_at.iso8601,
               updated_at: cra.updated_at.iso8601

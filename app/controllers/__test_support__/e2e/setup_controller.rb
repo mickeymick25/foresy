@@ -76,13 +76,15 @@ module TestSupport
         # Delete related data in correct FK order
         deleted_counts = {}
 
-        # 1. MissionCompany (depends on Mission)
-        deleted_counts[:mission_companies] = MissionCompany.joins(:mission)
-                                                           .where(missions: { created_by_user_id: user_ids })
+        # 1. MissionCompany (depends on Mission via user_missions pivot — P4.7)
+        deleted_counts[:mission_companies] = MissionCompany.joins(mission: :user_missions)
+                                                           .where(user_missions: { user_id: user_ids, role: 'creator' })
                                                            .delete_all
 
-        # 2. Missions (depends on User via created_by_user_id)
-        deleted_counts[:missions] = Mission.unscoped.where(created_by_user_id: user_ids).delete_all
+        # 2. Missions (depends on User via user_missions pivot — P4.7)
+        deleted_counts[:missions] = Mission.unscoped.joins(:user_missions)
+                                           .where(user_missions: { user_id: user_ids, role: 'creator' })
+                                           .delete_all
 
         # 3. UserCompany (depends on User and Company)
         deleted_counts[:user_companies] = UserCompany.where(user_id: user_ids).delete_all

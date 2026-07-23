@@ -221,8 +221,10 @@ class CraServices
         cra.save!
         cra.reload
 
-        # Relation-driven: create UserCra pivot record when flag is ON
-        create_user_cra_relation!(cra, current_user) if FeatureFlags.relation_driven?
+        # Relation-driven: create UserCra pivot record (P4.7 — toujours créé, la colonne
+        # legacy created_by_user_id reste comme fallback tant que la migration DB de
+        # suppression n'est pas appliquée — audit point M3).
+        create_user_cra_relation!(cra, current_user)
       rescue ActiveRecord::RecordInvalid => e
         # Handle duplicate CRA error with multiple detection patterns
         base_errors = cra.errors[:base] || []

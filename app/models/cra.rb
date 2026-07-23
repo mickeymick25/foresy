@@ -127,6 +127,14 @@ class Cra < ApplicationRecord
     @relation_creator ||= users.joins(:user_cras).where(user_cras: { role: 'creator' }).first
   end
 
+  # P4.7 — Lit l'id du créateur via la table pivot user_cras (DDD Relation-Driven).
+  # La colonne legacy `created_by_user_id` reste en base comme fallback tant que la
+  # migration de suppression n'est pas appliquée (audit point M3).
+  # @return [Integer, nil] the creator user id via user_cras pivot (fallback: column)
+  def creator_user_id
+    user_cras.find_by(role: 'creator')&.user_id || created_by_user_id
+  end
+
   # @return [Array<User>] all users associated with this CRA
   def relation_users
     users
