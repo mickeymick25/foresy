@@ -571,11 +571,11 @@ graph LR
 | **P0 — Sécurité** | 4 | 0 | 0 | 4 | 0 | 100% |
 | **P1 — Stabilisation** | 2 | 0 | 0 | 2 | 0 | 100% |
 | **P2 — Unification Erreurs** | 3 | 0 | 0 | 3 | 0 | 100% |
-| **P3 — Nettoyage Code Mort** | 2 | 2 | 0 | 0 | 0 | 0% |
+| **P3 — Nettoyage Code Mort** | 2 | 0 | 0 | 2 | 0 | 100% |
 | **P4 — Cohérence Archi** | 5 | 5 | 0 | 0 | 0 | 0% |
 | **P5 — DB & Config** | 4 | 4 | 0 | 0 | 0 | 0% |
 | **P6 — Hardening Final** | 3 | 3 | 0 | 0 | 0 | 0% |
-| **Total** | | **23** | **14** | **0** | **9** | **0** | **39%** |
+| **Total** | | **23** | **11** | **0** | **12** | **0** | **52%** |
 
 ### 4.2 Détail par Tâche
 
@@ -593,8 +593,8 @@ P1.2 | Résoudre conflit `rescue_from StandardError` | P1 | 🔴 | ✅ | ✅ | �
 P2.1 | Évaluer et merger la Phase 1.9 | P2 | 🟡 | ✅ | ✅ | ✅ | — | Déjà présente sur la branche
 P2.2 | Supprimer concern orphelin `ErrorRenderable` | P2 | 🟡 | ✅ | ✅ | ✅ | ✅ | — | 2 specs, 0 failures
 P2.3 | Migrer `render_fc07_error` vers format unifié | P2 | 🟡 | ✅ | ✅ | ✅ | ✅ | — | 3 specs + 18 non-régression
-| P3.1 | Supprimer code mort `app/lib` (~2700 lignes) | P3 | 🟡 | ⬜ | ⬜ | ⬜ | ⬜ | — | RED = test absence autoload |
-| P3.2 | Supprimer concerns modèles orphelins | P3 | 🟡 | ⬜ | ⬜ | ⬜ | ⬜ | — | RED = test absence `include` |
+P3.1 | Supprimer code mort `app/lib` (~2700 lignes) | P3 | 🟡 | ✅ | ✅ | ✅ | ✅ | — | 5 fichiers supprimés, 10 specs
+P3.2 | Supprimer concerns modèles orphelins | P3 | 🟡 | ✅ | ✅ | ✅ | ✅ | — | 3 fichiers supprimés, 6 specs
 | P4.1 | Aligner héritage contrôleurs sur `BaseController` | P4 | 🟡 | ⬜ | ⬜ | ⬜ | ⬜ | — | RED = test headers dépréciation présents |
 | P4.2 | Extraire `extract_client_ip_for_rate_limiting` | P4 | 🟡 | ⬜ | ⬜ | ⬜ | ⬜ | — | RED = test concern inclus |
 | P4.3 | Extraire logique métier `MissionsController` | P4 | 🟡 | ⬜ | ⬜ | ⬜ | ⬜ | — | RED = test service appelé |

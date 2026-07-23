@@ -2,7 +2,7 @@
 
 **Phase :** P3 — Nettoyage du Code Mort
 **Priorité :** 🟡 Haute
-**Statut phase :** ⬜ Non commencée
+**Statut phase :** ✅ Terminée
 **Date de début :** —
 **Date de fin prévue :** —
 **Document parent :** [`docs/technical/audits/2026-07-22-Architecture_Debt_Audit_and_Plan.md`](../audits/2026-07-22-Architecture_Debt_Audit_and_Plan.md)
