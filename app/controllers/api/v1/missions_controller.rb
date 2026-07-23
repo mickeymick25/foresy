@@ -5,6 +5,11 @@ module Api
     # MissionsController handles CRUD operations for Mission entities
     # Implements FC 06 - Mission Management with Domain-Driven Architecture
     #
+    # This controller is intentionally THIN: all business logic lives in
+    # MissionServices::* (Create / Update / Delete), following the same
+    # pattern as CraServices::* and CrasController. Each action dispatches
+    # to the corresponding service and renders the ApplicationResult.
+    #
     # Features:
     # - JWT authentication required
     # - Role-based access control (independent/client)
@@ -42,42 +47,16 @@ module Api
       # Params: name, description, mission_type, status, start_date, end_date,
       #         daily_rate/fixed_price, currency, client_company_id
       def create
-        # Validate user has independent company access
-        unless user_has_independent_company_access?
-          error_forbidden('User must have an independent company to create missions')
-          return
-        end
+        result = MissionServices::Create.call(
+          mission_params: mission_params,
+          current_user: current_user
+        )
 
-        # Build mission with current user as creator
-        mission = Mission.new(mission_attributes.merge(created_by_user_id: current_user.id))
-
-        if mission.save
-          # Create MissionCompany relationship for independent company
-          independent_company = get_user_independent_company
-          mission.mission_companies.create!(
-            company_id: independent_company.id,
-            role: 'independent'
-          )
-
-          # Create MissionCompany relationship for client company if provided
-          if client_company_id.present?
-            mission.mission_companies.create!(
-              company_id: client_company_id,
-              role: 'client'
-            )
-          end
-
-          render json: mission_response(mission), status: :created
+        if result.success?
+          render json: mission_response(result.data[:mission]), status: :created
         else
-          error_invalid_payload(mission.errors.full_messages.join(', '), { errors: mission.errors.full_messages })
+          render_result_error(result)
         end
-      rescue ActiveRecord::RecordInvalid => e
-        handle_mission_validation_error(e)
-      rescue ArgumentError => e
-        # Handle invalid enum values that bypass model validation
-        error_invalid_payload(e.message)
-      rescue StandardError => e
-        error_internal(e.message)
       end
 
       # GET /api/v1/missions
@@ -108,73 +87,63 @@ module Api
 
       # PATCH /api/v1/missions/:id
       # Updates a mission with business rule validation
-      # MVP Rule: Only creator can modify
+      # MVP Rule: Only creator can modify (enforced by MissionServices::Update)
       def update
-        # Check if user is creator (MVP rule)
-        unless @mission.modifiable_by?(current_user)
-          error_forbidden('Only the mission creator can modify this mission')
-          return
+        result = MissionServices::Update.call(
+          mission: @mission,
+          mission_params: mission_params,
+          current_user: current_user
+        )
+
+        if result.success?
+          render json: mission_response(result.data[:mission], include_companies: true)
+        else
+          render_result_error(result)
         end
+      end
 
-        # Handle status transition using transition_to (validation-style)
-        new_status = mission_params[:status]
+      # DELETE /api/v1/missions/:id
+      # Archives a mission (soft delete) with business rules
+      # Rule: Cannot delete if mission has CRA entries (enforced by MissionServices::Delete)
+      def destroy
+        result = MissionServices::Delete.call(
+          mission: @mission,
+          current_user: current_user
+        )
 
-        # 1. Status transition if needed (no early return - allows composability with other updates)
-        if new_status.present? && @mission.status != new_status
-          transition_result = @mission.transition_to(new_status)
-          unless transition_result
-            error_unprocessable_entity(@mission.errors[:status].join(', '), { field: 'status' })
-            return
-          end
+        if result.success?
+          render json: { message: 'Mission archived successfully' }, status: :ok
+        else
+          render_result_error(result)
         end
-
-        # 2. Non-status updates (name, description, etc.)
-        updates = mission_params.except(:status).to_h
-        if updates.any? { |_k, v| v.present? }
-          if @mission.update(updates)
-            render json: mission_response(@mission, include_companies: true)
-          else
-            error_invalid_payload(@mission.errors.full_messages.join(', '), { errors: @mission.errors.full_messages })
-          end
-          return
-        end
-
-        # 3. Default: render mission response (status-only change or GET-like request)
-        render json: mission_response(@mission, include_companies: true)
-      rescue ActiveRecord::RecordInvalid => e
-        handle_mission_validation_error(e)
       end
 
       private
+
+      # Dispatch a service result error to the appropriate standardized
+      # error method based on the result's HTTP status.
+      # Mirrors the pattern used by CrasController.
+      def render_result_error(result)
+        message = result.message || result.error.to_s
+        case result.status
+        when :conflict
+          error_conflict(message)
+        when :forbidden
+          error_forbidden(message)
+        when :not_found
+          error_not_found(message)
+        when :bad_request
+          error_bad_request(message)
+        when :internal_server_error, :internal_error
+          error_internal(message)
+        else
+          error_unprocessable_entity(message)
+        end
+      end
 
       def record_not_found
         error_not_found('Mission not found')
       end
-
-      public
-
-      # DELETE /api/v1/missions/:id
-      # Archives a mission (soft delete) with business rules
-      # Rule: Cannot delete if mission has CRA entries
-      def destroy
-        # Check if user is creator (MVP rule)
-        unless @mission.modifiable_by?(current_user)
-          error_forbidden('Only the mission creator can archive this mission')
-          return
-        end
-
-        if @mission.discard
-          render json: {
-            message: 'Mission archived successfully'
-          }, status: :ok
-        else
-          error_conflict(@mission.errors.full_messages.join(', '))
-        end
-      rescue StandardError => e
-        error_internal(e.message)
-      end
-
-      private
 
       def set_mission
         @mission = Mission.find_by(id: params[:id])
@@ -195,16 +164,6 @@ module Api
         error_not_found('Mission not accessible')
       end
 
-      # Check if user has independent company access
-      def user_has_independent_company_access?
-        current_user.user_companies.joins(:company).where(role: 'independent').any?
-      end
-
-      # Get user's independent company
-      def get_user_independent_company
-        current_user.user_companies.joins(:company).where(role: 'independent').first.company
-      end
-
       # Rate limiting check for create/update endpoints
       def check_rate_limit!
         endpoint = 'missions'
@@ -215,11 +174,11 @@ module Api
         unless allowed
           response.headers['Retry-After'] = retry_after.to_s
           error_too_many_requests('Rate limit exceeded', { retry_after: retry_after })
-          return
         end
       end
 
-      # Strong parameters for mission creation/update (excludes client_company_id)
+      # Strong parameters for mission creation/update (excludes client_company_id from Mission attrs;
+      # client_company_id is consumed by MissionServices::Create to build the client relation)
       def mission_params
         params.permit(
           :name,
@@ -233,16 +192,6 @@ module Api
           :currency,
           :client_company_id
         )
-      end
-
-      # Mission attributes only (without relation data)
-      def mission_attributes
-        mission_params.except(:client_company_id)
-      end
-
-      # Extract client_company_id from params
-      def client_company_id
-        params[:client_company_id]
       end
 
       # Format mission response according to FC 06
@@ -283,23 +232,6 @@ module Api
         end
 
         response
-      end
-
-      # Handle mission-specific validation errors
-      def handle_mission_validation_error(error)
-        mission = error.record
-
-        if mission.errors[:status]&.include?('invalid_transition')
-          error_unprocessable_entity(mission.errors.full_messages.join(', '),
-                                     { errors: mission.errors.full_messages, field: 'status' })
-        elsif mission.errors[:daily_rate]&.include?('required') ||
-              mission.errors[:fixed_price]&.include?('required')
-          error_invalid_payload(mission.errors.full_messages.join(', '),
-                                { errors: mission.errors.full_messages })
-        else
-          error_invalid_payload(mission.errors.full_messages.join(', '),
-                                { errors: mission.errors.full_messages })
-        end
       end
     end
   end
