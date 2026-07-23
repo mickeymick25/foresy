@@ -596,10 +596,10 @@ graph LR
 | **P1 — Stabilisation** | 2 | 0 | 0 | 2 | 0 | 100% |
 | **P2 — Unification Erreurs** | 3 | 0 | 0 | 3 | 0 | 100% |
 | **P3 — Nettoyage Code Mort** | 2 | 0 | 0 | 2 | 0 | 100% |
-| **P4 — Cohérence Archi + DDD** | 7 | 2 | 0 | 0 | 0 | 0% |
+| **P4 — Cohérence Archi + DDD** | 7 | 0 | 0 | 7 | 0 | 100% |
 | **P5 — DB & Config** | 4 | 4 | 0 | 0 | 0 | 0% |
 | **P6 — Hardening Final** | 3 | 3 | 0 | 0 | 0 | 0% |
-| **Total** | | **25** | **11** | **0** | **12** | **0** | **48%** |
+| **Total** | | **25** | **2** | **0** | **21** | **0** | **84%** |
 
 ### 4.2 Détail par Tâche
 
@@ -620,12 +620,12 @@ P2.3 | Migrer `render_fc07_error` vers format unifié | P2 | 🟡 | ✅ | ✅ | 
 P3.1 | Supprimer code mort `app/lib` (~2700 lignes) | P3 | 🟡 | ✅ | ✅ | ✅ | ✅ | — | 5 fichiers supprimés, 10 specs
 P3.2 | Supprimer concerns modèles orphelins | P3 | 🟡 | ✅ | ✅ | ✅ | ✅ | — | 3 fichiers supprimés, 6 specs
 P4.1 | Aligner héritage contrôleurs sur `BaseController` | P4 | 🟡 | ✅ | ✅ | ✅ | ✅ | — | Déjà fait (fix CI)
-| P4.2 | Extraire `extract_client_ip_for_rate_limiting` | P4 | 🟡 | ⬜ | ⬜ | ⬜ | ⬜ | — | RED = test concern inclus |
-| P4.3 | Extraire logique métier `MissionsController` | P4 | 🟡 | ⬜ | ⬜ | ⬜ | ⬜ | — | RED = test service appelé |
-| P4.4 | Nettoyer 3 couches services CRA Entries | P4 | 🟡 | ⬜ | ⬜ | ⬜ | ⬜ | — | Suite P1.1 |
+P4.2 | Extraire `extract_client_ip_for_rate_limiting` | P4 | 🟡 | ✅ | ✅ | ✅ | ✅ | — | Concern Common::RateLimitable
+P4.3 | Extraire logique métier `MissionsController` | P4 | 🟡 | ✅ | ✅ | ✅ | ✅ | — | Thin controller + services
+P4.4 | Nettoyer 3 couches services CRA Entries | P4 | 🟡 | ✅ | ✅ | ✅ | ✅ | P1.1 | Suite P1.1
 P4.5 | Unifier format 429 `UsersController` | P4 | 🟡 | ✅ | ✅ | ✅ | ✅ | — | Déjà fait (fix CI)
-| P4.6 | Remplacer `default_scope` par scopes explicites | P4 | 🟡 | ⬜ | ⬜ | ⬜ | ⬜ | — | M2: 4 modèles (Company, Cra, CraEntry, Mission) |
-| P4.7 | Migrer `created_by_user_id` → tables pivot | P4 | 🟡 | ⬜ | ⬜ | ⬜ | ⬜ | — | M3: FK legacy → user_cras/user_missions |
+P4.6 | Remplacer `default_scope` par scopes explicites | P4 | 🟡 | ✅ | ✅ | ✅ | ✅ | — | M2: 4 modèles
+P4.7 | Migrer `created_by_user_id` → tables pivot | P4 | 🟡 | ✅ | ✅ | ✅ | ✅ | — | M3: FK legacy → DDD
 | P5.1 | Migrer `users.uuid` VARCHAR → UUID natif | P5 | 🟢 | ⬜ | ⬜ | ⬜ | ⬜ | — | RED = test `User.create(uuid: 'invalid')` raise |
 | P5.2 | Migrer `role` string → enum PG | P5 | 🟢 | ⬜ | ⬜ | ⬜ | ⬜ | — | RED = test enum actif |
 | P5.3 | Renommer module `App` → `Foresy` | P5 | 🟢 | ⬜ | ⬜ | ⬜ | ⬜ | — | Risque élevé |
