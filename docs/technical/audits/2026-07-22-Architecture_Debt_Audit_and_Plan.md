@@ -394,7 +394,7 @@ graph LR
 
 ---
 
-### 🟡 Phase 4 — Cohérence Architecturale
+### 🟡 Phase 4 — Cohérence Architecturale + Finalisation DDD
 
 > **Objectif :** Unifier les patterns architecturaux (héritage contrôleurs, IP rate limiting, logique métier dans services, layers de services).
 > **Livrable :** 2-3 PR.
@@ -455,9 +455,33 @@ graph LR
 - **Tests :** Test request vérifiant le format standardisé de la 429 sur `/signup`.
 - **Effort :** 15min
 - **Risque :** Faible
+- **Statut :** ✅ Terminé (fix CI)
+
+##### P4.6 — Remplacer `default_scope` par scopes explicites
+
+- **Point audit :** M2
+- **Fichiers :** `Foresy/app/models/company.rb`, `cra.rb`, `cra_entry.rb`, `mission.rb` + tous les appelants
+- **Problème :** `default_scope { where(deleted_at: nil) }` sur 4 modèles. Anti-pattern Rails : rend les requêtes implicites et difficiles à déboguer. Masque les enregistrements supprimés sans que l'appelant le sache.
+- **Solution :** Supprimer les `default_scope`. Ajouter des scopes explicites : `scope :active, -> { where(deleted_at: nil) }` et `scope :with_deleted, -> { unscope(:where) }`. Mettre à jour tous les appels `Model.all` / `Model.where(...)` pour utiliser `Model.active` quand on veut exclure les supprimés.
+- **Tests :** Tests modèle vérifiant que `Model.active` exclut les supprimés et que `Model.with_deleted` les inclut. Tests de non-régression sur les queries existantes.
+- **Effort :** 4-6h
+- **Risque :** Moyen — Tous les appels doivent être mis à jour manuellement
 - **Statut :** ⬜ Non commencé
 
-**Sous-dossier de suivi :** [`docs/technical/remediation/phase-4-coherence-architecturale.md`](../remediation/phase-4-coherence-architecturale.md)
+##### P4.7 — Migrer `created_by_user_id` vers tables pivot (finalisation DDD)
+
+- **Point audit :** M3
+- **Fichiers :** `Foresy/app/models/cra.rb`, `mission.rb` (supprimer colonne), `Foresy/app/services/cra_services/*`, `mission_services/*`, `git_ledger_payload.rb` (16 occurrences)
+- **Problème :** `created_by_user_id` (colonne legacy bigint) coexiste avec les tables pivot `user_cras`/`user_missions` (DDD). La colonne reste la source de vérité opérationnelle pour les permissions et l'ownership. Dualité non résolée.
+- **Solution :** En 3 étapes :
+  1. **Préparation** : Identifier tous les appels à `created_by_user_id` et les remplacer par des requêtes via les tables pivot (ex: `cra.user_cras.where(role: 'creator').first.user_id` au lieu de `cra.created_by_user_id`).
+  2. **Migration** : Backfill des tables pivot si nécessaire (vérifier que tous les enregistrements ont une relation pivot `creator`).
+  3. **Suppression** : Migration DB `remove_column :cras, :created_by_user_id` + `remove_column :missions, :created_by_user_id`.
+- **Tests :** Tests que les permissions/ownership fonctionnent via les tables pivot. Tests que les services n'utilisent plus `created_by_user_id`.
+- **Effort :** 8-12h
+- **Risque :** Élevé — Impacte les permissions, le Git Ledger, les services. Migration DB irréversible.
+- **Dépendance :** P4.6 doit être terminé d'abord (default_scope cleanup facilite la migration des queries).
+- **Statut :** ⬜ Non commencé
 
 ---
 
@@ -572,10 +596,10 @@ graph LR
 | **P1 — Stabilisation** | 2 | 0 | 0 | 2 | 0 | 100% |
 | **P2 — Unification Erreurs** | 3 | 0 | 0 | 3 | 0 | 100% |
 | **P3 — Nettoyage Code Mort** | 2 | 0 | 0 | 2 | 0 | 100% |
-| **P4 — Cohérence Archi** | 5 | 5 | 0 | 0 | 0 | 0% |
+| **P4 — Cohérence Archi + DDD** | 7 | 2 | 0 | 0 | 0 | 0% |
 | **P5 — DB & Config** | 4 | 4 | 0 | 0 | 0 | 0% |
 | **P6 — Hardening Final** | 3 | 3 | 0 | 0 | 0 | 0% |
-| **Total** | | **23** | **11** | **0** | **12** | **0** | **52%** |
+| **Total** | | **25** | **11** | **0** | **12** | **0** | **48%** |
 
 ### 4.2 Détail par Tâche
 
@@ -595,11 +619,13 @@ P2.2 | Supprimer concern orphelin `ErrorRenderable` | P2 | 🟡 | ✅ | ✅ | �
 P2.3 | Migrer `render_fc07_error` vers format unifié | P2 | 🟡 | ✅ | ✅ | ✅ | ✅ | — | 3 specs + 18 non-régression
 P3.1 | Supprimer code mort `app/lib` (~2700 lignes) | P3 | 🟡 | ✅ | ✅ | ✅ | ✅ | — | 5 fichiers supprimés, 10 specs
 P3.2 | Supprimer concerns modèles orphelins | P3 | 🟡 | ✅ | ✅ | ✅ | ✅ | — | 3 fichiers supprimés, 6 specs
-| P4.1 | Aligner héritage contrôleurs sur `BaseController` | P4 | 🟡 | ⬜ | ⬜ | ⬜ | ⬜ | — | RED = test headers dépréciation présents |
+P4.1 | Aligner héritage contrôleurs sur `BaseController` | P4 | 🟡 | ✅ | ✅ | ✅ | ✅ | — | Déjà fait (fix CI)
 | P4.2 | Extraire `extract_client_ip_for_rate_limiting` | P4 | 🟡 | ⬜ | ⬜ | ⬜ | ⬜ | — | RED = test concern inclus |
 | P4.3 | Extraire logique métier `MissionsController` | P4 | 🟡 | ⬜ | ⬜ | ⬜ | ⬜ | — | RED = test service appelé |
 | P4.4 | Nettoyer 3 couches services CRA Entries | P4 | 🟡 | ⬜ | ⬜ | ⬜ | ⬜ | — | Suite P1.1 |
-| P4.5 | Unifier format 429 `UsersController` | P4 | 🟡 | ⬜ | ⬜ | ⬜ | ⬜ | — | RED = test format standardisé |
+P4.5 | Unifier format 429 `UsersController` | P4 | 🟡 | ✅ | ✅ | ✅ | ✅ | — | Déjà fait (fix CI)
+| P4.6 | Remplacer `default_scope` par scopes explicites | P4 | 🟡 | ⬜ | ⬜ | ⬜ | ⬜ | — | M2: 4 modèles (Company, Cra, CraEntry, Mission) |
+| P4.7 | Migrer `created_by_user_id` → tables pivot | P4 | 🟡 | ⬜ | ⬜ | ⬜ | ⬜ | — | M3: FK legacy → user_cras/user_missions |
 | P5.1 | Migrer `users.uuid` VARCHAR → UUID natif | P5 | 🟢 | ⬜ | ⬜ | ⬜ | ⬜ | — | RED = test `User.create(uuid: 'invalid')` raise |
 | P5.2 | Migrer `role` string → enum PG | P5 | 🟢 | ⬜ | ⬜ | ⬜ | ⬜ | — | RED = test enum actif |
 | P5.3 | Renommer module `App` → `Foresy` | P5 | 🟢 | ⬜ | ⬜ | ⬜ | ⬜ | — | Risque élevé |

@@ -11,29 +11,31 @@
 
 ## 🎯 Objectif
 
-Unifier les patterns architecturaux (héritage contrôleurs, IP rate limiting, logique métier dans services, layers de services).
+Unifier les patterns architecturaux (héritage contrôleurs, IP rate limiting, logique métier dans services, layers de services) ET finaliser la migration DDD (suppression des `default_scope`, migration des FK legacy vers tables pivot).
 
 ## 🧪 Méthodologie TDD + DDD + Platinum
 
 Chaque tâche suit le cycle **🔴 RED → 🟢 GREEN → 🔵 REFACTOR** en 3 commits distincts (voir [§1.3 du document principal](../audits/2026-07-22-Architecture_Debt_Audit_and_Plan.md#13-méthodologie-tdd--ddd--niveau-platinum)).
 
-- 🔴 **RED** : Test caractérisant l'architecture cible (ex: header dépréciation présent, service appelé, format unifié)
+- 🔴 **RED** : Test caractérisant l'architecture cible (ex: scope explicite, service appelé, format unifié)
 - 🟢 **GREEN** : Implémentation minimale du pattern unifié
 - 🔵 **REFACTOR** : Suppression des duplications / couches obsolètes
 
-**DDD** : P4.3 (services `MissionServices::*`) doit suivre strictement le pattern `CraServices::*` — services retournent `ApplicationResult`, contrôleurs minces.
+**DDD** : P4.3 (services `MissionServices::*`) doit suivre strictement le pattern `CraServices::*` — services retournent `ApplicationResult`, contrôleurs minces. P4.6 et P4.7 finalisent la migration DDD en supprimant les `default_scope` anti-pattern et les FK legacy.
 
-**Critères Platinum** : rspec ✅ / rubocop ✅ / brakeman ✅ / zeitwerk:check ✅ + tests RSwag à jour + grep `extract_client_ip_for_rate_limiting` retourne 0 dans les contrôleurs.
+**Critères Platinum :** rspec ✅ / rubocop ✅ / brakeman ✅ / zeitwerk:check ✅ + tests RSwag à jour + grep `extract_client_ip_for_rate_limiting` retourne 0 dans les contrôleurs.
 
 ## 📋 Tâches
 
-| ID | Tâche | Statut | PR | Notes |
-|---|---|---|---|---|
-| P4.1 | Aligner héritage contrôleurs sur `BaseController` | ⬜ | — | Missions + Cras |
-| P4.2 | Extraire `extract_client_ip_for_rate_limiting` | ⬜ | — | Concern `Common::RateLimitable` |
-| P4.3 | Extraire logique métier `MissionsController` | ⬜ | — | 4-6h |
-| P4.4 | Nettoyer 3 couches services CRA Entries | ⬜ | — | Suite P1.1 |
-| P4.5 | Unifier format 429 `UsersController` | ⬜ | — | |
+| ID | Tâche | Statut | 🔴 RED | 🟢 GREEN | 🔵 REFACTOR | PR | Notes |
+|---|---|---|---|---|---|---|---|
+| P4.1 | Aligner héritage contrôleurs sur `BaseController` | ✅ | ✅ | ✅ | ✅ | fix CI | Déjà fait |
+| P4.2 | Extraire `extract_client_ip_for_rate_limiting` | ⬜ | ⬜ | ⬜ | ⬜ | — | Concern `Common::RateLimitable` |
+| P4.3 | Extraire logique métier `MissionsController` | ⬜ | ⬜ | ⬜ | ⬜ | — | 4-6h |
+| P4.4 | Nettoyer 3 couches services CRA Entry | ✅ | ✅ | ✅ | ✅ | P1.1 | Suite P1.1 |
+| P4.5 | Unifier format 429 `UsersController` | ✅ | ✅ | ✅ | ✅ | fix CI | Déjà fait |
+| P4.6 | Remplacer `default_scope` par scopes explicites | ⬜ | ⬜ | ⬜ | ⬜ | — | M2: 4 modèles |
+| P4.7 | Migrer `created_by_user_id` → tables pivot | ⬜ | ⬜ | ⬜ | ⬜ | — | M3: FK legacy → DDD |
 
 ---
 
