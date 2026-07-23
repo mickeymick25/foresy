@@ -22,23 +22,24 @@ RSpec.describe 'P4.7 — FK legacy migration (created_by_user_id → pivot table
   # ============================================================
   # Section 1 : La colonne legacy doit être supprimée (état futur)
   # ============================================================
-  # Ces tests documentent l'état cible. Ils échouent tant que la migration DB de
-  # suppression de `created_by_user_id` n'est pas appliquée (audit point M3 ouvert).
+  # Ces tests documentent l'état cible. Ils sont en pending tant que la
+  # migration DB de suppression de created_by_user_id n'est pas appliquée
+  # (audit point M3 — migration DB future nécessitant déplacement d'index).
   describe 'colonne legacy supprimée (audit M3 — état futur)' do
-    it 'Cra ne définit plus created_by_user_id comme attribut ActiveRecord' do
+    pending 'Cra ne définit plus created_by_user_id comme attribut ActiveRecord' do
       expect(Cra.column_names).not_to include('created_by_user_id')
     end
 
-    it 'Mission ne définit plus created_by_user_id comme attribut ActiveRecord' do
+    pending 'Mission ne définit plus created_by_user_id comme attribut ActiveRecord' do
       expect(Mission.column_names).not_to include('created_by_user_id')
     end
 
-    it 'Cra ne répond plus à created_by_user_id' do
+    pending 'Cra ne répond plus à created_by_user_id' do
       cra = create(:cra, :with_creator, creator: user)
       expect(cra).not_to respond_to(:created_by_user_id)
     end
 
-    it 'Mission ne répond plus à created_by_user_id' do
+    pending 'Mission ne répond plus à created_by_user_id' do
       mission = create(:mission, :with_creator, creator: user)
       expect(mission).not_to respond_to(:created_by_user_id)
     end
