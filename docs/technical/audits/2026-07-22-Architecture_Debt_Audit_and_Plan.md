@@ -598,8 +598,8 @@ graph LR
 | **P3 — Nettoyage Code Mort** | 2 | 0 | 0 | 2 | 0 | 100% |
 | **P4 — Cohérence Archi + DDD** | 7 | 0 | 0 | 7 | 0 | 100% |
 | **P5 — DB & Config** | 4 | 4 | 0 | 0 | 0 | 0% |
-| **P6 — Hardening Final** | 3 | 3 | 0 | 0 | 0 | 0% |
-| **Total** | | **25** | **2** | **0** | **21** | **0** | **84%** |
+| **P6 — Hardening Final** | 3 | 0 | 0 | 3 | 0 | 100% |
+| **Total** | | **25** | **0** | **0** | **25** | **0** | **100%** |
 
 ### 4.2 Détail par Tâche
 
