@@ -10,7 +10,7 @@ require 'redis'
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
-module App
+module Foresy
   # Application class for initializing the Rails application.
   # This class is responsible for setting up the configuration defaults
   # and loading the necessary gems, middleware, and other resources.
