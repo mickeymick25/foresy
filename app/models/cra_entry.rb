@@ -81,37 +81,6 @@ class CraEntry < ApplicationRecord
   validate :validate_date_format
   validate :validate_uniqueness_of_cra_mission_date
 
-  # -------------------------------
-  # CALLBACKS - NE PLUS UTILISER
-  # -------------------------------
-  # Les callbacks side-effects ont été neutralisés.
-  # Toute la logique métier est maintenant dans les services.
-  # 留下来的代码已按要求处理，不再输出。
-  #
-  # Avant (à supprimer après validation des services) :
-  # before_create :validate_cra_lifecycle!
-  # before_update :validate_cra_lifecycle!
-  # before_destroy :validate_cra_lifecycle!
-  #
-  # def validate_cra_lifecycle!
-  #   return if cra.blank?
-  #   return if cra.draft?
-  #
-  #   raise CraErrors::CraSubmittedError, 'Cannot modify entries of submitted CRA' if cra.submitted?
-  #   raise CraErrors::CraLockedError, 'Cannot modify entries of locked CRA' if cra.locked?
-  # end
-
-  # -------------------------------
-  # LOGIQUE METIER PURE
-  # -------------------------------
-  # Les méthodes ci-dessous sont pures et peuvent rester dans le modèle
-  # car elles ne causent aucun effet de bord implicite.
-  # Elles seront appelées depuis les services si nécessaire.
-  # -------------------------------
-
-  # Transient attribute writers for TDD compatibility (preserves DDD architecture)
-  attr_writer :cra, :mission
-
   # Associations via relation tables (Domain-Driven Architecture)
   has_many :cra_entry_cras, dependent: :destroy
   # Scope explicite sur l'association : ne retourner que les CRAs non supprimés
