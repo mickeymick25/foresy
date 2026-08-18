@@ -181,11 +181,11 @@ class Mission < ApplicationRecord
   end
 
   # P4.7 — Lit l'id du créateur via la table pivot user_missions (DDD Relation-Driven).
-  # La colonne legacy `created_by_user_id` reste en base comme fallback tant que la
-  # migration de suppression n'est pas appliquée (audit point M3).
-  # @return [Integer, nil] the creator user id via user_missions pivot (fallback: column)
+  # La colonne legacy `created_by_user_id` a été supprimée (audit point M3) — la
+  # table pivot est désormais l'unique source de vérité.
+  # @return [Integer, nil] the creator user id via user_missions pivot
   def creator_user_id
-    user_missions.find_by(role: 'creator')&.user_id || created_by_user_id
+    user_missions.find_by(role: 'creator')&.user_id
   end
 
   def display_name
@@ -277,13 +277,6 @@ class Mission < ApplicationRecord
   # Business rule: Mission cannot be deleted if it has CRA entries
   def cra_entries?
     cra_entry_missions.exists?
-  end
-
-  # BACKWARD COMPATIBILITY: Allow setting user via attribute assignment
-  # This enables tests using `create(:mission, user: user)` to work
-  # The actual business logic uses user_missions pivot table
-  def user=(user)
-    self.created_by_user_id = user.id if user.present?
   end
 
   private

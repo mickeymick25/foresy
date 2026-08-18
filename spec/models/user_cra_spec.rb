@@ -17,7 +17,7 @@ require 'rails_helper'
 RSpec.describe UserCra, type: :model do
   # Factories
   let(:user) { create(:user) }
-  let(:cra) { create(:cra, created_by_user_id: user.id) }
+  let(:cra) { create(:cra) }
 
   describe 'Associations' do
     it { is_expected.to belong_to(:user).required }

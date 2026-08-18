@@ -177,7 +177,7 @@ RSpec.describe MissionServices::Update do
     # ============================================
 
     describe 'when user is NOT the creator (permission denied)' do
-      let(:mission) { create(:mission, created_by_user_id: other_user.id) }
+      let(:mission) { create(:mission, :with_creator, creator: other_user) }
       let(:mission_params) { { name: 'Hacked Name' } }
 
       it 'returns forbidden' do

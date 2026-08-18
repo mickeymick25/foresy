@@ -234,7 +234,7 @@ RSpec.describe MissionServices::Create do
         )
 
         mission = result.data[:mission]
-        expect(mission.created_by_user_id).to eq(user.id)
+        expect(mission.creator_user_id).to eq(user.id)
       end
     end
 

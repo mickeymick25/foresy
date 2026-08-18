@@ -20,26 +20,25 @@ RSpec.describe 'P4.7 — FK legacy migration (created_by_user_id → pivot table
   let(:other_user) { create(:user) }
 
   # ============================================================
-  # Section 1 : La colonne legacy doit être supprimée (état futur)
+  # Section 1 : La colonne legacy est supprimée (audit M3 — appliqué)
   # ============================================================
-  # Ces tests documentent l'état cible. Ils sont en pending tant que la
-  # migration DB de suppression de created_by_user_id n'est pas appliquée
-  # (audit point M3 — migration DB future nécessitant déplacement d'index).
-  describe 'colonne legacy supprimée (audit M3 — état futur)' do
-    pending 'Cra ne définit plus created_by_user_id comme attribut ActiveRecord' do
+  # La migration DB de suppression de created_by_user_id est appliquée :
+  # ces tests valident l'état cible désormais atteint.
+  describe 'colonne legacy supprimée (audit M3 — appliqué)' do
+    it 'Cra ne définit plus created_by_user_id comme attribut ActiveRecord' do
       expect(Cra.column_names).not_to include('created_by_user_id')
     end
 
-    pending 'Mission ne définit plus created_by_user_id comme attribut ActiveRecord' do
+    it 'Mission ne définit plus created_by_user_id comme attribut ActiveRecord' do
       expect(Mission.column_names).not_to include('created_by_user_id')
     end
 
-    pending 'Cra ne répond plus à created_by_user_id' do
+    it 'Cra ne répond plus à created_by_user_id' do
       cra = create(:cra, :with_creator, creator: user)
       expect(cra).not_to respond_to(:created_by_user_id)
     end
 
-    pending 'Mission ne répond plus à created_by_user_id' do
+    it 'Mission ne répond plus à created_by_user_id' do
       mission = create(:mission, :with_creator, creator: user)
       expect(mission).not_to respond_to(:created_by_user_id)
     end
@@ -240,24 +239,23 @@ RSpec.describe 'P4.7 — FK legacy migration (created_by_user_id → pivot table
       expect(Mission.instance_methods).to include(:creator_user_id)
     end
 
-    it 'Cra#creator_user_id lit via user_cras (pas via la colonne)' do
+    it 'Cra#creator_user_id lit via user_cras (pas via une colonne)' do
       cra = create(:cra)
       create(:user_cra, cra: cra, user: user, role: 'creator')
 
       # Le résultat vient du pivot
       expect(cra.creator_user_id).to eq(user.id)
-      # Même si on modifie la colonne, creator_user_id suit le pivot
-      cra.update_column(:created_by_user_id, other_user.id)
-      expect(cra.creator_user_id).to eq(user.id)
+      # La colonne legacy n'existe plus : la table pivot est l'unique source
+      expect(Cra.column_names).not_to include('created_by_user_id')
     end
 
-    it 'Mission#creator_user_id lit via user_missions (pas via la colonne)' do
+    it 'Mission#creator_user_id lit via user_missions (pas via une colonne)' do
       mission = create(:mission)
       create(:user_mission, mission: mission, user: user, role: 'creator')
 
       expect(mission.creator_user_id).to eq(user.id)
-      mission.update_column(:created_by_user_id, other_user.id)
-      expect(mission.creator_user_id).to eq(user.id)
+      # La colonne legacy n'existe plus : la table pivot est l'unique source
+      expect(Mission.column_names).not_to include('created_by_user_id')
     end
   end
 end

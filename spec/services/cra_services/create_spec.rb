@@ -310,7 +310,7 @@ RSpec.describe CraServices::Create do
         )
 
         cra = result.data[:cra]
-        expect(cra.created_by_user_id).to eq(user.id)
+        expect(cra.creator_user_id).to eq(user.id)
       end
     end
 

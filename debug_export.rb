@@ -15,7 +15,8 @@ if user.nil?
 end
 
 puts "\n1. Creating CRA..."
-cra = Cra.create!(created_by_user_id: user.id, status: 'submitted', year: 2026, month: 1)
+cra = Cra.create!(status: 'submitted', year: 2026, month: 1)
+UserCra.create!(cra: cra, user: user, role: 'creator')
 puts "   CRA created: id=#{cra.id}, status=#{cra.status}"
 
 puts "\n2. Creating CraEntry..."

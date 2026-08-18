@@ -96,7 +96,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_17_000000) do
 
   create_table "cras", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.bigint "created_by_user_id", comment: "Audit-only: user who created the CRA"
     t.string "currency", default: "EUR", null: false, comment: "ISO 4217 currency code"
     t.datetime "deleted_at", comment: "Soft delete timestamp"
     t.text "description", comment: "Non-financial metadata (description)"
@@ -107,8 +106,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_17_000000) do
     t.decimal "total_days", precision: 10, scale: 2, comment: "Calculated total days"
     t.datetime "updated_at", null: false
     t.integer "year", null: false, comment: "Year"
-    t.index ["created_by_user_id", "month", "year"], name: "index_cras_unique_user_month_year", unique: true, where: "(deleted_at IS NULL)", comment: "Enforce uniqueness: 1 CRA max per (user, month, year)"
-    t.index ["created_by_user_id"], name: "index_cras_on_created_by_user_id", comment: "Find CRAs by creator"
     t.index ["deleted_at"], name: "index_cras_on_deleted_at", comment: "Soft delete queries"
     t.index ["locked_at"], name: "index_cras_on_locked_at", comment: "Find locked CRAs"
     t.index ["month"], name: "index_cras_on_month", comment: "Filter by month"
@@ -130,7 +127,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_17_000000) do
 
   create_table "missions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.bigint "created_by_user_id", comment: "User who created the mission (bigint to match users.id)"
     t.string "currency", default: "EUR", null: false, comment: "ISO 4217 currency code"
     t.integer "daily_rate", comment: "Daily rate in cents - required if time_based"
     t.datetime "deleted_at", comment: "Soft delete timestamp"
@@ -142,7 +138,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_17_000000) do
     t.date "start_date", null: false, comment: "Mission start date"
     t.enum "status", default: "lead", null: false, enum_type: "mission_status_enum"
     t.datetime "updated_at", null: false
-    t.index ["created_by_user_id"], name: "index_missions_on_created_by_user_id"
     t.index ["currency"], name: "index_missions_on_currency"
     t.index ["deleted_at"], name: "index_missions_on_deleted_at"
     t.index ["end_date"], name: "index_missions_on_end_date"
@@ -192,6 +187,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_17_000000) do
     t.bigint "user_id", null: false
     t.index ["cra_id", "role"], name: "idx_user_cras_cra_creator", unique: true, where: "(role = 'creator'::user_relation_role)"
     t.index ["cra_id"], name: "index_user_cras_on_cra_id"
+    t.index ["user_id", "cra_id"], name: "idx_user_cras_unique_creator", unique: true, where: "(role = 'creator'::user_relation_role)"
     t.index ["user_id", "cra_id"], name: "index_user_cras_on_user_id_and_cra_id"
     t.index ["user_id"], name: "index_user_cras_on_user_id"
   end

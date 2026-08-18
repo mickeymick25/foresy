@@ -8,7 +8,7 @@ RSpec.describe 'CRA Export', type: :request do
   let(:headers) { { 'Authorization' => "Bearer #{user_token}" } }
 
   let(:company) { create(:company) }
-  let(:mission) { create(:mission, :time_based, created_by_user_id: user.id) }
+  let(:mission) { create(:mission, :time_based, :with_creator, creator: user) }
 
   before do
     create(:user_company, user: user, company: company, role: 'independent')
@@ -16,7 +16,7 @@ RSpec.describe 'CRA Export', type: :request do
   end
 
   describe 'GET /api/v1/cras/:id/export' do
-    let(:cra) { create(:cra, created_by_user_id: user.id, year: 2026, month: 1) }
+    let(:cra) { create(:cra, :with_creator, creator: user, year: 2026, month: 1) }
 
     before do
       # Create CRA entries
@@ -119,8 +119,8 @@ RSpec.describe 'CRA Export', type: :request do
     context 'when user does not have access to CRA' do
       let(:other_user) { create(:user) }
       let(:other_company) { create(:company) }
-      let(:other_mission) { create(:mission, :time_based, created_by_user_id: other_user.id) }
-      let(:other_cra) { create(:cra, created_by_user_id: other_user.id, year: 2026, month: 2) }
+      let(:other_mission) { create(:mission, :time_based, :with_creator, creator: other_user) }
+      let(:other_cra) { create(:cra, :with_creator, creator: other_user, year: 2026, month: 2) }
 
       before do
         create(:user_company, user: other_user, company: other_company, role: 'independent')

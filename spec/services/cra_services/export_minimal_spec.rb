@@ -17,10 +17,10 @@ RSpec.describe CraServices::Export, 'minimal reproduction' do
   let(:cra) do
     create(
       :cra,
-      created_by_user_id: user.id,
-      month: 1,
-      year: 2024,
-      status: 'submitted'
+      :with_creator, creator: user,
+                     month: 1,
+                     year: 2024,
+                     status: 'submitted'
     )
   end
 

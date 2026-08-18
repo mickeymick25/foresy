@@ -128,11 +128,11 @@ class Cra < ApplicationRecord
   end
 
   # P4.7 — Lit l'id du créateur via la table pivot user_cras (DDD Relation-Driven).
-  # La colonne legacy `created_by_user_id` reste en base comme fallback tant que la
-  # migration de suppression n'est pas appliquée (audit point M3).
-  # @return [Integer, nil] the creator user id via user_cras pivot (fallback: column)
+  # La colonne legacy `created_by_user_id` a été supprimée (audit point M3) — la
+  # table pivot est désormais l'unique source de vérité.
+  # @return [Integer, nil] the creator user id via user_cras pivot
   def creator_user_id
-    user_cras.find_by(role: 'creator')&.user_id || created_by_user_id
+    user_cras.find_by(role: 'creator')&.user_id
   end
 
   # @return [Array<User>] all users associated with this CRA
@@ -316,13 +316,6 @@ class Cra < ApplicationRecord
     end
 
     update(deleted_at: Time.current) if deleted_at.nil?
-  end
-
-  # BACKWARD COMPATIBILITY: Allow setting user via attribute assignment
-  # This enables tests using `create(:cra, user: user)` to work
-  # The actual business logic uses user_cras pivot table
-  def user=(user)
-    self.created_by_user_id = user.id if user.present?
   end
 
   private

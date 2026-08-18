@@ -4,7 +4,7 @@ require 'rails_helper'
 
 RSpec.describe CraEntryServices::Update do
   let(:current_user) { create(:user) }
-  let(:cra) { create(:cra, created_by_user_id: current_user.id) }
+  let(:cra) { create(:cra, :with_creator, creator: current_user) }
   let(:cra_entry) { create(:cra_entry, cra: cra, quantity: 10, unit_price: 100) }
 
   let(:valid_attributes) do

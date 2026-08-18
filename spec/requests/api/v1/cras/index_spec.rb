@@ -13,9 +13,9 @@ RSpec.describe 'CRAs - Index', type: :request do
     create(:user_company, user: user, company: company, role: 'independent')
 
     # Create some CRAs for the user
-    create(:cra, created_by_user_id: user.id, year: 2026, month: 1, status: 'draft')
-    create(:cra, created_by_user_id: user.id, year: 2026, month: 2, status: 'submitted')
-    create(:cra, created_by_user_id: user.id, year: 2025, month: 12, status: 'draft')
+    create(:cra, :with_creator, creator: user, year: 2026, month: 1, status: 'draft')
+    create(:cra, :with_creator, creator: user, year: 2026, month: 2, status: 'submitted')
+    create(:cra, :with_creator, creator: user, year: 2025, month: 12, status: 'draft')
 
     # Stub RateLimitService
     allow(RateLimitService).to receive(:check_rate_limit).and_return([true, nil])

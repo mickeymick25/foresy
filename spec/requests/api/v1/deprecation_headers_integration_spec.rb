@@ -59,7 +59,7 @@ RSpec.describe 'API V1 - Deprecation Headers Integration', type: :request do
     let(:company) { create(:company) }
     let!(:user_company) { create(:user_company, user: user, company: company, role: 'independent') }
     let(:token) { AuthenticationService.login(user, '127.0.0.1', 'test')[:token] }
-    let(:mission) { create(:mission, :time_based, created_by_user_id: user.id) }
+    let(:mission) { create(:mission, :time_based, :with_creator, creator: user) }
 
     before do
       create(:mission_company, mission: mission, company: company, role: 'independent')
@@ -80,8 +80,8 @@ RSpec.describe 'API V1 - Deprecation Headers Integration', type: :request do
     let!(:user_company) { create(:user_company, user: user, company: company, role: 'independent') }
     let(:token) { AuthenticationService.login(user, '127.0.0.1', 'test')[:token] }
     let(:cra) do
-      create(:cra, created_by_user_id: user.id, year: Date.current.year,
-                   month: Date.current.month, status: 'draft')
+      create(:cra, :with_creator, creator: user, year: Date.current.year,
+                                  month: Date.current.month, status: 'draft')
     end
 
     it 'returns NO deprecation headers' do

@@ -17,7 +17,7 @@ require 'rails_helper'
 RSpec.describe UserMission, type: :model do
   # Factories
   let(:user) { create(:user) }
-  let(:mission) { create(:mission, created_by_user_id: user.id) }
+  let(:mission) { create(:mission) }
 
   describe 'Associations' do
     it { is_expected.to belong_to(:user).required }
@@ -73,7 +73,7 @@ RSpec.describe UserMission, type: :model do
     before do
       @creator = create(:user)
       @contributor = create(:user)
-      @mission = create(:mission, created_by_user_id: @creator.id)
+      @mission = create(:mission)
 
       create(:user_mission, user: @creator, mission: @mission, role: 'creator')
       create(:user_mission, user: @contributor, mission: @mission, role: 'contributor')
@@ -117,7 +117,7 @@ RSpec.describe UserMission, type: :model do
 
   describe 'Business Methods' do
     let(:user) { create(:user) }
-    let(:mission) { create(:mission, created_by_user_id: user.id) }
+    let(:mission) { create(:mission) }
 
     describe '#creator?' do
       it 'returns true for creator role' do
@@ -145,7 +145,7 @@ RSpec.describe UserMission, type: :model do
       end
 
       it 'returns nil for mission without creator' do
-        mission_no_creator = create(:mission, created_by_user_id: user.id)
+        mission_no_creator = create(:mission)
         creator = UserMission.mission_creator(mission_no_creator.id)
         expect(creator).to be_nil
       end
@@ -202,7 +202,7 @@ RSpec.describe UserMission, type: :model do
 
   describe 'CASCADE Delete' do
     let(:user) { create(:user) }
-    let(:mission) { create(:mission, created_by_user_id: user.id) }
+    let(:mission) { create(:mission) }
 
     it 'is deleted when mission is HARD deleted' do
       create(:user_mission, user: user, mission: mission, role: 'creator')
@@ -229,7 +229,7 @@ RSpec.describe UserMission, type: :model do
 
   describe 'Soft Delete Behavior' do
     let(:user) { create(:user) }
-    let(:mission) { create(:mission, created_by_user_id: user.id) }
+    let(:mission) { create(:mission) }
 
     context 'when mission is soft-deleted' do
       it 'still exists (trigger blocks manual deletion)' do

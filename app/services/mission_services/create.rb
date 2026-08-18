@@ -276,8 +276,7 @@ class MissionServices
         start_date: parse_date(mission_params[:start_date]),
         daily_rate: mission_params[:daily_rate],
         fixed_price: mission_params[:fixed_price],
-        currency: mission_params[:currency]&.to_s || 'EUR',
-        created_by_user_id: current_user.id
+        currency: mission_params[:currency]&.to_s || 'EUR'
       }
 
       # Add end_date if provided
@@ -312,9 +311,8 @@ class MissionServices
         # - 1 client company (optional) if client_company_id provided in params
         create_mission_company_relations!(mission)
 
-        # Relation-driven: create UserMission pivot record (P4.7 — toujours créé, la
-        # colonne legacy created_by_user_id reste comme fallback tant que la migration
-        # DB de suppression n'est pas appliquée — audit point M3).
+        # Relation-driven: create UserMission pivot record (DDD Relation-Driven —
+        # la table pivot user_missions est l'unique lien créateur/mission, audit M3).
         create_user_mission_relation!(mission, current_user)
       rescue ActiveRecord::RecordInvalid => e
         ApplicationResult.unprocessable_entity(
