@@ -3,8 +3,8 @@
 **Phase :** P3 — Nettoyage du Code Mort
 **Priorité :** 🟡 Haute
 **Statut phase :** ✅ Terminée
-**Date de début :** —
-**Date de fin prévue :** —
+**Date de début :** 2026-08-18
+**Date de fin prévue :** 2026-08-18
 **Document parent :** [`docs/technical/audits/2026-07-22-Architecture_Debt_Audit_and_Plan.md`](../audits/2026-07-22-Architecture_Debt_Audit_and_Plan.md)
 
 ---
@@ -63,32 +63,40 @@ grep -r "SharedResultAdapter\|SharedResultKillSwitches\|Step3ReportingSystem\|Do
 
 ## 📝 Journal d'Exécution (TDD)
 
-### 🔴 RED — YYYY-MM-DD — [Tâche PX.Y]
+### 🔴 RED — 2026-08-18 — P3.1
 
-- **Test ajouté :** assertion d'absence (ex: `expect { SharedResultAdapter }.to raise_error(NameError)`)
-- **Invariant visé :** aucune référence au code mort supprimé
-- **Raison de l'échec :** la classe existe encore
-- **Commit :** `test: ...`
+- **Test ajouté :** `spec/integration/p3_1_dead_code_removal_spec.rb` (assertion d'absence `expect { SharedResultAdapter }.to raise_error(NameError)` × 5)
+- **Invariant visé :** Aucune référence aux 5 classes mortes ; aucune référence dans `app/` ou `config/`
+- **Raison de l'échec :** Les 5 fichiers existent encore dans `app/lib/`
+- **Commit :** `test: P3.1 caracterise la suppression des 5 classes mortes app/lib`
 
-### 🟢 GREEN — YYYY-MM-DD — [Tâche PX.Y]
+### 🟢 GREEN — 2026-08-18 — P3.1
 
-- **Implémentation minimale :** suppression du fichier
-- **Fichiers supprimés :**
-- **Test passe ✅ :**
-- **Commit :** `chore: remove dead code ...`
+- **Implémentation minimale :** Suppression des 5 fichiers morts
+- **Fichiers supprimés :** `app/lib/pundit.rb`, `app/lib/shared_result_adapter.rb`, `app/lib/shared_result_kill_switches.rb`, `app/lib/step3_reporting_system.rb`, `app/lib/domain_leakage_detector.rb`
+- **Test passe ✅ :** 5 examples, 0 failures
+- **Commit :** `chore: P3.1 supprime 5 fichiers morts app/lib (~2727 lignes)`
 
-### 🔵 REFACTOR — YYYY-MM-DD — [Tâche PX.Y] (optionnel)
+### 🔴 RED — 2026-08-18 — P3.2
 
-- **Amélioration :**
-- **Tests toujours verts ✅ :**
-- **Commit :** `refactor: ...`
+- **Test ajouté :** `spec/integration/p3_2_orphan_concerns_removal_spec.rb` (assertion d'absence × 3)
+- **Invariant visé :** Les 3 concerns orphelins ne sont plus autoloadables
+- **Raison de l'échec :** Les 3 fichiers existent encore (aucun `include` mais toujours présents)
+- **Commit :** `test: P3.2 caracterise la suppression des concerns orphelins`
 
-### 🎯 Merge — YYYY-MM-DD
+### 🟢 GREEN — 2026-08-18 — P3.2
 
-- **PR :** #
+- **Implémentation minimale :** Suppression des 3 fichiers concerns orphelins
+- **Fichiers supprimés :** `app/models/concerns/domain_driven.rb`, `app/models/concerns/soft_deletable.rb`, `app/models/concerns/validatable.rb`
+- **Test passe ✅ :** 3 examples, 0 failures
+- **Commit :** `chore: P3.2 supprime 3 concerns orphelins (~435 lignes)`
+
+### 🎯 Merge — 2026-08-18
+
+- **PR :** Branche `phase-3-dead-code-cleanup`
 - **Validation Platinum :** zeitwerk:check ✅ / rspec ✅ / rubocop ✅
-- **Lignes supprimées :** ~
-- **Notes :**
+- **Lignes supprimées :** ~3162 (~2727 + ~435)
+- **Notes :** Aucune référence aux fichiers supprimés dans `app/` ou `config/`
 
 ---
 

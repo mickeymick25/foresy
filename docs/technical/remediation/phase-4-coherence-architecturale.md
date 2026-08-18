@@ -3,8 +3,8 @@
 **Phase :** P4 — Cohérence Architecturale
 **Priorité :** 🟡 Haute
 **Statut phase :** ✅ Terminée
-**Date de début :** —
-**Date de fin prévue :** —
+**Date de début :** 2026-08-18
+**Date de fin prévue :** 2026-08-18
 **Document parent :** [`docs/technical/audits/2026-07-22-Architecture_Debt_Audit_and_Plan.md`](../audits/2026-07-22-Architecture_Debt_Audit_and_Plan.md)
 
 ---
@@ -106,31 +106,67 @@ end
 
 ## 📝 Journal d'Exécution (TDD)
 
-### 🔴 RED — YYYY-MM-DD — [Tâche PX.Y]
+### 🔴 RED — 2026-08-18 — P4.2
 
-- **Test ajouté :**
-- **Invariant visé :**
-- **Raison de l'échec :**
-- **Commit :** `test: ...`
+- **Test ajouté :** `spec/integration/p4_2_rate_limitable_concern_spec.rb`
+- **Invariant visé :** `Common::RateLimitable` est autoloadable et définit `extract_client_ip_for_rate_limiting` ; les contrôleurs ne définissent plus cette méthode
+- **Raison de l'échec :** La méthode est dupliquée dans 3 contrôleurs, aucun concern partagé
+- **Commit :** `test: P4.2 caracterise l'extraction de extract_client_ip_for_rate_limiting`
 
-### 🟢 GREEN — YYYY-MM-DD — [Tâche PX.Y]
+### 🟢 GREEN — 2026-08-18 — P4.2
 
-- **Implémentation minimale :**
-- **Fichiers modifiés :**
-- **Test passe ✅ :**
-- **Commit :** `feat: ...` ou `fix: ...`
+- **Implémentation minimale :** Création du concern `Common::RateLimitable` + inclusion dans les 3 contrôleurs + suppression des méthodes dupliquées
+- **Fichiers modifiés :** `app/controllers/concerns/common/rate_limitable.rb` (créé), `authentication_controller.rb`, `users_controller.rb`, `missions_controller.rb`
+- **Test passe ✅ :** 4 examples, 0 failures
+- **Commit :** `feat: P4.2 extrait extract_client_ip_for_rate_limiting dans Common::RateLimitable`
 
-### 🔵 REFACTOR — YYYY-MM-DD — [Tâche PX.Y] (optionnel)
+### 🔴 RED — 2026-08-18 — P4.3
 
-- **Amélioration :**
-- **Tests toujours verts ✅ :**
-- **Commit :** `refactor: ...`
+- **Test ajouté :** `spec/integration/p4_3_missions_controller_thin_spec.rb`
+- **Invariant visé :** `MissionsController` ne contient aucun `MissionCompany.create` ni `transition_to` ; il délègue à `MissionServices::*`
+- **Raison de l'échec :** La logique métier (création/update/delete) est inline dans le contrôleur
+- **Commit :** `test: P4.3 caracterise MissionsController comme thin controller`
 
-### 🎯 Merge — YYYY-MM-DD
+### 🟢 GREEN — 2026-08-18 — P4.3
 
-- **PR :** #
-- **Validation Platinum :**
-- **Notes :**
+- **Implémentation minimale :** Création de `MissionServices::Create/Update/Delete` (pattern `CraServices::*`, retournent `ApplicationResult`) + `MissionsController` devient thin
+- **Fichiers modifiés :** `app/services/mission_services/create.rb`, `update.rb`, `delete.rb` (créés), `app/controllers/missions_controller.rb`
+- **Test passe ✅ :** 6 examples, 0 failures
+- **Commit :** `feat: P4.3 extrait la logique metier de MissionsController vers MissionServices`
+
+### 🔴 RED — 2026-08-18 — P4.6
+
+- **Test ajouté :** `spec/integration/p4_6_default_scope_removal_spec.rb`
+- **Invariant visé :** Les modèles n'ont plus de `default_scope` ; scopes explicites `active`, `with_deleted`, `only_deleted` disponibles ; associations mises à jour
+- **Raison de l'échec :** 4 modèles utilisent `default_scope where(deleted_at: nil)` (anti-pattern)
+- **Commit :** `test: P4.6 caracterise l'absence de default_scope sur les modeles`
+
+### 🟢 GREEN — 2026-08-18 — P4.6
+
+- **Implémentation minimale :** Remplacement des `default_scope` par des scopes explicites (`active`, `with_deleted`, `only_deleted`) + mise à jour des associations
+- **Fichiers modifiés :** 4 modèles concernés + leurs associations
+- **Test passe ✅ :** 5 examples, 0 failures
+- **Commit :** `fix: P4.6 remplace default_scope par scopes explicites actifs/with_deleted/only_deleted`
+
+### 🔴 RED — 2026-08-18 — P4.7
+
+- **Test ajouté :** `spec/integration/p4_7_creator_user_id_pivot_migration_spec.rb`
+- **Invariant visé :** `creator_user_id` est lu via les tables pivot (`user_missions.role == 'creator'`), la colonne `created_by_user_id` n'existe plus en DB
+- **Raison de l'échec :** 16 occurrences lisent encore la colonne legacy `created_by_user_id`
+- **Commit :** `test: P4.7 caracterise la lecture de creator via tables pivot`
+
+### 🟢 GREEN — 2026-08-18 — P4.7
+
+- **Implémentation minimale :** Migration des 16 occurrences vers les tables pivot, puis suppression de la colonne DB via la migration `2026072401`
+- **Fichiers modifiés :** 16 fichiers + `db/migrate/2026072401_drop_created_by_user_id.rb`
+- **Test passe ✅ :** 7 examples, 0 failures
+- **Commit :** `fix: P4.7 migre creator_user_id vers tables pivot et supprime la colonne`
+
+### 🎯 Merge — 2026-08-18
+
+- **PR :** Branche `phase-4-architectural-coherence`
+- **Validation Platinum :** rspec ✅ / rubocop ✅ / brakeman ✅ / zeitwerk ✅ + tests RSwag à jour + `grep extract_client_ip_for_rate_limiting app/controllers/` retourne 0
+- **Notes :** P4.1 et P4.5 déjà faits via fix CI ; P4.4 déjà fait en P1.1 (couche cassée supprimée)
 
 ---
 

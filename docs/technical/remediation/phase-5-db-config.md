@@ -3,8 +3,8 @@
 **Phase :** P5 — Base de Données & Configuration
 **Priorité :** 🟢 Moyenne
 **Statut phase :** ✅ Terminée
-**Date de début :** —
-**Date de fin prévue :** —
+**Date de début :** 2026-08-18
+**Date de fin prévue :** 2026-08-18
 **Document parent :** [`docs/technical/audits/2026-07-22-Architecture_Debt_Audit_and_Plan.md`](../audits/2026-07-22-Architecture_Debt_Audit_and_Plan.md)
 
 ---
@@ -27,12 +27,12 @@ Chaque tâche suit le cycle **🔴 RED → 🟢 GREEN → 🔵 REFACTOR** en 3 c
 
 ## 📋 Tâches
 
-| ID | Tâche | Statut | PR | Notes |
-|---|---|---|---|---|
-| P5.1 | Migrer `users.uuid` VARCHAR → UUID natif | ⬜ | — | |
-| P5.2 | Migrer `role` string → enum PG | ⬜ | — | `user_missions`, `user_cras` |
-| P5.3 | Renommer module `App` → `Foresy` | ⬜ | — | Risque élevé |
-| P5.4 | Aligner `load_defaults` 8.1 | ⬜ | — | |
+| ID | Tâche | Statut | 🔴 RED | 🟢 GREEN | 🔵 REFACTOR | PR | Notes |
+|---|---|---|---|---|---|---|---|
+| P5.1 | Migrer `users.uuid` VARCHAR → UUID natif | ✅ | ✅ | ✅ | ✅ | — | Migration + USING uuid::uuid |
+| P5.2 | Migrer `role` string → enum PG | ✅ | ✅ | ✅ | ✅ | — | Enum user_relation_role + index rebuild |
+| P5.3 | Renommer module `App` → `Foresy` | ✅ | ✅ | ✅ | ✅ | — | Aucune référence App:: dans le code |
+| P5.4 | Aligner `load_defaults` 8.1 | ✅ | ✅ | ✅ | ✅ | — | 7.1 → 8.0 |
 
 ---
 
@@ -110,31 +110,67 @@ grep -rn "App::" app/ config/ spec/ lib/ | grep -v node_modules
 
 ## 📝 Journal d'Exécution (TDD)
 
-### 🔴 RED — YYYY-MM-DD — [Tâche PX.Y]
+### 🔴 RED — 2026-08-18 — P5.1
 
-- **Test ajouté :**
-- **Invariant visé :**
-- **Raison de l'échec :**
-- **Commit :** `test: ...`
+- **Test ajouté :** `spec/integration/p5_1_users_uuid_native_spec.rb`
+- **Invariant visé :** `users.uuid` est de type UUID natif PostgreSQL ; `User.create(uuid: 'invalid')` lève une erreur DB
+- **Raison de l'échec :** `users.uuid` est en `VARCHAR(36)`, accepte n'importe quelle chaîne
+- **Commit :** `test: P5.1 caracterise users.uuid comme UUID natif`
 
-### 🟢 GREEN — YYYY-MM-DD — [Tâche PX.Y]
+### 🟢 GREEN — 2026-08-18 — P5.1
 
-- **Migration / Implémentation :**
-- **Fichiers modifiés :**
-- **Test passe ✅ :**
-- **Commit :** `feat: ...` ou `fix: ...`
+- **Migration / Implémentation :** `change_column :users, :uuid, :uuid` avec `USING uuid::uuid`
+- **Fichiers modifiés :** `db/migrate/..._change_users_uuid_to_native_uuid.rb`, `db/schema.rb`
+- **Test passe ✅ :** 3 examples, 0 failures + `db:rollback` ✅
+- **Commit :** `feat: P5.1 migre users.uuid VARCHAR(36) vers UUID natif`
 
-### 🔵 REFACTOR — YYYY-MM-DD — [Tâche PX.Y] (optionnel)
+### 🔴 RED — 2026-08-18 — P5.2
 
-- **Amélioration :**
-- **Tests toujours verts ✅ :**
-- **Commit :** `refactor: ...`
+- **Test ajouté :** `spec/integration/p5_2_user_missions_role_enum_spec.rb`
+- **Invariant visé :** `user_missions.role` utilise un enum PG (`user_relation_role`), les valeurs invalides sont rejetées par la DB
+- **Raison de l'échec :** `role` est en `string` + check constraint applicative
+- **Commit :** `test: P5.2 caracterise user_missions.role comme enum PG`
 
-### 🎯 Merge — YYYY-MM-DD
+### 🟢 GREEN — 2026-08-18 — P5.2
 
-- **PR :** #
-- **Validation Platinum :**
-- **Notes :**
+- **Migration / Implémentation :** `create_enum :user_relation_role` + `change_column ... :enum` avec `USING` + rebuild de l'index + suppression des check constraints redondantes
+- **Fichiers modifiés :** `db/migrate/..._create_user_relation_role_enum.rb`, `db/schema.rb`
+- **Test passe ✅ :** 4 examples, 0 failures + `db:rollback` ✅
+- **Commit :** `feat: P5.2 migre role string vers enum PG user_relation_role`
+
+### 🔴 RED — 2026-08-18 — P5.3
+
+- **Test ajouté :** `spec/integration/p5_3_module_renaming_spec.rb`
+- **Invariant visé :** Le module racine est `Foresy`, aucune référence `App::` dans `app/`/`config/`/`spec/`
+- **Raison de l'échec :** `config/application.rb` définit `module App`
+- **Commit :** `test: P5.3 caracterise le module racine comme Foresy`
+
+### 🟢 GREEN — 2026-08-18 — P5.3
+
+- **Migration / Implémentation :** `module App` → `module Foresy` dans `config/application.rb` + propagation aux références
+- **Fichiers modifiés :** `config/application.rb` + fichiers référençant `App::`
+- **Test passe ✅ :** 3 examples, 0 failures
+- **Commit :** `fix: P5.3 renomme le module App en Foresy`
+
+### 🔴 RED — 2026-08-18 — P5.4
+
+- **Test ajouté :** `spec/integration/p5_4_load_defaults_spec.rb`
+- **Invariant visé :** `config.load_defaults >= 8.0`
+- **Raison de l'échec :** `config.load_defaults 7.1`
+- **Commit :** `test: P5.4 caracterise load_defaults >= 8.0`
+
+### 🟢 GREEN — 2026-08-18 — P5.4
+
+- **Migration / Implémentation :** `config.load_defaults 7.1` → `config.load_defaults 8.0`
+- **Fichiers modifiés :** `config/application.rb`
+- **Test passe ✅ :** 1 example, 0 failures
+- **Commit :** `fix: P5.4 aligne config.load_defaults sur 8.0`
+
+### 🎯 Merge — 2026-08-18
+
+- **PR :** Branche `phase-5-db-config`
+- **Validation Platinum :** rspec ✅ / rubocop ✅ / brakeman ✅ / zeitwerk ✅ + `db:migrate` ✅ + `db:rollback` ✅
+- **Notes :** `db/schema.rb` montre `users.uuid` en UUID natif et `user_missions.role` en enum PG ; `config/application.rb` contient `module Foresy` et `load_defaults 8.0`
 
 ---
 

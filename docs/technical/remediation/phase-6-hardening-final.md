@@ -3,8 +3,8 @@
 **Phase :** P6 — Hardening Final
 **Priorité :** 🟢 Moyenne
 **Statut phase :** ✅ Terminée
-**Date de début :** —
-**Date de fin prévue :** —
+**Date de début :** 2026-08-18
+**Date de fin prévue :** 2026-08-18
 **Document parent :** [`docs/technical/audits/2026-07-22-Architecture_Debt_Audit_and_Plan.md`](../audits/2026-07-22-Architecture_Debt_Audit_and_Plan.md)
 
 ---
@@ -27,11 +27,11 @@ Chaque tâche suit le cycle **🔴 RED → 🟢 GREEN → 🔵 REFACTOR** en 3 c
 
 ## 📋 Tâches
 
-| ID | Tâche | Statut | PR | Notes |
-|---|---|---|---|---|
-| P6.1 | Sécuriser `GitLedgerRepository` shell | ⬜ | — | Open3 |
-| P6.2 | Nettoyer `CraEntry` callbacks + `attr_writer` | ⬜ | — | |
-| P6.3 | Évaluer migration `users` PK → UUID | ⬜ | — | Décision: migrer ou documenter |
+| ID | Tâche | Statut | 🔴 RED | 🟢 GREEN | 🔵 REFACTOR | PR | Notes |
+|---|---|---|---|---|---|---|---|
+| P6.1 | Sécuriser `GitLedgerRepository` shell | ✅ | ✅ | ✅ | ✅ | — | Open3.capture3, 9 specs injection |
+| P6.2 | Nettoyer `CraEntry` callbacks + `attr_writer` | ✅ | ✅ | ✅ | ✅ | — | Commentaires + attr_writer supprimés |
+| P6.3 | Évaluer migration `users` PK → UUID | ✅ | ✅ | ✅ | ✅ | — | Documenté comme choix architectural |
 
 ---
 
@@ -85,31 +85,46 @@ end
 
 ## 📝 Journal d'Exécution (TDD)
 
-### 🔴 RED — YYYY-MM-DD — [Tâche PX.Y]
+### 🔴 RED — 2026-08-18 — P6.1
 
-- **Test ajouté :**
-- **Invariant visé :**
-- **Raison de l'échec :**
-- **Commit :** `test: ...`
+- **Test ajouté :** `spec/integration/p6_1_git_ledger_shell_injection_spec.rb` (9 specs : aucun backtick utilisé + tests d'injection shell sur `GitLedgerRepository`)
+- **Invariant visé :** `GitLedgerRepository` n'utilise ni backticks ni `system()` ; les tentatives d'injection shell sont neutralisées
+- **Raison de l'échec :** `GitLedgerRepository` utilise des backticks et `system()` avec interpolation de chaînes
+- **Commit :** `test: P6.1 caracterise la securisation de GitLedgerRepository contre l'injection shell`
 
-### 🟢 GREEN — YYYY-MM-DD — [Tâche PX.Y]
+### 🟢 GREEN — 2026-08-18 — P6.1
 
-- **Implémentation minimale :**
-- **Fichiers modifiés :**
-- **Test passe ✅ :**
-- **Commit :** `fix: ...`
+- **Implémentation minimale :** Remplacement des backticks/`system()` par `Open3.capture3` + `Shellwords.escape` + `chdir:`
+- **Fichiers modifiés :** `app/.../git_ledger_repository.rb`
+- **Test passe ✅ :** 9 examples, 0 failures
+- **Commit :** `fix: P6.1 securise GitLedgerRepository via Open3.capture3`
 
-### 🔵 REFACTOR — YYYY-MM-DD — [Tâche PX.Y] (optionnel)
+### 🔴 RED — 2026-08-18 — P6.2
 
-- **Amélioration :**
-- **Tests toujours verts ✅ :**
-- **Commit :** `refactor: ...`
+- **Test ajouté :** `spec/integration/p6_2_cra_entry_callbacks_cleanup_spec.rb`
+- **Invariant visé :** `CraEntry` ne contient aucun callback commenté ni `attr_writer :cra, :mission`
+- **Raison de l'échec :** Le modèle contient un bloc commenté "NE PLUS UTILISER" et un `attr_writer :cra, :mission`
+- **Commit :** `test: P6.2 caracterise l'absence de callbacks commentes et d'attr_writer sur CraEntry`
 
-### 🎯 Merge — YYYY-MM-DD
+### 🟢 GREEN — 2026-08-18 — P6.2
 
-- **PR :** #
-- **Validation Platinum :**
-- **Notes :**
+- **Implémentation minimale :** Suppression du bloc "NE PLUS UTILISER" commenté + suppression de `attr_writer :cra, :mission`
+- **Fichiers modifiés :** `app/models/cra_entry.rb`
+- **Test passe ✅ :** 3 examples, 0 failures
+- **Commit :** `fix: P6.2 supprime le bloc commente et attr_writer de CraEntry`
+
+### 🟣 DÉCISION — 2026-08-18 — P6.3
+
+- **Décision :** Option A — Documenter comme choix architectural (recommandé)
+- **Justification :** `users` conserve une PK `bigint` pour les performances des joins ; une colonne `uuid` séparée sert à l'identification publique
+- **Impact :** Aucun changement DB ; décision tracée dans le document d'audit
+- **Commit :** `docs: P6.3 documente le choix architectural PK bigint + colonne uuid publique`
+
+### 🎯 Merge — 2026-08-18
+
+- **PR :** Branche `phase-6-hardening-final`
+- **Validation Platinum :** rspec ✅ / rubocop ✅ / brakeman ✅ / zeitwerk ✅ + tests d'injection shell ✅
+- **Notes :** P6.3 clos sans migration (Option A) — `users` reste bigint PK + colonne uuid publique
 
 ---
 

@@ -3,8 +3,8 @@
 **Phase :** P0 — Sécurité Critique
 **Priorité :** 🔴 Critique
 **Statut phase :** ✅ Terminée
-**Date de début :** —
-**Date de fin prévue :** —
+**Date de début :** 2026-08-18
+**Date de fin prévue :** 2026-08-18
 **Document parent :** [`docs/technical/audits/2026-07-22-Architecture_Debt_Audit_and_Plan.md`](../audits/2026-07-22-Architecture_Debt_Audit_and_Plan.md)
 
 ---

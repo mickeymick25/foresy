@@ -3,8 +3,8 @@
 **Phase :** P2 — Unification des Erreurs
 **Priorité :** 🟡 Haute
 **Statut phase :** ✅ Terminée
-**Date de début :** —
-**Date de fin prévue :** —
+**Date de début :** 2026-08-18
+**Date de fin prévue :** 2026-08-18
 **Document parent :** [`docs/technical/audits/2026-07-22-Architecture_Debt_Audit_and_Plan.md`](../audits/2026-07-22-Architecture_Debt_Audit_and_Plan.md)
 
 ---
@@ -56,31 +56,46 @@ P2.3 | Migrer `render_fc07_error` vers le format unifié | ✅ | ✅ | ✅ | ✅
 
 ## 📝 Journal d'Exécution (TDD)
 
-### 🔴 RED — YYYY-MM-DD — [Tâche PX.Y]
+### 🔵 ÉVALUATION — 2026-08-18 — P2.1
 
-- **Test ajouté :**
-- **Invariant visé :**
-- **Raison de l'échec :**
-- **Commit :** `test: ...`
+- **Constat :** La Phase 1.9 est déjà présente sur la branche, `StandardizedError` déjà introduit
+- **Action :** Aucune migration nécessaire — conserver l'existant comme source de vérité du contrat d'erreur
+- **Test :** Vérification que `concerns/standardized_error.rb` est autoloadable
+- **Commit :** `chore: P2.1 valide StandardizedError deja present (Phase 1.9)`
 
-### 🟢 GREEN — YYYY-MM-DD — [Tâche PX.Y]
+### 🔴 RED — 2026-08-18 — P2.2
 
-- **Implémentation minimale :**
-- **Fichiers modifiés :**
-- **Test passe ✅ :**
-- **Commit :** `fix: ...`
+- **Test ajouté :** `spec/integration/p2_2_error_renderable_removal_spec.rb`
+- **Invariant visé :** `ErrorRenderable` n'est plus autoloadable, aucune référence dans `app/`
+- **Raison de l'échec :** Le concern `ErrorRenderable` existe encore dans `app/controllers/concerns/`
+- **Commit :** `test: P2.2 caracterise la suppression du concern orphelin ErrorRenderable`
 
-### 🔵 REFACTOR — YYYY-MM-DD — [Tâche PX.Y] (optionnel)
+### 🟢 GREEN — 2026-08-18 — P2.2
 
-- **Amélioration :**
-- **Tests toujours verts ✅ :**
-- **Commit :** `refactor: ...`
+- **Implémentation minimale :** Suppression du fichier `app/controllers/concerns/error_renderable.rb`
+- **Fichiers modifiés :** 1 fichier supprimé
+- **Test passe ✅ :** 2 examples, 0 failures
+- **Commit :** `fix: P2.2 supprime le concern orphelin ErrorRenderable`
 
-### 🎯 Merge — YYYY-MM-DD
+### 🔴 RED — 2026-08-18 — P2.3
 
-- **PR :** #
-- **Validation Platinum :**
-- **Notes :**
+- **Test ajouté :** `spec/integration/p2_3_unified_error_format_spec.rb` (+ 18 specs de non-régression)
+- **Invariant visé :** Les erreurs CRA entries utilisent le format unifié `{ code, message, details }` via les helpers `error_*`
+- **Raison de l'échec :** Les contrôleurs utilisent encore `render_fc07_error` (format legacy FC07)
+- **Commit :** `test: P2.3 caracterise le format d'erreur unifie pour les CRA entries`
+
+### 🟢 GREEN — 2026-08-18 — P2.3
+
+- **Implémentation minimale :** Migration des 20+ appels `render_fc07_error` vers les helpers `error_*` (`StandardizedError`)
+- **Fichiers modifiés :** Contrôleurs CRA entries et dépendants
+- **Test passe ✅ :** 3 specs + 18 non-régression, 0 failures
+- **Commit :** `fix: P2.3 migre render_fc07_error vers error_* unifie`
+
+### 🎯 Merge — 2026-08-18
+
+- **PR :** Branche `phase-2-error-unification`
+- **Validation Platinum :** rspec ✅ / rubocop ✅ / brakeman ✅ / zeitwerk ✅ + tests RSwag à jour + `error_contract.md` créé
+- **Notes :** `grep -r "render_fc07_error" app/` retourne 0 résultat ; `grep -r "ErrorRenderable" app/` retourne 0 résultat
 
 ---
 
