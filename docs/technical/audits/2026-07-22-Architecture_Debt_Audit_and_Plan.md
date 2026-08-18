@@ -267,7 +267,7 @@ graph LR
 - **Risque :** Faible
 - **Statut :** ⬜ Non commencé
 
-**Sous-dossier de suivi :** [`docs/technical/remediation/phase-0-securite.md`](../remediation/phase-0-securite.md)
+**Sous-dossier de suivi :** [`docs/technical/[Done]_remediation/phase-0-securite.md`](../[Done]_remediation/phase-0-securite.md)
 
 ---
 
@@ -304,7 +304,7 @@ graph LR
 - **Risque :** Faible — `StandardizedError.handle_standard_error` existe déjà et gère le cas
 - **Statut :** ⬜ Non commencé
 
-**Sous-dossier de suivi :** [`docs/technical/remediation/phase-1-stabilisation.md`](../remediation/phase-1-stabilisation.md)
+**Sous-dossier de suivi :** [`docs/technical/[Done]_remediation/phase-1-stabilisation.md`](../[Done]_remediation/phase-1-stabilisation.md)
 
 ---
 
@@ -349,7 +349,7 @@ graph LR
 - **Risque :** Moyen — Impacte les tests de contrat existants
 - **Statut :** ⬜ Non commencé
 
-**Sous-dossier de suivi :** [`docs/technical/remediation/phase-2-unification-erreurs.md`](../remediation/phase-2-unification-erreurs.md)
+**Sous-dossier de suivi :** [`docs/technical/[Done]_remediation/phase-2-unification-erreurs.md`](../[Done]_remediation/phase-2-unification-erreurs.md)
 
 ---
 
@@ -390,7 +390,7 @@ graph LR
 - **Risque :** Néant
 - **Statut :** ⬜ Non commencé
 
-**Sous-dossier de suivi :** [`docs/technical/remediation/phase-3-nettoyage-code-mort.md`](../remediation/phase-3-nettoyage-code-mort.md)
+**Sous-dossier de suivi :** [`docs/technical/[Done]_remediation/phase-3-nettoyage-code-mort.md`](../[Done]_remediation/phase-3-nettoyage-code-mort.md)
 
 ---
 
@@ -537,7 +537,7 @@ graph LR
 - **Risque :** Moyen — Peut activer de nouveaux comportements par défaut
 - **Statut :** ⬜ Non commencé
 
-**Sous-dossier de suivi :** [`docs/technical/remediation/phase-5-db-config.md`](../remediation/phase-5-db-config.md)
+**Sous-dossier de suivi :** [`docs/technical/[Done]_remediation/phase-5-db-config.md`](../[Done]_remediation/phase-5-db-config.md)
 
 ---
 
@@ -582,7 +582,7 @@ graph LR
 - **Risque :** Élevé (migration) / Néant (documentation)
 - **Statut :** ⬜ Non commencé
 
-**Sous-dossier de suivi :** [`docs/technical/remediation/phase-6-hardening-final.md`](../remediation/phase-6-hardening-final.md)
+**Sous-dossier de suivi :** [`docs/technical/[Done]_remediation/phase-6-hardening-final.md`](../[Done]_remediation/phase-6-hardening-final.md)
 
 ---
 
@@ -796,26 +796,26 @@ Pour chaque tâche modifiée, mettre à jour :
 
 ### 7.3 Workflow Recommandé (TDD strict)
 
-1. **Démarrage tâche :** Créer une branche `remediation/PX.Y-description`
+1. **Démarrage tâche :** Créer une branche `[Done]_remediation/PX.Y-description`
 2. **🔴 RED (commit 1, message `test: ...`)** : Écrire le test caractérisant le comportement attendu. Vérifier qu'il **échoue** pour la bonne raison (ex: assertion sur 404 mais route existe).
 3. **🟢 GREEN (commit 2, message `feat: ...` ou `fix: ...`)** : Implémenter le minimum pour faire passer le test.
 4. **🔵 REFACTOR (commit 3, message `refactor: ...`)** (optionnel) : Améliorer la lisibilité/performance sans casser les tests.
 5. **Validation Platinum :** Vérifier les critères de la section 5 (rspec, rubocop, brakeman, zeitwerk, swagger).
 6. **PR :** Référencer ce document dans la description de la PR + joindre les 3 commits TDD.
 7. **Merge :** Mettre à jour le statut → ✅ avec le numéro de PR dans toutes les colonnes concernées.
-8. **Sous-document :** Compléter le journal d'exécution dans `docs/technical/remediation/phase-X-*.md`.
+8. **Sous-document :** Compléter le journal d'exécution dans `docs/technical/[Done]_remediation/phase-X-*.md`.
 
 ### 7.4 Liens Vers les Sous-Documents de Suivi
 
-Chaque phase a un sous-document dédié dans `docs/technical/remediation/` pour le détail d'exécution (logs, décisions, problèmes rencontrés, screenshots de tests) :
+Chaque phase a un sous-document dédié dans `docs/technical/[Done]_remediation/` pour le détail d'exécution (logs, décisions, problèmes rencontrés, screenshots de tests) :
 
-- [Phase 0 — Sécurité Critique](../remediation/phase-0-securite.md)
-- [Phase 1 — Stabilisation Runtime](../remediation/phase-1-stabilisation.md)
-- [Phase 2 — Unification Erreurs](../remediation/phase-2-unification-erreurs.md)
-- [Phase 3 — Nettoyage Code Mort](../remediation/phase-3-nettoyage-code-mort.md)
-- [Phase 4 — Cohérence Architecturale](../remediation/phase-4-coherence-architecturale.md)
-- [Phase 5 — Base de Données & Config](../remediation/phase-5-db-config.md)
-- [Phase 6 — Hardening Final](../remediation/phase-6-hardening-final.md)
+- [Phase 0 — Sécurité Critique](../[Done]_remediation/phase-0-securite.md)
+- [Phase 1 — Stabilisation Runtime](../[Done]_remediation/phase-1-stabilisation.md)
+- [Phase 2 — Unification Erreurs](../[Done]_remediation/phase-2-unification-erreurs.md)
+- [Phase 3 — Nettoyage Code Mort](../[Done]_remediation/phase-3-nettoyage-code-mort.md)
+- [Phase 4 — Cohérence Architecturale](../[Done]_remediation/phase-4-coherence-architecturale.md)
+- [Phase 5 — Base de Données & Config](../[Done]_remediation/phase-5-db-config.md)
+- [Phase 6 — Hardening Final](../[Done]_remediation/phase-6-hardening-final.md)
 
 ---
 

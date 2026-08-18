@@ -1,6 +1,6 @@
 # 📋 Plan de Remédiation Architecture Foresy
 
-**Répertoire :** `docs/technical/remediation/`
+**Répertoire :** `docs/technical/Done_remediation/`
 **Objectif :** Suivi d'exécution du plan de remédiation par phase
 **Dernière mise à jour :** 18 août 2026
 
@@ -20,7 +20,7 @@ Ce dossier contient le suivi détaillé d'exécution de chaque phase du **Plan d
 docs/technical/
 ├── audits/
 │   └── 2026-07-22-Architecture_Debt_Audit_and_Plan.md  # 📋 Document principal (audit + plan + suivi global)
-└── remediation/
+└── Done_remediation/
     ├── README.md                                       # 📖 Ce fichier (navigation)
     ├── phase-0-securite.md                             # 🔴 Phase 0 — Sécurité Critique
     ├── phase-1-stabilisation.md                        # 🔴 Phase 1 — Stabilisation Runtime
@@ -55,7 +55,7 @@ docs/technical/
 1. Ouvrir le document principal pour lire la définition de la tâche
 2. Ouvrir le fichier de suivi de la phase correspondante
 3. Mettre à jour le statut ⬜ → 🟡 dans le tableau des tâches
-4. Créer une branche `remediation/PX.Y-description`
+4. Créer une branche `Done_remediation/PX.Y-description`
 5. Démarrer l'implémentation
 6. Ajouter une entrée dans le "Journal d'Exécution"
 
