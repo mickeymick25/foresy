@@ -30,12 +30,12 @@ Chaque tâche suit le cycle **🔴 RED → 🟢 GREEN → 🔵 REFACTOR** en 3 c
 | ID | Tâche | Statut | 🔴 RED | 🟢 GREEN | 🔵 REFACTOR | PR | Notes |
 |---|---|---|---|---|---|---|---|
 | P4.1 | Aligner héritage contrôleurs sur `BaseController` | ✅ | ✅ | ✅ | ✅ | fix CI | Déjà fait |
-| P4.2 | Extraire `extract_client_ip_for_rate_limiting` | ⬜ | ⬜ | ⬜ | ⬜ | — | Concern `Common::RateLimitable` |
-| P4.3 | Extraire logique métier `MissionsController` | ⬜ | ⬜ | ⬜ | ⬜ | — | 4-6h |
+| P4.2 | Extraire `extract_client_ip_for_rate_limiting` | ✅ | ✅ | ✅ | ✅ | — | Concern Common::RateLimitable |
+| P4.3 | Extraire logique métier `MissionsController` | ✅ | ✅ | ✅ | ✅ | — | Thin controller + services |
 | P4.4 | Nettoyer 3 couches services CRA Entry | ✅ | ✅ | ✅ | ✅ | P1.1 | Suite P1.1 |
 | P4.5 | Unifier format 429 `UsersController` | ✅ | ✅ | ✅ | ✅ | fix CI | Déjà fait |
-| P4.6 | Remplacer `default_scope` par scopes explicites | ⬜ | ⬜ | ⬜ | ⬜ | — | M2: 4 modèles |
-| P4.7 | Migrer `created_by_user_id` → tables pivot | ⬜ | ⬜ | ⬜ | ⬜ | — | M3: FK legacy → DDD |
+| P4.6 | Remplacer `default_scope` par scopes explicites | ✅ | ✅ | ✅ | ✅ | — | M2: 4 modèles |
+| P4.7 | Migrer `created_by_user_id` → tables pivot | ✅ | ✅ | ✅ | ✅ | — | Colonne supprimée en DB |
 
 ---
 

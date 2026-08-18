@@ -2,7 +2,7 @@
 
 **Répertoire :** `docs/technical/remediation/`
 **Objectif :** Suivi d'exécution du plan de remédiation par phase
-**Dernière mise à jour :** 22 juillet 2026
+**Dernière mise à jour :** 18 août 2026
 
 ---
 
@@ -83,4 +83,4 @@ docs/technical/
 
 ---
 
-*Dossier créé le : 22 juillet 2026*
+*Dossier créé le : 18 août 2026*
