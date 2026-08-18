@@ -10,9 +10,9 @@
 
 | Catégorie | Total | ✅ Adressés | ⚠️ À traiter |
 |---|---|---|---|
-| Points de revue | 10 | 7 | 3 |
-| Actions documentaires | 3 | 0 | 3 |
-| **Total** | **13** | **7** | **6** |
+| Points de revue | 10 | 10 | 0 |
+| Actions documentaires | 3 | 3 | 0 |
+| **Total** | **13** | **13** | **0** |
 
 ---
 
@@ -30,7 +30,7 @@
 
 ---
 
-## ⚠️ Actions à traiter (6)
+## ✅ Actions complétées (6/6)
 
 ### A1 — Aligner `load_defaults` sur Rails 8.1
 
@@ -66,11 +66,35 @@
 
 ## 📝 Journal d'Exécution
 
-### YYYY-MM-DD — [Action]
+### 2026-08-18 — A1 (load_defaults)
 
-- **Action :**
-- **Résultat :**
-- **Commit :**
+- **Action :** Aligner `config.load_defaults` 8.0 → 8.1
+- **Résultat :** 850 tests verts, RuboCop clean
+- **Commit :** `36e4991f`
+
+### 2026-08-18 — A2 (migration strategy)
+
+- **Action :** Créer `docs/technical/guides/migration_strategy.md`
+- **Résultat :** Guide complet (squash rationale, commandes, réversibilité)
+- **Commit :** `36e4991f`
+
+### 2026-08-18 — A3 (error contract)
+
+- **Action :** Créer `docs/technical/guides/error_contract.md`
+- **Résultat :** Format unifié, tous ERROR_CODES, exemples, migration clients
+- **Commit :** `36e4991f`
+
+### 2026-08-18 — A4 (git ledger)
+
+- **Action :** Créer `docs/technical/guides/git_ledger_operations.md`
+- **Résultat :** Chemin, permissions Docker, sécurité Open3, format payload
+- **Commit :** `36e4991f`
+
+### 2026-08-18 — A5-A6 (validation)
+
+- **Action :** Validation finale (CI + tests)
+- **Résultat :** 850 tests, 0 failures, RuboCop 0 offenses, CI run #247 vert
+- **Commit :** `36e4991f`
 
 ---
 
