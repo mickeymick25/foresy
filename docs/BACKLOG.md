@@ -1,12 +1,13 @@
 # 📋 Backlog - Foresy
 
-**Dernière mise à jour** : 7 janvier 2026 - FC-07 CRA ✅ **100% TERMINÉ**
+**Dernière mise à jour** : 18 août 2026 - Remédiation Architecture ✅ **100% TERMINÉ** (25/25 tâches)
 
-### Métriques de Qualité (Validé le 7 janvier 2026)
-- **RSpec** : ✅ **449 examples, 0 failures**
-- **Rswag** : ✅ **128 examples, 0 failures** — `swagger.yaml` généré
-- **RuboCop** : ✅ **147 files inspected, no offenses detected**
-- **Brakeman** : ✅ **0 Security Warnings** (3 ignored)
+### Métriques de Qualité (Validé le 18 août 2026)
+- **RSpec** : ✅ **850 examples, 0 failures, 0 pending**
+- **Rswag** : ✅ **248 examples, 0 failures** — `swagger.yaml` généré, audit 25/25 routes
+- **RuboCop** : ✅ **223 files inspected, no offenses detected**
+- **Brakeman** : ✅ **0 Security Warnings** (2 ignored)
+- **Bundle audit** : ✅ **No vulnerabilities found** (Rails 8.1.3, puma 8.0.2, etc.)
 
 ---
 
@@ -211,7 +212,7 @@ docker compose exec web bundle exec brakeman -q
 | Bundle audit | ✅ | Terminé | Intégré CI |
 | CSRF protection | ✅ | Terminé | State validation |
 | Rate limiting | ✅ | Terminé | Feature Contract 05 - Protection brute force implémentée (/login: 5/min, /signup: 3/min, /refresh: 10/min) |
-| Refresh-token revocation E2E | 🟠 | Important | Extension script revocation actuel |
+| Refresh-token revocation E2E | ✅ | Terminé | Endpoints `/revoke` et `/revoke_all` implémentés et testés (RSwag + intégration) |
 | Audit logs | 🟢 | Plus tard | Traçabilité actions (quand produit vit) |
 
 ---
@@ -236,7 +237,7 @@ docker compose exec web bundle exec brakeman -q
 | Scripts e2e_auth_flow.sh | ✅ | Terminé | `bin/e2e/e2e_auth_flow.sh` |
 | Documentation guide E2E | ✅ | Terminé | `docs/technical/testing/e2e_staging_tests_guide.md` |
 | Script e2e_revocation.sh | ✅ | Terminé (EN PRODUCTION) | `bin/e2e/e2e_revocation.sh` - Merged into main, Platinum Level, security model documented |
-| Workflow GitHub Actions (e2e.yml) | 🔴 | Critique | Exécution automatique des tests E2E (gouvernance) |
+| Workflow GitHub Actions E2E | ✅ | Terminé | Job `e2e` dans `ci.yml` (acceptance tests + smoke tests). Pas de fichier `e2e.yml` séparé, fonctionnalité intégrée au pipeline |
 | Tests E2E OAuth avec credentials | 🟢 | À faire | Nécessite credentials de test |
 | OAuth E2E avec credentials | 🟠 | Important | Tests OAuth automatisés (quand credentials prêts) |
 | Alerting prod minimal | 🟠 | Important | Monitoring proactif production |
@@ -260,7 +261,7 @@ docker compose exec web bundle exec brakeman -q
 
 | Tâche | Priorité | Statut | Notes |
 |-------|----------|--------|-------|
-| API Swagger/Rswag | ✅ | Terminé | 89 specs |
+| API Swagger/Rswag | ✅ | Terminé | 248 specs, audit 25/25 routes documentées |
 | Guide migration Rails 8 | ✅ | Terminé | `docs/technical/migrations/` |
 | Plans déploiement/rollback | ✅ | Terminé | `docs/technical/deployment/` |
 | Documentation OAuth flow | ✅ | Terminé | `docs/technical/guides/` |
@@ -279,6 +280,7 @@ docker compose exec web bundle exec brakeman -q
 | v0.0.4 | 31 Dec 2025 | Missions (FC-06) - Merged |
 | v0.0.5 | 6 Jan 2026 | CRA (FC-07) - TDD Platinum Complete |
 | v0.0.6 | 7 Jan 2026 | CRA Export CSV (Mini-FC-02) - 449 tests GREEN |
+| v0.1.0 | 18 Août 2026 | Remédiation Architecture (25/25 tâches) - 850 tests GREEN, DDD finalisé, gems mis à jour |
 
 ---
 
@@ -299,7 +301,7 @@ docker compose exec web bundle exec brakeman -q
 |-------|----------|--------|--------|
 | Rotation des secrets JWT | 🟠 | À faire | Job `jwt_secret_rotation` (cron), invalidation via denylist |
 | Trivy (scan vulnérabilités Docker) | 🟠 | À faire | Protection contre CVE images Docker |
-| Dependency-check (bundler-audit) | 🟠 | À faire | Protection contre CVE dépendances |
+| Dependency-check (bundler-audit) | ✅ | Terminé | `bundle exec bundle audit check --update` dans CI, 0 vulnérabilités (Rails 8.1.3, puma 8.0.2, etc.) |
 
 ### 🔄 API Evolution
 
@@ -307,7 +309,7 @@ docker compose exec web bundle exec brakeman -q
 |-------|----------|--------|--------|
 | API versioning (`Accept-Version` ou path) | 🟢 | À faire | Évolution sans casser les clients existants |
 | Feature-flags (Flipper/Rollout) | 🟠 | À faire | Déploiements progressifs, rollback instantané |
-| Documentation OpenAPI exhaustive | 🟠 | À faire | Enrichir erreurs, générer SDKs clients (OpenAPI-Generator) |
+| Documentation OpenAPI exhaustive | 🟡 | Partiellement fait | 25/25 routes documentées, audit passe. Enrichissement erreurs + génération SDKs clients restant |
 
 ### ⚡ Performance & Scale
 
@@ -328,7 +330,7 @@ docker compose exec web bundle exec brakeman -q
 
 | Tâche | Priorité | Statut | Impact |
 |-------|----------|--------|--------|
-| Intégration E2E dans CI (GitHub Actions) | 🔴 | Critique | `e2e_missions.sh`, `e2e_auth_flow.sh` en pipeline |
+| Intégration E2E dans CI (GitHub Actions) | 🟡 | Partiellement fait | Acceptance tests + smoke tests dans `ci.yml`. `e2e_missions.sh` et `e2e_auth_flow.sh` non encore intégrés au pipeline |
 | Deploy Preview (Render/Fly) | 🟠 | À faire | Preview-environnements par PR, validation PO accélérée |
 
 ---
