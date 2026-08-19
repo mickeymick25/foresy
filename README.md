@@ -11,9 +11,13 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 
 ### 🎯 État Actuel (Août 2026)
 - **v0.1.0** : ✅ Remédiation Architecture complète (25/25 tâches TDD/DDD/Platinum)
-- **Feature Contract 07 (CRA)** : ✅ 100% TERMINÉ — TDD PLATINUM
-- **Feature Contract 06 (Missions)** : ✅ Opérationnel avec CRUD complet
-- **Feature Contract 05 (Rate Limiting)** : ✅ OPÉRATIONNEL
+- **Feature Contract 01 (OAuth)** : ✅ Google & GitHub authentication
+- **Feature Contract 02 (Auth Email/Password)** : ✅ JWT stateless + refresh tokens
+- **Feature Contract 03 (Rails Upgrade)** : ✅ Rails 7.1.5.1 → 8.1.3.1 + Ruby 3.4.8
+- **Feature Contract 04 (Token Revocation)** : ✅ Revoke + revoke_all endpoints
+- **Feature Contract 05 (Rate Limiting)** : ✅ Login/Signup/Refresh/Missions/CRAs
+- **Feature Contract 06 (Missions)** : ✅ CRUD complet + lifecycle
+- **Feature Contract 07 (CRA)** : ✅ 100% TERMINÉ — TDD PLATINUM + Filtering + CSV Export
 - **Architecture** : ✅ DDD/RDD finalisée — relations via tables pivot, plus de FK directes
 - **Tests** : 863 exemples RSpec verts (0 failures, 0 pending)
 - **Sécurité** : ✅ JWT stateless, OAuth Google/GitHub, 0 vulnérabilité bundle audit
@@ -22,10 +26,10 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 ### 📈 Historique des Accomplissements
 | Version | Date | Tests | Événements Majeurs |
 |---------|------|-------|-------------------|
-| 1.3.0 | 19 Déc 2025 | 97 | Corrections sécurité |
-| 2.0.0 | 26 Déc 2025 | 221 | Rails 8.1.1 migration |
-| 2.1.0 | 31 Déc 2025 | 290 | FC-06 Missions complet |
-| 2.3.0 | 7 Jan 2026 | 449 | FC-07 CRA + Mini-FC |
+| v0.0.1 | Déc 2025 | 97 | OAuth + E2E + token revocation (FC-01, FC-02, FC-04) |
+| v0.0.2 | 26 Déc 2025 | 221 | Rails 8.1.1 migration (FC-03) |
+| v0.0.3 | 29 Déc 2025 | 290 | Rate Limiting Platinum (FC-05) + FC-06 Missions |
+| v0.1.0-fc07 | 7 Jan 2026 | 449 | FC-07 CRA complet + Mini-FC (TDD Platinum) |
 | **v0.1.0** | **18 Août 2026** | **863** | **Remédiation Architecture (25 tâches) + DDD finalisé + Supabase** |
 
 ### 🏆 Certifications & Standards
@@ -149,10 +153,10 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 ### 📈 Évolution des Métriques de Tests
 | Version | Date | Tests RSpec | Événements |
 |---------|------|-------------|------------|
-| 1.3.0 | 19 Déc 2025 | 97 | Corrections sécurité |
-| 2.0.0 | 26 Déc 2025 | 221 | Rails 8.1.1 migration |
-| 2.1.0 | 31 Déc 2025 | 290 | FC-06 Missions |
-| 2.3.0 | 7 Jan 2026 | 449 | FC-07 CRA + Mini-FC |
+| v0.0.1 | Déc 2025 | 97 | OAuth + E2E + token revocation |
+| v0.0.2 | 26 Déc 2025 | 221 | Rails 8.1.1 migration |
+| v0.0.3 | 29 Déc 2025 | 290 | FC-05 Rate Limiting + FC-06 Missions |
+| v0.1.0-fc07 | 7 Jan 2026 | 449 | FC-07 CRA + Mini-FC |
 | **v0.1.0** | **18 Août 2026** | **863** | **Remédiation Architecture (25 tâches)** |
 
 ## 🚀 Déploiement & Configuration
@@ -257,17 +261,27 @@ JWT_SECRET=your_jwt_secret_key
 - 🗄️ **Supabase** : Migration DB Render → Supabase (permanent)
 - ✅ **863 tests**, 0 failures, RuboCop 0 offenses, CI 6/6 verts
 
-### Version 2.3.1 (28 Janvier 2026) - Migration DDD/RDD Architecture
-- 🏗️ Architecture DDD/RDD pure, services refactorisés, certification Platinium
+### v0.1.0-fc07 (7 Janvier 2026) — Feature Contract 07: CRA 100% TERMINÉ
+- 🎉 FC-07 complet : CRUD CRA + Entries + Filtering + CSV Export
+- 🏆 TDD PLATINUM certifié, 449 tests GREEN
+- 📤 Mini-FC-02 CSV Export avec UTF-8 BOM
+- 🔍 Mini-FC-01 Filtering par year, month, status
 
-### Version 2.3.0 (7 Janvier 2026) - Feature Contract 07: CRA 100% TERMINÉ
-- 🎉 FC-07 complet : CRUD CRA + Entries + Filtering + CSV Export (449 tests)
+### v0.0.3 (29 Décembre 2025) — FC-05 Rate Limiting + FC-06 Missions
+- 🛡️ Rate Limiting Platinum (FC-05)
+- 🎯 Missions CRUD complet (FC-06), lifecycle, access control
+- ✅ 290 tests, PR #12 merged
 
-### Version 2.1.0 (31 Décembre 2025) - Feature Contract 06: Missions
-- 🎯 Missions CRUD complet, lifecycle, access control (290 tests)
+### v0.0.2 (26 Décembre 2025) — Rails 8.1.1 Migration (FC-03)
+- 🚀 Rails 7.1.5.1 → 8.1.1, Ruby 3.3.0 → 3.4.8
+- 🐳 Docker optimisé multi-stage
+- ✅ 221 tests
 
-### Version 2.0.0 (26 Décembre 2025) - Rails 8.1.1 Migration
-- 🚀 Rails 7.1.5.1 → 8.1.1, Ruby 3.3.0 → 3.4.8 (221 tests)
+### v0.0.1 (Décembre 2025) — OAuth + E2E + Token Revocation (FC-01, FC-02, FC-04)
+- 🔐 OAuth Google & GitHub (FC-01)
+- 🔑 Auth email/password + JWT (FC-02)
+- 🚫 Token revocation E2E (FC-04)
+- ✅ 97 tests, CI/CD opérationnel
 
 ## 🤝 Contribution
 
