@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "Foresy API",
-    "description": "Collection Postman pour tester l'API Foresy en production et développement.\n\n## Contrat d'erreur standardisé\n\nToutes les erreurs retournent : `{ \"code\": \"ERROR_CODE\", \"message\": \"...\", \"details\": {} }`\n\n## Variables\n\n- `base_url` : API en production (Render)\n- `base_url_local` : API en local\n- `jwt_token` / `refresh_token` : renseignés automatiquement par les scripts de test (signup/login/refresh)\n- `mission_id` / `cra_id` / `entry_id` : renseignés automatiquement après création",
+    "name": "Foresy API — Tests & Debug",
+    "description": "Collection Postman pour tester et debugger l'API Foresy en production et développement. 28 endpoints avec scripts de test automatisés (extraction tokens/IDs). Variables: base_url, jwt_token, refresh_token, mission_id, cra_id, entry_id.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -58,8 +58,12 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/",
-              "host": ["{{base_url}}"],
-              "path": [""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                ""
+              ]
             },
             "description": "Racine de l'API. Retourne `{\"status\":\"API is live\"}`."
           },
@@ -72,8 +76,12 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/health",
-              "host": ["{{base_url}}"],
-              "path": ["health"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "health"
+              ]
             },
             "description": "Endpoint de health check pour Render."
           },
@@ -124,8 +132,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/signup",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "signup"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "signup"
+              ]
             },
             "description": "Créer un nouveau compte. Retourne `token` + `refresh_token` (HTTP 201)."
           },
@@ -170,8 +184,15 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/auth/login",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "auth", "login"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
             },
             "description": "Connexion (email + password). Retourne `token` + `refresh_token` (HTTP 200)."
           },
@@ -215,8 +236,15 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/auth/refresh",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "auth", "refresh"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "refresh"
+              ]
             },
             "description": "Rafraîchir le JWT à partir du `refresh_token`. Invalide l'ancien refresh_token (rotation)."
           },
@@ -235,8 +263,15 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/auth/logout",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "auth", "logout"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "logout"
+              ]
             },
             "description": "Déconnexion — invalide la session courante (requiert Authorization)."
           },
@@ -255,8 +290,15 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/auth/revoke",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "auth", "revoke"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "revoke"
+              ]
             },
             "description": "Révoque le token courant (requiert Authorization)."
           },
@@ -275,8 +317,15 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/auth/revoke_all",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "auth", "revoke_all"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "revoke_all"
+              ]
             },
             "description": "Révoque tous les tokens de l'utilisateur courant (requiert Authorization)."
           },
@@ -320,8 +369,16 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/auth/{{provider}}/callback",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "auth", "{{provider}}", "callback"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "{{provider}}",
+                "callback"
+              ],
               "variable": [
                 {
                   "key": "provider",
@@ -341,8 +398,15 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/v1/auth/failure",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "auth", "failure"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "failure"
+              ]
             },
             "description": "Endpoint appelé en cas d'échec OAuth."
           },
@@ -395,8 +459,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/missions",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "missions"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "missions"
+              ]
             },
             "description": "Crée une nouvelle mission `time_based` (TJM). Retourne la mission créée (HTTP 201)."
           },
@@ -415,8 +485,14 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/missions",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "missions"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "missions"
+              ]
             },
             "description": "Liste toutes les missions accessibles à l'utilisateur."
           },
@@ -435,8 +511,15 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/missions/{{mission_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "missions", "{{mission_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "missions",
+                "{{mission_id}}"
+              ]
             },
             "description": "Récupère les détails d'une mission."
           },
@@ -464,8 +547,15 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/missions/{{mission_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "missions", "{{mission_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "missions",
+                "{{mission_id}}"
+              ]
             },
             "description": "Modifie une mission. Seul le créateur peut modifier. Transitions de statut : lead → pending → won → in_progress → completed."
           },
@@ -484,8 +574,15 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/missions/{{mission_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "missions", "{{mission_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "missions",
+                "{{mission_id}}"
+              ]
             },
             "description": "Archive une mission (soft delete). Retourne 409 Conflict si la mission est liée à un CRA."
           },
@@ -538,8 +635,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/cras",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "cras"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cras"
+              ]
             },
             "description": "Crée un nouveau CRA pour un mois/année. Retourne le CRA créé (HTTP 201)."
           },
@@ -558,8 +661,14 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/cras?year=2026&month=1&status=draft",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "cras"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cras"
+              ],
               "query": [
                 {
                   "key": "year",
@@ -595,8 +704,15 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/cras/{{cra_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "cras", "{{cra_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cras",
+                "{{cra_id}}"
+              ]
             },
             "description": "Récupère les détails d'un CRA."
           },
@@ -624,8 +740,15 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/cras/{{cra_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "cras", "{{cra_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cras",
+                "{{cra_id}}"
+              ]
             },
             "description": "Modifie un CRA (uniquement si statut `draft`)."
           },
@@ -644,8 +767,15 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/cras/{{cra_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "cras", "{{cra_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cras",
+                "{{cra_id}}"
+              ]
             },
             "description": "Archive un CRA (soft delete)."
           },
@@ -673,8 +803,16 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/cras/{{cra_id}}/submit",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "cras", "{{cra_id}}", "submit"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cras",
+                "{{cra_id}}",
+                "submit"
+              ]
             },
             "description": "Soumet un CRA (transition `draft` → `submitted`)."
           },
@@ -702,8 +840,16 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/cras/{{cra_id}}/lock",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "cras", "{{cra_id}}", "lock"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cras",
+                "{{cra_id}}",
+                "lock"
+              ]
             },
             "description": "Verrouille un CRA (transition `submitted` → `locked`). Verrouillage définitif."
           },
@@ -727,8 +873,16 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/cras/{{cra_id}}/export",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "cras", "{{cra_id}}", "export"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cras",
+                "{{cra_id}}",
+                "export"
+              ]
             },
             "description": "Exporte un CRA au format CSV. Réponse `Content-Type: text/csv`."
           },
@@ -753,8 +907,16 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/cras/{{cra_id}}/entries",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "cras", "{{cra_id}}", "entries"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cras",
+                "{{cra_id}}",
+                "entries"
+              ]
             },
             "description": "Liste les entries d'un CRA."
           },
@@ -801,8 +963,16 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/cras/{{cra_id}}/entries",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "cras", "{{cra_id}}", "entries"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cras",
+                "{{cra_id}}",
+                "entries"
+              ]
             },
             "description": "Crée une entry dans un CRA. Retourne l'entry créée (HTTP 201)."
           },
@@ -821,8 +991,17 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/cras/{{cra_id}}/entries/{{entry_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "cras", "{{cra_id}}", "entries", "{{entry_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cras",
+                "{{cra_id}}",
+                "entries",
+                "{{entry_id}}"
+              ]
             },
             "description": "Récupère les détails d'une entry."
           },
@@ -850,8 +1029,17 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/cras/{{cra_id}}/entries/{{entry_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "cras", "{{cra_id}}", "entries", "{{entry_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cras",
+                "{{cra_id}}",
+                "entries",
+                "{{entry_id}}"
+              ]
             },
             "description": "Modifie une entry (uniquement si le CRA parent est en statut `draft`)."
           },
@@ -870,8 +1058,17 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/cras/{{cra_id}}/entries/{{entry_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "cras", "{{cra_id}}", "entries", "{{entry_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cras",
+                "{{cra_id}}",
+                "entries",
+                "{{entry_id}}"
+              ]
             },
             "description": "Supprime une entry (uniquement si le CRA parent est en statut `draft`)."
           },
