@@ -195,8 +195,7 @@ class CraServices
         year: cra_params[:year].to_i,
         description: cra_params[:description].to_s,
         currency: cra_params[:currency]&.to_s || 'EUR',
-        status: 'draft',
-        created_by_user_id: current_user.id
+        status: 'draft'
       )
 
       unless cra.valid?
@@ -221,8 +220,9 @@ class CraServices
         cra.save!
         cra.reload
 
-        # Relation-driven: create UserCra pivot record when flag is ON
-        create_user_cra_relation!(cra, current_user) if FeatureFlags.relation_driven?
+        # Relation-driven: create UserCra pivot record (DDD Relation-Driven — la
+        # table pivot user_cras est l'unique lien créateur/CRA, audit point M3).
+        create_user_cra_relation!(cra, current_user)
       rescue ActiveRecord::RecordInvalid => e
         # Handle duplicate CRA error with multiple detection patterns
         base_errors = cra.errors[:base] || []

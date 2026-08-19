@@ -14,7 +14,7 @@ require 'rails_helper'
 RSpec.describe CraEntryServices::Create, type: :service do
   let(:current_user) { create(:user) }
   let(:company) { create(:company) }
-  let(:cra) { create(:cra, status: 'draft', created_by_user_id: current_user.id) }
+  let(:cra) { create(:cra, :with_creator, status: 'draft', creator: current_user) }
 
   let(:valid_attributes) do
     {
@@ -165,7 +165,7 @@ RSpec.describe CraEntryServices::Create, type: :service do
 
   describe 'CRA lifecycle validation errors' do
     context 'when CRA is submitted' do
-      let(:cra) { create(:cra, status: 'submitted', created_by_user_id: current_user.id) }
+      let(:cra) { create(:cra, :with_creator, status: 'submitted', creator: current_user) }
 
       subject(:result) do
         CraEntryServices::Create.call(
@@ -184,7 +184,7 @@ RSpec.describe CraEntryServices::Create, type: :service do
     end
 
     context 'when CRA is locked' do
-      let(:cra) { create(:cra, status: 'locked', created_by_user_id: current_user.id) }
+      let(:cra) { create(:cra, :with_creator, status: 'locked', creator: current_user) }
 
       subject(:result) do
         CraEntryServices::Create.call(

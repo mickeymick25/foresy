@@ -31,35 +31,39 @@ class User < ApplicationRecord
 
   # Company associations via relation table (Domain-Driven Architecture)
   has_many :user_companies, dependent: :destroy
-  has_many :companies, through: :user_companies
+  # Scope explicite sur l'association : ne retourner que les companies non supprimées
+  # (audit point M2 / P4.6 — remplacement du default_scope de Company).
+  has_many :companies, -> { where(deleted_at: nil) }, through: :user_companies
 
   # Role-based company associations
-  has_many :independent_companies, -> { where(user_companies: { role: 'independent' }) },
+  has_many :independent_companies, -> { where(user_companies: { role: 'independent' }).where(deleted_at: nil) },
            through: :user_companies, source: :company
-  has_many :client_companies, -> { where(user_companies: { role: 'client' }) },
+  has_many :client_companies, -> { where(user_companies: { role: 'client' }).where(deleted_at: nil) },
            through: :user_companies, source: :company
 
   # Mission associations via relation table (Domain-Driven Architecture)
   has_many :user_missions, dependent: :destroy
-  has_many :missions, through: :user_missions
+  has_many :missions, -> { where(deleted_at: nil) }, through: :user_missions
 
   # Missions where user is creator
   has_many :created_user_missions,
            -> { where(role: 'creator') },
            class_name: 'UserMission'
   has_many :created_missions,
+           -> { where(deleted_at: nil) },
            through: :created_user_missions,
            source: :mission
 
   # CRA associations via relation table (Domain-Driven Architecture)
   has_many :user_cras, dependent: :destroy
-  has_many :cras, through: :user_cras
+  has_many :cras, -> { where(deleted_at: nil) }, through: :user_cras
 
   # CRAs where user is creator
   has_many :created_user_cras,
            -> { where(role: 'creator') },
            class_name: 'UserCra'
   has_many :created_cras,
+           -> { where(deleted_at: nil) },
            through: :created_user_cras,
            source: :cra
 

@@ -93,7 +93,7 @@ class CraServices
       end
 
       # Check if CRA belongs to current user
-      unless cra.created_by_user_id == current_user.id
+      unless cra.creator_user_id == current_user.id
         return ApplicationResult.forbidden(
           error: :insufficient_permissions,
           message: 'You can only destroy your own CRAs'

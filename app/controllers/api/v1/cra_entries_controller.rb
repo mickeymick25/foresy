@@ -59,7 +59,7 @@ module Api
         Rails.logger.error "[CREATE] EXCEPTION: #{e.class}: #{e.message}"
         Rails.logger.error "[CREATE] BACKTRACE: #{e.backtrace.first(3).join("\n")}"
         log_api_error(e, { action: 'create', cra_id: @cra&.id, user_id: current_user&.id })
-        render json: { error: 'internal_error', message: e.message }, status: :internal_server_error
+        error_internal
       end
 
       # GET /api/v1/cras/:cra_id/entries
@@ -77,7 +77,7 @@ module Api
         end
       rescue StandardError => e
         log_api_error(e, { action: 'index', cra_id: @cra&.id, user_id: current_user&.id })
-        render_fc07_error('internal_error', 'An unexpected error occurred', :internal_server_error)
+        error_internal('An unexpected error occurred')
       end
 
       # GET /api/v1/cras/:cra_id/entries/:id
@@ -86,7 +86,7 @@ module Api
         render json: Api::V1::CraEntries::ResponseFormatter.single(@cra_entry, @cra), status: :ok
       rescue StandardError => e
         log_api_error(e, { action: 'show', cra_id: @cra&.id, cra_entry_id: @cra_entry&.id, user_id: current_user&.id })
-        render_fc07_error('internal_error', 'An unexpected error occurred', :internal_server_error)
+        error_internal('An unexpected error occurred')
       end
 
       # PATCH /api/v1/cras/:cra_id/entries/:id
@@ -108,7 +108,7 @@ module Api
         Rails.logger.error "[UPDATE] BACKTRACE: #{e.backtrace.first(3).join("\n")}"
         log_api_error(e,
                       { action: 'update', cra_id: @cra&.id, cra_entry_id: @cra_entry&.id, user_id: current_user&.id })
-        render json: { error: 'internal_error', message: e.message }, status: :internal_server_error
+        error_internal
       end
 
       # DELETE /api/v1/cras/:cra_id/entries/:id
@@ -131,23 +131,23 @@ module Api
       rescue StandardError => e
         log_api_error(e,
                       { action: 'destroy', cra_id: @cra&.id, cra_entry_id: @cra_entry&.id, user_id: current_user&.id })
-        render_fc07_error('internal_error', 'An unexpected error occurred', :internal_server_error)
+        error_internal('An unexpected error occurred')
       end
 
       private
 
       def set_cra
-        @cra = Cra.find_by(id: params[:cra_id])
-        handle_resource_not_found(@cra, 'CRA') unless @cra
+        @cra = Cra.active.find_by(id: params[:cra_id])
+        error_not_found('CRA not found') unless @cra
       rescue ActiveRecord::RecordNotFound
-        handle_resource_not_found(nil, 'CRA')
+        error_not_found('CRA not found')
       end
 
       def set_cra_entry
         @cra_entry = @cra.cra_entries.find_by(id: params[:id])
-        handle_resource_not_found(@cra_entry, 'CRA entry') unless @cra_entry
+        error_not_found('CRA entry not found') unless @cra_entry
       rescue ActiveRecord::RecordNotFound
-        handle_resource_not_found(nil, 'CRA entry')
+        error_not_found('CRA entry not found')
       end
 
       # Validate user has access to the parent CRA
@@ -155,8 +155,8 @@ module Api
       def validate_cra_access!
         return unless @cra
 
-        accessible_cras = Cra.accessible_to(current_user)
-        handle_forbidden('CRA not accessible') unless accessible_cras.exists?(id: @cra.id)
+        accessible_cras = Cra.accessible_to(current_user).active
+        error_forbidden('CRA not accessible') unless accessible_cras.exists?(id: @cra.id)
       end
 
       # Validate that CRA can accept new entries
@@ -164,7 +164,7 @@ module Api
       def validate_cra_modifiable!
         return unless @cra
 
-        handle_conflict('Cannot add entries to submitted or locked CRAs') unless @cra.draft?
+        error_conflict('Cannot add entries to submitted or locked CRAs') unless @cra.draft?
       end
 
       # Validate that CRA entry can be modified
@@ -172,7 +172,7 @@ module Api
       def validate_entry_modifiable!
         return unless @cra_entry
 
-        handle_conflict('Cannot modify entry from submitted or locked CRA') unless @cra.draft?
+        error_conflict('Cannot modify entry from submitted or locked CRA') unless @cra.draft?
       end
 
       # Extract CRA entry parameters from request
@@ -194,117 +194,84 @@ module Api
         params[:mission_id].present? ? params[:mission_id].to_i : nil
       end
 
-      # FC07 Standard Error Rendering
-      def render_fc07_error(error_type, message, status)
-        render json: {
-          error: error_type,
-          message: message,
-          timestamp: Time.current.iso8601
-        }, status: status
-      end
-
       # FC07 CraErrors handlers
       def handle_invalid_payload_error(error)
         Rails.logger.warn "CRA Entry InvalidPayloadError: #{error.message}"
-        render json: {
-          error: 'invalid_payload',
-          message: error.message,
-          field: error.field,
-          timestamp: Time.current.iso8601
-        }, status: :unprocessable_entity
+        error_invalid_payload(error.message, { field: error.field })
       end
 
       def handle_invalid_transition_error(error)
         Rails.logger.warn "CRA Entry InvalidTransitionError: #{error.message}"
-        render_fc07_error('invalid_transition', error.message, :unprocessable_entity)
+        error_unprocessable_entity(error.message)
       end
 
       def handle_cra_locked_error(error)
         Rails.logger.warn "CRA Entry CraLockedError: #{error.message}"
-        render_fc07_error('cra_locked', error.message, :conflict)
+        error_conflict(error.message)
       end
 
       def handle_cra_submitted_error(error)
         Rails.logger.warn "CRA Entry CraSubmittedError: #{error.message}"
-        render_fc07_error('cra_submitted', error.message, :conflict)
+        error_conflict(error.message)
       end
 
       def handle_duplicate_entry_error(error)
         Rails.logger.warn "CRA Entry DuplicateEntryError: #{error.message}"
-        render_fc07_error('duplicate_entry', error.message, :conflict)
+        error_conflict(error.message)
       end
 
       def handle_unauthorized_error(error)
         Rails.logger.warn "CRA Entry UnauthorizedError: #{error.message}"
-        render_fc07_error('unauthorized', error.message, :forbidden)
+        error_forbidden(error.message)
       end
 
       def handle_no_independent_company_error(error)
         Rails.logger.warn "CRA Entry NoIndependentCompanyError: #{error.message}"
-        render_fc07_error('forbidden', error.message, :forbidden)
+        error_forbidden(error.message)
       end
 
       def handle_mission_not_found_error(error)
         Rails.logger.warn "CRA Entry MissionNotFoundError: #{error.message}"
-        render_fc07_error('mission_not_found', error.message, :not_found)
+        error_not_found(error.message)
       end
 
       def handle_cra_not_found_error(error)
         Rails.logger.warn "CRA Entry CraNotFoundError: #{error.message}"
-        render_fc07_error('not_found', error.message, :not_found)
+        error_not_found(error.message)
       end
 
       def handle_entry_not_found_error(error)
         Rails.logger.warn "CRA Entry EntryNotFoundError: #{error.message}"
-        render_fc07_error('not_found', error.message, :not_found)
+        error_not_found(error.message)
       end
 
       def handle_internal_error(error)
         Rails.logger.error "CRA Entry InternalError: #{error.message}"
-        render_fc07_error('internal_error', error.message, :internal_server_error)
+        error_internal
       end
 
       # Handle service result errors with appropriate HTTP status
       def handle_service_error(result)
         case result.error
-        # Existing handlers
-        when :business_rule_violation
-          render_fc07_error('business_rule_violation', result.message, :unprocessable_entity)
-        when :duplicate_entry
-          render_fc07_error('duplicate_entry', result.message, :conflict)
+        when :business_rule_violation, :relation_creation_failed
+          error_unprocessable_entity(result.message)
+        when :duplicate_entry, :conflict, :invalid_cra_state
+          error_conflict(result.message)
         when :not_found
-          render_fc07_error('not_found', result.message, :not_found)
+          error_not_found(result.message)
         when :forbidden, :insufficient_permissions
-          render_fc07_error('forbidden', result.message, :forbidden)
-        when :conflict, :invalid_cra_state
-          render_fc07_error('conflict', result.message, :conflict)
+          error_forbidden(result.message)
         # Input validation errors - 422 Unprocessable Entity
         when :validation_failed, :missing_cra, :missing_attributes, :missing_user,
            :missing_cra_entry, :invalid_date, :future_date_not_allowed,
            :invalid_quantity, :invalid_unit_price, :description_too_long
-          render_fc07_error('invalid_payload', result.message, :unprocessable_entity)
-        # Relation errors - 422 Unprocessable Entity
-        when :relation_creation_failed
-          render_fc07_error('relation_error', result.message, :unprocessable_entity)
+          error_invalid_payload(result.message)
         # Server errors - 500 Internal Server Error
         when :create_failed, :update_failed, :destroy_failed
-          render_fc07_error('internal_error', result.message, :internal_server_error)
+          error_internal(result.message)
         else
-          render_fc07_error('internal_error', 'An unexpected error occurred', :internal_server_error)
+          error_internal('An unexpected error occurred')
         end
-      end
-
-      # Legacy methods kept for compatibility with concerns
-      def handle_resource_not_found(_resource, resource_name)
-        render_fc07_error('not_found', "#{resource_name} not found", :not_found)
-      end
-
-      def handle_forbidden(message)
-        render_fc07_error('forbidden', message, :forbidden)
-      end
-
-      def handle_conflict(message)
-        render_fc07_error('conflict', message, :conflict)
       end
 
       def parse_date_param(date_param)

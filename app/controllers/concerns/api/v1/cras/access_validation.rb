@@ -33,7 +33,7 @@ module Api
           return unless cra.present?
 
           # Check if user is the creator
-          if cra.created_by_user_id == current_user.id
+          if cra.creator_user_id == current_user.id
             Rails.logger.info "User #{current_user.id} accessing own CRA #{cra.id}"
             return
           end

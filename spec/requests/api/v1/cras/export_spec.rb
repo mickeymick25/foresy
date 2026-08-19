@@ -1,75 +1,136 @@
 # frozen_string_literal: true
 
-require 'swagger_helper'
+require 'rails_helper'
 
-RSpec.describe 'CRAs - Export', type: :request do
+RSpec.describe 'CRA Export', type: :request do
   let(:user) { create(:user) }
   let(:user_token) { AuthenticationService.login(user, '127.0.0.1', 'Test Agent')[:token] }
-  let(:Authorization) { "Bearer #{user_token}" }
+  let(:headers) { { 'Authorization' => "Bearer #{user_token}" } }
 
   let(:company) { create(:company) }
-  let(:mission) { create(:mission, :time_based, created_by_user_id: user.id) }
-
-  let!(:cra) { create(:cra, created_by_user_id: user.id, year: 2026, month: 1, status: 'submitted') }
+  let(:mission) { create(:mission, :time_based, :with_creator, creator: user) }
 
   before do
     create(:user_company, user: user, company: company, role: 'independent')
     create(:mission_company, mission: mission, company: company, role: 'independent')
-
-    # Create CRA entries
-    entry1 = create(:cra_entry, date: Date.new(2026, 1, 10), quantity: 1.0, unit_price: 50_000, description: 'Dev work')
-    entry2 = create(:cra_entry, date: Date.new(2026, 1, 11), quantity: 0.5, unit_price: 50_000, description: 'Meeting')
-
-    create(:cra_entry_cra, cra: cra, cra_entry: entry1)
-    create(:cra_entry_cra, cra: cra, cra_entry: entry2)
-    create(:cra_entry_mission, cra_entry: entry1, mission: mission)
-    create(:cra_entry_mission, cra_entry: entry2, mission: mission)
-
-    # Stub RateLimitService
-    allow(RateLimitService).to receive(:check_rate_limit).and_return([true, nil])
   end
 
-  path '/api/v1/cras/{id}/export' do
-    get 'Exports a CRA in specified format' do
-      tags 'CRAs'
-      consumes 'application/json'
-      produces 'text/csv'
+  describe 'GET /api/v1/cras/:id/export' do
+    let(:cra) { create(:cra, :with_creator, creator: user, year: 2026, month: 1) }
 
-      parameter name: :Authorization, in: :header, type: :string, required: true,
-                description: 'Bearer token'
-      parameter name: :id, in: :path, type: :string, required: true,
-                description: 'CRA ID (UUID)'
-      parameter name: :export_format, in: :query, type: :string, required: false,
-                description: 'Export format (csv)', schema: { type: :string, default: 'csv' }
+    before do
+      # Create CRA entries
+      entry1 = create(:cra_entry, date: Date.new(2026, 1, 10), quantity: 1.0, unit_price: 50_000,
+                                  description: 'Dev work')
+      entry2 = create(:cra_entry, date: Date.new(2026, 1, 11), quantity: 0.5, unit_price: 50_000,
+                                  description: 'Meeting')
 
-      response '200', 'CRA exported successfully' do
-        let(:id) { cra.id }
-        let(:export_format) { 'csv' }
+      create(:cra_entry_cra, cra: cra, cra_entry: entry1)
+      create(:cra_entry_cra, cra: cra, cra_entry: entry2)
 
-        run_test! do |response|
+      create(:cra_entry_mission, cra_entry: entry1, mission: mission)
+      create(:cra_entry_mission, cra_entry: entry2, mission: mission)
+
+      cra.reload
+
+      # Transition CRA to submitted state (required for export)
+      result = CraServices::Lifecycle.call(
+        cra: cra,
+        action: 'submit',
+        current_user: user
+      )
+      raise "CRA lifecycle transition failed: #{result.message}" unless result.success?
+
+      cra.reload
+    end
+
+    context 'with valid authentication and access' do
+      it 'returns CSV file with correct headers' do
+        get "/api/v1/cras/#{cra.id}/export", params: { export_format: 'csv' }, headers: headers
+
+        expect(response).to have_http_status(:ok)
+        expect(response.content_type).to include('text/csv')
+        expect(response.headers['Content-Disposition']).to include('attachment')
+        expect(response.headers['Content-Disposition']).to include('cra_2026_01.csv')
+      end
+
+      it 'includes TOTAL row in CSV content' do
+        get "/api/v1/cras/#{cra.id}/export", params: { export_format: 'csv' }, headers: headers
+
+        expect(response.body).to include('TOTAL')
+      end
+
+      it 'includes CSV column headers' do
+        get "/api/v1/cras/#{cra.id}/export", params: { export_format: 'csv' }, headers: headers
+
+        expect(response.body).to include('date,mission_name,quantity,unit_price_eur,line_total_eur,description')
+      end
+
+      it 'defaults to CSV format when export_format not specified' do
+        get "/api/v1/cras/#{cra.id}/export", headers: headers
+
+        expect(response).to have_http_status(:ok)
+        expect(response.content_type).to include('text/csv')
+      end
+
+      context 'with include_entries=false' do
+        it 'exports CSV without entry rows' do
+          get "/api/v1/cras/#{cra.id}/export", params: { export_format: 'csv', include_entries: 'false' },
+                                               headers: headers
+
           expect(response).to have_http_status(:ok)
-          expect(response.content_type).to include('text/csv')
-          expect(response.headers['Content-Disposition']).to include('attachment')
-          expect(response.headers['Content-Disposition']).to include('cra_2026_01.csv')
+          # Header + TOTAL only = 2 lines
+          expect(response.body.lines.count).to eq(2)
           expect(response.body).to include('TOTAL')
         end
       end
+    end
 
-      response '401', 'unauthorized - invalid token' do
-        let(:id) { cra.id }
-        let(:Authorization) { '' }
+    context 'with invalid format' do
+      it 'returns 422 for unsupported format' do
+        get "/api/v1/cras/#{cra.id}/export", params: { export_format: 'xml' }, headers: headers
 
-        run_test! do |response|
-          expect(response).to have_http_status(:unauthorized)
-        end
+        expect(response).to have_http_status(:unprocessable_content)
+        json = JSON.parse(response.body)
+        expect(json['code']).to eq('UNPROCESSABLE_ENTITY')
+        expect(json['message']).to be_present
+        expect(json.key?('errors')).to be false
+        expect(json.key?('error')).to be false
+        expect(json.key?('timestamp')).to be false
+      end
+    end
+
+    context 'without authentication' do
+      it 'returns 401 unauthorized' do
+        get "/api/v1/cras/#{cra.id}/export", params: { export_format: 'csv' }
+
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context 'when CRA does not exist' do
+      it 'returns 404 not found' do
+        get '/api/v1/cras/non-existent-uuid/export', params: { export_format: 'csv' }, headers: headers
+
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context 'when user does not have access to CRA' do
+      let(:other_user) { create(:user) }
+      let(:other_company) { create(:company) }
+      let(:other_mission) { create(:mission, :time_based, :with_creator, creator: other_user) }
+      let(:other_cra) { create(:cra, :with_creator, creator: other_user, year: 2026, month: 2) }
+
+      before do
+        create(:user_company, user: other_user, company: other_company, role: 'independent')
+        create(:mission_company, mission: other_mission, company: other_company, role: 'independent')
       end
 
-      response '404', 'CRA not found' do
-        let(:id) { 'invalid-uuid' }
+      it 'returns 403 forbidden' do
+        get "/api/v1/cras/#{other_cra.id}/export", params: { export_format: 'csv' }, headers: headers
 
-        run_test! do |response|
-          expect(response).to have_http_status(:not_found)
-        end
+        expect(response).to have_http_status(:forbidden)
       end
     end
   end

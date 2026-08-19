@@ -5,6 +5,8 @@ module Api
     # Handles user signup by creating a new user and returning a JWT token upon success.
     # Endpoint: POST /api/v1/signup
     class UsersController < Api::V1::BaseController
+      include Common::RateLimitable
+
       before_action :check_rate_limit!, only: [:create]
 
       # POST /api/v1/signup
@@ -21,8 +23,8 @@ module Api
             email: result[:email]
           }, status: :created
         else
-          render json: { error: 'Validation Failed', message: user.errors.full_messages },
-                 status: :unprocessable_entity
+          error_invalid_payload(user.errors.full_messages.join(', '),
+                                { errors: user.errors.full_messages, model: 'User' })
         end
       end
 
@@ -47,26 +49,7 @@ module Api
         # If rate limit exceeded, return 429 response
         unless allowed
           response.headers['Retry-After'] = retry_after.to_s
-          render json: {
-            error: {
-              code: 'rate_limit_exceeded',
-              message: 'Rate limit exceeded'
-            },
-            retry_after: retry_after
-          }, status: :too_many_requests
-        end
-      end
-
-      # Extract client IP for rate limiting
-      # Handles reverse proxies and follows Feature Contract specification
-      def extract_client_ip_for_rate_limiting
-        # Priority: X-Forwarded-For > X-Real-IP > REMOTE_ADDR
-        forwarded_for = request.env['HTTP_X_FORWARDED_FOR']
-        if forwarded_for.present?
-          # X-Forwarded-For can contain multiple IPs, take the first one
-          forwarded_for.split(',').first.strip
-        else
-          request.env['HTTP_X_REAL_IP'] || request.env['REMOTE_ADDR'] || 'unknown'
+          error_too_many_requests('Rate limit exceeded', { retry_after: retry_after })
         end
       end
     end

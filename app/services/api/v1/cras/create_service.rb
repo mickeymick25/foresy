@@ -126,8 +126,7 @@ module Api
             year: cra_params[:year].to_i,
             description: cra_params[:description].to_s,
             currency: cra_params[:currency]&.to_s || 'EUR',
-            status: 'draft',
-            created_by_user_id: current_user.id
+            status: 'draft'
           )
 
           raise CraErrors::InvalidPayloadError, cra.errors.full_messages.join(', ') unless cra.valid?

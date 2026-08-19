@@ -72,7 +72,7 @@ module Api
         end
 
         def check_ownership!
-          return if cra.created_by_user_id == current_user.id
+          return if cra.creator_user_id == current_user.id
 
           raise CraErrors::UnauthorizedError, 'Only the CRA creator can modify this CRA'
         end

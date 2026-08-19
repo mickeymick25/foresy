@@ -48,9 +48,17 @@ module TestSupport
 
         render json: build_response(user, company, user_company, token), status: :created
       rescue ActiveRecord::RecordInvalid => e
-        render json: { error: 'Setup failed', message: e.record.errors.full_messages }, status: :unprocessable_entity
+        render json: {
+          code: 'UNPROCESSABLE_ENTITY',
+          message: 'Setup failed',
+          details: { errors: e.record.errors.full_messages }
+        }, status: :unprocessable_entity
       rescue StandardError => e
-        render json: { error: 'Setup failed', message: e.message }, status: :internal_server_error
+        render json: {
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Setup failed',
+          details: { error: e.message }
+        }, status: :internal_server_error
       end
 
       # DELETE /__test_support__/e2e/cleanup
@@ -68,13 +76,15 @@ module TestSupport
         # Delete related data in correct FK order
         deleted_counts = {}
 
-        # 1. MissionCompany (depends on Mission)
-        deleted_counts[:mission_companies] = MissionCompany.joins(:mission)
-                                                           .where(missions: { created_by_user_id: user_ids })
+        # 1. MissionCompany (depends on Mission via user_missions pivot — P4.7)
+        deleted_counts[:mission_companies] = MissionCompany.joins(mission: :user_missions)
+                                                           .where(user_missions: { user_id: user_ids, role: 'creator' })
                                                            .delete_all
 
-        # 2. Missions (depends on User via created_by_user_id)
-        deleted_counts[:missions] = Mission.unscoped.where(created_by_user_id: user_ids).delete_all
+        # 2. Missions (depends on User via user_missions pivot — P4.7)
+        deleted_counts[:missions] = Mission.unscoped.joins(:user_missions)
+                                           .where(user_missions: { user_id: user_ids, role: 'creator' })
+                                           .delete_all
 
         # 3. UserCompany (depends on User and Company)
         deleted_counts[:user_companies] = UserCompany.where(user_id: user_ids).delete_all
@@ -101,18 +111,28 @@ module TestSupport
       end
 
       # Security gate: Block if not in E2E mode (defense in depth)
-      # Routes are already conditional, but this adds extra protection
+      #
+      # 🔐 Renders a 404 JSON response instead of raising RoutingError.
+      # Raising RoutingError in test env produces a 500 (show_exceptions = false),
+      # and we want deterministic 404 behavior across all environments.
       def verify_e2e_mode!
         return if e2e_mode_enabled?
 
-        # In production, this should never be reached (routes don't exist)
-        # But if somehow reached, fail hard
-        raise ActionController::RoutingError, 'Not Found'
+        render json: {
+          code: 'NOT_FOUND',
+          message: 'Not Found'
+        }, status: :not_found
+        return
       end
 
       # Check if E2E mode is enabled
+      #
+      # 🔐 SECURITY: E2E_MODE must NEVER bypass the production gate.
+      # Even if E2E_MODE=true is accidentally set in production, we refuse
+      # to run any test-support action. Defense in depth on top of the
+      # conditional route mounting in config/routes.rb.
       def e2e_mode_enabled?
-        Rails.env.test? || ENV['E2E_MODE'] == 'true'
+        (Rails.env.test? || ENV['E2E_MODE'] == 'true') && !Rails.env.production?
       end
 
       # Create or find user from params

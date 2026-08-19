@@ -17,9 +17,9 @@ RSpec.describe Mission, type: :model do
 
     it 'allows lead -> pending' do
       puts '=== DEBUG: Valid transition lead -> pending ==='
-      puts "Before transition: status=#{mission.status}, user_id=#{mission.created_by_user_id}"
+      puts "Before transition: status=#{mission.status}, user_id=#{mission.creator_user_id}"
 
-      expect(mission.created_by_user_id).to eq(user.id)
+      expect(mission.creator_user_id).to eq(user.id)
 
       expect { mission.transition_to!('pending') }.not_to raise_error
 
@@ -33,9 +33,9 @@ RSpec.describe Mission, type: :model do
 
     it 'allows pending -> won' do
       puts '=== DEBUG: Valid transition pending -> won ==='
-      puts "Before transition: status=#{mission.status}, user_id=#{mission.created_by_user_id}"
+      puts "Before transition: status=#{mission.status}, user_id=#{mission.creator_user_id}"
 
-      expect(mission.created_by_user_id).to eq(user.id)
+      expect(mission.creator_user_id).to eq(user.id)
 
       expect { mission.transition_to!('won') }.not_to raise_error
 
@@ -49,9 +49,9 @@ RSpec.describe Mission, type: :model do
 
     it 'allows won -> in_progress' do
       puts '=== DEBUG: Valid transition won -> in_progress ==='
-      puts "Before transition: status=#{mission.status}, user_id=#{mission.created_by_user_id}"
+      puts "Before transition: status=#{mission.status}, user_id=#{mission.creator_user_id}"
 
-      expect(mission.created_by_user_id).to eq(user.id)
+      expect(mission.creator_user_id).to eq(user.id)
 
       expect { mission.transition_to!('in_progress') }.not_to raise_error
 
@@ -65,9 +65,9 @@ RSpec.describe Mission, type: :model do
 
     it 'allows in_progress -> completed' do
       puts '=== DEBUG: Valid transition in_progress -> completed ==='
-      puts "Before transition: status=#{mission.status}, user_id=#{mission.created_by_user_id}"
+      puts "Before transition: status=#{mission.status}, user_id=#{mission.creator_user_id}"
 
-      expect(mission.created_by_user_id).to eq(user.id)
+      expect(mission.creator_user_id).to eq(user.id)
 
       expect { mission.transition_to!('completed') }.not_to raise_error
 
@@ -83,9 +83,9 @@ RSpec.describe Mission, type: :model do
 
     it 'rejects completed -> in_progress' do
       puts '=== DEBUG: Invalid transition completed -> in_progress ==='
-      puts "Before transition: status=#{mission.status}, user_id=#{mission.created_by_user_id}"
+      puts "Before transition: status=#{mission.status}, user_id=#{mission.creator_user_id}"
 
-      expect(mission.created_by_user_id).to eq(user.id)
+      expect(mission.creator_user_id).to eq(user.id)
 
       result = mission.transition_to('in_progress')
 
@@ -104,9 +104,9 @@ RSpec.describe Mission, type: :model do
 
     it 'rejects won -> lead' do
       puts '=== DEBUG: Invalid transition won -> lead ==='
-      puts "Before transition: status=#{mission.status}, user_id=#{mission.created_by_user_id}"
+      puts "Before transition: status=#{mission.status}, user_id=#{mission.creator_user_id}"
 
-      expect(mission.created_by_user_id).to eq(user.id)
+      expect(mission.creator_user_id).to eq(user.id)
 
       result = mission.transition_to('lead')
 

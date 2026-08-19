@@ -22,6 +22,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_17_000000) do
   create_enum "mission_status_enum", ["lead", "pending", "won", "in_progress", "completed"]
   create_enum "mission_type_enum", ["time_based", "fixed_price"]
   create_enum "user_company_role_enum", ["independent", "client"]
+  create_enum "user_relation_role", ["creator", "contributor", "reviewer"]
 
   create_table "companies", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "address_line_1"
@@ -95,7 +96,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_17_000000) do
 
   create_table "cras", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.bigint "created_by_user_id", comment: "Audit-only: user who created the CRA"
     t.string "currency", default: "EUR", null: false, comment: "ISO 4217 currency code"
     t.datetime "deleted_at", comment: "Soft delete timestamp"
     t.text "description", comment: "Non-financial metadata (description)"
@@ -106,8 +106,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_17_000000) do
     t.decimal "total_days", precision: 10, scale: 2, comment: "Calculated total days"
     t.datetime "updated_at", null: false
     t.integer "year", null: false, comment: "Year"
-    t.index ["created_by_user_id", "month", "year"], name: "index_cras_unique_user_month_year", unique: true, where: "(deleted_at IS NULL)", comment: "Enforce uniqueness: 1 CRA max per (user, month, year)"
-    t.index ["created_by_user_id"], name: "index_cras_on_created_by_user_id", comment: "Find CRAs by creator"
     t.index ["deleted_at"], name: "index_cras_on_deleted_at", comment: "Soft delete queries"
     t.index ["locked_at"], name: "index_cras_on_locked_at", comment: "Find locked CRAs"
     t.index ["month"], name: "index_cras_on_month", comment: "Filter by month"
@@ -129,7 +127,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_17_000000) do
 
   create_table "missions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.bigint "created_by_user_id", comment: "User who created the mission (bigint to match users.id)"
     t.string "currency", default: "EUR", null: false, comment: "ISO 4217 currency code"
     t.integer "daily_rate", comment: "Daily rate in cents - required if time_based"
     t.datetime "deleted_at", comment: "Soft delete timestamp"
@@ -141,7 +138,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_17_000000) do
     t.date "start_date", null: false, comment: "Mission start date"
     t.enum "status", default: "lead", null: false, enum_type: "mission_status_enum"
     t.datetime "updated_at", null: false
-    t.index ["created_by_user_id"], name: "index_missions_on_created_by_user_id"
     t.index ["currency"], name: "index_missions_on_currency"
     t.index ["deleted_at"], name: "index_missions_on_deleted_at"
     t.index ["end_date"], name: "index_missions_on_end_date"
@@ -164,7 +160,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_17_000000) do
     t.datetime "updated_at", null: false
     t.string "user_agent"
     t.bigint "user_id", null: false
-    t.string "uuid", limit: 36, null: false
+    t.uuid "uuid", null: false
     t.index ["active"], name: "index_sessions_on_active"
     t.index ["expires_at"], name: "index_sessions_on_expires_at"
     t.index ["token"], name: "index_sessions_on_token", unique: true
@@ -187,25 +183,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_17_000000) do
   create_table "user_cras", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "cra_id", null: false
     t.datetime "created_at", null: false
-    t.string "role", default: "creator", null: false
+    t.enum "role", default: "creator", null: false, enum_type: "user_relation_role"
     t.bigint "user_id", null: false
-    t.index ["cra_id", "role"], name: "idx_user_cras_cra_creator", unique: true, where: "((role)::text = 'creator'::text)"
+    t.index ["cra_id", "role"], name: "idx_user_cras_cra_creator", unique: true, where: "(role = 'creator'::user_relation_role)"
     t.index ["cra_id"], name: "index_user_cras_on_cra_id"
+    t.index ["user_id", "cra_id"], name: "idx_user_cras_unique_creator", unique: true, where: "(role = 'creator'::user_relation_role)"
     t.index ["user_id", "cra_id"], name: "index_user_cras_on_user_id_and_cra_id"
     t.index ["user_id"], name: "index_user_cras_on_user_id"
-    t.check_constraint "role::text = ANY (ARRAY['creator'::character varying::text, 'contributor'::character varying::text, 'reviewer'::character varying::text])", name: "user_cras_role_check"
   end
 
   create_table "user_missions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.uuid "mission_id", null: false
-    t.string "role", default: "creator", null: false
+    t.enum "role", default: "creator", null: false, enum_type: "user_relation_role"
     t.bigint "user_id", null: false
-    t.index ["mission_id", "role"], name: "idx_user_missions_mission_creator", unique: true, where: "((role)::text = 'creator'::text)"
+    t.index ["mission_id", "role"], name: "idx_user_missions_mission_creator", unique: true, where: "(role = 'creator'::user_relation_role)"
     t.index ["mission_id"], name: "index_user_missions_on_mission_id"
     t.index ["user_id", "mission_id"], name: "index_user_missions_on_user_id_and_mission_id"
     t.index ["user_id"], name: "index_user_missions_on_user_id"
-    t.check_constraint "role::text = ANY (ARRAY['creator'::character varying::text, 'contributor'::character varying::text, 'reviewer'::character varying::text])", name: "user_missions_role_check"
   end
 
   create_table "users", force: :cascade do |t|
@@ -217,7 +212,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_17_000000) do
     t.string "provider"
     t.string "uid"
     t.datetime "updated_at", null: false
-    t.string "uuid", limit: 36, null: false
+    t.uuid "uuid", null: false
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true, where: "(provider IS NOT NULL)"
     t.index ["uuid"], name: "index_users_on_uuid", unique: true

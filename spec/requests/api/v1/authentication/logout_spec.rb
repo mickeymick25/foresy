@@ -45,7 +45,10 @@ RSpec.describe 'Authentication - Logout', type: :request do
         let(:Authorization) { 'Bearer invalid.token.here' }
 
         run_test! do |response|
-          expect_error_code(response, 'unauthorized')
+          data = JSON.parse(response.body)
+          expect(data['code']).to eq('UNAUTHORIZED')
+          expect(data['message']).to be_present
+          expect(data.key?('error')).to be false
         end
       end
 
@@ -53,7 +56,10 @@ RSpec.describe 'Authentication - Logout', type: :request do
         let(:Authorization) { nil }
 
         run_test! do |response|
-          expect_error_response(response, code: 'unauthorized', message: 'Missing token')
+          data = JSON.parse(response.body)
+          expect(data['code']).to eq('UNAUTHORIZED')
+          expect(data['message']).to eq('Missing token')
+          expect(data.key?('error')).to be false
         end
       end
 
@@ -65,7 +71,10 @@ RSpec.describe 'Authentication - Logout', type: :request do
         end
 
         run_test! do |response|
-          expect_error_response(response, code: 'unauthorized', message: 'Session already expired')
+          data = JSON.parse(response.body)
+          expect(data['code']).to eq('UNAUTHORIZED')
+          expect(data['message']).to eq('Session already expired')
+          expect(data.key?('error')).to be false
         end
       end
 
@@ -76,7 +85,10 @@ RSpec.describe 'Authentication - Logout', type: :request do
         let(:Authorization) { "Bearer #{invalid_token}" }
 
         run_test! do |response|
-          expect_error_response(response, code: 'unauthorized', message: 'Invalid token')
+          data = JSON.parse(response.body)
+          expect(data['code']).to eq('UNAUTHORIZED')
+          expect(data['message']).to eq('Invalid token')
+          expect(data.key?('error')).to be false
         end
       end
 
@@ -87,7 +99,10 @@ RSpec.describe 'Authentication - Logout', type: :request do
         end
 
         run_test! do |response|
-          expect_error_response(response, code: 'unauthorized', message: 'Session already expired')
+          data = JSON.parse(response.body)
+          expect(data['code']).to eq('UNAUTHORIZED')
+          expect(data['message']).to eq('Session already expired')
+          expect(data.key?('error')).to be false
         end
       end
     end

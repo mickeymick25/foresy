@@ -54,7 +54,7 @@ RSpec.describe CraServices::Lifecycle, type: :service do
       let(:test_user) { current_user }
       let(:test_company) { create(:company) }
 
-      let(:cra) { create(:cra, status: 'draft', created_by_user_id: test_user.id) }
+      let(:cra) { create(:cra, :with_creator, status: 'draft', creator: test_user) }
 
       before do
         # Ensure user has independent company access
@@ -99,7 +99,7 @@ RSpec.describe CraServices::Lifecycle, type: :service do
 
       context 'when current_user is nil' do
         let(:creator) { create(:user) }
-        let(:cra) { create(:cra, created_by_user_id: creator.id) }
+        let(:cra) { create(:cra, :with_creator, creator: creator) }
         let(:current_user) { nil }
 
         it 'returns bad_request ApplicationResult' do
@@ -112,7 +112,7 @@ RSpec.describe CraServices::Lifecycle, type: :service do
 
     context 'with permission issues' do
       let(:other_user) { create(:user) }
-      let(:cra) { create(:cra, status: 'draft', created_by_user_id: other_user.id) }
+      let(:cra) { create(:cra, :with_creator, status: 'draft', creator: other_user) }
 
       it 'returns forbidden when user is not CRA creator' do
         expect(result).to be_failure
@@ -123,7 +123,7 @@ RSpec.describe CraServices::Lifecycle, type: :service do
 
     context 'with invalid status' do
       context 'when CRA is already submitted' do
-        let(:cra) { create(:cra, status: 'submitted', created_by_user_id: current_user.id) }
+        let(:cra) { create(:cra, :with_creator, status: 'submitted', creator: current_user) }
 
         it 'returns conflict for invalid transition' do
           expect(result).to be_failure
@@ -134,7 +134,7 @@ RSpec.describe CraServices::Lifecycle, type: :service do
       end
 
       context 'when CRA is already locked' do
-        let(:cra) { create(:cra, status: 'locked', created_by_user_id: current_user.id) }
+        let(:cra) { create(:cra, :with_creator, status: 'locked', creator: current_user) }
 
         it 'returns conflict for invalid transition' do
           expect(result).to be_failure
@@ -145,11 +145,11 @@ RSpec.describe CraServices::Lifecycle, type: :service do
     end
 
     context 'with CRA without entries' do
-      let(:cra) { create(:cra, status: 'draft', created_by_user_id: current_user.id) }
+      let(:cra) { create(:cra, :with_creator, status: 'draft', creator: current_user) }
 
-      it 'returns bad_request when CRA has no entries' do
+      it 'returns unprocessable_entity when CRA has no entries' do
         expect(result).to be_failure
-        expect(result.status).to eq(:bad_request)
+        expect(result.status).to eq(:unprocessable_entity)
         expect(result.error).to eq(:cra_has_no_entries)
         expect(result.message).to include('must have at least one entry')
       end
@@ -170,7 +170,7 @@ RSpec.describe CraServices::Lifecycle, type: :service do
       let(:test_user) { current_user }
       let(:test_company) { create(:company) }
 
-      let(:cra) { create(:cra, status: 'submitted', created_by_user_id: test_user.id) }
+      let(:cra) { create(:cra, :with_creator, status: 'submitted', creator: test_user) }
 
       before do
         # Ensure user has independent company access
@@ -213,7 +213,7 @@ RSpec.describe CraServices::Lifecycle, type: :service do
 
       context 'when current_user is nil' do
         let(:creator) { create(:user) }
-        let(:cra) { create(:cra, created_by_user_id: creator.id) }
+        let(:cra) { create(:cra, :with_creator, creator: creator) }
         let(:current_user) { nil }
 
         it 'returns bad_request ApplicationResult' do
@@ -226,7 +226,7 @@ RSpec.describe CraServices::Lifecycle, type: :service do
 
     context 'with permission issues' do
       let(:other_user) { create(:user) }
-      let(:cra) { create(:cra, status: 'submitted', created_by_user_id: other_user.id) }
+      let(:cra) { create(:cra, :with_creator, status: 'submitted', creator: other_user) }
 
       it 'returns forbidden when user is not CRA creator' do
         expect(result).to be_failure
@@ -237,7 +237,7 @@ RSpec.describe CraServices::Lifecycle, type: :service do
 
     context 'with invalid status' do
       context 'when CRA is still in draft' do
-        let(:cra) { create(:cra, status: 'draft', created_by_user_id: current_user.id) }
+        let(:cra) { create(:cra, :with_creator, status: 'draft', creator: current_user) }
 
         it 'returns conflict for invalid transition' do
           expect(result).to be_failure
@@ -248,7 +248,7 @@ RSpec.describe CraServices::Lifecycle, type: :service do
       end
 
       context 'when CRA is already locked' do
-        let(:cra) { create(:cra, status: 'locked', created_by_user_id: current_user.id) }
+        let(:cra) { create(:cra, :with_creator, status: 'locked', creator: current_user) }
 
         it 'returns conflict for invalid transition' do
           expect(result.status).to eq(:conflict)
@@ -261,13 +261,13 @@ RSpec.describe CraServices::Lifecycle, type: :service do
 
   describe 'architecture validation' do
     it 'uses ApplicationResult pattern exclusively' do
-      cra = create(:cra, status: 'draft', created_by_user_id: current_user.id)
+      cra = create(:cra, :with_creator, status: 'draft', creator: current_user)
       create(:cra_entry_cra, cra: cra, cra_entry: create(:cra_entry))
 
       # Test both submit and lock via call with action parameter
       submit_result = CraServices::Lifecycle.call(cra: cra, action: 'submit', current_user: current_user)
       lock_result = CraServices::Lifecycle.call(
-        cra: create(:cra, status: 'submitted', created_by_user_id: current_user.id),
+        cra: create(:cra, :with_creator, status: 'submitted', creator: current_user),
         action: 'lock',
         current_user: current_user
       )
@@ -298,7 +298,7 @@ RSpec.describe CraServices::Lifecycle, type: :service do
       # This test validates the migration from old exception-based pattern
       # to new ApplicationResult pattern
 
-      cra = create(:cra, status: 'draft', created_by_user_id: current_user.id)
+      cra = create(:cra, :with_creator, status: 'draft', creator: current_user)
 
       # The service should not raise exceptions
       expect { CraServices::Lifecycle.call(cra: cra, action: 'submit', current_user: current_user) }
@@ -313,7 +313,7 @@ RSpec.describe CraServices::Lifecycle, type: :service do
       # Validates that the Git Ledger integration is preserved
       # in the lock operation
 
-      cra = create(:cra, status: 'submitted', created_by_user_id: current_user.id)
+      cra = create(:cra, :with_creator, status: 'submitted', creator: current_user)
 
       result = CraServices::Lifecycle.call(cra: cra, action: 'lock', current_user: current_user)
 

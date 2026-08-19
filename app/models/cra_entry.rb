@@ -54,10 +54,12 @@
 # - .by_mission: filter by mission
 class CraEntry < ApplicationRecord
   # Soft delete implementation (manual, no gem dependency)
-  default_scope { where(deleted_at: nil) }
+  # NOTE: Pas de default_scope (anti-pattern) — utiliser les scopes explicites
+  #       .active / .with_deleted / .only_deleted (audit point M2 / P4.6).
 
   # Scope to include deleted records
   scope :with_deleted, -> { unscope(where: :deleted_at) }
+  scope :only_deleted, -> { where.not(deleted_at: nil) }
 
   # Instance methods for soft delete
   def discarded?
@@ -79,43 +81,16 @@ class CraEntry < ApplicationRecord
   validate :validate_date_format
   validate :validate_uniqueness_of_cra_mission_date
 
-  # -------------------------------
-  # CALLBACKS - NE PLUS UTILISER
-  # -------------------------------
-  # Les callbacks side-effects ont été neutralisés.
-  # Toute la logique métier est maintenant dans les services.
-  # 留下来的代码已按要求处理，不再输出。
-  #
-  # Avant (à supprimer après validation des services) :
-  # before_create :validate_cra_lifecycle!
-  # before_update :validate_cra_lifecycle!
-  # before_destroy :validate_cra_lifecycle!
-  #
-  # def validate_cra_lifecycle!
-  #   return if cra.blank?
-  #   return if cra.draft?
-  #
-  #   raise CraErrors::CraSubmittedError, 'Cannot modify entries of submitted CRA' if cra.submitted?
-  #   raise CraErrors::CraLockedError, 'Cannot modify entries of locked CRA' if cra.locked?
-  # end
-
-  # -------------------------------
-  # LOGIQUE METIER PURE
-  # -------------------------------
-  # Les méthodes ci-dessous sont pures et peuvent rester dans le modèle
-  # car elles ne causent aucun effet de bord implicite.
-  # Elles seront appelées depuis les services si nécessaire.
-  # -------------------------------
-
-  # Transient attribute writers for TDD compatibility (preserves DDD architecture)
-  attr_writer :cra, :mission
-
   # Associations via relation tables (Domain-Driven Architecture)
   has_many :cra_entry_cras, dependent: :destroy
-  has_many :cras, through: :cra_entry_cras
+  # Scope explicite sur l'association : ne retourner que les CRAs non supprimés
+  # (audit point M2 / P4.6 — remplacement du default_scope de Cra).
+  has_many :cras, -> { where(deleted_at: nil) }, through: :cra_entry_cras
 
   has_many :cra_entry_missions, dependent: :destroy
-  has_many :missions, through: :cra_entry_missions
+  # Scope explicite sur l'association : ne retourner que les missions non supprimées
+  # (audit point M2 / P4.6 — remplacement du default_scope de Mission).
+  has_many :missions, -> { where(deleted_at: nil) }, through: :cra_entry_missions
 
   # Scopes
   scope :active, -> { where(deleted_at: nil) }
@@ -197,7 +172,8 @@ class CraEntry < ApplicationRecord
 
     # Business rule: Uniqueness invariant (cra, mission, date)
     # Uses a gradated approach to handle both associated and transient CRA/Mission references
-    existing = CraEntry.where(date: date)
+    # .active exclut les entries soft-deletées (audit point M2 / P4.6).
+    existing = CraEntry.active.where(date: date)
 
     # Filter by CRA ID if available through associations
     if cra_entry_cras.any?

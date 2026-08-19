@@ -72,6 +72,14 @@ EXCLUDED_PREFIXES = [
   '/webpacker/' # Webpacker routes if present
 ].freeze
 
+# Additional exclusions for specific verb+path combos
+# These are negative test cases or non-JSON endpoints that should
+# not be counted in the exhaustiveness audit
+EXCLUDED_ENDPOINTS = [
+  'get /api/v1/auth/login', # Negative test: GET does not exist, only POST
+  'get /api/v1/cras/{id}/export' # File download (CSV), non-standard JSON response
+].freeze
+
 # ============================================================================
 # Helper Methods
 # ============================================================================
@@ -170,7 +178,7 @@ def normalize_routes(routes)
     normalized << "#{verb} #{path}"
   end
 
-  normalized.sort
+  normalized.reject { |endpoint| EXCLUDED_ENDPOINTS.include?(endpoint) }.sort
 end
 
 def normalize_swagger_paths(endpoints)
@@ -190,7 +198,7 @@ def normalize_swagger_paths(endpoints)
     normalized << "#{verb} #{path}"
   end
 
-  normalized.sort
+  normalized.reject { |endpoint| EXCLUDED_ENDPOINTS.include?(endpoint) }.sort
 end
 
 def report_results(routes, swagger, missing_in_swagger, missing_in_routes)

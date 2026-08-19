@@ -9,7 +9,7 @@ RSpec.describe 'CRA Permissions', type: :request do
   let(:headers) { { 'Authorization' => "Bearer #{user_token}" } }
 
   let(:company) { create(:company) }
-  let(:mission) { create(:mission, :time_based, created_by_user_id: user.id) }
+  let(:mission) { create(:mission, :time_based, :with_creator, creator: user) }
 
   # User 2 - Different user (should NOT have access)
   let(:other_user) { create(:user) }
@@ -17,7 +17,7 @@ RSpec.describe 'CRA Permissions', type: :request do
   let(:other_headers) { { 'Authorization' => "Bearer #{other_user_token}" } }
 
   let(:other_company) { create(:company) }
-  let(:other_mission) { create(:mission, :time_based, created_by_user_id: other_user.id) }
+  let(:other_mission) { create(:mission, :time_based, :with_creator, creator: other_user) }
 
   before do
     # Setup user 1 associations
@@ -31,12 +31,12 @@ RSpec.describe 'CRA Permissions', type: :request do
     # DDD-compliant CRA setup with entries (required for lifecycle)
     # DDD Domain Setup: Create valid CRAs with entries for domain compliance
     # Using unique months (11, 12) to avoid conflicts with test-specific CRAs
-    @user_cra = create(:cra, created_by_user_id: user.id, year: 2026, month: 11, status: 'draft')
+    @user_cra = create(:cra, :with_creator, creator: user, year: 2026, month: 11, status: 'draft')
     @user_cra_entry = create(:cra_entry, date: '2026-11-15', quantity: 1.0, unit_price: 50_000,
                                          description: 'Valid entry for user CRA')
     create(:cra_entry_cra, cra: @user_cra, cra_entry: @user_cra_entry)
 
-    @other_user_cra = create(:cra, created_by_user_id: other_user.id, year: 2026, month: 12, status: 'draft')
+    @other_user_cra = create(:cra, :with_creator, creator: other_user, year: 2026, month: 12, status: 'draft')
     @other_user_cra_entry = create(:cra_entry, date: '2026-12-15', quantity: 1.0, unit_price: 60_000,
                                                description: 'Valid entry for other user CRA')
     create(:cra_entry_cra, cra: @other_user_cra, cra_entry: @other_user_cra_entry)
@@ -46,7 +46,7 @@ RSpec.describe 'CRA Permissions', type: :request do
   # GET /api/v1/cras/:id - Show
   # ===========================================
   describe 'GET /api/v1/cras/:id' do
-    let!(:cra) { create(:cra, created_by_user_id: user.id, year: 2026, month: 1) }
+    let!(:cra) { create(:cra, :with_creator, creator: user, year: 2026, month: 1) }
 
     context 'when user owns the CRA' do
       it 'returns 200 OK' do
@@ -63,11 +63,14 @@ RSpec.describe 'CRA Permissions', type: :request do
         expect(response).to have_http_status(:forbidden)
       end
 
-      it 'returns appropriate error message' do
+      it 'returns appropriate error message in standardized format' do
         get "/api/v1/cras/#{cra.id}", headers: other_headers
 
         json = JSON.parse(response.body)
-        expect(json['error']).to eq('unauthorized')
+        expect(json['code']).to eq('FORBIDDEN')
+        expect(json['message']).to be_present
+        expect(json.key?('error')).to be false
+        expect(json.key?('timestamp')).to be false
       end
     end
 
@@ -84,7 +87,7 @@ RSpec.describe 'CRA Permissions', type: :request do
   # PATCH /api/v1/cras/:id - Update (permissions only)
   # ===========================================
   describe 'PATCH /api/v1/cras/:id' do
-    let!(:cra) { create(:cra, created_by_user_id: user.id, year: 2026, month: 2, status: 'draft') }
+    let!(:cra) { create(:cra, :with_creator, creator: user, year: 2026, month: 2, status: 'draft') }
 
     context 'when another user tries to update' do
       it 'returns 403 forbidden' do
@@ -121,7 +124,7 @@ RSpec.describe 'CRA Permissions', type: :request do
   # DELETE /api/v1/cras/:id - Destroy
   # ===========================================
   describe 'DELETE /api/v1/cras/:id' do
-    let!(:cra) { create(:cra, created_by_user_id: user.id, year: 2026, month: 3, status: 'draft') }
+    let!(:cra) { create(:cra, :with_creator, creator: user, year: 2026, month: 3, status: 'draft') }
 
     context 'when another user tries to delete' do
       it 'returns 403 forbidden' do
@@ -150,7 +153,7 @@ RSpec.describe 'CRA Permissions', type: :request do
   # POST /api/v1/cras/:id/submit - Submit (permissions only)
   # ===========================================
   describe 'POST /api/v1/cras/:id/submit' do
-    let!(:cra) { create(:cra, created_by_user_id: user.id, year: 2026, month: 4, status: 'draft') }
+    let!(:cra) { create(:cra, :with_creator, creator: user, year: 2026, month: 4, status: 'draft') }
 
     context 'when another user tries to submit' do
       it 'returns 403 forbidden' do
@@ -180,7 +183,7 @@ RSpec.describe 'CRA Permissions', type: :request do
   # POST /api/v1/cras/:id/lock - Lock (permissions only)
   # ===========================================
   describe 'POST /api/v1/cras/:id/lock' do
-    let!(:cra) { create(:cra, created_by_user_id: user.id, year: 2026, month: 5, status: 'submitted') }
+    let!(:cra) { create(:cra, :with_creator, creator: user, year: 2026, month: 5, status: 'submitted') }
 
     context 'when another user tries to lock' do
       it 'returns 403 forbidden' do

@@ -276,8 +276,7 @@ class MissionServices
         start_date: parse_date(mission_params[:start_date]),
         daily_rate: mission_params[:daily_rate],
         fixed_price: mission_params[:fixed_price],
-        currency: mission_params[:currency]&.to_s || 'EUR',
-        created_by_user_id: current_user.id
+        currency: mission_params[:currency]&.to_s || 'EUR'
       }
 
       # Add end_date if provided
@@ -307,8 +306,14 @@ class MissionServices
         mission.save!
         mission.reload
 
-        # Relation-driven: create UserMission pivot record when flag is ON
-        create_user_mission_relation!(mission, current_user) if FeatureFlags.relation_driven?
+        # Mission-Company relations (Domain-Driven Architecture, always created):
+        # - 1 independent company (required) from the creator's user_companies
+        # - 1 client company (optional) if client_company_id provided in params
+        create_mission_company_relations!(mission)
+
+        # Relation-driven: create UserMission pivot record (DDD Relation-Driven —
+        # la table pivot user_missions est l'unique lien créateur/mission, audit M3).
+        create_user_mission_relation!(mission, current_user)
       rescue ActiveRecord::RecordInvalid => e
         ApplicationResult.unprocessable_entity(
           error: :save_failed,
@@ -328,6 +333,36 @@ class MissionServices
         error: :save_failed,
         message: "Failed to save mission: #{e.message}"
       )
+    end
+
+    # === Mission-Company Relations ===
+
+    # Creates the MissionCompany pivot records linking the mission to its
+    # independent company (mandatory) and an optional client company.
+    # @param mission [Mission] the saved mission
+    # @raise [ActiveRecord::RecordInvalid] if a MissionCompany is invalid
+    def create_mission_company_relations!(mission)
+      independent_company = user_independent_company
+      # Defensive: permission check guarantees an independent company exists.
+      raise 'No independent company found for current user' unless independent_company
+
+      mission.mission_companies.create!(
+        company_id: independent_company.id,
+        role: 'independent'
+      )
+
+      client_id = mission_params[:client_company_id]
+      return unless client_id.present?
+
+      mission.mission_companies.create!(
+        company_id: client_id,
+        role: 'client'
+      )
+    end
+
+    # @return [Company, nil] the user's independent company
+    def user_independent_company
+      current_user.user_companies.joins(:company).where(role: 'independent').first&.company
     end
 
     # === Relation-Driven ===

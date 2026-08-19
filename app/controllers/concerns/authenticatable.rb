@@ -35,23 +35,16 @@ module Authenticatable
   # @return [void] Sets @current_user and @current_session on success
   # @return [JSON] Renders 401 unauthorized on failure
   def authenticate_access_token!
-    puts "\n=== DEBUG: authenticate_access_token! ==="
-    puts "request.headers['Authorization'] = #{request.headers['Authorization'].inspect}"
-
     token = bearer_token
-    puts "token present? = #{token.present?}"
-    return render_unauthorized('Missing token') unless token
+    return error_unauthorized('Missing token') unless token
 
     payload = decode_token(token)
-    puts "payload = #{payload.inspect}"
     return handle_invalid_payload(payload) unless valid_payload?(payload)
 
     assign_current_user_and_session(payload)
-    puts "current_user.id = #{current_user.id}"
     return handle_invalid_session unless valid_session?
 
     current_session.refresh!
-    puts "=== END DEBUG: authenticate_access_token! ===\n"
   end
 
   # Extracts the JWT token from the Authorization header
@@ -112,9 +105,9 @@ module Authenticatable
   # @return [void] Renders JSON error with 401 status
   def handle_invalid_payload(payload)
     if payload == :expired_token
-      render_unauthorized('Token has expired')
+      error_unauthorized('Token has expired')
     else
-      render_unauthorized('Invalid token')
+      error_unauthorized('Invalid token')
     end
   end
 
@@ -142,9 +135,9 @@ module Authenticatable
   # @return [void] Renders JSON error with 401 status
   def handle_invalid_session
     if current_user && current_session
-      render_unauthorized('Session already expired')
+      error_unauthorized('Session already expired')
     else
-      render_unauthorized('Invalid token')
+      error_unauthorized('Invalid token')
     end
   end
 

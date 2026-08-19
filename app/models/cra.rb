@@ -54,10 +54,12 @@
 
 class Cra < ApplicationRecord
   # Soft delete implementation (manual, no gem dependency)
-  default_scope { where(deleted_at: nil) }
+  # NOTE: Pas de default_scope (anti-pattern) — utiliser les scopes explicites
+  #       .active / .with_deleted / .only_deleted (audit point M2 / P4.6).
 
   # Scope to include deleted records
   scope :with_deleted, -> { unscope(where: :deleted_at) }
+  scope :only_deleted, -> { where.not(deleted_at: nil) }
 
   # Instance methods for soft delete
   def discarded?
@@ -97,10 +99,14 @@ class Cra < ApplicationRecord
 
   # Associations via relation tables (Domain-Driven Architecture)
   has_many :cra_missions
-  has_many :missions, through: :cra_missions
+  # Scope explicite sur l'association : ne retourner que les missions non supprimées
+  # (audit point M2 / P4.6 — remplacement du default_scope de Mission).
+  has_many :missions, -> { where(deleted_at: nil) }, through: :cra_missions
 
   has_many :cra_entry_cras, dependent: :destroy
-  has_many :cra_entries, through: :cra_entry_cras
+  # Scope explicite sur l'association : ne retourner que les entries non supprimées
+  # (audit point M2 / P4.6 — remplacement du default_scope de CraEntry).
+  has_many :cra_entries, -> { where(deleted_at: nil) }, through: :cra_entry_cras
 
   # DDD Relation-Driven: CRA ↔ User via pivot table (ONLY path)
   has_many :user_cras, dependent: :destroy
@@ -119,6 +125,14 @@ class Cra < ApplicationRecord
   # @return [User, nil] the creator via user_cras pivot table
   def relation_creator
     @relation_creator ||= users.joins(:user_cras).where(user_cras: { role: 'creator' }).first
+  end
+
+  # P4.7 — Lit l'id du créateur via la table pivot user_cras (DDD Relation-Driven).
+  # La colonne legacy `created_by_user_id` a été supprimée (audit point M3) — la
+  # table pivot est désormais l'unique source de vérité.
+  # @return [Integer, nil] the creator user id via user_cras pivot
+  def creator_user_id
+    user_cras.find_by(role: 'creator')&.user_id
   end
 
   # @return [Array<User>] all users associated with this CRA
@@ -302,13 +316,6 @@ class Cra < ApplicationRecord
     end
 
     update(deleted_at: Time.current) if deleted_at.nil?
-  end
-
-  # BACKWARD COMPATIBILITY: Allow setting user via attribute assignment
-  # This enables tests using `create(:cra, user: user)` to work
-  # The actual business logic uses user_cras pivot table
-  def user=(user)
-    self.created_by_user_id = user.id if user.present?
   end
 
   private

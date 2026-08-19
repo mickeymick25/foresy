@@ -25,9 +25,13 @@ RSpec.describe 'Authentication - Login', type: :request do
       consumes 'application/json'
       produces 'application/json'
 
-      # Phase 1.6 - Using centralized LoginRequest schema with additionalProperties: false
-      parameter name: :auth, in: :body, required: true, schema: {
-        '$ref' => '#/components/schemas/loginRequest'
+      parameter name: :auth, in: :body, schema: {
+        type: :object,
+        properties: {
+          email: { type: :string },
+          password: { type: :string }
+        },
+        required: %w[email password]
       }
 
       response '200', 'user authenticated' do
@@ -51,8 +55,6 @@ RSpec.describe 'Authentication - Login', type: :request do
       end
 
       response '401', 'invalid credentials' do
-        schema '$ref' => '#/components/schemas/Error'
-
         let(:auth) { { email: 'wrong@example.com', password: 'wrongpassword' } }
 
         run_test! do |response|
@@ -62,14 +64,13 @@ RSpec.describe 'Authentication - Login', type: :request do
           rescue StandardError
             {}
           end
-          expect(data['error']['code']).to eq('unauthorized')
-          expect(data['error']['message']).to be_present
+          expect(data['code']).to eq('UNAUTHORIZED')
+          expect(data['message']).to be_present
+          expect(data.key?('error')).to be false
         end
       end
 
       response '401', 'missing password' do
-        schema '$ref' => '#/components/schemas/Error'
-
         let(:auth) { { email: valid_user.email, password: '' } }
 
         run_test! do |response|
@@ -79,14 +80,13 @@ RSpec.describe 'Authentication - Login', type: :request do
           rescue StandardError
             {}
           end
-          expect(data['error']['code']).to eq('unauthorized')
-          expect(data['error']['message']).to include('Password')
+          expect(data['code']).to eq('UNAUTHORIZED')
+          expect(data['message']).to eq('Password is required')
+          expect(data.key?('error')).to be false
         end
       end
 
       response '401', 'missing email' do
-        schema '$ref' => '#/components/schemas/Error'
-
         let(:auth) { { email: '', password: 'password123' } }
 
         run_test! do |response|
@@ -96,14 +96,13 @@ RSpec.describe 'Authentication - Login', type: :request do
           rescue StandardError
             {}
           end
-          expect(data['error']['code']).to eq('unauthorized')
-          expect(data['error']['message']).to include('Email')
+          expect(data['code']).to eq('UNAUTHORIZED')
+          expect(data['message']).to eq('Email is required')
+          expect(data.key?('error')).to be false
         end
       end
 
       response '403', 'inactive user' do
-        schema '$ref' => '#/components/schemas/Error'
-
         let(:auth) { { email: inactive_user.email, password: 'password123' } }
 
         run_test! do |response|
@@ -113,8 +112,9 @@ RSpec.describe 'Authentication - Login', type: :request do
           rescue StandardError
             {}
           end
-          expect(data['error']['code']).to eq('forbidden')
-          expect(data['error']['message']).to include('Account is inactive')
+          expect(data['code']).to eq('FORBIDDEN')
+          expect(data['message']).to include('Account is inactive')
+          expect(data.key?('error')).to be false
         end
       end
     end

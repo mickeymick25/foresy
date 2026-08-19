@@ -59,7 +59,7 @@ RSpec.describe MissionServices::Delete do
     # ============================================
 
     describe 'when user is NOT the creator (permission denied)' do
-      let(:mission) { create(:mission, created_by_user_id: other_user.id) }
+      let(:mission) { create(:mission, :with_creator, creator: other_user) }
 
       it 'returns forbidden' do
         expect(call.success?).to be false
@@ -83,7 +83,7 @@ RSpec.describe MissionServices::Delete do
 
     describe 'when mission has CRA entries (mission_in_use)' do
       let(:mission) { create(:mission) }
-      let(:cra) { create(:cra, user: current_user) }
+      let(:cra) { create(:cra, :with_creator, creator: current_user) }
 
       before do
         # Create creator association first

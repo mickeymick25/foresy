@@ -8,7 +8,7 @@ RSpec.describe 'CRAs - Create', type: :request do
   let(:Authorization) { "Bearer #{user_token}" }
 
   let(:company) { create(:company) }
-  let(:mission) { create(:mission, :time_based, created_by_user_id: user.id) }
+  let(:mission) { create(:mission, :time_based, :with_creator, creator: user) }
 
   before do
     create(:user_company, user: user, company: company, role: 'independent')

@@ -177,6 +177,17 @@ docker compose exec web bundle exec brakeman -q
 3. **[🧪 Organisation des Tests](./technical/tests_organization.md)** - Guide complet de l'organisation des tests RSpec (Acceptance, Integration, Unit, API)
 4. **[Corrections 19 Décembre 2025](./technical/corrections/2025-12-19-CI_Configuration_Fix_Resolution.md)** - Résolution problèmes CI historiques
 
+### 🏗️ **Plan de Remédiation Architecture (22/07/2026)**
+1. **[📋 Audit & Plan Principal](./technical/audits/2026-07-22-Architecture_Debt_Audit_and_Plan.md)** - Audit complet (25 points) + plan d'implémentation (23 tâches en 6 phases) + tableau de bord de suivi
+2. **[📁 Suivi par Phase](./technical/[Done]_remediation/README.md)** - Navigation vers les 7 sous-documents de suivi détaillé (P0 à P6)
+3. **[🔴 Phase 0 — Sécurité Critique](./technical/[Done]_remediation/phase-0-securite.md)** - Routes test, `puts` JWT, fuite erreurs OAuth
+4. **[🔴 Phase 1 — Stabilisation Runtime](./technical/[Done]_remediation/phase-1-stabilisation.md)** - Crash `Domain::CraEntry`, conflit `rescue_from`
+5. **[🟡 Phase 2 — Unification Erreurs](./technical/[Done]_remediation/phase-2-unification-erreurs.md)** - Phase 1.9 + suppression `ErrorRenderable` + `render_fc07_error`
+6. **[🟡 Phase 3 — Nettoyage Code Mort](./technical/[Done]_remediation/phase-3-nettoyage-code-mort.md)** - ~2700 lignes `app/lib` + concerns orphelins
+7. **[🟡 Phase 4 — Cohérence Architecturale](./technical/[Done]_remediation/phase-4-coherence-architecturale.md)** - Héritage contrôleurs, IP rate limit, services missions
+8. **[🟢 Phase 5 — DB & Config](./technical/[Done]_remediation/phase-5-db-config.md)** - UUID natif, enum PG, module `Foresy`, `load_defaults`
+9. **[🟢 Phase 6 — Hardening Final](./technical/[Done]_remediation/phase-6-hardening-final.md)** - GitLedger shell, `CraEntry` nettoyage, `users` PK
+
 ### 🔍 **Analyses Techniques Récentes (Décembre 2025)**
 1. **[🔧 pgcrypto UUID Alternatives](./technical/analysis/pgcrypto_alternatives_analysis.md)** - **CRITIQUE** - Migration UUID sans pgcrypto
 2. **[🚫 GoogleOAuth2Service Mock Removal](./technical/analysis/google_oauth_service_mock_solution.md)** - **CRITIQUE** - Suppression service mock mal placé
@@ -184,7 +195,7 @@ docker compose exec web bundle exec brakeman -q
 4. **[🛡️ CSRF Security Analysis](./technical/analysis/csrf_security_analysis_same_site_none.md)** - **CRITIQUE** - Analyse risque CSRF et sécurisation
 
 ### 📊 **Pour les Modifications Récentes**
-1. **[🔴 FC-07 CRA 03/01/2026](./technical/corrections/2026-01-03-FC07_Concerns_Namespace_Fix.md)** - **EN COURS** - FC-07 CRA - Exception 500 à identifier (corrections Zeitwerk appliquées) (03/01/2026)
+1. **[🔴 FC-07 CRA 03/01/2026](./technical/corrections/2026-01-03-FC07_Concerns_Namespace_Fix.md)** - **✅ TERMINÉ** - FC-07 CRA 100% terminé (TDD Platinum, 449 tests)
 2. **[🎯 FC-06 Missions 31/12/2025](./technical/changes/2025-12-31-FC06_Missions_Implementation.md)** - **MAJEUR** - Feature Contract 06 Missions complet, 290 tests OK, 0 vulnérabilités (31/12/2025)
 2. **[🚀 Migration Rails 8.1.1 26/12/2025](./technical/changes/2025-12-26-Rails_8_1_1_Migration_Complete.md)** - **MAJEUR** - Upgrade complet Ruby 3.4.8 + Rails 8.1.1 (26/12/2025)
 3. **[🔒 Token Revocation Endpoints 24/12/2025](./technical/guides/token_revocation_strategy.md)** - Endpoints DELETE /revoke et /revoke_all pour invalidation des tokens (24/12/2025)

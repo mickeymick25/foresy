@@ -190,19 +190,31 @@ RSpec.describe 'API V1 OAuth', type: :request do
       # ============================================================
 
       response '400', 'invalid provider - provider not supported' do
-        schema '$ref' => '#/components/schemas/Error'
+        schema type: :object,
+               properties: {
+                 code: { type: :string, example: 'BAD_REQUEST', description: 'Error code' },
+                 message: { type: :string, example: 'Invalid OAuth provider', description: 'Error message' }
+               },
+               required: %w[code message]
 
         let(:provider) { 'facebook' }
         let(:body) { { code: 'auth_code', redirect_uri: 'https://client.app/callback' } }
 
         run_test! do |response|
           data = JSON.parse(response.body)
-          expect(data['error']['code']).to eq('invalid_provider')
+          expect(data['code']).to eq('BAD_REQUEST')
+          expect(data['message']).to eq('Invalid OAuth provider')
+          expect(data.key?('error')).to be false
         end
       end
 
       response '401', 'OAuth authentication failed - provider returns error' do
-        schema '$ref' => '#/components/schemas/Error'
+        schema type: :object,
+               properties: {
+                 code: { type: :string, example: 'UNAUTHORIZED', description: 'Error code' },
+                 message: { type: :string, example: 'OAuth authentication failed', description: 'Error message' }
+               },
+               required: %w[code message]
 
         let(:provider) { 'google_oauth2' }
         let(:body) { { code: 'invalid_auth_code', redirect_uri: 'https://client.app/callback' } }
@@ -213,36 +225,57 @@ RSpec.describe 'API V1 OAuth', type: :request do
 
         run_test! do |response|
           data = JSON.parse(response.body)
-          expect(data['error']['code']).to eq('oauth_failed')
+          expect(data['code']).to eq('UNAUTHORIZED')
+          expect(data['message']).to eq('OAuth authentication failed')
+          expect(data.key?('error')).to be false
         end
       end
 
       response '422', 'invalid payload - missing authorization code' do
-        schema '$ref' => '#/components/schemas/Error'
+        schema type: :object,
+               properties: {
+                 code: { type: :string, example: 'INVALID_PAYLOAD', description: 'Error code' },
+                 message: { type: :string, example: 'Invalid OAuth payload', description: 'Error message' }
+               },
+               required: %w[code message]
 
         let(:provider) { 'google_oauth2' }
         let(:body) { { redirect_uri: 'https://client.app/callback' } }
 
         run_test! do |response|
           data = JSON.parse(response.body)
-          expect(data['error']['code']).to eq('invalid_payload')
+          expect(data['code']).to eq('INVALID_PAYLOAD')
+          expect(data['message']).to eq('Invalid OAuth payload')
+          expect(data.key?('error')).to be false
         end
       end
 
       response '422', 'invalid payload - missing redirect_uri' do
-        schema '$ref' => '#/components/schemas/Error'
+        schema type: :object,
+               properties: {
+                 code: { type: :string, example: 'INVALID_PAYLOAD', description: 'Error code' },
+                 message: { type: :string, example: 'Invalid OAuth payload', description: 'Error message' }
+               },
+               required: %w[code message]
 
         let(:provider) { 'google_oauth2' }
         let(:body) { { code: 'auth_code' } }
 
         run_test! do |response|
           data = JSON.parse(response.body)
-          expect(data['error']['code']).to eq('invalid_payload')
+          expect(data['code']).to eq('INVALID_PAYLOAD')
+          expect(data['message']).to eq('Invalid OAuth payload')
+          expect(data.key?('error')).to be false
         end
       end
 
       response '422', 'invalid payload - missing email from provider' do
-        schema '$ref' => '#/components/schemas/Error'
+        schema type: :object,
+               properties: {
+                 code: { type: :string, example: 'INVALID_PAYLOAD', description: 'Error code' },
+                 message: { type: :string, example: 'Invalid OAuth payload', description: 'Error message' }
+               },
+               required: %w[code message]
 
         let(:provider) { 'google_oauth2' }
         let(:body) { { code: 'auth_code', redirect_uri: 'https://client.app/callback' } }
@@ -264,12 +297,19 @@ RSpec.describe 'API V1 OAuth', type: :request do
 
         run_test! do |response|
           data = JSON.parse(response.body)
-          expect(data['error']['code']).to eq('invalid_payload')
+          expect(data['code']).to eq('INVALID_PAYLOAD')
+          expect(data['message']).to eq('Invalid OAuth payload')
+          expect(data.key?('error')).to be false
         end
       end
 
       response '422', 'invalid payload - missing UID from provider' do
-        schema '$ref' => '#/components/schemas/Error'
+        schema type: :object,
+               properties: {
+                 code: { type: :string, example: 'INVALID_PAYLOAD', description: 'Error code' },
+                 message: { type: :string, example: 'Invalid OAuth payload', description: 'Error message' }
+               },
+               required: %w[code message]
 
         let(:provider) { 'google_oauth2' }
         let(:body) { { code: 'auth_code', redirect_uri: 'https://client.app/callback' } }
@@ -291,12 +331,19 @@ RSpec.describe 'API V1 OAuth', type: :request do
 
         run_test! do |response|
           data = JSON.parse(response.body)
-          expect(data['error']['code']).to eq('invalid_payload')
+          expect(data['code']).to eq('INVALID_PAYLOAD')
+          expect(data['message']).to eq('Invalid OAuth payload')
+          expect(data.key?('error')).to be false
         end
       end
 
       response '500', 'internal server error - token generation failed' do
-        schema '$ref' => '#/components/schemas/Error'
+        schema type: :object,
+               properties: {
+                 code: { type: :string, example: 'INTERNAL_SERVER_ERROR', description: 'Error code' },
+                 message: { type: :string, description: 'Error message' }
+               },
+               required: %w[code message]
 
         let(:provider) { 'google_oauth2' }
         let(:body) { { code: 'auth_code', redirect_uri: 'https://client.app/callback' } }
@@ -340,7 +387,8 @@ RSpec.describe 'API V1 OAuth', type: :request do
 
         run_test! do |response|
           data = JSON.parse(response.body)
-          expect(data['error']['code']).to eq('internal_error')
+          expect(data['code']).to eq('INTERNAL_SERVER_ERROR')
+          expect(data.key?('error')).to be false
         end
       end
     end
@@ -353,12 +401,18 @@ RSpec.describe 'API V1 OAuth', type: :request do
       produces 'application/json'
 
       response '401', 'OAuth authentication failed' do
-        schema '$ref' => '#/components/schemas/Error'
+        schema type: :object,
+               properties: {
+                 code: { type: :string, example: 'UNAUTHORIZED', description: 'Error code' },
+                 message: { type: :string, example: 'OAuth authentication failed', description: 'Error message' }
+               },
+               required: %w[code message]
 
         run_test! do |response|
           data = JSON.parse(response.body)
-          expect(data['error']['code']).to eq('oauth_failed')
-          expect(data['error']['message']).to be_present
+          expect(data['code']).to eq('UNAUTHORIZED')
+          expect(data['message']).to be_present
+          expect(data.key?('error')).to be false
         end
       end
     end

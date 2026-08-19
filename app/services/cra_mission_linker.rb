@@ -54,14 +54,14 @@ class CraMissionLinker
     def get_missions_for_cra(cra_id)
       return Mission.none unless cra_id.present?
 
-      Mission.joins(:cra_missions).where(cra_missions: { cra_id: cra_id })
+      Mission.active.joins(:cra_missions).where(cra_missions: { cra_id: cra_id })
     end
 
     # Récupère tous les CRAs liés à une mission
     def get_cras_for_mission(mission_id)
       return Cra.none unless mission_id.present?
 
-      Cra.joins(:cra_missions).where(cra_missions: { mission_id: mission_id })
+      Cra.active.joins(:cra_missions).where(cra_missions: { mission_id: mission_id })
     end
 
     # Supprime le lien entre un CRA et une mission
@@ -80,8 +80,8 @@ class CraMissionLinker
         cra_exists: Cra.with_deleted.exists?(id: cra_id),
         mission_exists: Mission.with_deleted.exists?(id: mission_id),
         already_linked: mission_linked_to_cra?(cra_id, mission_id),
-        cra_status: Cra.find_by(id: cra_id)&.status,
-        mission_name: Mission.find_by(id: mission_id)&.name
+        cra_status: Cra.active.find_by(id: cra_id)&.status,
+        mission_name: Mission.active.find_by(id: mission_id)&.name
       }.compact
     end
 

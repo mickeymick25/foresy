@@ -43,7 +43,7 @@ class CraEntryServices::Update
     end
 
     # Vérification des permissions
-    unless @cra_entry.cra.created_by_user_id == @current_user.id
+    unless @cra_entry.cra.creator_user_id == @current_user.id
       return ApplicationResult.forbidden(
         error: :insufficient_permissions,
         message: 'Only the CRA creator can update entries'

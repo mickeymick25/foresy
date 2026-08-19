@@ -35,7 +35,6 @@ FactoryBot.define do
       end
 
       after(:create) do |mission, evaluator|
-        mission.update!(created_by_user_id: evaluator.creator.id)
         create(:user_mission, mission: mission, user: evaluator.creator, role: 'creator')
       end
     end

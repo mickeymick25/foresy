@@ -47,9 +47,12 @@ RSpec.describe 'API V1 Users', type: :request do
 
         run_test! do |response|
           data = JSON.parse(response.body)
-          expect(data['error']).to eq('Validation Failed')
-          expect(data['message']).to be_an(Array)
+          expect(data['code']).to eq('INVALID_PAYLOAD')
+          expect(data['message']).to be_a(String)
           expect(data['message']).not_to be_empty
+          expect(data['details']['errors']).to be_an(Array)
+          expect(data['details']['errors']).not_to be_empty
+          expect(data.key?('error')).to be false
         end
       end
     end

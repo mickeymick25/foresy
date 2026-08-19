@@ -48,9 +48,11 @@ Rails.application.routes.draw do
   end
 
   # E2E Test Support Routes - ONLY mounted in test mode or when E2E_MODE=true
-  # 🔐 SECURITY: These routes are NOT accessible in production
+  # 🔐 SECURITY: These routes are NOT accessible in production, even if
+  # E2E_MODE=true is accidentally set. The `!Rails.env.production?` guard
+  # is the primary gate; SetupController#verify_e2e_mode! is defense in depth.
   # ⚠️ Any exposure in production is a CRITICAL security flaw
-  if Rails.env.test? || ENV['E2E_MODE'] == 'true'
+  if Rails.env.test? || (ENV['E2E_MODE'] == 'true' && !Rails.env.production?)
     namespace :__test_support__, path: '__test_support__' do
       namespace :e2e, path: 'e2e' do
         post 'setup', to: 'setup#create'

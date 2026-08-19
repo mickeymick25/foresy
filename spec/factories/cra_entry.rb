@@ -2,6 +2,25 @@
 
 FactoryBot.define do
   factory :cra_entry do
+    # Transient attributes for DDD-compliant association creation
+    # Replaces the removed attr_writer :cra, :mission (P6.2 cleanup)
+    transient do
+      cra { nil }
+      mission { nil }
+    end
+
+    # Set transient @cra/@mission before save (for model validations that read them)
+    # and create DB relations after save (DDD relation-driven architecture)
+    after(:build) do |cra_entry, evaluator|
+      cra_entry.instance_variable_set(:@cra, evaluator.cra) if evaluator.cra
+      cra_entry.instance_variable_set(:@mission, evaluator.mission) if evaluator.mission
+    end
+
+    after(:create) do |cra_entry, evaluator|
+      create(:cra_entry_cra, cra: evaluator.cra, cra_entry: cra_entry) if evaluator.cra
+      create(:cra_entry_mission, mission: evaluator.mission, cra_entry: cra_entry) if evaluator.mission
+    end
+
     # Core business fields with realistic values
     date { Faker::Date.between(from: 1.year.ago, to: Date.current) }
     quantity { 1 }

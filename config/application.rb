@@ -10,7 +10,7 @@ require 'redis'
 # you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
-module App
+module Foresy
   # Application class for initializing the Rails application.
   # This class is responsible for setting up the configuration defaults
   # and loading the necessary gems, middleware, and other resources.
@@ -23,7 +23,7 @@ module App
   # - `config.autoload_lib` customizes the autoload paths for libraries.
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 7.1
+    config.load_defaults 8.1
 
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.

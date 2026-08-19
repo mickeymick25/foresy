@@ -28,7 +28,8 @@
 # - .by_siren: find company by SIREN number
 class Company < ApplicationRecord
   # Soft delete implementation (manual, no gem dependency)
-  default_scope { where(deleted_at: nil) }
+  # NOTE: Pas de default_scope (anti-pattern) — utiliser les scopes explicites
+  #       .active / .with_deleted / .only_deleted (audit point M2 / P4.6).
 
   # Method to soft delete a record
   def discard
@@ -74,10 +75,14 @@ class Company < ApplicationRecord
   has_many :users, through: :user_companies
 
   has_many :mission_companies, dependent: :destroy
-  has_many :missions, through: :mission_companies
+  # Scope explicite sur l'association : ne retourner que les missions non supprimées
+  # (audit point M2 / P4.6 — remplacement du default_scope de Mission).
+  has_many :missions, -> { where(deleted_at: nil) }, through: :mission_companies
 
   # Scopes
   scope :active, -> { where(deleted_at: nil) }
+  scope :with_deleted, -> { unscope(where: :deleted_at) }
+  scope :only_deleted, -> { where.not(deleted_at: nil) }
   scope :by_siret, ->(siret) { where(siret: siret&.gsub(/\s+/, '')) }
   scope :by_siren, ->(siren) { where(siren: siren&.gsub(/\s+/, '')) }
   scope :with_role, lambda { |role|

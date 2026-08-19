@@ -19,7 +19,7 @@ module GitLedgerPayload
         'currency' => cra.currency,
         'description' => cra.description,
         'status' => cra.status,
-        'created_by_user_id' => cra.created_by_user_id,
+        'created_by_user_id' => cra.creator_user_id,
         'created_at' => cra.created_at.iso8601,
         'updated_at' => cra.updated_at.iso8601
       }

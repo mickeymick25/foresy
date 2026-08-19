@@ -4,7 +4,7 @@ require 'rails_helper'
 
 RSpec.describe CraServices::Export do
   let(:current_user) { create(:user) }
-  let(:cra) { create(:cra, created_by_user_id: current_user.id, status: 'submitted') }
+  let(:cra) { create(:cra, :with_creator, creator: current_user, status: 'submitted') }
 
   describe '.call' do
     describe 'input validation' do
@@ -42,7 +42,7 @@ RSpec.describe CraServices::Export do
 
     describe 'lifecycle validation' do
       it 'returns failure when CRA is draft' do
-        draft_cra = create(:cra, created_by_user_id: current_user.id, status: 'draft')
+        draft_cra = create(:cra, :with_creator, creator: current_user, status: 'draft')
         result = described_class.call(cra: draft_cra, current_user: current_user)
 
         expect(result).to be_failure
@@ -51,7 +51,7 @@ RSpec.describe CraServices::Export do
       end
 
       it 'succeeds when CRA is submitted' do
-        submitted_cra = create(:cra, created_by_user_id: current_user.id, status: 'submitted')
+        submitted_cra = create(:cra, :with_creator, creator: current_user, status: 'submitted')
         result = described_class.call(cra: submitted_cra, current_user: current_user)
 
         # Should succeed past lifecycle check (may fail on CSV generation if no entries)
@@ -117,7 +117,7 @@ RSpec.describe CraServices::Export do
 
     describe 'export without entries' do
       it 'succeeds with no entries' do
-        cra_without_entries = create(:cra, created_by_user_id: current_user.id, status: 'submitted')
+        cra_without_entries = create(:cra, :with_creator, creator: current_user, status: 'submitted')
 
         result = described_class.call(cra: cra_without_entries, current_user: current_user)
 
