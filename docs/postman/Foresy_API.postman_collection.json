@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Foresy API",
-    "description": "Collection Postman pour tester l'API Foresy en production et développement",
+    "description": "Collection Postman pour tester l'API Foresy en production et développement.\n\n## Contrat d'erreur standardisé\n\nToutes les erreurs retournent : `{ \"code\": \"ERROR_CODE\", \"message\": \"...\", \"details\": {} }`\n\n## Variables\n\n- `base_url` : API en production (Render)\n- `base_url_local` : API en local\n- `jwt_token` / `refresh_token` : renseignés automatiquement par les scripts de test (signup/login/refresh)\n- `mission_id` / `cra_id` / `entry_id` : renseignés automatiquement après création",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -26,22 +26,17 @@
       "type": "string"
     },
     {
-      "key": "google_client_id",
-      "value": "YOUR_GOOGLE_CLIENT_ID",
-      "type": "string"
-    },
-    {
-      "key": "github_client_id",
-      "value": "YOUR_GITHUB_CLIENT_ID",
-      "type": "string"
-    },
-    {
-      "key": "oauth_code",
+      "key": "mission_id",
       "value": "",
       "type": "string"
     },
     {
-      "key": "mission_id",
+      "key": "cra_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "entry_id",
       "value": "",
       "type": "string"
     },
@@ -54,9 +49,10 @@
   "item": [
     {
       "name": "Health",
+      "description": "Endpoints de santé de l'API (publics).",
       "item": [
         {
-          "name": "Status API",
+          "name": "Root - API Status",
           "request": {
             "method": "GET",
             "header": [],
@@ -65,7 +61,7 @@
               "host": ["{{base_url}}"],
               "path": [""]
             },
-            "description": "Vérifie que l'API est en ligne"
+            "description": "Racine de l'API. Retourne `{\"status\":\"API is live\"}`."
           },
           "response": []
         },
@@ -79,7 +75,7 @@
               "host": ["{{base_url}}"],
               "path": ["health"]
             },
-            "description": "Endpoint de health check pour Render"
+            "description": "Endpoint de health check pour Render."
           },
           "response": []
         }
@@ -87,6 +83,7 @@
     },
     {
       "name": "Authentication",
+      "description": "Inscription, connexion, refresh, logout, révocation de tokens et OAuth.\n\n## Contrat d'erreur\n\nErreurs standardisées : `{ \"code\": \"ERROR_CODE\", \"message\": \"...\", \"details\": {} }`",
       "item": [
         {
           "name": "Signup",
@@ -95,15 +92,18 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "if (pm.response.code === 201) {",
-                  "    var jsonData = pm.response.json();",
-                  "    if (jsonData.token) {",
-                  "        pm.collectionVariables.set('jwt_token', jsonData.token);",
+                  "pm.test('Signup response is valid', function () {",
+                  "    if (pm.response.code === 201) {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.test('Token present', function () { pm.expect(jsonData.token).to.not.be.empty; });",
+                  "        if (jsonData.token) {",
+                  "            pm.collectionVariables.set('jwt_token', jsonData.token);",
+                  "        }",
+                  "        if (jsonData.refresh_token) {",
+                  "            pm.collectionVariables.set('refresh_token', jsonData.refresh_token);",
+                  "        }",
                   "    }",
-                  "    if (jsonData.refresh_token) {",
-                  "        pm.collectionVariables.set('refresh_token', jsonData.refresh_token);",
-                  "    }",
-                  "}"
+                  "});"
                 ],
                 "type": "text/javascript"
               }
@@ -114,19 +114,20 @@
             "header": [
               {
                 "key": "Content-Type",
-                "value": "application/json"
+                "value": "application/json",
+                "type": "text"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"testuser@example.com\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\"\n}"
+              "raw": "{\n  \"email\": \"test@foresy.com\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/v1/signup",
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "signup"]
             },
-            "description": "Créer un nouvel utilisateur. Retourne token + refresh_token."
+            "description": "Créer un nouveau compte. Retourne `token` + `refresh_token` (HTTP 201)."
           },
           "response": []
         },
@@ -137,15 +138,18 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "if (pm.response.code === 200) {",
-                  "    var jsonData = pm.response.json();",
-                  "    if (jsonData.token) {",
-                  "        pm.collectionVariables.set('jwt_token', jsonData.token);",
+                  "pm.test('Login response is valid', function () {",
+                  "    if (pm.response.code === 200) {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.test('Token present', function () { pm.expect(jsonData.token).to.not.be.empty; });",
+                  "        if (jsonData.token) {",
+                  "            pm.collectionVariables.set('jwt_token', jsonData.token);",
+                  "        }",
+                  "        if (jsonData.refresh_token) {",
+                  "            pm.collectionVariables.set('refresh_token', jsonData.refresh_token);",
+                  "        }",
                   "    }",
-                  "    if (jsonData.refresh_token) {",
-                  "        pm.collectionVariables.set('refresh_token', jsonData.refresh_token);",
-                  "    }",
-                  "}"
+                  "});"
                 ],
                 "type": "text/javascript"
               }
@@ -156,19 +160,20 @@
             "header": [
               {
                 "key": "Content-Type",
-                "value": "application/json"
+                "value": "application/json",
+                "type": "text"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"testuser@example.com\",\n  \"password\": \"password123\"\n}"
+              "raw": "{\n  \"email\": \"test@foresy.com\",\n  \"password\": \"password123\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/v1/auth/login",
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "auth", "login"]
             },
-            "description": "Connexion utilisateur - retourne un JWT token et refresh_token"
+            "description": "Connexion (email + password). Retourne `token` + `refresh_token` (HTTP 200)."
           },
           "response": []
         },
@@ -179,15 +184,17 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "if (pm.response.code === 200) {",
-                  "    var jsonData = pm.response.json();",
-                  "    if (jsonData.token) {",
-                  "        pm.collectionVariables.set('jwt_token', jsonData.token);",
+                  "pm.test('Refresh response is valid', function () {",
+                  "    if (pm.response.code === 200) {",
+                  "        var jsonData = pm.response.json();",
+                  "        if (jsonData.token) {",
+                  "            pm.collectionVariables.set('jwt_token', jsonData.token);",
+                  "        }",
+                  "        if (jsonData.refresh_token) {",
+                  "            pm.collectionVariables.set('refresh_token', jsonData.refresh_token);",
+                  "        }",
                   "    }",
-                  "    if (jsonData.refresh_token) {",
-                  "        pm.collectionVariables.set('refresh_token', jsonData.refresh_token);",
-                  "    }",
-                  "}"
+                  "});"
                 ],
                 "type": "text/javascript"
               }
@@ -198,7 +205,8 @@
             "header": [
               {
                 "key": "Content-Type",
-                "value": "application/json"
+                "value": "application/json",
+                "type": "text"
               }
             ],
             "body": {
@@ -210,7 +218,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "auth", "refresh"]
             },
-            "description": "Rafraîchir le JWT token en utilisant le refresh_token"
+            "description": "Rafraîchir le JWT à partir du `refresh_token`. Invalide l'ancien refresh_token (rotation)."
           },
           "response": []
         },
@@ -221,7 +229,8 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
               }
             ],
             "url": {
@@ -229,242 +238,68 @@
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "auth", "logout"]
             },
-            "description": "Déconnexion - invalide la session"
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "OAuth",
-      "description": "Endpoints OAuth pour Google et GitHub.\n\n## Flow OAuth:\n1. Ouvrir l'URL d'autorisation dans un navigateur\n2. Se connecter et autoriser l'application\n3. Copier le code de l'URL de redirection\n4. Utiliser le code dans la requête callback\n\n⚠️ Les codes OAuth expirent en ~30 secondes!",
-      "item": [
-        {
-          "name": "📋 Google - Get Auth URL (Copy to Browser)",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "https://accounts.google.com/o/oauth2/v2/auth?client_id={{google_client_id}}&redirect_uri={{base_url}}/api/v1/auth/google_oauth2/callback&response_type=code&scope=email%20profile&prompt=select_account",
-              "protocol": "https",
-              "host": ["accounts", "google", "com"],
-              "path": ["o", "oauth2", "v2", "auth"],
-              "query": [
-                { "key": "client_id", "value": "{{google_client_id}}" },
-                {
-                  "key": "redirect_uri",
-                  "value": "{{base_url}}/api/v1/auth/google_oauth2/callback"
-                },
-                { "key": "response_type", "value": "code" },
-                { "key": "scope", "value": "email profile" },
-                { "key": "prompt", "value": "select_account" }
-              ]
-            },
-            "description": "⚠️ NE PAS EXECUTER DANS POSTMAN!\n\nCopiez cette URL et ouvrez-la dans votre navigateur pour obtenir un code OAuth Google.\n\nAprès autorisation, copiez le 'code' de l'URL de redirection."
+            "description": "Déconnexion — invalide la session courante (requiert Authorization)."
           },
           "response": []
         },
         {
-          "name": "📋 Google - Get Auth URL LOCAL (Copy to Browser)",
+          "name": "Revoke Token",
           "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "https://accounts.google.com/o/oauth2/v2/auth?client_id={{google_client_id}}&redirect_uri={{base_url_local}}/api/v1/auth/google_oauth2/callback&response_type=code&scope=email%20profile&prompt=select_account",
-              "protocol": "https",
-              "host": ["accounts", "google", "com"],
-              "path": ["o", "oauth2", "v2", "auth"],
-              "query": [
-                { "key": "client_id", "value": "{{google_client_id}}" },
-                {
-                  "key": "redirect_uri",
-                  "value": "{{base_url_local}}/api/v1/auth/google_oauth2/callback"
-                },
-                { "key": "response_type", "value": "code" },
-                { "key": "scope", "value": "email profile" },
-                { "key": "prompt", "value": "select_account" }
-              ]
-            },
-            "description": "⚠️ NE PAS EXECUTER DANS POSTMAN!\n\nVersion LOCALHOST - Copiez cette URL et ouvrez-la dans votre navigateur pour obtenir un code OAuth Google.\n\nAprès autorisation, copiez le 'code' de l'URL de redirection."
-          },
-          "response": []
-        },
-        {
-          "name": "Google OAuth Callback (Production)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "if (pm.response.code === 200) {",
-                  "    var jsonData = pm.response.json();",
-                  "    if (jsonData.token) {",
-                  "        pm.collectionVariables.set('jwt_token', jsonData.token);",
-                  "    }",
-                  "}"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
+            "method": "DELETE",
             "header": [
               {
-                "key": "Content-Type",
-                "value": "application/json"
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"code\": \"{{oauth_code}}\",\n  \"redirect_uri\": \"{{base_url}}/api/v1/auth/google_oauth2/callback\"\n}"
-            },
             "url": {
-              "raw": "{{base_url}}/api/v1/auth/google_oauth2/callback",
+              "raw": "{{base_url}}/api/v1/auth/revoke",
               "host": ["{{base_url}}"],
-              "path": ["api", "v1", "auth", "google_oauth2", "callback"]
+              "path": ["api", "v1", "auth", "revoke"]
             },
-            "description": "OAuth Google - Envoyer le code d'autorisation reçu de Google.\n\n⚠️ Le code expire en ~30 secondes!\n\nRemplacez {{oauth_code}} par le code obtenu via l'URL d'autorisation."
+            "description": "Révoque le token courant (requiert Authorization)."
           },
           "response": []
         },
         {
-          "name": "Google OAuth Callback (Local)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "if (pm.response.code === 200) {",
-                  "    var jsonData = pm.response.json();",
-                  "    if (jsonData.token) {",
-                  "        pm.collectionVariables.set('jwt_token', jsonData.token);",
-                  "    }",
-                  "}"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "name": "Revoke All Tokens",
           "request": {
-            "method": "POST",
+            "method": "DELETE",
             "header": [
               {
-                "key": "Content-Type",
-                "value": "application/json"
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"code\": \"{{oauth_code}}\",\n  \"redirect_uri\": \"{{base_url_local}}/api/v1/auth/google_oauth2/callback\"\n}"
-            },
             "url": {
-              "raw": "{{base_url_local}}/api/v1/auth/google_oauth2/callback",
-              "host": ["{{base_url_local}}"],
-              "path": ["api", "v1", "auth", "google_oauth2", "callback"]
-            },
-            "description": "OAuth Google LOCAL - Envoyer le code d'autorisation reçu de Google.\n\n⚠️ Le code expire en ~30 secondes!"
-          },
-          "response": []
-        },
-        {
-          "name": "📋 GitHub - Get Auth URL (Copy to Browser)",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "https://github.com/login/oauth/authorize?client_id={{github_client_id}}&redirect_uri={{base_url}}/api/v1/auth/github/callback&scope=user:email",
-              "protocol": "https",
-              "host": ["github", "com"],
-              "path": ["login", "oauth", "authorize"],
-              "query": [
-                { "key": "client_id", "value": "{{github_client_id}}" },
-                {
-                  "key": "redirect_uri",
-                  "value": "{{base_url}}/api/v1/auth/github/callback"
-                },
-                { "key": "scope", "value": "user:email" }
-              ]
-            },
-            "description": "⚠️ NE PAS EXECUTER DANS POSTMAN!\n\nCopiez cette URL et ouvrez-la dans votre navigateur pour obtenir un code OAuth GitHub.\n\nAprès autorisation, copiez le 'code' de l'URL de redirection."
-          },
-          "response": []
-        },
-        {
-          "name": "📋 GitHub - Get Auth URL LOCAL (Copy to Browser)",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "https://github.com/login/oauth/authorize?client_id={{github_client_id}}&redirect_uri={{base_url_local}}/api/v1/auth/github/callback&scope=user:email",
-              "protocol": "https",
-              "host": ["github", "com"],
-              "path": ["login", "oauth", "authorize"],
-              "query": [
-                { "key": "client_id", "value": "{{github_client_id}}" },
-                {
-                  "key": "redirect_uri",
-                  "value": "{{base_url_local}}/api/v1/auth/github/callback"
-                },
-                { "key": "scope", "value": "user:email" }
-              ]
-            },
-            "description": "⚠️ NE PAS EXECUTER DANS POSTMAN!\n\nVersion LOCALHOST - Copiez cette URL et ouvrez-la dans votre navigateur pour obtenir un code OAuth GitHub.\n\nAprès autorisation, copiez le 'code' de l'URL de redirection."
-          },
-          "response": []
-        },
-        {
-          "name": "GitHub OAuth Callback (Production)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "if (pm.response.code === 200) {",
-                  "    var jsonData = pm.response.json();",
-                  "    if (jsonData.token) {",
-                  "        pm.collectionVariables.set('jwt_token', jsonData.token);",
-                  "    }",
-                  "}"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"code\": \"{{oauth_code}}\",\n  \"redirect_uri\": \"{{base_url}}/api/v1/auth/github/callback\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/auth/github/callback",
+              "raw": "{{base_url}}/api/v1/auth/revoke_all",
               "host": ["{{base_url}}"],
-              "path": ["api", "v1", "auth", "github", "callback"]
+              "path": ["api", "v1", "auth", "revoke_all"]
             },
-            "description": "OAuth GitHub - Envoyer le code d'autorisation reçu de GitHub.\n\n⚠️ Le code expire rapidement!\n\nRemplacez {{oauth_code}} par le code obtenu via l'URL d'autorisation."
+            "description": "Révoque tous les tokens de l'utilisateur courant (requiert Authorization)."
           },
           "response": []
         },
         {
-          "name": "GitHub OAuth Callback (Local)",
+          "name": "OAuth Callback",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "if (pm.response.code === 200) {",
-                  "    var jsonData = pm.response.json();",
-                  "    if (jsonData.token) {",
-                  "        pm.collectionVariables.set('jwt_token', jsonData.token);",
+                  "pm.test('OAuth callback response is valid', function () {",
+                  "    if (pm.response.code === 200) {",
+                  "        var jsonData = pm.response.json();",
+                  "        if (jsonData.token) {",
+                  "            pm.collectionVariables.set('jwt_token', jsonData.token);",
+                  "        }",
+                  "        if (jsonData.refresh_token) {",
+                  "            pm.collectionVariables.set('refresh_token', jsonData.refresh_token);",
+                  "        }",
                   "    }",
-                  "}"
+                  "});"
                 ],
                 "type": "text/javascript"
               }
@@ -475,19 +310,27 @@
             "header": [
               {
                 "key": "Content-Type",
-                "value": "application/json"
+                "value": "application/json",
+                "type": "text"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"code\": \"{{oauth_code}}\",\n  \"redirect_uri\": \"{{base_url_local}}/api/v1/auth/github/callback\"\n}"
+              "raw": "{\n  \"code\": \"{{oauth_code}}\",\n  \"redirect_uri\": \"{{base_url}}/api/v1/auth/{{provider}}/callback\"\n}"
             },
             "url": {
-              "raw": "{{base_url_local}}/api/v1/auth/github/callback",
-              "host": ["{{base_url_local}}"],
-              "path": ["api", "v1", "auth", "github", "callback"]
+              "raw": "{{base_url}}/api/v1/auth/{{provider}}/callback",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "{{provider}}", "callback"],
+              "variable": [
+                {
+                  "key": "provider",
+                  "value": "google_oauth2",
+                  "description": "Provider OAuth : `google_oauth2` ou `github`"
+                }
+              ]
             },
-            "description": "OAuth GitHub LOCAL - Envoyer le code d'autorisation reçu de GitHub.\n\n⚠️ Le code expire rapidement!"
+            "description": "OAuth callback — envoie le code d'autorisation reçu du provider.\n\nProviders supportés : `google_oauth2`, `github`.\n\n⚠️ Le code OAuth expire en ~30 secondes. Remplacez `{{oauth_code}}` par le code obtenu via l'URL d'autorisation du provider."
           },
           "response": []
         },
@@ -501,28 +344,32 @@
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "auth", "failure"]
             },
-            "description": "Endpoint appelé en cas d'échec OAuth"
+            "description": "Endpoint appelé en cas d'échec OAuth."
           },
           "response": []
         }
       ]
     },
     {
-      "name": "Missions (FC-06)",
-      "description": "Feature Contract 06 - Gestion des missions professionnelles pour indépendants",
+      "name": "Missions",
+      "description": "Gestion des missions professionnelles (requiert Authorization pour tous les endpoints).",
       "item": [
         {
-          "name": "Create Mission (time_based)",
+          "name": "Create Mission",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "if (pm.response.code === 201) {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.collectionVariables.set('mission_id', jsonData.id);",
-                  "    console.log('Mission created with ID:', jsonData.id);",
-                  "}"
+                  "pm.test('Mission created', function () {",
+                  "    if (pm.response.code === 201) {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.test('Mission ID present', function () { pm.expect(jsonData.id).to.not.be.empty; });",
+                  "        if (jsonData.id) {",
+                  "            pm.collectionVariables.set('mission_id', jsonData.id);",
+                  "        }",
+                  "    }",
+                  "});"
                 ],
                 "type": "text/javascript"
               }
@@ -533,65 +380,25 @@
             "header": [
               {
                 "key": "Content-Type",
-                "value": "application/json"
+                "value": "application/json",
+                "type": "text"
               },
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Mission Data Platform\",\n  \"description\": \"Backend architecture and API development\",\n  \"mission_type\": \"time_based\",\n  \"status\": \"lead\",\n  \"start_date\": \"2025-01-15\",\n  \"daily_rate\": 60000,\n  \"currency\": \"EUR\"\n}"
+              "raw": "{\n  \"name\": \"Mission Test\",\n  \"description\": \"Description de test\",\n  \"mission_type\": \"time_based\",\n  \"status\": \"lead\",\n  \"start_date\": \"2026-01-01\",\n  \"daily_rate\": 50000,\n  \"currency\": \"EUR\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/v1/missions",
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "missions"]
             },
-            "description": "Crée une nouvelle mission time_based (TJM). Requiert une company independent liée à l'utilisateur."
-          },
-          "response": []
-        },
-        {
-          "name": "Create Mission (fixed_price)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "if (pm.response.code === 201) {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.collectionVariables.set('mission_id', jsonData.id);",
-                  "    console.log('Mission created with ID:', jsonData.id);",
-                  "}"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Website Redesign Project\",\n  \"description\": \"Complete website redesign with new branding\",\n  \"mission_type\": \"fixed_price\",\n  \"status\": \"lead\",\n  \"start_date\": \"2025-02-01\",\n  \"end_date\": \"2025-04-30\",\n  \"fixed_price\": 2500000,\n  \"currency\": \"EUR\",\n  \"client_company_id\": \"{{client_company_id}}\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/missions",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "missions"]
-            },
-            "description": "Crée une nouvelle mission fixed_price (forfait) avec client company optionnel."
+            "description": "Crée une nouvelle mission `time_based` (TJM). Retourne la mission créée (HTTP 201)."
           },
           "response": []
         },
@@ -602,7 +409,8 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
               }
             ],
             "url": {
@@ -610,18 +418,19 @@
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "missions"]
             },
-            "description": "Liste toutes les missions accessibles à l'utilisateur (via ses companies avec rôle independent ou client)."
+            "description": "Liste toutes les missions accessibles à l'utilisateur."
           },
           "response": []
         },
         {
-          "name": "Get Mission Details",
+          "name": "Get Mission",
           "request": {
             "method": "GET",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
               }
             ],
             "url": {
@@ -629,7 +438,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "missions", "{{mission_id}}"]
             },
-            "description": "Récupère les détails d'une mission incluant les companies associées (independent et client)."
+            "description": "Récupère les détails d'une mission."
           },
           "response": []
         },
@@ -640,61 +449,37 @@
             "header": [
               {
                 "key": "Content-Type",
-                "value": "application/json"
+                "value": "application/json",
+                "type": "text"
               },
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Mission Data Platform - Updated\",\n  \"description\": \"Updated description with new scope\",\n  \"status\": \"pending\"\n}"
+              "raw": "{\n  \"status\": \"pending\",\n  \"description\": \"Description mise à jour\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/v1/missions/{{mission_id}}",
               "host": ["{{base_url}}"],
               "path": ["api", "v1", "missions", "{{mission_id}}"]
             },
-            "description": "Modifie une mission. Seul le créateur peut modifier. Les transitions de statut doivent respecter le lifecycle: lead → pending → won → in_progress → completed."
+            "description": "Modifie une mission. Seul le créateur peut modifier. Transitions de statut : lead → pending → won → in_progress → completed."
           },
           "response": []
         },
         {
-          "name": "Update Mission Status (Transition)",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"status\": \"won\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/missions/{{mission_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "v1", "missions", "{{mission_id}}"]
-            },
-            "description": "Change le statut d'une mission. Transitions autorisées: lead→pending, pending→won, won→in_progress, in_progress→completed. Pas de retour arrière."
-          },
-          "response": []
-        },
-        {
-          "name": "Archive Mission (Soft Delete)",
+          "name": "Archive Mission",
           "request": {
             "method": "DELETE",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{jwt_token}}"
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
               }
             ],
             "url": {
@@ -703,6 +488,392 @@
               "path": ["api", "v1", "missions", "{{mission_id}}"]
             },
             "description": "Archive une mission (soft delete). Retourne 409 Conflict si la mission est liée à un CRA."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "CRAs",
+      "description": "Gestion des CRA (Comptes Rendus d'Activité) — CRUD + submit, lock, export (requiert Authorization pour tous les endpoints).",
+      "item": [
+        {
+          "name": "Create CRA",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('CRA created', function () {",
+                  "    if (pm.response.code === 201) {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.test('CRA ID present', function () { pm.expect(jsonData.id).to.not.be.empty; });",
+                  "        if (jsonData.id) {",
+                  "            pm.collectionVariables.set('cra_id', jsonData.id);",
+                  "        }",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"month\": 1,\n  \"year\": 2026,\n  \"description\": \"CRA Janvier 2026\",\n  \"currency\": \"EUR\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/cras",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "cras"]
+            },
+            "description": "Crée un nouveau CRA pour un mois/année. Retourne le CRA créé (HTTP 201)."
+          },
+          "response": []
+        },
+        {
+          "name": "List CRAs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/cras?year=2026&month=1&status=draft",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "cras"],
+              "query": [
+                {
+                  "key": "year",
+                  "value": "2026",
+                  "description": "Filtre par année (optionnel)"
+                },
+                {
+                  "key": "month",
+                  "value": "1",
+                  "description": "Filtre par mois 1-12 (optionnel)"
+                },
+                {
+                  "key": "status",
+                  "value": "draft",
+                  "description": "Filtre par statut : draft, submitted, locked (optionnel)"
+                }
+              ]
+            },
+            "description": "Liste les CRAs de l'utilisateur. Filtres optionnels : `year`, `month`, `status`."
+          },
+          "response": []
+        },
+        {
+          "name": "Get CRA",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/cras/{{cra_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "cras", "{{cra_id}}"]
+            },
+            "description": "Récupère les détails d'un CRA."
+          },
+          "response": []
+        },
+        {
+          "name": "Update CRA",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"CRA mis à jour\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/cras/{{cra_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "cras", "{{cra_id}}"]
+            },
+            "description": "Modifie un CRA (uniquement si statut `draft`)."
+          },
+          "response": []
+        },
+        {
+          "name": "Archive CRA",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/cras/{{cra_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "cras", "{{cra_id}}"]
+            },
+            "description": "Archive un CRA (soft delete)."
+          },
+          "response": []
+        },
+        {
+          "name": "Submit CRA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/cras/{{cra_id}}/submit",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "cras", "{{cra_id}}", "submit"]
+            },
+            "description": "Soumet un CRA (transition `draft` → `submitted`)."
+          },
+          "response": []
+        },
+        {
+          "name": "Lock CRA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/cras/{{cra_id}}/lock",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "cras", "{{cra_id}}", "lock"]
+            },
+            "description": "Verrouille un CRA (transition `submitted` → `locked`). Verrouillage définitif."
+          },
+          "response": []
+        },
+        {
+          "name": "Export CRA (CSV)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "text/csv",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/cras/{{cra_id}}/export",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "cras", "{{cra_id}}", "export"]
+            },
+            "description": "Exporte un CRA au format CSV. Réponse `Content-Type: text/csv`."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "CRA Entries",
+      "description": "Gestion des entries (lignes d'activité) d'un CRA — routes nested sous `/api/v1/cras/:cra_id/entries` (requiert Authorization pour tous les endpoints).",
+      "item": [
+        {
+          "name": "List Entries",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/cras/{{cra_id}}/entries",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "cras", "{{cra_id}}", "entries"]
+            },
+            "description": "Liste les entries d'un CRA."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Entry",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Entry created', function () {",
+                  "    if (pm.response.code === 201) {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.test('Entry ID present', function () { pm.expect(jsonData.id).to.not.be.empty; });",
+                  "        if (jsonData.id) {",
+                  "            pm.collectionVariables.set('entry_id', jsonData.id);",
+                  "        }",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"2026-01-15\",\n  \"quantity\": 1.0,\n  \"unit_price\": 50000,\n  \"description\": \"Développement\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/cras/{{cra_id}}/entries",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "cras", "{{cra_id}}", "entries"]
+            },
+            "description": "Crée une entry dans un CRA. Retourne l'entry créée (HTTP 201)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Entry",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/cras/{{cra_id}}/entries/{{entry_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "cras", "{{cra_id}}", "entries", "{{entry_id}}"]
+            },
+            "description": "Récupère les détails d'une entry."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Entry",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 0.5,\n  \"description\": \"Demi-journée\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/cras/{{cra_id}}/entries/{{entry_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "cras", "{{cra_id}}", "entries", "{{entry_id}}"]
+            },
+            "description": "Modifie une entry (uniquement si le CRA parent est en statut `draft`)."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Entry",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/cras/{{cra_id}}/entries/{{entry_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "cras", "{{cra_id}}", "entries", "{{entry_id}}"]
+            },
+            "description": "Supprime une entry (uniquement si le CRA parent est en statut `draft`)."
           },
           "response": []
         }

@@ -14,5 +14,12 @@ test:
 
 production:
   <<: *default
-  url: <%= ENV["DATABASE_URL"] %>
-  sslmode: require
+  # Supabase connection (env vars separated for security)
+  host: <%= ENV.fetch("DB_HOST", "localhost") %>
+  port: <%= ENV.fetch("DB_PORT", 5432) %>
+  database: <%= ENV.fetch("DB_NAME", "postgres") %>
+  username: <%= ENV.fetch("DB_USER", "postgres") %>
+  password: <%= ENV.fetch("DB_PASSWORD", "") %>
+  # Supabase pgBouncer ne supporte pas les prepared statements
+  prepared_statements: false
+  advisory_locks: false
