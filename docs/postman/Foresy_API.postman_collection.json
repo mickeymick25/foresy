@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "Foresy API — Tests & Debug",
+    "name": "Foresy API [Postman_Collection]",
     "description": "Collection Postman pour tester et debugger l'API Foresy en production et développement. 28 endpoints avec scripts de test automatisés (extraction tokens/IDs). Variables: base_url, jwt_token, refresh_token, mission_id, cra_id, entry_id.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
