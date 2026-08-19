@@ -118,6 +118,42 @@ Chaque commit contient un fichier JSON `cra_{id}_{month}_{year}.json` :
 
 Le fichier est supprimé après le commit (le contenu vit dans l'historique Git).
 
+## Comment tester en staging
+
+### Test manuel (script fourni)
+
+```bash
+# Dans le conteneur Docker
+docker compose exec web bundle exec rails runner scripts/test_git_ledger.rb
+```
+
+Le script `scripts/test_git_ledger.rb` exécute le cycle complet dans un
+répertoire temporaire isolé (tmpdir) :
+1. Initial state (exists?, initialized?)
+2. Initialize (ensure_initialized!)
+3. Info (avant commit)
+4. Create commit (create_commit avec payload simulé)
+5. Verify commit (commit_exists_for_cra?, find_commit_info)
+6. Info (après commit — commit_count incrémenté)
+7. Error cases (ID inexistant, injection shell `; rm -rf /`)
+8. Cleanup (suppression du répertoire)
+
+### Test automatisé (RSpec)
+
+```bash
+docker compose exec web bundle exec rspec spec/integration/git_ledger_integration_spec.rb
+```
+
+13 tests couvrent : init, commit, verify, payload supprimé, error cases
+(non-existent ID, injection shell, backticks), info, cleanup.
+
+### Validation ✅ (18 août 2026)
+
+- Script manuel : ALL TESTS PASSED
+- RSpec : 13 examples, 0 failures
+- Bug `git add` vs `.gitignore` trouvé et corrigé (`git add -f`)
+- Injection shell `; rm -rf /` et backticks `` `whoami` `` : safe (Open3)
+
 ---
 
 **Document créé le :** 18 août 2026

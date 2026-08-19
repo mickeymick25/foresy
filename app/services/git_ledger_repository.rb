@@ -110,7 +110,9 @@ module GitLedgerRepository
     def write_payload(cra, payload)
       filename = "cra_#{cra.id}_#{cra.month}_#{cra.year}.json"
       File.write(File.join(LEDGER_PATH, filename), JSON.pretty_generate(payload))
-      run_git('add', filename)
+      # Force-add: .gitignore excludes cra_*.json to prevent stale files,
+      # but we intentionally commit the payload then delete it after.
+      run_git('add', '-f', filename)
       filename
     end
 
