@@ -7,6 +7,10 @@ module Api
     class UsersController < Api::V1::BaseController
       include Common::RateLimitable
 
+      # Include virtual attributes (password, password_confirmation) in parameter wrapping
+      # has_secure_password attributes are not DB columns, so wrap_parameters doesn't include them by default
+      wrap_parameters :user, include: %i[email password password_confirmation]
+
       before_action :check_rate_limit!, only: [:create]
 
       # POST /api/v1/signup
@@ -31,12 +35,9 @@ module Api
       private
 
       def user_params
-        # Handle both parameter structures: nested under 'user' key or at root level
-        user_params = params[:user].present? ? params[:user] : params
-        user_params.permit(:email, :password, :password_confirmation)
+        params.require(:user).permit(:email, :password, :password_confirmation)
       end
 
-      # Rate limiting check for signup endpoint
       def check_rate_limit!
         endpoint = 'auth/signup'
 

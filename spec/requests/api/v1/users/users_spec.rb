@@ -4,10 +4,25 @@ require 'swagger_helper'
 
 RSpec.describe 'API V1 Users', type: :request do
   before do
-    # Stub RateLimitService for auth tests (FC-05 specs test real behavior)
+    # Stub RateLimitServices for auth tests (FC-05 specs test real behavior)
     # NOTE: allowed? doesn't exist, only check_rate_limit is available
     allow(RateLimitService).to receive(:check_rate_limit).and_return([true, nil])
     RateLimitService.clear_rate_limit('auth/signup', '127.0.0.1')
+  end
+
+  describe 'POST /api/v1/signup with flat JSON params (Postman-compatible)' do
+    it 'accepts flat JSON body and creates a user' do
+      email = "flat_#{SecureRandom.hex(4)}@example.com"
+      post '/api/v1/signup',
+           params: { email: email, password: 'password123',
+                     password_confirmation: 'password123' }.to_json,
+           headers: { 'Content-Type' => 'application/json' }
+
+      expect(response).to have_http_status(:created)
+      data = JSON.parse(response.body)
+      expect(data['token']).to be_present
+      expect(data['email']).to be_present
+    end
   end
 
   path '/api/v1/signup' do
