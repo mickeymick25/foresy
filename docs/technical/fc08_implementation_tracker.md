@@ -40,7 +40,7 @@
 | ID | Tâche | Statut | Specs à écrire |
 |---|---|---|---|
 | P2.1 | Company model specs — RED | ✅ | 27 exemples, 9 échecs attendus (RED confirmé 14/09/2026) : SIREN requis/unique, SIRET optionnel, vat_regime, scope .deleted, contraintes DB (siren NOT NULL+UNIQUE, siret multi-NULL) |
-| P2.2 | UserCompany model specs — RED | ⬜ | user association, company association, role presence, valid roles (independent/client), PostgreSQL enum, uniqueness (user_id, company_id, role), multiple roles same company, multiple companies, soft deletion, .active scope, .deleted scope, absence of default_scope |
+| P2.2 | UserCompany model specs — RED | ✅ | 25 exemples, 11 échecs attendus (RED confirmé 14/09/2026) : unicité (user, company, role), soft deletion, scopes .active/.deleted, pas de résurrection implicite §27. Factory :user_company alignée sur convention user_cras (associations créées, rôle déterministe + traits) |
 
 ### Phase 3 — Migration DB
 
@@ -135,6 +135,13 @@
 - **Fichiers modifiés :** app/models/company.rb
 - **Tests :** 27 exemples, 0 échec (spec/models/company_spec.rb)
 - **Commit :** feat(fc08): P4.1 Company model GREEN (SIREN requis+unique, SIRET optionnel, scope .deleted)
+
+### 2026-09-14 — [P2.2] UserCompany model specs — RED
+
+- **Étape TDD :** RED (Step 6 du §63)
+- **Fichiers modifiés :** spec/models/user_company_spec.rb, spec/factories/user_companies.rb
+- **Tests :** 25 exemples, 11 échecs attendus (unicité (user, company, role), soft deletion, scopes .active/.deleted, pas de résurrection implicite §27). Correctif factory : associations créées (convention user_cras) + rôle déterministe + traits independent/client. Rôle invalide rejeté à l'affectation (enum strict, §25) — pin de comportement
+- **Commit :** test(fc08): P2.2 RED UserCompany model specs
 
 ---
 

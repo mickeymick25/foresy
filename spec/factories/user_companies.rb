@@ -2,8 +2,16 @@
 
 FactoryBot.define do
   factory :user_company do
-    association :user
-    association :company
-    role { %w[independent client].sample }
+    user { create(:user) }
+    company { create(:company) }
+    role { 'independent' }
+
+    trait :independent do
+      role { 'independent' }
+    end
+
+    trait :client do
+      role { 'client' }
+    end
   end
 end
