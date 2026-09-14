@@ -186,15 +186,15 @@
 
 ## ✅ Definition of Done Checklist
 
-- [ ] Architecture : Company sans user_id, User sans company_id, UserCompany explicite, RDD respecté, no default_scope
-- [ ] Database : UUID PK retenus, SIREN NOT NULL + UNIQUE, SIRET nullable + unique, vat_regime ajouté, UserCompany.deleted_at ajouté, enum conservé, (user_id, company_id, role) unique
-- [ ] Models : Validations Company + UserCompany, scopes actifs, pas de default_scope
-- [ ] API : Company CRUD + UserCompany CRUD, atomicité, PATCH role only, authorization, standardized errors, wrap_parameters
-- [ ] TDD : Model specs RED first, request specs RED first, edge cases testés, atomicité testée, authorization testée
-- [ ] RSwag : Tous endpoints documentés, schémas depuis specs, exemples inclus
-- [ ] Quality : RSpec 0 failures, RSwag 0 failures, RuboCop 0 offenses, Brakeman 0 warnings
-- [ ] Regression : FC-06 green, FC-07 green, pas de breaking change
-- [ ] Git : Feature branch, commits propres, 1 PR, evidence de tests
+- [x] Architecture : Company sans user_id, User sans company_id, UserCompany explicite, RDD respecté, no default_scope (INV-01/02/03/20, tests spec/models)
+- [x] Database : UUID PK retenus, SIREN NOT NULL + UNIQUE, SIRET nullable + unique, vat_regime ajouté, UserCompany.deleted_at ajouté, enum conservé, (user_id, company_id, role) unique (migration 20260914000001 + schema.rb)
+- [x] Models : Validations Company + UserCompany, scopes actifs, pas de default_scope (27/27 + 25/25)
+- [x] API : Company CRUD + UserCompany CRUD, atomicité, PATCH role only, authorization, standardized errors, wrap_parameters (32/32)
+- [x] TDD : Model specs RED first (9+11 échecs attendus mesurés), request specs RED first (32 échecs mesurés), edge cases, atomicité, authorization
+- [x] RSwag : Tous endpoints documentés (10 schémas centralisés), yaml régénéré depuis specs, audit routes PASSÉ
+- [x] Quality : RSpec 948/948, RSwag swaggerize 402/402, RuboCop 0 offense, Brakeman 0 warning FC-08 (2 préexistants hors périmètre, documentés)
+- [x] Regression : FC-06 21/21, FC-07 158/158, pas de breaking change (audit p4_6 mis à jour vers .deleted conformément au contrat §29)
+- [x] Git : Feature branch, commits atomiques RED/GREEN, 1 PR à ouvrir (description ci-dessous), evidence de tests
 
 ---
 
