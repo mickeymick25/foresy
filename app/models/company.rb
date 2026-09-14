@@ -10,10 +10,11 @@
 # - Soft delete support with deleted_at
 # - Relation-driven via user_companies and mission_companies tables
 #
-# Validations:
-# - name must be present and at least 2 characters
-# - siret must be present, unique, and properly formatted (14 digits for French companies)
-# - siren is optional but must be 9 digits if present
+# Validations (FC-08 v3.2.3 — contract §19, §45):
+# - name must be present
+# - siren must be present, unique, and properly formatted (9 digits) — INV-07/08/09/10
+# - siret is optional (INV-11), unique when present (INV-12), 14 digits for French companies
+# - vat_regime stores contextual information only (INV-13)
 # - currency defaults to EUR (ISO 4217)
 #
 # Associations:
@@ -23,13 +24,14 @@
 # - has_many :missions, through: :mission_companies
 #
 # Scopes:
-# - .active: returns companies that are not soft deleted
+# - .active: returns companies that are not soft deleted (INV-19)
+# - .deleted: returns companies that are soft deleted (INV-19)
 # - .by_siret: find company by SIRET number
 # - .by_siren: find company by SIREN number
 class Company < ApplicationRecord
   # Soft delete implementation (manual, no gem dependency)
   # NOTE: Pas de default_scope (anti-pattern) — utiliser les scopes explicites
-  #       .active / .with_deleted / .only_deleted (audit point M2 / P4.6).
+  #       .active / .deleted / .with_deleted (audit point M2 / P4.6, FC-08 §29).
 
   # Method to soft delete a record
   def discard
@@ -46,11 +48,12 @@ class Company < ApplicationRecord
     deleted_at.present?
   end
 
-  # Validations
+  # Validations (FC-08 v3.2.3 — contract §19, §45)
   validates :name, presence: true, length: { minimum: 2, maximum: 255 }
-  validates :siret, presence: true, uniqueness: { case_sensitive: false },
+  validates :siren, presence: true, uniqueness: true,
+                    format: { with: /\A\d{9}\z/, message: 'must be 9 digits' }
+  validates :siret, uniqueness: { case_sensitive: false }, allow_nil: true,
                     format: { with: /\A\d{14}\z/, message: 'must be 14 digits for French companies' }
-  validates :siren, format: { with: /\A\d{9}\z/, message: 'must be 9 digits' }, allow_blank: true
   validates :legal_form, length: { maximum: 100 }, allow_blank: true
   validates :country, length: { maximum: 2 }, format: { with: /\A[A-Z]{2}\z/ }
   validates :currency, presence: true, format: { with: /\A[A-Z]{3}\z/ }
@@ -79,10 +82,10 @@ class Company < ApplicationRecord
   # (audit point M2 / P4.6 — remplacement du default_scope de Mission).
   has_many :missions, -> { where(deleted_at: nil) }, through: :mission_companies
 
-  # Scopes
+  # Scopes (FC-08 contract §29 — no default_scope, INV-19/20)
   scope :active, -> { where(deleted_at: nil) }
+  scope :deleted, -> { where.not(deleted_at: nil) }
   scope :with_deleted, -> { unscope(where: :deleted_at) }
-  scope :only_deleted, -> { where.not(deleted_at: nil) }
   scope :by_siret, ->(siret) { where(siret: siret&.gsub(/\s+/, '')) }
   scope :by_siren, ->(siren) { where(siren: siren&.gsub(/\s+/, '')) }
   scope :with_role, lambda { |role|
@@ -104,7 +107,7 @@ class Company < ApplicationRecord
   end
 
   def display_name
-    "#{name} (#{siret})"
+    "#{name} (#{siret.presence || siren})"
   end
 
   # Role-based associations

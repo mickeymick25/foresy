@@ -52,7 +52,7 @@
 
 | ID | Tâche | Statut | Implémentation |
 |---|---|---|---|
-| P4.1 | Company model — GREEN | ⬜ | Validations (name, SIREN presence/format/uniqueness, SIRET format/uniqueness), scopes (.active, .deleted), pas de default_scope |
+| P4.1 | Company model — GREEN | ✅ | GREEN 27/27 le 14/09/2026 : siren presence+uniqueness+format, siret allow_nil (format+uniqueness conservés), scope .deleted (remplace only_deleted, cf. contrat §29), display_name nil-safe avec fallback siren |
 | P4.2 | UserCompany model — GREEN | ⬜ | Validations (user, company, role presence, role enum), uniqueness (user_id, company_id, role), scopes (.active, .deleted), pas de default_scope |
 
 ### Phase 5 — Request Specs (RED)
@@ -128,6 +128,13 @@
 - **Fichiers modifiés :** db/migrate/20260914000001_fc08_company_user_company_contract.rb
 - **Tests :** 2 contraintes DB désormais GREEN (siren NOT NULL, UNIQUE siren) ; 5 RED restants (4 model-level + siret multi-NULL dépendant du retrait de la présence SIRET en P4.1)
 - **Commit :** db(fc08): P3.1 migration contrat Company/UserCompany
+
+### 2026-09-14 — [P4.1] Company model — GREEN
+
+- **Étape TDD :** GREEN
+- **Fichiers modifiés :** app/models/company.rb
+- **Tests :** 27 exemples, 0 échec (spec/models/company_spec.rb)
+- **Commit :** feat(fc08): P4.1 Company model GREEN (SIREN requis+unique, SIRET optionnel, scope .deleted)
 
 ---
 
