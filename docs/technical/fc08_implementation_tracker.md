@@ -46,7 +46,7 @@
 
 | ID | Tâche | Statut | Migration |
 |---|---|---|---|
-| P3.1 | Créer migration FC-08 | ⬜ | SIREN: remove_index + change_column_null + add_index unique. SIRET: change_column_null true. vat_regime: add_column string nullable. user_companies.deleted_at: add_column datetime nullable. Vérifier enum user_company_role_enum contient independent + client. |
+| P3.1 | Créer migration FC-08 | ✅ | Migration `20260914000001_fc08_company_user_company_contract.rb` appliquée en test : siren NOT NULL + UNIQUE (index remplacé), siret nullable (unique conservé), vat_regime string nullable, user_companies.deleted_at, enum conservé, garde-fou données §47.1 + down complet |
 
 ### Phase 4 — Model Implementation (GREEN)
 
@@ -121,6 +121,13 @@
 - **Fichiers modifiés :** spec/models/company_spec.rb
 - **Tests :** 27 exemples, 9 échecs attendus (SIREN requis/unique, SIRET optionnel, vat_regime storage+nullable, scope .deleted, UNIQUE(siren) DB, siren NOT NULL DB, siret multi-NULL DB)
 - **Commit :** test(fc08): P2.1 RED Company model specs
+
+### 2026-09-14 — [P3.1] Migration DB
+
+- **Étape TDD :** Migration (Step 4 du §63)
+- **Fichiers modifiés :** db/migrate/20260914000001_fc08_company_user_company_contract.rb
+- **Tests :** 2 contraintes DB désormais GREEN (siren NOT NULL, UNIQUE siren) ; 5 RED restants (4 model-level + siret multi-NULL dépendant du retrait de la présence SIRET en P4.1)
+- **Commit :** db(fc08): P3.1 migration contrat Company/UserCompany
 
 ---
 
