@@ -173,6 +173,13 @@
 - **Décision :** P8.4 adapté — pas de tag :swagger dans la maison, équivalent swaggerize + audit_coverage
 - **Commit :** chore(fc08): P7-P9 swagger + quality gates + régression
 
+### 2026-09-14 — [E2E] Tests de bout en bout FC-08
+
+- **Fichiers modifiés :** bin/e2e/e2e_companies.sh (NOUVEAU — 17 étapes, 19 assertions), bin/e2e/e2e_cra_lifecycle.sh (payload company migré vers onboarding atomique FC-08 §38 + compat macOS : sed au lieu de head -n -1, set -e retiré car make_request retourne le code HTTP comme statut)
+- **Tests :** e2e_companies.sh 19/19 PASSED en HTTP réel contre le serveur de dev (scénarios Gherkin 1, 2, 3, 5, 6, 8, 9, 10, 12, 13, 14, 15)
+- **Dette notée :** e2e_cra_lifecycle.sh et e2e_auth_flow.sh ont des bugs latents préexistants (return HTTP > 255 tronqué, parse d'environnement) qui les rendaient inexécutables même avant FC-08 — réparation complète hors périmètre FC-08
+- **Commit :** test(fc08): E2E companies (19/19 HTTP réel) + compat scripts hérités
+
 ---
 
 ## 🔗 Références

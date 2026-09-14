@@ -20,7 +20,9 @@
 # - CI-safe
 # - Comprehensive error handling and logging
 
-set -euo pipefail
+# -e is NOT set: make_request returns the HTTP code as its exit status;
+# assertions are explicit via test_step (a 201 from curl is a "failure" for set -e)
+set -uo pipefail
 
 # Configuration
 API_BASE_URL="${API_BASE_URL:-http://localhost:3000}"
@@ -80,7 +82,7 @@ make_request() {
     local http_code
     http_code=$(echo "$response" | tail -n1)
     local body
-    body=$(echo "$response" | head -n -1)
+    body=$(echo "$response" | sed '$d')
 
     echo "$body"
     return $http_code
@@ -179,14 +181,18 @@ main() {
     log_info "=== Step 2: Company Setup ==="
 
     local headers="Authorization: Bearer $auth_token"
+    # FC-08 §38 — atomic onboarding: Company + UserCompany in one call (siren required, INV-07)
+    local e2e_siren="$(printf '%09d' $((RANDOM * RANDOM % 1000000000)))"
     local company_response
     company_response=$(make_request "POST" "/api/v1/companies" "{
         \"name\": \"E2E Test Company\",
-        \"siret\": \"12345678901234\"
+        \"siren\": \"$e2e_siren\",
+        \"siret\": \"${e2e_siren}00000\",
+        \"role\": \"independent\"
     }" "$headers")
 
     local company_code=$?
-    if ! test_step "Create Company" 201 $company_code; then
+    if ! test_step "Create Company (atomic onboarding)" 201 $company_code; then
         log_error "Failed to create company. Response: $company_response"
         exit 1
     fi
@@ -194,16 +200,16 @@ main() {
     company_id=$(parse_json "$company_response" "id")
     log_success "Company created with ID: $company_id"
 
-    # Associate user with company as independent
+    # FC-08 INV-18 — the relationship was created atomically by POST /companies;
+    # an identical duplicate must be rejected by the database uniqueness (§45.5)
     local user_company_response
     user_company_response=$(make_request "POST" "/api/v1/user_companies" "{
-        \"user_id\": \"$user_id\",
         \"company_id\": \"$company_id\",
         \"role\": \"independent\"
     }" "$headers")
 
     local user_company_code=$?
-    test_step "Associate User with Company" 201 $user_company_code || log_warning "User-company association may already exist"
+    test_step "Duplicate relationship rejected (INV-18)" 422 $user_company_code || log_warning "Expected 422 for duplicate relationship"
 
     # Step 3: Create test missions
     log_info "=== Step 3: Mission Setup ==="
