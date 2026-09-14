@@ -4,7 +4,8 @@
 
 ## fc08::001
 <!-- created: 2026-09-14 -->
-FC-08 v3.2.3 implémenté sur `feature/fc-08-companies`, phases 1-9 complètes (16/19 tâches). Contrat gelé, statut Implementation-Ready / TDD-Ready. Seule P10.1 (PR vers main) reste.
+<!-- updated: 2026-09-14 -->
+FC-08 v3.2.3 implémenté sur `feature/fc-08-companies`, phases 1-9 complètes (16/19 tâches). Contrat gelé, statut Implementation-Ready / TDD-Ready. **PR #24 ouverte : https://github.com/mickeymick25/foresy/pull/24** — en attente de merge.
 
 ## fc08::002
 <!-- created: 2026-09-14 -->

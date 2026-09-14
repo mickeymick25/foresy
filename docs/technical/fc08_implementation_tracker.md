@@ -2,7 +2,7 @@
 
 **Date de création :** 30 août 2026
 **Feature Contract :** FC-08 v3.2.3 — Company & User-Company Relationships
-**Statut :** 🟡 En cours
+**Statut :** 🟢 Terminé — 19/19 tâches, PR #24 ouverte
 **Branche :** `feature/fc-08-companies`
 **Référence :** `docs/FeatureContract/08_Feature Contract — Entreprise Indépendant_[3.2.3]`
 
@@ -21,8 +21,8 @@
 | **Phase 7 — RSwag** | 1 | 0 | 0 | 1 | 100% |
 | **Phase 8 — Quality Gates** | 4 | 0 | 0 | 4 | 100% |
 | **Phase 9 — Régression** | 2 | 0 | 0 | 2 | 100% |
-| **Phase 10 — PR** | 1 | 1 | 0 | 0 | 0% |
-| **Total** | **19** | **3** | **0** | **16** | **84%** |
+| **Phase 10 — PR** | 1 | 0 | 0 | 1 | 100% |
+| **Total** | **19** | **0** | **0** | **19** | **100%** |
 
 ---
 
@@ -95,7 +95,7 @@
 
 | ID | Tâche | Statut | Action |
 |---|---|---|---|
-| P10.1 | Pull Request | ⬜ | Feature branch `feature/fc-08-companies`, PR vers main, description avec tests evidence, Definition of Done checklist |
+| P10.1 | Pull Request | ✅ | PR #24 ouverte le 14/09/2026 : https://github.com/mickeymick25/foresy/pull/24 — description au format maison (`docs/technical/changes/2026-09-14-FC08_Companies_PR_Description.md`), evidence de tests, DoD 9/9 |
 
 ---
 
@@ -179,6 +179,12 @@
 - **Tests :** e2e_companies.sh 19/19 PASSED en HTTP réel contre le serveur de dev (scénarios Gherkin 1, 2, 3, 5, 6, 8, 9, 10, 12, 13, 14, 15)
 - **Dette notée :** e2e_cra_lifecycle.sh et e2e_auth_flow.sh ont des bugs latents préexistants (return HTTP > 255 tronqué, parse d'environnement) qui les rendaient inexécutables même avant FC-08 — réparation complète hors périmètre FC-08
 - **Commit :** test(fc08): E2E companies (19/19 HTTP réel) + compat scripts hérités
+
+### 2026-09-14 — [P10.1] Pull Request #24 ouverte
+
+- **URL :** https://github.com/mickeymick25/foresy/pull/24
+- **Description :** `docs/technical/changes/2026-09-14-FC08_Companies_PR_Description.md` (résumé, evidence de tests, 18 commits, DoD 9/9, points d'attention revue)
+- **Commit :** docs(fc08): description de PR (P10.1) au format maison
 
 ### 2026-09-14 — [E2E] Correction rejouabilité e2e_companies.sh (vérification implémentation)
 
