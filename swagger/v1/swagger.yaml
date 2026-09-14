@@ -1,7 +1,7 @@
 ---
 openapi: 3.0.1
 info:
-  title: API Foresy [Swagger_Documentation]
+  title: API Foresy
   version: v1
   description: |2
               Documentation de l'API Foresy
@@ -34,8 +34,6 @@ paths:
           description: user authenticated
         '401':
           description: handles missing X-Forwarded-For by using remote_ip
-        '400':
-          description: missing email
         '403':
           description: inactive user
         '429':
@@ -288,8 +286,6 @@ paths:
           description: token refreshed
         '401':
           description: token refreshed (under rate limit)
-        '400':
-          description: refresh token missing
         '429':
           description: rate limit exceeded - too many refresh attempts
           content:
@@ -371,6 +367,160 @@ paths:
           description: Token revoked successfully
         '401':
           description: unauthorized - no active session
+  "/api/v1/companies":
+    get:
+      summary: Lists companies accessible to the authenticated user
+      tags:
+      - Companies
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: returns only companies with active relationships
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/companyListResponse"
+        '401':
+          description: unauthorized - missing token
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorStandardized"
+    post:
+      summary: Creates a company with its initial UserCompany relationship (atomic)
+      tags:
+      - Companies
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      responses:
+        '201':
+          description: processes flat JSON payload (Scenario 15, §41)
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/companyResponse"
+        '422':
+          description: rolls back everything when relationship creation fails (Scenario
+            12, INV-16/17)
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorStandardized"
+        '401':
+          description: unauthorized - missing token
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorStandardized"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/companyOnboardingRequest"
+        required: true
+  "/api/v1/companies/{id}":
+    parameters:
+    - name: id
+      in: path
+      format: uuid
+      required: true
+      schema:
+        type: string
+    get:
+      summary: Returns a company accessible to the authenticated user
+      tags:
+      - Companies
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: returns the company for an authorized user
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/companyResponse"
+        '403':
+          description: rejects cross-user access (Scenario 13, §43)
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorStandardized"
+        '404':
+          description: not found for unknown company
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorStandardized"
+    patch:
+      summary: Updates permitted company attributes
+      tags:
+      - Companies
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: updates company attributes for an authorized user
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/companyResponse"
+        '403':
+          description: rejects cross-user update (§43)
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorStandardized"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/companyUpdateRequest"
+        required: true
+    delete:
+      summary: Soft-deletes the company (§36.5, Scenario 14)
+      tags:
+      - Companies
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: soft-deletes the company
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - message
+                properties:
+                  message:
+                    type: string
+        '403':
+          description: rejects cross-user deletion (§43)
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorStandardized"
   "/api/v1/cras/{cra_id}/entries":
     post:
       summary: Creates a new CRA entry
@@ -898,6 +1048,154 @@ paths:
       responses:
         '200':
           description: health check (not rate-limited)
+  "/api/v1/user_companies":
+    get:
+      summary: Lists relationships belonging to the authenticated user
+      tags:
+      - UserCompanies
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: returns only the authenticated user active relationships
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/userCompanyListResponse"
+        '401':
+          description: unauthorized - missing token
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorStandardized"
+    post:
+      summary: Adds a new role to an existing company
+      tags:
+      - UserCompanies
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      responses:
+        '201':
+          description: ignores user_id and creates the relationship for the authenticated
+            user (§42)
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/userCompanyResponse"
+        '422':
+          description: rejects invalid role
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorStandardized"
+        '401':
+          description: unauthorized - missing token
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorStandardized"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/userCompanyCreateRequest"
+        required: true
+  "/api/v1/user_companies/{id}":
+    parameters:
+    - name: id
+      in: path
+      format: uuid
+      required: true
+      schema:
+        type: string
+    get:
+      summary: Returns a relationship belonging to the authenticated user
+      tags:
+      - UserCompanies
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: returns the relationship for its owner
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/userCompanyResponse"
+        '403':
+          description: rejects cross-user access (§43)
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorStandardized"
+    patch:
+      summary: Updates the role only (§37.3)
+      tags:
+      - UserCompanies
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: updates the role and ignores protected attributes
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/userCompanyResponse"
+        '403':
+          description: rejects cross-user update (§43)
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorStandardized"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/userCompanyUpdateRequest"
+        required: true
+    delete:
+      summary: Soft-deletes the relationship (§37.4)
+      tags:
+      - UserCompanies
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: soft-deletes the relationship
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - message
+                properties:
+                  message:
+                    type: string
+        '403':
+          description: rejects cross-user deletion (§43)
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ErrorStandardized"
 servers:
 - url: http://{defaultHost}
   description: Serveur local de développement
@@ -1198,6 +1496,291 @@ components:
           type: string
           format: uuid
           description: Mission ID (UUID)
+    companyCreateRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      - siren
+      properties:
+        name:
+          type: string
+          description: Company name
+        siren:
+          type: string
+          description: SIREN (9 digits)
+          example: '123456789'
+        siret:
+          type: string
+          description: SIRET (14 digits, optional)
+          example: '12345678900012'
+        legal_form:
+          type: string
+          description: Legal form (EI, SARL, SAS...)
+        tax_number:
+          type: string
+          description: VAT number
+        address_line_1:
+          type: string
+          description: Address line 1
+        address_line_2:
+          type: string
+          description: Address line 2
+        postal_code:
+          type: string
+          description: Postal code
+        city:
+          type: string
+          description: City
+        country:
+          type: string
+          description: ISO 3166-1 alpha-2 code
+          example: FR
+        currency:
+          type: string
+          description: ISO 4217 currency code
+          example: EUR
+        vat_regime:
+          type: string
+          description: Contextual VAT regime (INV-13)
+    companyUpdateRequest:
+      type: object
+      additionalProperties: false
+      required: []
+      properties:
+        name:
+          type: string
+          description: Company name
+        siren:
+          type: string
+          description: SIREN (9 digits)
+          example: '123456789'
+        siret:
+          type: string
+          description: SIRET (14 digits, optional)
+          example: '12345678900012'
+        legal_form:
+          type: string
+          description: Legal form
+        tax_number:
+          type: string
+          description: VAT number
+        address_line_1:
+          type: string
+          description: Address line 1
+        address_line_2:
+          type: string
+          description: Address line 2
+        postal_code:
+          type: string
+          description: Postal code
+        city:
+          type: string
+          description: City
+        country:
+          type: string
+          description: ISO 3166-1 alpha-2 code
+          example: FR
+        currency:
+          type: string
+          description: ISO 4217 currency code
+          example: EUR
+        vat_regime:
+          type: string
+          description: Contextual VAT regime (INV-13)
+    companyResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Company UUID
+        name:
+          type: string
+          description: Company name
+        siren:
+          type: string
+          description: SIREN (9 digits)
+        siret:
+          type: string
+          description: SIRET (14 digits), nullable
+          nullable: true
+        legal_form:
+          type: string
+          description: Legal form
+          nullable: true
+        tax_number:
+          type: string
+          description: VAT number
+          nullable: true
+        address_line_1:
+          type: string
+          description: Address line 1
+          nullable: true
+        address_line_2:
+          type: string
+          description: Address line 2
+          nullable: true
+        postal_code:
+          type: string
+          description: Postal code
+          nullable: true
+        city:
+          type: string
+          description: City
+          nullable: true
+        country:
+          type: string
+          description: ISO 3166-1 alpha-2 code
+        currency:
+          type: string
+          description: ISO 4217 currency code
+        vat_regime:
+          type: string
+          description: Contextual VAT regime
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+    companyListResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        data:
+          type: array
+          items:
+            "$ref": "#/components/schemas/companyResponse"
+        meta:
+          type: object
+          additionalProperties: false
+          properties:
+            total:
+              type: integer
+              description: Total accessible companies
+    companyOnboardingRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - company
+      - role
+      description: 'Atomic onboarding (§38). Flat JSON is also accepted via Rails
+        parameter wrapping (§41): Company attributes are wrapped and role is read
+        separately (§39-40, INV-22).'
+      properties:
+        company:
+          "$ref": "#/components/schemas/companyCreateRequest"
+        role:
+          type: string
+          enum:
+          - independent
+          - client
+          description: Initial UserCompany role (§39)
+    userCompanyCreateRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - company_id
+      - role
+      description: The relationship is created for the authenticated user; user_id
+        is ignored (§42)
+      properties:
+        company_id:
+          type: string
+          format: uuid
+          description: Company UUID
+        role:
+          type: string
+          enum:
+          - independent
+          - client
+          description: Relationship role (§25)
+    userCompanyUpdateRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - role
+      description: Role only (§37.3) — user_id, company_id and deleted_at are never
+        accepted
+      properties:
+        role:
+          type: string
+          enum:
+          - independent
+          - client
+          description: Relationship role
+    userCompanyResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Relationship UUID
+        user_id:
+          type: integer
+          description: User ID (bigint)
+        company_id:
+          type: string
+          format: uuid
+          description: Company UUID
+        role:
+          type: string
+          enum:
+          - independent
+          - client
+          description: Relationship role (INV-06)
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Soft deletion timestamp
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+    userCompanyListResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        data:
+          type: array
+          items:
+            "$ref": "#/components/schemas/userCompanyResponse"
+        meta:
+          type: object
+          additionalProperties: false
+          properties:
+            total:
+              type: integer
+              description: Total relationships
+    ErrorStandardized:
+      type: object
+      required:
+      - code
+      - message
+      additionalProperties: false
+      description: Standardized error format {code, message, details} (§44)
+      properties:
+        code:
+          type: string
+          description: Error code (e.g., FORBIDDEN, NOT_FOUND, UNPROCESSABLE_ENTITY)
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: object
+          additionalProperties: true
+          description: Optional error details
     login:
       type: object
       additionalProperties: false

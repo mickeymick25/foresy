@@ -33,6 +33,8 @@ RSpec.describe 'API V1 Companies', type: :request do
       response '200', 'returns an empty collection when user has no company (Scenario 1)' do
         let(:Authorization) { "Bearer #{AuthenticationService.login(other_user, '127.0.0.1', 'Test Agent')[:token]}" }
 
+        schema '$ref' => '#/components/schemas/companyListResponse'
+
         run_test! do |response|
           expect(response).to have_http_status(:ok)
           data = JSON.parse(response.body)
@@ -56,6 +58,8 @@ RSpec.describe 'API V1 Companies', type: :request do
           create(:user_company, user: user, company: create(:company), role: 'independent').discard
         end
 
+        schema '$ref' => '#/components/schemas/companyListResponse'
+
         run_test! do |response|
           expect(response).to have_http_status(:ok)
           data = JSON.parse(response.body)
@@ -67,6 +71,8 @@ RSpec.describe 'API V1 Companies', type: :request do
 
       response '401', 'unauthorized - missing token' do
         let(:Authorization) { '' }
+
+        schema '$ref' => '#/components/schemas/ErrorStandardized'
 
         run_test! do |response|
           expect(response).to have_http_status(:unauthorized)
@@ -82,7 +88,8 @@ RSpec.describe 'API V1 Companies', type: :request do
       consumes 'application/json'
       produces 'application/json'
       parameter name: :Authorization, in: :header, type: :string, required: true
-      parameter name: :company_params, in: :body, required: true
+      parameter name: :company_params, in: :body, required: true,
+                schema: { '$ref' => '#/components/schemas/companyOnboardingRequest' }
 
       response '201', 'creates Company + independent UserCompany (Scenario 2)' do
         let(:company_params) do
@@ -99,6 +106,8 @@ RSpec.describe 'API V1 Companies', type: :request do
             role: 'independent'
           }
         end
+
+        schema '$ref' => '#/components/schemas/companyResponse'
 
         run_test! do |response|
           expect(response).to have_http_status(:created)
@@ -123,6 +132,8 @@ RSpec.describe 'API V1 Companies', type: :request do
           }
         end
 
+        schema '$ref' => '#/components/schemas/companyResponse'
+
         run_test! do |response|
           expect(response).to have_http_status(:created)
           company = Company.find(JSON.parse(response.body)['id'])
@@ -137,6 +148,8 @@ RSpec.describe 'API V1 Companies', type: :request do
             role: 'independent'
           }
         end
+
+        schema '$ref' => '#/components/schemas/companyResponse'
 
         run_test! do |response|
           expect(response).to have_http_status(:created)
@@ -154,6 +167,8 @@ RSpec.describe 'API V1 Companies', type: :request do
           }
         end
 
+        schema '$ref' => '#/components/schemas/companyResponse'
+
         run_test! do |response|
           expect(response).to have_http_status(:created)
           company = Company.find(JSON.parse(response.body)['id'])
@@ -169,6 +184,8 @@ RSpec.describe 'API V1 Companies', type: :request do
             role: 'independent'
           }
         end
+
+        schema '$ref' => '#/components/schemas/ErrorStandardized'
 
         run_test! do |response|
           expect(response).to have_http_status(:unprocessable_entity)
@@ -187,6 +204,8 @@ RSpec.describe 'API V1 Companies', type: :request do
           }
         end
 
+        schema '$ref' => '#/components/schemas/ErrorStandardized'
+
         run_test! do |response|
           expect(response).to have_http_status(:unprocessable_entity)
           expect(Company.count).to eq(1)
@@ -203,6 +222,8 @@ RSpec.describe 'API V1 Companies', type: :request do
           }
         end
 
+        schema '$ref' => '#/components/schemas/ErrorStandardized'
+
         run_test! do |response|
           expect(response).to have_http_status(:unprocessable_entity)
           expect(Company.count).to eq(1)
@@ -217,6 +238,8 @@ RSpec.describe 'API V1 Companies', type: :request do
           }
         end
 
+        schema '$ref' => '#/components/schemas/ErrorStandardized'
+
         run_test! do |response|
           expect(response).to have_http_status(:unprocessable_entity)
           expect(Company.count).to eq(0)
@@ -227,6 +250,8 @@ RSpec.describe 'API V1 Companies', type: :request do
       response '401', 'unauthorized - missing token' do
         let(:Authorization) { '' }
         let(:company_params) { { company: { name: 'X', siren: '123456789' }, role: 'independent' } }
+
+        schema '$ref' => '#/components/schemas/ErrorStandardized'
 
         run_test! do |response|
           expect(response).to have_http_status(:unauthorized)
@@ -255,6 +280,8 @@ RSpec.describe 'API V1 Companies', type: :request do
       response '200', 'returns the company for an authorized user' do
         let(:id) { company.id }
 
+        schema '$ref' => '#/components/schemas/companyResponse'
+
         run_test! do |response|
           expect(response).to have_http_status(:ok)
           data = JSON.parse(response.body)
@@ -267,6 +294,8 @@ RSpec.describe 'API V1 Companies', type: :request do
         let(:id) { company.id }
         let(:Authorization) { "Bearer #{AuthenticationService.login(other_user, '127.0.0.1', 'Test Agent')[:token]}" }
 
+        schema '$ref' => '#/components/schemas/ErrorStandardized'
+
         run_test! do |response|
           expect(response).to have_http_status(:forbidden)
           data = JSON.parse(response.body)
@@ -276,6 +305,8 @@ RSpec.describe 'API V1 Companies', type: :request do
 
       response '404', 'not found for unknown company' do
         let(:id) { SecureRandom.uuid }
+
+        schema '$ref' => '#/components/schemas/ErrorStandardized'
 
         run_test! do |response|
           expect(response).to have_http_status(:not_found)
@@ -288,13 +319,16 @@ RSpec.describe 'API V1 Companies', type: :request do
       consumes 'application/json'
       produces 'application/json'
       parameter name: :Authorization, in: :header, type: :string, required: true
-      parameter name: :company_params, in: :body, required: true
+      parameter name: :company_params, in: :body, required: true,
+                schema: { '$ref' => '#/components/schemas/companyUpdateRequest' }
 
       response '200', 'updates company attributes for an authorized user' do
         let(:id) { company.id }
         let(:company_params) do
           { company: { name: 'Updated Name', vat_regime: 'reelle_simplifiee' } }
         end
+
+        schema '$ref' => '#/components/schemas/companyResponse'
 
         run_test! do |response|
           expect(response).to have_http_status(:ok)
@@ -308,6 +342,8 @@ RSpec.describe 'API V1 Companies', type: :request do
         let(:id) { company.id }
         let(:Authorization) { "Bearer #{AuthenticationService.login(other_user, '127.0.0.1', 'Test Agent')[:token]}" }
         let(:company_params) { { company: { name: 'Hacked Name' } } }
+
+        schema '$ref' => '#/components/schemas/ErrorStandardized'
 
         run_test! do |response|
           expect(response).to have_http_status(:forbidden)
@@ -324,6 +360,9 @@ RSpec.describe 'API V1 Companies', type: :request do
       response '200', 'soft-deletes the company' do
         let(:id) { company.id }
 
+        schema type: :object, required: %w[message],
+               properties: { message: { type: :string } }
+
         run_test! do |response|
           expect(response).to have_http_status(:ok)
           company.reload
@@ -335,6 +374,8 @@ RSpec.describe 'API V1 Companies', type: :request do
       response '403', 'rejects cross-user deletion (§43)' do
         let(:id) { company.id }
         let(:Authorization) { "Bearer #{AuthenticationService.login(other_user, '127.0.0.1', 'Test Agent')[:token]}" }
+
+        schema '$ref' => '#/components/schemas/ErrorStandardized'
 
         run_test! do |response|
           expect(response).to have_http_status(:forbidden)

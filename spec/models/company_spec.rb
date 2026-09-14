@@ -145,7 +145,7 @@ RSpec.describe Company, type: :model do
 
       it 'is idempotent' do
         company.discard
-        expect { company.discard }.not_to change { company.reload.deleted_at }
+        expect { company.discard }.not_to(change { company.reload.deleted_at })
       end
     end
 

@@ -222,6 +222,164 @@ RSpec.configure do |config|
             }
           },
 
+          # =============================================
+          # FC-08 — Company & User-Company Relationships
+          # =============================================
+
+          companyCreateRequest: {
+            type: :object,
+            additionalProperties: false,
+            required: %w[name siren],
+            properties: {
+              name: { type: :string, description: 'Company name' },
+              siren: { type: :string, description: 'SIREN (9 digits)', example: '123456789' },
+              siret: { type: :string, description: 'SIRET (14 digits, optional)', example: '12345678900012' },
+              legal_form: { type: :string, description: 'Legal form (EI, SARL, SAS...)' },
+              tax_number: { type: :string, description: 'VAT number' },
+              address_line_1: { type: :string, description: 'Address line 1' },
+              address_line_2: { type: :string, description: 'Address line 2' },
+              postal_code: { type: :string, description: 'Postal code' },
+              city: { type: :string, description: 'City' },
+              country: { type: :string, description: 'ISO 3166-1 alpha-2 code', example: 'FR' },
+              currency: { type: :string, description: 'ISO 4217 currency code', example: 'EUR' },
+              vat_regime: { type: :string, description: 'Contextual VAT regime (INV-13)' }
+            }
+          },
+
+          companyUpdateRequest: {
+            type: :object,
+            additionalProperties: false,
+            required: [],
+            properties: {
+              name: { type: :string, description: 'Company name' },
+              siren: { type: :string, description: 'SIREN (9 digits)', example: '123456789' },
+              siret: { type: :string, description: 'SIRET (14 digits, optional)', example: '12345678900012' },
+              legal_form: { type: :string, description: 'Legal form' },
+              tax_number: { type: :string, description: 'VAT number' },
+              address_line_1: { type: :string, description: 'Address line 1' },
+              address_line_2: { type: :string, description: 'Address line 2' },
+              postal_code: { type: :string, description: 'Postal code' },
+              city: { type: :string, description: 'City' },
+              country: { type: :string, description: 'ISO 3166-1 alpha-2 code', example: 'FR' },
+              currency: { type: :string, description: 'ISO 4217 currency code', example: 'EUR' },
+              vat_regime: { type: :string, description: 'Contextual VAT regime (INV-13)' }
+            }
+          },
+
+          companyResponse: {
+            type: :object,
+            additionalProperties: false,
+            properties: {
+              id: { type: :string, format: :uuid, description: 'Company UUID' },
+              name: { type: :string, description: 'Company name' },
+              siren: { type: :string, description: 'SIREN (9 digits)' },
+              siret: { type: :string, description: 'SIRET (14 digits), nullable', nullable: true },
+              legal_form: { type: :string, description: 'Legal form', nullable: true },
+              tax_number: { type: :string, description: 'VAT number', nullable: true },
+              address_line_1: { type: :string, description: 'Address line 1', nullable: true },
+              address_line_2: { type: :string, description: 'Address line 2', nullable: true },
+              postal_code: { type: :string, description: 'Postal code', nullable: true },
+              city: { type: :string, description: 'City', nullable: true },
+              country: { type: :string, description: 'ISO 3166-1 alpha-2 code' },
+              currency: { type: :string, description: 'ISO 4217 currency code' },
+              vat_regime: { type: :string, description: 'Contextual VAT regime', nullable: true },
+              created_at: { type: :string, format: 'date-time', description: 'Creation timestamp' },
+              updated_at: { type: :string, format: 'date-time', description: 'Last update timestamp' }
+            }
+          },
+
+          companyListResponse: {
+            type: :object,
+            additionalProperties: false,
+            properties: {
+              data: {
+                type: :array,
+                items: { '$ref' => '#/components/schemas/companyResponse' }
+              },
+              meta: {
+                type: :object,
+                additionalProperties: false,
+                properties: { total: { type: :integer, description: 'Total accessible companies' } }
+              }
+            }
+          },
+
+          companyOnboardingRequest: {
+            type: :object,
+            additionalProperties: false,
+            required: %w[company role],
+            description: 'Atomic onboarding. Flat JSON also accepted via wrapping; role is read separately (INV-22).',
+            properties: {
+              company: { '$ref' => '#/components/schemas/companyCreateRequest' },
+              role: { type: :string, enum: %w[independent client], description: 'Initial UserCompany role (§39)' }
+            }
+          },
+
+          userCompanyCreateRequest: {
+            type: :object,
+            additionalProperties: false,
+            required: %w[company_id role],
+            description: 'The relationship is created for the authenticated user; user_id is ignored (§42)',
+            properties: {
+              company_id: { type: :string, format: :uuid, description: 'Company UUID' },
+              role: { type: :string, enum: %w[independent client], description: 'Relationship role (§25)' }
+            }
+          },
+
+          userCompanyUpdateRequest: {
+            type: :object,
+            additionalProperties: false,
+            required: %w[role],
+            description: 'Role only (§37.3) — user_id, company_id and deleted_at are never accepted',
+            properties: {
+              role: { type: :string, enum: %w[independent client], description: 'Relationship role' }
+            }
+          },
+
+          userCompanyResponse: {
+            type: :object,
+            additionalProperties: false,
+            properties: {
+              id: { type: :string, format: :uuid, description: 'Relationship UUID' },
+              user_id: { type: :integer, description: 'User ID (bigint)' },
+              company_id: { type: :string, format: :uuid, description: 'Company UUID' },
+              role: { type: :string, enum: %w[independent client], description: 'Relationship role (INV-06)' },
+              deleted_at: { type: :string, format: 'date-time', nullable: true,
+                            description: 'Soft deletion timestamp' },
+              created_at: { type: :string, format: 'date-time', description: 'Creation timestamp' },
+              updated_at: { type: :string, format: 'date-time', description: 'Last update timestamp' }
+            }
+          },
+
+          userCompanyListResponse: {
+            type: :object,
+            additionalProperties: false,
+            properties: {
+              data: {
+                type: :array,
+                items: { '$ref' => '#/components/schemas/userCompanyResponse' }
+              },
+              meta: {
+                type: :object,
+                additionalProperties: false,
+                properties: { total: { type: :integer, description: 'Total relationships' } }
+              }
+            }
+          },
+
+          # Standardized error — flat shape per contract §44 (render_error format)
+          ErrorStandardized: {
+            type: :object,
+            required: %w[code message],
+            additionalProperties: false,
+            description: 'Standardized error format {code, message, details} (§44)',
+            properties: {
+              code: { type: :string, description: 'Error code (e.g., FORBIDDEN, NOT_FOUND, UNPROCESSABLE_ENTITY)' },
+              message: { type: :string, description: 'Human-readable error message' },
+              details: { type: :object, additionalProperties: true, description: 'Optional error details' }
+            }
+          },
+
           login: {
             type: :object,
             additionalProperties: false,

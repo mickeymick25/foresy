@@ -26,10 +26,14 @@ Rails.application.routes.draw do
       post 'signup', to: 'users#create'
 
       # Company routes (FC-08 — Entreprise Indépendant)
-      resources :companies, only: %i[index show create update destroy]
+      resources :companies, only: %i[index show create destroy] do
+        patch :update, on: :member
+      end
 
       # UserCompany relationship routes (FC-08)
-      resources :user_companies, only: %i[index show create update destroy]
+      resources :user_companies, only: %i[index show create destroy] do
+        patch :update, on: :member
+      end
 
       resources :missions, only: %i[index show create destroy] do
         patch :update, on: :member

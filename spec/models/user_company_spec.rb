@@ -65,7 +65,7 @@ RSpec.describe UserCompany, type: :model do
   describe 'PostgreSQL enum behavior (§24)' do
     it 'rejects unknown role values at database level' do
       expect do
-        sql = "INSERT INTO user_companies (user_id, company_id, role, created_at, updated_at) "
+        sql = 'INSERT INTO user_companies (user_id, company_id, role, created_at, updated_at) '
         sql += "VALUES (#{user.id}, '#{company.id}', 'invalid_role', NOW(), NOW())"
         UserCompany.connection.execute(sql)
       end.to raise_error(ActiveRecord::StatementInvalid)
@@ -161,7 +161,7 @@ RSpec.describe UserCompany, type: :model do
 
       it 'is idempotent' do
         relationship.discard
-        expect { relationship.discard }.not_to change { relationship.reload.deleted_at }
+        expect { relationship.discard }.not_to(change { relationship.reload.deleted_at })
       end
     end
 

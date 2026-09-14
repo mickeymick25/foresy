@@ -18,11 +18,11 @@
 | **Phase 4 — Model Implementation (GREEN)** | 2 | 0 | 0 | 2 | 100% |
 | **Phase 5 — Request Specs (RED)** | 2 | 0 | 0 | 2 | 100% |
 | **Phase 6 — Controllers/Services (GREEN)** | 2 | 0 | 0 | 2 | 100% |
-| **Phase 7 — RSwag** | 1 | 1 | 0 | 0 | 0% |
-| **Phase 8 — Quality Gates** | 4 | 4 | 0 | 0 | 0% |
-| **Phase 9 — Régression** | 2 | 2 | 0 | 0 | 0% |
+| **Phase 7 — RSwag** | 1 | 0 | 0 | 1 | 100% |
+| **Phase 8 — Quality Gates** | 4 | 0 | 0 | 4 | 100% |
+| **Phase 9 — Régression** | 2 | 0 | 0 | 2 | 100% |
 | **Phase 10 — PR** | 1 | 1 | 0 | 0 | 0% |
-| **Total** | **19** | **8** | **0** | **11** | **58%** |
+| **Total** | **19** | **3** | **0** | **16** | **84%** |
 
 ---
 
@@ -73,23 +73,23 @@
 
 | ID | Tâche | Statut | Description |
 |---|---|---|---|
-| P7.1 | RSwag — générer Swagger depuis request specs | ⬜ | Company schema, UserCompany schema, role values, request/response bodies, error responses, authentication, authorization |
+| P7.1 | RSwag — générer Swagger depuis request specs | ✅ | 14/09/2026 : 10 schémas centralisés FC-08 (companyOnboardingRequest, companyCreate/UpdateRequest, companyResponse, companyListResponse, userCompanyCreate/UpdateRequest, userCompanyResponse/ListResponse, ErrorStandardized plat §44) ajoutés à swagger_helper ; yaml régénéré (402 ex, 0 échec) ; audit routes↔swagger PASSÉ (pattern patch :update, on: :member repris de missions pour éliminer les routes PUT) |
 
 ### Phase 8 — Quality Gates
 
 | ID | Tâche | Statut | Commande |
 |---|---|---|---|
-| P8.1 | RuboCop | ⬜ | `bundle exec rubocop` — 0 offenses |
-| P8.2 | Brakeman | ⬜ | `bundle exec brakeman` — 0 warnings |
-| P8.3 | RSpec full suite | ⬜ | `bundle exec rspec` — 0 failures |
-| P8.4 | RSwag suite | ⬜ | `bundle exec rspec --tag swagger` — 0 failures |
+| P8.1 | RuboCop | ✅ | `bundle exec rubocop` — 234 fichiers, 0 offense (14/09/2026) |
+| P8.2 | Brakeman | ✅ | 0 warning introduit par FC-08. 2 warnings Command Injection PRÉEXISTANTS dans GitLedgerRepository (code CRA hors périmètre, commits 10680ec2/a0ea0f97, entrée d'ignore obsolète antérieure) — documentés per contract §63 step 12 « explicitly document » |
+| P8.3 | RSpec full suite | ✅ | `bundle exec rspec` — 948 exemples, 0 échec |
+| P8.4 | RSwag suite | ✅ | Adaptation notée : pas de tag :swagger dans le projet — équivalent exécuté = `rake rswag:specs:swaggerize` (402 ex, 0 échec) + `rake swagger:audit_coverage` (PASSÉ, 37/37 routes) |
 
 ### Phase 9 — Régression
 
 | ID | Tâche | Statut | Vérification |
 |---|---|---|---|
-| P9.1 | FC-06 regression | ⬜ | `bundle exec rspec spec/requests/api/v1/missions spec/models/mission_lifecycle_spec.rb` — 0 failures |
-| P9.2 | FC-07 regression | ⬜ | `bundle exec rspec spec/requests/api/v1/cras spec/requests/api/v1/cra_entries spec/services/cra_services` — 0 failures |
+| P9.1 | FC-06 regression | ✅ | 21 exemples, 0 échec (14/09/2026) |
+| P9.2 | FC-07 regression | ✅ | 158 exemples, 0 échec (14/09/2026) |
 
 ### Phase 10 — PR
 
@@ -164,6 +164,14 @@
 - **Tests :** 32 request specs GREEN (19+13). Régression globale : 948 exemples, 2 échecs — spec d'audit p4_6 épingle .only_deleted sur Company, mise à jour vers .deleted (contrat FC-08 §29) → 20/20 vert
 - **Décision :** erreurs standardisées plates {code, message, details} (§44, format render_error existant) ; rôle invalide → 422
 - **Commit :** feat(fc08): P6 contrôleurs + services GREEN (onboarding atomique, autorisation, soft delete)
+
+### 2026-09-14 — [P7 + P8 + P9] RSwag, Quality Gates, Régression
+
+- **Étape TDD :** Documentation + gates (Steps 10-14 du §63)
+- **Fichiers modifiés :** spec/swagger_helper.rb (10 schémas FC-08 + ErrorStandardized), config/routes.rb (patch member pour audit), specs request (schema refs), corrections RuboCop (spec/models, spec/factories)
+- **Tests :** swaggerize 402/0 ; audit routes↔swagger PASSÉ ; rubocop 0 offense ; rspec full 948/0 ; FC-06 21/0 ; FC-07 158/0 ; brakeman 2 warnings préexistants hors périmètre (documentés)
+- **Décision :** P8.4 adapté — pas de tag :swagger dans la maison, équivalent swaggerize + audit_coverage
+- **Commit :** chore(fc08): P7-P9 swagger + quality gates + régression
 
 ---
 

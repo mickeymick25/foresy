@@ -41,6 +41,8 @@ RSpec.describe 'API V1 UserCompanies', type: :request do
           create(:user_company, user: other_user, company: create(:company), role: 'independent')
         end
 
+        schema '$ref' => '#/components/schemas/userCompanyListResponse'
+
         run_test! do |response|
           expect(response).to have_http_status(:ok)
           data = JSON.parse(response.body)
@@ -52,6 +54,8 @@ RSpec.describe 'API V1 UserCompanies', type: :request do
 
       response '401', 'unauthorized - missing token' do
         let(:Authorization) { '' }
+
+        schema '$ref' => '#/components/schemas/ErrorStandardized'
 
         run_test! do |response|
           expect(response).to have_http_status(:unauthorized)
@@ -67,7 +71,8 @@ RSpec.describe 'API V1 UserCompanies', type: :request do
       consumes 'application/json'
       produces 'application/json'
       parameter name: :Authorization, in: :header, type: :string, required: true
-      parameter name: :user_company_params, in: :body, required: true
+      parameter name: :user_company_params, in: :body, required: true,
+                schema: { '$ref' => '#/components/schemas/userCompanyCreateRequest' }
 
       response '201', 'adds a client role to an existing company (Scenario 5)' do
         before { create(:user_company, user: user, company: company, role: 'independent') }
@@ -75,6 +80,8 @@ RSpec.describe 'API V1 UserCompanies', type: :request do
         let(:user_company_params) do
           { company_id: company.id, role: 'client' }
         end
+
+        schema '$ref' => '#/components/schemas/userCompanyResponse'
 
         run_test! do |response|
           expect(response).to have_http_status(:created)
@@ -92,6 +99,8 @@ RSpec.describe 'API V1 UserCompanies', type: :request do
           { company_id: company.id, role: 'independent' }
         end
 
+        schema '$ref' => '#/components/schemas/ErrorStandardized'
+
         run_test! do |response|
           expect(response).to have_http_status(:unprocessable_entity)
           expect(UserCompany.for_user(user).for_company(company).count).to eq(1)
@@ -103,6 +112,8 @@ RSpec.describe 'API V1 UserCompanies', type: :request do
           { company_id: company.id, role: 'unsupported_role' }
         end
 
+        schema '$ref' => '#/components/schemas/ErrorStandardized'
+
         run_test! do |response|
           expect(response).to have_http_status(:unprocessable_entity)
         end
@@ -112,6 +123,8 @@ RSpec.describe 'API V1 UserCompanies', type: :request do
         let(:user_company_params) do
           { company_id: company.id, role: 'independent', user_id: other_user.id }
         end
+
+        schema '$ref' => '#/components/schemas/userCompanyResponse'
 
         run_test! do |response|
           expect(response).to have_http_status(:created)
@@ -124,6 +137,8 @@ RSpec.describe 'API V1 UserCompanies', type: :request do
       response '401', 'unauthorized - missing token' do
         let(:Authorization) { '' }
         let(:user_company_params) { { company_id: company.id, role: 'independent' } }
+
+        schema '$ref' => '#/components/schemas/ErrorStandardized'
 
         run_test! do |response|
           expect(response).to have_http_status(:unauthorized)
@@ -148,6 +163,8 @@ RSpec.describe 'API V1 UserCompanies', type: :request do
       response '200', 'returns the relationship for its owner' do
         let(:id) { relationship.id }
 
+        schema '$ref' => '#/components/schemas/userCompanyResponse'
+
         run_test! do |response|
           expect(response).to have_http_status(:ok)
           data = JSON.parse(response.body)
@@ -159,6 +176,8 @@ RSpec.describe 'API V1 UserCompanies', type: :request do
       response '403', 'rejects cross-user access (§43)' do
         let(:id) { relationship.id }
         let(:Authorization) { "Bearer #{AuthenticationService.login(other_user, '127.0.0.1', 'Test Agent')[:token]}" }
+
+        schema '$ref' => '#/components/schemas/ErrorStandardized'
 
         run_test! do |response|
           expect(response).to have_http_status(:forbidden)
@@ -173,7 +192,8 @@ RSpec.describe 'API V1 UserCompanies', type: :request do
       consumes 'application/json'
       produces 'application/json'
       parameter name: :Authorization, in: :header, type: :string, required: true
-      parameter name: :user_company_params, in: :body, required: true
+      parameter name: :user_company_params, in: :body, required: true,
+                schema: { '$ref' => '#/components/schemas/userCompanyUpdateRequest' }
 
       response '200', 'updates the role and ignores protected attributes' do
         let(:id) { relationship.id }
@@ -186,6 +206,8 @@ RSpec.describe 'API V1 UserCompanies', type: :request do
             deleted_at: Time.current.iso8601
           }
         end
+
+        schema '$ref' => '#/components/schemas/userCompanyResponse'
 
         run_test! do |response|
           expect(response).to have_http_status(:ok)
@@ -202,6 +224,8 @@ RSpec.describe 'API V1 UserCompanies', type: :request do
         let(:Authorization) { "Bearer #{AuthenticationService.login(other_user, '127.0.0.1', 'Test Agent')[:token]}" }
         let(:user_company_params) { { role: 'client' } }
 
+        schema '$ref' => '#/components/schemas/ErrorStandardized'
+
         run_test! do |response|
           expect(response).to have_http_status(:forbidden)
           expect(relationship.reload.role).to eq('independent')
@@ -217,6 +241,9 @@ RSpec.describe 'API V1 UserCompanies', type: :request do
       response '200', 'soft-deletes the relationship' do
         let(:id) { relationship.id }
 
+        schema type: :object, required: %w[message],
+               properties: { message: { type: :string } }
+
         run_test! do |response|
           expect(response).to have_http_status(:ok)
           relationship.reload
@@ -228,6 +255,8 @@ RSpec.describe 'API V1 UserCompanies', type: :request do
       response '403', 'rejects cross-user deletion (§43)' do
         let(:id) { relationship.id }
         let(:Authorization) { "Bearer #{AuthenticationService.login(other_user, '127.0.0.1', 'Test Agent')[:token]}" }
+
+        schema '$ref' => '#/components/schemas/ErrorStandardized'
 
         run_test! do |response|
           expect(response).to have_http_status(:forbidden)
