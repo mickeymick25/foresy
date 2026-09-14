@@ -1,4 +1,6 @@
 # Correction CI - Migration Rails 8.1.1
+Historique / état au 2025-12-26
+
 
 **Date :** 26 décembre 2025  
 **Contexte :** PR #8 - Migration Rails 8.1.1 + Ruby 3.4.8  

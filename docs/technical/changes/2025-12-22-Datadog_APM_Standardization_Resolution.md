@@ -1,4 +1,6 @@
 # 🔧 Résolution Standardisation APM Datadog - 22 Décembre 2025
+Historique / état au 2025-12-22
+
 
 **Date :** 22 décembre 2025  
 **Contexte :** Point 4 PR - Incohérences API Datadog / APM  

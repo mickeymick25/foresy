@@ -1,4 +1,6 @@
 # FC06 Missions Implementation - Documentation Technique Complète
+Historique / état au 2025-12-31
+
 
 **Date**: 31 Décembre 2025  
 **Status**: ✅ **TERMINÉ - PR #12 MERGED**  

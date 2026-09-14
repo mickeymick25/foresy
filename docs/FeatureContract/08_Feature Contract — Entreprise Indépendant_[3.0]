@@ -1,0 +1,1017 @@
+FC-08 — Entreprises & Relations Professionnelles
+
+Version : 3.0 — Document intermédiaire de conception
+Statut : À valider avant implémentation
+Périmètre : Backend API only
+Niveau de qualité : Platinum
+Dépendances : FC-06 Missions, FC-07 CRA
+
+1. Objet du Feature Contract
+
+FC-08 établit les fondations permettant à Foresy de représenter :
+
+les entités juridiques avec lesquelles un User entretient une relation professionnelle ;
+les relations entre un User et une Company ;
+le rôle exercé par le User vis-à-vis d'une Company ;
+les informations légales et fiscales nécessaires à l'identification et à la qualification de la Company.
+
+FC-08 ne modélise pas l'activité réalisée par le User.
+
+Il ne modifie pas le fonctionnement du CRA, des Missions ou du futur moteur de simulation.
+
+Principe fondamental
+
+Company représente l'entité juridique.
+UserCompany représente la relation professionnelle entre un User et cette entité.
+Le rôle appartient à la relation, jamais à la Company.
+
+2. Contexte produit
+
+Foresy est un SaaS backend-first destiné aux indépendants.
+
+La valeur du produit est de permettre à un utilisateur de :
+
+enregistrer son activité ;
+planifier son activité ;
+mesurer son activité réalisée ;
+comprendre les conséquences réglementaires, fiscales et sociales de ses choix ;
+piloter son activité avec une vision prospective.
+
+Le contexte juridique de l'utilisateur constitue donc une donnée fondamentale du produit.
+
+Cependant, la présence d'une Company n'est pas une condition d'utilisation de Foresy.
+
+Un utilisateur peut commencer à utiliser Foresy sans disposer d'une entreprise active.
+
+3. Positionnement dans l'architecture globale
+
+Le modèle global est :
+
+User
+ │
+ │  UserCompany
+ ▼
+Company
+ │
+ ├── Legal context
+ ├── Fiscal context
+ └── Social context
+       │
+       ▼
+     Activity
+       │
+       ▼
+     Mission
+       │
+       ▼
+      CRA
+       │
+       ├── Realized
+       └── Forecast
+
+FC-08 implémente uniquement :
+
+User
+  ↕
+UserCompany
+  ↕
+Company
+
+Les concepts situés en aval existent comme contraintes architecturales, mais ne sont pas implémentés ou modifiés par FC-08.
+
+4. Concepts métier
+4.1 User
+
+Un User représente l'utilisateur authentifié de Foresy.
+
+Un User :
+
+peut ne posséder aucune Company ;
+peut être associé à plusieurs Companies ;
+peut exercer des rôles différents selon la Company ;
+peut avoir plusieurs rôles simultanément vis-à-vis d'une même Company.
+
+FC-08 ne modifie pas le modèle fondamental de User.
+
+5. Company
+
+Une Company représente une entité juridique réelle ou légalement constituée.
+
+Une Company n'est pas :
+
+un profil utilisateur ;
+une activité ;
+une Mission ;
+un rôle ;
+une simulation ;
+un projet de création d'entreprise.
+5.1 Principe d'identité
+
+Une Company active identifiée par un référentiel officiel doit pouvoir être rattachée à son identité juridique officielle.
+
+En France, cette identité repose notamment sur :
+
+SIREN ;
+SIRET ;
+forme juridique ;
+informations légales associées.
+6. Une Company n'est jamais une Company fictive
+
+FC-08 interdit la création d'une Company destinée uniquement à représenter :
+
+« Je n'ai pas encore d'entreprise mais je veux faire une simulation. »
+
+Dans ce cas :
+
+User
+└── aucune Company
+
+La simulation éventuelle appartient à un futur domaine de simulation.
+
+Invariant
+
+L'absence de Company ne doit jamais empêcher l'utilisation des fonctionnalités qui ne nécessitent pas d'entité juridique réelle.
+
+7. Cas particulier : entreprise en cours d'immatriculation
+
+Le statut :
+
+« entreprise en cours d'immatriculation »
+
+est un état du parcours utilisateur, et non nécessairement une Company.
+
+Il ne doit donc pas conduire automatiquement à :
+
+Company
+SIREN = NULL
+
+ni à :
+
+UserCompany
+company_id = NULL
+
+Ces deux structures seraient incompatibles avec la définition relationnelle du domaine.
+
+Principe
+business_creation_in_progress
+        ≠
+Company
+
+La modélisation détaillée du projet de création d'entreprise est hors scope de FC-08.
+
+8. UserCompany
+
+UserCompany représente la relation professionnelle entre :
+
+User ↔ Company
+
+C'est une entité relationnelle explicite.
+
+Elle porte notamment le rôle du User vis-à-vis de la Company.
+
+Exemples :
+
+User A
+   │
+   └── UserCompany
+         ├── Company A
+         └── role: independent
+
+ou :
+
+User A
+   │
+   ├── UserCompany → Company A → independent
+   │
+   └── UserCompany → Company B → client
+9. Multi-rôles
+
+Un User peut exercer plusieurs rôles simultanément vis-à-vis d'une même Company.
+
+Exemple :
+
+User A
+   │
+   ├── Company A / independent
+   └── Company A / client
+
+Cette situation est valide.
+
+Pourquoi ?
+
+Le rôle décrit la manière dont le User agit dans le contexte de la Company.
+
+Il ne constitue donc pas une propriété intrinsèque du User ou de la Company.
+
+10. Rôles FC-08
+
+FC-08 implémente initialement :
+
+independent
+client
+independent
+
+Le User agit dans le cadre de son activité indépendante via cette Company.
+
+client
+
+Le User agit pour le compte de cette Company en tant que client/donneur d'ordre d'une activité indépendante.
+
+Ces rôles ne doivent pas être confondus avec :
+
+les rôles d'autorisation applicative ;
+les permissions techniques ;
+les futurs rôles administratifs.
+11. Un User peut posséder plusieurs Companies
+
+FC-08 ne limite pas le nombre de Companies auxquelles un User peut être associé.
+
+Exemple :
+
+User
+ ├── Company A → independent
+ ├── Company B → independent
+ └── Company C → client
+
+Le système ne doit pas imposer une règle arbitraire du type :
+
+« un User ne peut avoir qu'une seule Company ».
+
+Toute contrainte réglementaire éventuelle sur l'exercice d'une activité doit être traitée dans le domaine métier approprié et ne doit pas être artificiellement encodée comme une contrainte de cardinalité Company.
+
+12. Relation-Driven Architecture
+
+FC-08 respecte l'acte d'architecture officiel :
+
+Aucune entité métier ne porte de clé étrangère vers une autre entité métier.
+
+Ainsi :
+
+Company
+
+ne contient pas :
+
+user_id
+
+et :
+
+User
+
+ne contient pas :
+
+company_id
+
+La relation est matérialisée par :
+
+UserCompany
+13. Modèle relationnel cible
+users
+  │
+  │
+  ▼
+user_companies
+  │
+  │
+  ▼
+companies
+Company
+
+Conceptuellement :
+
+Company
+├── id
+├── siren
+├── siret
+├── legal_form_code
+├── vat_regime
+├── ...
+├── created_at
+└── updated_at
+UserCompany
+UserCompany
+├── id
+├── user_id
+├── company_id
+├── role
+├── created_at
+└── updated_at
+
+Les noms exacts et types PostgreSQL seront figés dans la phase d'implémentation après validation du présent contrat.
+
+14. Legal Form
+
+La forme juridique est une donnée structurante de Foresy.
+
+Elle pourra notamment participer ultérieurement à la détermination :
+
+des obligations ;
+des règles fiscales ;
+des règles sociales ;
+des charges ;
+des mécanismes de calcul futurs.
+Décision architecturale
+
+legal_form ne sera pas implémenté comme un Rails enum métier fermé.
+
+On utilisera un code textuel contrôlé :
+
+legal_form_code : string
+
+La valeur devra provenir d'une nomenclature reconnue.
+
+Pourquoi ?
+
+Une nomenclature externe peut évoluer.
+
+Foresy ne doit pas transformer une nomenclature réglementaire en enum applicatif rigide.
+
+15. Nomenclatures INSEE / INPI
+
+Les référentiels INSEE et INPI constituent des sources officielles importantes pour les données légales des entreprises.
+
+FC-08 doit être compatible avec leur utilisation.
+
+Cependant :
+
+FC-08 ne devient pas un moteur de synchronisation de référentiels.
+
+L'intégration complète :
+
+interrogation ;
+synchronisation ;
+rafraîchissement ;
+gestion des versions ;
+rapprochement des données ;
+gestion des divergences ;
+
+pourra faire l'objet d'un Feature Contract dédié.
+
+16. Provenance des données
+
+Foresy doit être capable de distinguer à terme :
+
+OFFICIAL
+DECLARED
+CALCULATED
+SIMULATED
+
+Exemple :
+
+SIREN
+→ official
+
+versus :
+
+information déclarée par l'utilisateur
+→ declared
+
+Cette distinction est fondamentale pour la confiance dans les futures simulations fiscales et réglementaires.
+
+FC-08 doit donc préserver cette possibilité architecturale.
+
+Hors scope
+
+La traçabilité champ-par-champ complète n'est pas implémentée dans FC-08 sauf si elle est nécessaire aux données effectivement introduites.
+
+17. SIREN et SIRET
+SIREN
+
+Le SIREN identifie l'unité légale.
+
+Il doit être :
+
+correctement formaté ;
+normalisé ;
+unique lorsqu'il est présent ;
+associé à une Company réelle.
+SIRET
+
+Le SIRET identifie un établissement.
+
+Il doit être :
+
+correctement formaté ;
+normalisé ;
+unique lorsqu'il est présent.
+Point d'architecture
+
+La relation entre :
+
+SIREN
+SIRET
+établissement
+
+est une réalité juridique distincte du simple stockage de deux chaînes.
+
+FC-08 n'introduit toutefois pas encore un aggregate Establishment séparé sans besoin métier démontré.
+
+18. Régime de TVA
+
+vat_regime représente le régime de TVA applicable à la Company dans le contexte connu de Foresy.
+
+Il s'agit d'une donnée métier structurante.
+
+Elle pourra être utilisée ultérieurement par les moteurs :
+
+fiscaux ;
+réglementaires ;
+de simulation.
+
+FC-08 ne calcule pas les conséquences fiscales de ce régime.
+
+19. Fiscalité ≠ FC-08
+
+FC-08 fournit le contexte fiscal de base.
+
+Il ne calcule pas :
+
+Impôt
+URSSAF
+Retraite
+Cotisations
+TVA due
+Charges
+
+La responsabilité est volontairement séparée :
+
+FC-08
+   ↓
+contexte légal/fiscal
+   ↓
+Future Fiscal/Regulatory Engine
+   ↓
+calcul
+20. CRA et Forecast
+
+FC-07 a établi le CRA comme source de vérité du réalisé.
+
+FC-08 ne modifie pas FC-07.
+
+Nous conservons toutefois comme invariant architectural que Foresy devra ultérieurement distinguer :
+
+REALIZED
+FORECAST
+SCENARIO
+
+Le comportement suivant :
+
+un jour prévisionnel arrive → il devient potentiellement réalisé → l'utilisateur peut encore le modifier avant validation du CRA
+
+appartient au futur domaine Forecast/Planning et ne doit pas être implémenté dans FC-08.
+
+21. Simulation
+
+Foresy doit permettre à terme de répondre à des questions telles que :
+
+Que se passe-t-il si :
+
+→ je facture 6 000 €/mois ?
+→ je facture 10 000 €/mois ?
+→ je change de régime ?
+→ je crée mon entreprise ?
+→ je prends une mission supplémentaire ?
+→ je change de forme juridique ?
+
+Une simulation peut donc exister sans Company active.
+
+Règle fondamentale
+Simulation ≠ Company
+Simulation ≠ Réalisé
+Simulation ≠ CRA
+
+La modélisation du moteur de simulation est hors scope.
+
+22. Missions — compatibilité FC-06
+
+FC-08 doit rester compatible avec FC-06.
+
+Une Mission :
+
+appartient à une Client Company ;
+implique un Independent ;
+est associée aux relations professionnelles appropriées.
+
+FC-08 ne doit pas refactorer le modèle de Mission défini par FC-06.
+
+Une même réalité économique pouvant être exercée dans plusieurs contextes professionnels, Foresy doit conserver la capacité de distinguer ces contextes sans fusionner artificiellement les activités.
+
+23. Distinction des activités
+
+Un User pouvant être :
+
+Independent
+
+et :
+
+Client
+
+simultanément, les activités correspondantes ne doivent pas être mélangées.
+
+Exemple :
+
+User
+ │
+ ├── Company A
+ │      └── Independent
+ │            └── Mission A
+ │                  └── CRA A
+ │
+ └── Company A
+        └── Client
+              └── Mission B
+                    └── activité Client
+
+Même si :
+
+la Company est identique ;
+le TJM est identique ;
+la mission est similaire ;
+le format est identique ;
+
+les contextes métier restent distincts.
+
+La distinction détaillée des activités appartient aux futurs domaines concernés.
+
+24. Lifecycle minimal de Company
+
+FC-08 doit distinguer au minimum :
+
+Company
+├── active
+└── archived
+
+Une Company archivée :
+
+n'est plus proposée comme Company active par défaut ;
+conserve son historique ;
+ne doit pas être physiquement supprimée lorsque cela détruirait l'auditabilité.
+
+Le mécanisme exact de soft delete/lifecycle devra être aligné avec les conventions déjà établies dans le projet.
+
+25. Invariants Platinum
+
+Les invariants suivants constituent le contrat fonctionnel de FC-08.
+
+INV-01 — Company ≠ User
+
+Une Company n'est jamais un User.
+
+INV-02 — Relation explicite
+
+Toute relation User ↔ Company passe par UserCompany.
+
+INV-03 — Aucun FK inter-domaines
+
+Aucune entité métier ne porte directement une FK vers une autre entité métier.
+
+INV-04 — Role appartient à UserCompany
+
+Le rôle est une propriété de la relation.
+
+INV-05 — Multi-role
+
+Un User peut avoir plusieurs rôles vis-à-vis d'une même Company.
+
+INV-06 — Multi-company
+
+Un User peut être associé à plusieurs Companies.
+
+INV-07 — Company réelle
+
+Une Company représente une entité juridique et ne constitue pas un objet de simulation.
+
+INV-08 — Pas de Company fictive
+
+L'absence d'entreprise ne doit jamais être représentée par une Company artificielle.
+
+INV-09 — Pas de UserCompany orpheline
+
+Une UserCompany doit toujours référencer un User et une Company existants.
+
+INV-10 — SIREN
+
+Un SIREN présent doit respecter son format et son unicité.
+
+INV-11 — SIRET
+
+Un SIRET présent doit respecter son format et son unicité.
+
+INV-12 — Legal Form
+
+legal_form_code utilise un code contrôlé et non un enum métier fermé.
+
+INV-13 — Fiscal context
+
+Le régime de TVA est une donnée de contexte, pas un moteur de calcul.
+
+INV-14 — No fiscal engine
+
+FC-08 ne calcule aucune charge, cotisation ou impôt.
+
+INV-15 — No CRA mutation
+
+FC-08 ne modifie pas le comportement du CRA de FC-07.
+
+INV-16 — No Mission mutation
+
+FC-08 ne casse ni ne refactorise FC-06.
+
+INV-17 — Simulation indépendante
+
+Une simulation future peut exister sans Company active.
+
+INV-18 — Auditabilité
+
+La suppression physique d'une Company ne doit pas être utilisée lorsqu'elle détruit un historique métier nécessaire.
+
+26. API cible
+
+L'API devra rester RESTful.
+
+Le modèle cible est :
+
+GET    /companies
+POST   /companies
+GET    /companies/:id
+PATCH  /companies/:id
+DELETE /companies/:id
+
+et, si nécessaire pour la gestion explicite des relations :
+
+GET    /user_companies
+POST   /user_companies
+GET    /user_companies/:id
+PATCH  /user_companies/:id
+Point encore à arbitrer
+
+L'onboarding constitue un cas particulier.
+
+Il est envisageable que :
+
+POST /companies
+
+permette atomiquement :
+
+Company
++
+UserCompany
+
+lorsqu'un utilisateur déclare sa propre Company.
+
+Cela ne signifie pas que role devient une propriété de Company.
+
+Il s'agit d'une commande applicative atomique.
+
+La décision finale devra être prise avant la rédaction OpenAPI.
+
+27. Création atomique
+
+Si le parcours métier est :
+
+« Je crée mon entreprise et je l'utilise comme Independent »
+
+l'opération doit être transactionnelle :
+
+BEGIN
+
+Create Company
+      ↓
+Create UserCompany(role=independent)
+
+COMMIT
+
+En cas d'échec :
+
+ROLLBACK
+
+Il ne doit jamais rester :
+
+Company créée
++
+UserCompany absente
+
+sans justification métier explicite.
+
+28. Gestion de l'onboarding
+
+FC-08 doit supporter les trois situations :
+
+Situation A
+User
+└── aucune Company
+
+→ utilisation sans contexte juridique actif.
+
+Situation B
+User
+└── création d'entreprise en cours
+
+→ état de parcours, pas nécessairement Company.
+
+Situation C
+User
+└── Company active
+      └── UserCompany
+
+→ activité réelle possible dans le cadre juridique correspondant.
+
+29. Activité réalisée avant immatriculation
+
+FC-08 considère comme invariant métier :
+
+Une activité réalisée pour le compte d'une entreprise ne doit pas être enregistrée comme activité réelle d'une Company qui n'existait pas juridiquement à cette date.
+
+Toute situation antérieure à l'immatriculation relève :
+
+de la simulation ;
+de la préparation ;
+ou d'un futur modèle métier explicitement défini.
+
+Elle ne doit pas être artificiellement transformée en réalisé.
+
+30. Gherkin — critères d'acceptation
+Scenario 1 — User sans Company
+Given a User exists
+And the User has no Company
+When the User accesses its Companies
+Then the API returns an empty collection
+And no Company is created automatically
+Scenario 2 — Création d'une Company
+Given an authenticated User
+When the User creates a Company with valid legal information
+Then the Company is created
+And the Company is associated with the User
+And the association has the requested role
+Scenario 3 — Multi-rôle
+Given a User is associated with a Company as "independent"
+When the User is associated with the same Company as "client"
+Then both professional relationships exist
+And neither relationship replaces the other
+Scenario 4 — Multi-company
+Given a User is associated with Company A
+When the User creates an association with Company B
+Then both associations exist independently
+Scenario 5 — Company fictive interdite
+Given a User has no active Company
+When the User performs an operation that does not require a Company
+Then the operation succeeds
+And no fictitious Company is created
+Scenario 6 — SIREN invalide
+Given an authenticated User
+When the User submits an invalid SIREN
+Then the API rejects the request
+And no Company is created
+Scenario 7 — SIREN duplicate
+Given a Company exists with a given SIREN
+When another Company is created with the same SIREN
+Then the API rejects the request
+And no duplicate Company is created
+Scenario 8 — Atomicité
+Given an authenticated User
+When Company creation succeeds
+And UserCompany creation fails
+Then the transaction is rolled back
+And no partial Company remains
+Scenario 9 — Company archivée
+Given a User is associated with an active Company
+When the Company is archived
+Then the historical association remains auditable
+And the Company is no longer treated as active
+31. Tests obligatoires
+
+FC-08 devra suivre strictement le TDD déjà établi.
+
+Model specs
+
+Tests de :
+
+validations ;
+contraintes métier ;
+rôles ;
+unicité ;
+SIREN ;
+SIRET ;
+lifecycle ;
+associations.
+Request specs
+
+Tests de :
+
+création ;
+consultation ;
+modification ;
+archivage ;
+autorisation ;
+erreurs ;
+multi-company ;
+multi-role ;
+atomicité.
+RSwag
+
+Chaque endpoint public devra disposer de :
+
+paramètres ;
+schémas ;
+réponses ;
+exemples ;
+erreurs principales.
+
+Les exemples Swagger seront générés depuis les specs RSpec.
+
+RuboCop / Brakeman
+
+Le Feature Contract doit terminer sans :
+
+RuboCop offenses
+Brakeman warnings
+
+non justifiés.
+
+32. Hors périmètre strict
+
+FC-08 n'implémente pas :
+
+❌ moteur fiscal ;
+❌ calcul URSSAF ;
+❌ calcul retraite ;
+❌ calcul d'impôt ;
+❌ comptabilité ;
+❌ paiement ;
+❌ facturation ;
+❌ moteur de simulation ;
+❌ moteur de prévisionnel ;
+❌ modification du CRA ;
+❌ modification du modèle CRA Entry ;
+❌ nouvelle logique de conversion Forecast → Realized ;
+❌ ActivityContext ;
+❌ synchronisation complète INSEE ;
+❌ synchronisation complète INPI ;
+❌ gestion détaillée des établissements ;
+❌ gestion d'un projet de création d'entreprise ;
+❌ frontend.
+33. Dépendances
+FC-06 — Missions
+
+FC-08 doit respecter le modèle de Company et les relations déjà établies.
+
+Aucune régression ou refactorisation de FC-06.
+
+FC-07 — CRA
+
+FC-08 ne modifie pas le CRA.
+
+Le CRA reste la source de vérité du réalisé conformément à FC-07.
+
+Les évolutions Forecast/Simulation seront traitées dans un Feature Contract distinct.
+
+34. Architecture future
+
+FC-08 doit permettre sans refactoring majeur l'évolution vers :
+
+Company
+   │
+   ├── Legal Context
+   │      ├── Legal Form
+   │      ├── SIREN/SIRET
+   │      └── Legal status
+   │
+   ├── Fiscal Context
+   │      ├── VAT
+   │      ├── Tax regime
+   │      └── ...
+   │
+   └── Social Context
+          ├── Contributions
+          ├── Retirement
+          └── ...
+
+Ces domaines futurs devront consommer le contexte fourni par FC-08 plutôt que réimplémenter l'identité juridique.
+
+35. Décisions explicitement prises
+Sujet	Décision
+Nom	Entreprises & Relations Professionnelles
+Company	Entité juridique réelle
+Company fictive	Interdite
+User sans Company	Autorisé
+User avec plusieurs Companies	Autorisé
+Plusieurs rôles / même Company	Autorisé
+Rôle	Propriété de UserCompany
+Rôles initiaux	independent, client
+UserCompany sans Company	Interdit
+SIREN	String normalisé + unique
+SIRET	String normalisé + unique
+Legal Form	Code string contrôlé
+Rails enum	Non
+VAT regime	Donnée de contexte
+Fiscal calculations	Hors scope
+INSEE/INPI	Sources officielles potentielles
+Synchronisation référentiels	Hors scope
+Temporalité UserCompany	Hors scope actuel
+CRA	Aucun changement
+Forecast	Hors scope
+Simulation	Hors scope
+ActivityContext	Hors scope
+Soft delete / archivage	Oui
+TDD	Obligatoire
+RSpec	Obligatoire
+RSwag	Obligatoire
+RuboCop	0 offense
+Brakeman	0 warning non justifié
+36. Décisions restant à prendre avant implémentation
+
+Il ne reste volontairement qu'un nombre limité de décisions.
+
+D1 — Structure exacte de Company
+
+Valider les champs obligatoires :
+
+siren
+siret
+legal_form_code
+vat_regime
+
+et les éventuelles données d'adresse/raison sociale.
+
+D2 — Structure exacte de UserCompany
+
+Valider :
+
+user_id
+company_id
+role
+
+et confirmer l'absence de temporalité dans FC-08.
+
+D3 — Lifecycle
+
+Confirmer si le modèle utilise :
+
+archived_at
+
+ou un champ status.
+
+D4 — API onboarding
+
+Arbitrer entre :
+
+POST /companies
+POST /user_companies
+
+et une commande atomique :
+
+POST /companies
+{
+  ...,
+  "role": "independent"
+}
+
+sans transformer role en attribut de Company.
+
+D5 — Provenance minimale
+
+Déterminer si FC-08 doit stocker dès maintenant :
+
+source
+retrieved_at
+
+ou si cela doit être entièrement reporté à la feature de synchronisation des référentiels.
+
+37. Critère de sortie Platinum
+
+FC-08 sera considéré comme terminé lorsque :
+
+RSpec
+→ 0 failures
+
+RSwag
+→ 0 failures
+
+RuboCop
+→ 0 offenses
+
+Brakeman
+→ 0 security warnings non justifiés
+
+et que :
+
+tous les invariants sont couverts par des tests ;
+toutes les API publiques sont documentées par RSwag ;
+aucune donnée métier fictive n'est créée ;
+aucune régression FC-06/FC-07 n'est introduite ;
+aucune logique fiscale ou de simulation n'est prématurément implémentée ;
+le modèle relationnel respecte l'architecture Domain-Driven / Relation-Driven.
+38. Formulation définitive du contrat
+
+FC-08 établit le domaine des Entreprises et Relations Professionnelles de Foresy.
+
+Il permet de représenter les entités juridiques réelles (Company) et les relations professionnelles entre ces entités et les utilisateurs (UserCompany).
+
+Un User peut être associé à plusieurs Companies et exercer plusieurs rôles, y compris plusieurs rôles simultanément vis-à-vis d'une même Company.
+
+Une Company représente une réalité juridique et ne doit jamais être utilisée comme substitut d'une simulation, d'un projet de création ou d'un état d'onboarding.
+
+FC-08 fournit le contexte légal et fiscal de base nécessaire aux futurs domaines de calcul, de prévision et de simulation, mais n'implémente aucun de ces moteurs.
+
+FC-08 ne modifie ni FC-06 ni FC-07 et constitue une fondation indépendante, testable et auditable pour les futures évolutions de Foresy.
+
+Statut recommandé : DESIGN READY — PENDING D1-D5

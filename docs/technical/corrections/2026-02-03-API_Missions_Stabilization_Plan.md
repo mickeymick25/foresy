@@ -1,4 +1,6 @@
 # 🚀 Plan de Stabilisation - API Missions (Février 2026)
+Historique / état au 2026-02-03
+
 
 ## 📋 Contexte
 Suite aux tests RSpec échoués, ce document détaille le plan d'action pour stabiliser l'API Missions et les handlers d'erreurs JWT/OAuth.

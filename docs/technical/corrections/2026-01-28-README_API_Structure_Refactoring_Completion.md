@@ -1,4 +1,6 @@
 # Rapport de Progression - Refactoring README.md Foresy API
+Historique / état au 2026-01-28
+
 
 ## 📋 Résumé Exécutif
 

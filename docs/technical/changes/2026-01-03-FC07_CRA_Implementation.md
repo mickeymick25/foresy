@@ -1,4 +1,6 @@
 # FC-07 CRA Implementation Status
+Historique / état au 2026-01-03
+
 
 > **Document de suivi de l'implémentation FC-07 (Compte Rendu d'Activité)**
 > 

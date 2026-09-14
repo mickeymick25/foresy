@@ -1,4 +1,6 @@
 # Plan de Refactoring README.md - Foresy API
+Historique / état au 2026-01-28
+
 
 ⚠️ **ARCHIVE HISTORIQUE - RÉFÉRENCE PLANIFIÉ**  
 Ce plan a été entièrement exécuté. Voir le rapport de progression pour les détails de mise en œuvre.  

@@ -1,4 +1,6 @@
 # 📋 Résolution Problème GoogleOauthService - 18 Décembre 2025
+Historique / état au 2025-12-18
+
 
 **Date :** 18 décembre 2025  
 **Projet :** Foresy API  

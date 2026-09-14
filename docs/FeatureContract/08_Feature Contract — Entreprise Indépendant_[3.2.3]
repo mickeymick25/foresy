@@ -1,0 +1,1761 @@
+FC-08 — Company & User–Company Relationships
+
+Version: 3.2.3
+Status: Implementation-Ready / TDD-Ready
+Date: 30 August 2026
+Type: Feature Contract / Intermediate Architecture & Implementation Specification
+Project: Foresy
+Authors: Senior Product Architect + CTO
+
+1. Purpose
+
+FC-08 defines the domain, data model, business rules, API contract, and implementation constraints for managing:
+
+Companies
+User–Company relationships
+Company roles
+Company lifecycle
+Company legal and administrative information
+The onboarding case where a User does not yet have an active Company
+
+FC-08 establishes the structural foundation required for future Foresy features involving:
+
+independent activity
+client activity
+missions
+CRA
+forecasting
+simulation
+fiscal and regulatory consequences
+
+FC-08 does not implement fiscal calculation, forecasting, simulation, or CRA evolution.
+
+2. Product Context
+
+Foresy is a backend-first SaaS product for independent professionals.
+
+The product must allow a User to:
+
+register without having a Company;
+explore and simulate possible professional situations;
+subsequently create or register a Company;
+operate through one or more Companies;
+act in different capacities depending on the Company relationship;
+maintain a distinction between independent activity and client activity.
+
+A User therefore does not intrinsically have a single global business role.
+
+The role is contextual to the relationship between a User and a Company.
+
+3. Core Domain Concepts
+
+The following concepts are explicitly distinct:
+
+User
+Company
+UserCompany
+Role
+Independent
+Client
+Mission
+CRA
+CRA Entry
+Legal Status
+Fiscal Status
+Legal Form
+
+FC-08 primarily implements:
+
+Company
+UserCompany
+Company role
+
+Other concepts remain outside FC-08 implementation scope.
+
+4. Architectural Principles
+4.1 Relation-Driven Design
+
+Foresy follows the following mandatory architecture rule:
+
+No business entity owns a foreign key directly to another business entity.
+
+Relationships between business domains are represented through explicit relation entities/tables.
+
+Therefore:
+
+User
+  │
+  │
+  ▼
+UserCompany
+  │
+  │
+  ▼
+Company
+
+UserCompany is the explicit relationship between User and Company.
+
+4.2 Foreign Keys on Relation Tables
+
+The Relation-Driven principle does not prohibit a relation table from referencing the entities it relates.
+
+Therefore:
+
+user_companies.user_id    → users.id
+user_companies.company_id → companies.id
+
+is valid and required.
+
+What is prohibited is:
+
+users.company_id
+companies.user_id
+
+or any equivalent direct cross-domain ownership.
+
+4.3 No default_scope
+
+No default_scope may be introduced.
+
+Lifecycle behavior must use explicit scopes.
+
+Example:
+
+Company.active
+Company.deleted
+5. User Without Company
+
+A User may exist without any Company.
+
+This is a mandatory product requirement.
+
+The following state is valid:
+
+User
+ └── no UserCompany
+
+This allows onboarding and simulation before company creation.
+
+No fictitious Company must be created to represent this situation.
+
+6. No Fictitious Company
+
+FC-08 MUST NOT create a fake, demo, placeholder, or fictitious Company to represent a User who has no real Company.
+
+Simulation data must remain conceptually distinct from real Company data.
+
+A simulation is not a Company.
+
+A future feature may provide a mechanism to transform simulation/planning data into real activity after Company creation, but that functionality is outside FC-08.
+
+7. Company Definition
+
+A Company represents a legal or organizational entity through which activity may be conducted.
+
+At FC-08 level, Company contains administrative and legal information.
+
+Company does not contain:
+
+user_id
+User role
+Mission references
+CRA references
+Client references
+Independent references
+
+Those relationships belong to dedicated relation structures.
+
+8. UserCompany Definition
+
+UserCompany represents the relationship between a User and a Company.
+
+It answers:
+
+"How does this User act in relation to this Company?"
+
+The relationship contains a role.
+
+The relationship is therefore contextual rather than global.
+
+9. Supported Roles
+
+FC-08 supports the following roles:
+
+9.1 independent
+
+The User acts as an Independent through the Company.
+
+This role will support future features involving:
+
+personal activity
+Missions performed by the Independent
+CRA
+revenue
+regulatory and fiscal simulation
+9.2 client
+
+The User acts as a Client / representative of the Company.
+
+This role will support future features involving:
+
+engaging an Independent
+client-side Missions
+projects where an Independent represents the external party
+costs/charges associated with engaging an Independent
+
+The implementation must not assume that a User can only ever be an Independent.
+
+10. Multiple Roles
+
+A User may have multiple roles with the same Company.
+
+Example:
+
+User A
+ ├── Company X / independent
+ └── Company X / client
+
+This is valid.
+
+There is no global uniqueness constraint on:
+
+(user_id, company_id)
+
+The uniqueness constraint is instead:
+
+(user_id, company_id, role)
+
+Therefore:
+
+User A + Company X + independent
+User A + Company X + client
+
+may coexist.
+
+But:
+
+User A + Company X + independent
+User A + Company X + independent
+
+must not coexist.
+
+11. Multiple Companies
+
+A User may have relationships with multiple Companies.
+
+Example:
+
+User A
+ ├── Company 1 / independent
+ ├── Company 2 / client
+ └── Company 3 / independent
+
+FC-08 does not impose a global maximum number of Companies or relationships.
+
+Any future regulatory constraint must be implemented in the domain feature where it becomes relevant and must not be encoded prematurely in FC-08.
+
+12. Role Is Relationship Context
+
+A User does not have a single persistent role such as:
+
+User.role = independent
+
+Instead:
+
+UserCompany.role = independent
+
+or:
+
+UserCompany.role = client
+
+This allows the same User to act differently depending on the Company.
+
+13. Activity Separation
+
+A User acting as:
+
+Company A / independent
+
+and the same User acting as:
+
+Company A / client
+
+does not represent the same business activity.
+
+Future Missions and CRA structures must therefore preserve this distinction.
+
+FC-08 does not implement that activity model.
+
+14. Mission Consequence
+
+A future Mission must be understood within a specific business activity context.
+
+The following are conceptually different:
+
+User → Company A → Independent → Mission X
+
+and:
+
+User → Company A → Client → Mission Y
+
+Even when:
+
+the client is the same;
+the Independent is the same;
+the TJM is the same;
+the Mission type is the same;
+the commercial context appears identical.
+
+The activities remain distinct.
+
+Mission duplication or explicit activity separation will be addressed in the appropriate future Feature Contract.
+
+15. CRA Boundary
+
+FC-07 established the CRA as a source of truth for realized activity.
+
+FC-08 does not modify FC-07.
+
+The following concepts are explicitly outside FC-08:
+
+CRA forecast mechanics
+automatic forecast → realized conversion
+monthly CRA timeline behavior
+CRA validation workflow changes
+scenario/simulation storage
+transformation of simulation into forecast
+transformation of simulation into realized activity
+
+These must be specified in a future Feature Contract.
+
+16. Forecast / Realized / Scenario Boundary
+
+Foresy must eventually distinguish:
+
+REALIZED
+FORECAST
+SCENARIO
+
+Conceptually:
+
+REALIZED represents actual activity;
+FORECAST represents expected activity;
+SCENARIO represents hypothetical activity.
+
+FC-08 does not implement this model.
+
+The Company model must nevertheless remain compatible with its future introduction.
+
+17. Company Lifecycle
+
+Company lifecycle uses soft deletion.
+
+The lifecycle field is:
+
+deleted_at
+
+No status or archived_at field is introduced by FC-08.
+
+Active Company
+deleted_at IS NULL
+Deleted Company
+deleted_at IS NOT NULL
+18. Company Domain Model
+
+The Company primary key is an existing UUID and MUST remain UUID.
+
+The implementation must not convert Company primary keys to bigint.
+
+Field	PostgreSQL Type	Null	Default	Constraint / Meaning
+id	uuid	No	existing UUID generation	Primary key
+name	string	No	—	Company name
+siren	string	No	—	French legal identifier
+siret	string	Yes	—	Establishment identifier
+legal_form	string	Yes	—	Legal form code/value
+tax_number	string	Yes	—	Tax identifier
+address_line_1	string	Yes	—	Address
+address_line_2	string	Yes	—	Address complement
+postal_code	string	Yes	—	Postal code
+city	string	Yes	—	City
+country	string	Yes	"FR"	Country
+currency	string	Yes	"EUR"	Currency
+vat_regime	string	Yes	—	VAT regime context
+deleted_at	datetime	Yes	—	Soft deletion
+created_at	datetime	No	—	Rails timestamp
+updated_at	datetime	No	—	Rails timestamp
+18.1 Existing Fields
+
+Existing fields not introduced or structurally changed by FC-08 are retained.
+
+FC-08 does not rename:
+
+name
+
+to:
+
+legal_name
+
+The existing name field is the canonical Company name field for FC-08.
+
+19. Company Field Rules
+19.1 name
+
+Required.
+
+A Company cannot exist without a name.
+
+19.2 siren
+
+Required.
+
+The SIREN must:
+
+be present;
+contain a valid French SIREN format;
+be unique.
+19.3 siret
+
+Optional at database level.
+
+Multiple Companies may have NULL SIRET values.
+
+A non-null SIRET must be unique.
+
+FC-08 does not introduce contextual rules requiring SIRET in particular business situations.
+
+19.4 legal_form
+
+Nullable.
+
+The legal form may be unknown or not yet available when the Company is created.
+
+The field is stored as a string.
+
+FC-08 does not implement the INSEE legal-form nomenclature itself.
+
+19.5 tax_number
+
+Optional contextual tax identifier.
+
+No fiscal calculation is performed by FC-08.
+
+19.6 Address
+
+Address fields are stored as Company data.
+
+FC-08 does not implement address verification.
+
+19.7 country
+
+Default:
+
+FR
+19.8 currency
+
+Default:
+
+EUR
+19.9 vat_regime
+
+Stored as a string.
+
+FC-08 treats VAT regime as contextual Company information.
+
+It does not implement VAT calculations.
+
+20. Legal Form
+
+The Company legal form is stored using:
+
+legal_form
+
+The value is a string.
+
+FC-08 does not replace this with a PostgreSQL enum.
+
+FC-08 does not create a versioned INSEE nomenclature table.
+
+Future integration with official INSEE/INPI referentials may introduce:
+
+validated legal-form codes;
+nomenclature versions;
+synchronization;
+provenance;
+official source metadata.
+
+Those capabilities are outside FC-08 MVP.
+
+21. Existing Company Schema Compatibility
+
+The implementation must first inspect the actual current database schema.
+
+The following existing fields must not be silently removed:
+
+name
+siren
+siret
+legal_form
+tax_number
+address_line_1
+address_line_2
+postal_code
+city
+country
+currency
+deleted_at
+created_at
+updated_at
+
+FC-08 introduces:
+
+vat_regime
+
+and strengthens relevant constraints.
+
+22. UserCompany Domain Model
+
+UserCompany uses its existing UUID primary key.
+
+The primary key MUST remain UUID.
+
+Field	PostgreSQL Type	Null	Default	Constraint / Meaning
+id	uuid	No	existing UUID generation	Primary key
+user_id	bigint	No	—	FK to users.id
+company_id	uuid	No	—	FK to companies.id
+role	PostgreSQL enum	No	—	User's role with Company
+deleted_at	datetime	Yes	—	Soft deletion
+created_at	datetime	No	—	Rails timestamp
+updated_at	datetime	No	—	Rails timestamp
+23. UserCompany Foreign Keys
+
+Because UserCompany is the explicit relationship table, it may reference both entities.
+
+Required relationships:
+
+user_companies.user_id
+    → users.id
+
+and:
+
+user_companies.company_id
+    → companies.id
+
+The types must match the actual referenced primary keys:
+
+users.id    = bigint
+companies.id = uuid
+
+Therefore:
+
+user_companies.user_id    = bigint
+user_companies.company_id = uuid
+
+No conversion to UUID or bigint is permitted where it would contradict the existing referenced PK.
+
+24. UserCompany Role Type
+
+The existing PostgreSQL enum:
+
+user_company_role_enum
+
+must be retained.
+
+The logical domain value remains string-like:
+
+independent
+client
+
+but the PostgreSQL storage type is the existing enum.
+
+No rollback to an unrestricted string column is permitted.
+
+25. UserCompany Role Rules
+
+Allowed roles for FC-08:
+
+independent
+client
+
+Any additional roles are future extensions and must be introduced through a dedicated Feature Contract.
+
+26. UserCompany Uniqueness
+
+The database must enforce:
+
+UNIQUE(user_id, company_id, role)
+
+This permits:
+
+(user A, company X, independent)
+(user A, company X, client)
+
+but rejects:
+
+(user A, company X, independent)
+(user A, company X, independent)
+27. UserCompany Lifecycle
+
+UserCompany also supports soft deletion through:
+
+deleted_at
+
+Deletion must not physically destroy historical relationship information.
+
+The relationship can therefore be retained for audit purposes.
+
+Re-activation
+
+A deleted UserCompany must not be implicitly resurrected by creating an identical active relationship.
+
+Reactivation, if required, must be an explicit operation defined by a future contract.
+
+28. Relationship History
+
+Soft deletion provides a first level of historical preservation.
+
+FC-08 does not introduce:
+
+version tables;
+event sourcing;
+temporal validity ranges;
+valid_from;
+valid_until;
+audit event streams.
+
+Those mechanisms may be introduced later if required.
+
+29. Company Scopes
+
+The Company model must expose explicit scopes:
+
+Company.active
+Company.deleted
+
+Expected semantics:
+
+Company.active
+→ deleted_at IS NULL
+Company.deleted
+→ deleted_at IS NOT NULL
+
+No default_scope is allowed.
+
+30. UserCompany Scopes
+
+UserCompany should expose explicit lifecycle scopes consistent with Company:
+
+UserCompany.active
+UserCompany.deleted
+
+No default_scope is allowed.
+
+31. No Implicit Filtering
+
+Controllers and services must not rely on implicit model filtering.
+
+Every query requiring active records must explicitly request the appropriate scope.
+
+Example:
+
+current_user_companies = UserCompany.active.where(user_id: current_user.id)
+32. Provenance
+
+Official-data provenance is outside FC-08 MVP.
+
+FC-08 does not implement:
+
+source
+retrieved_at
+source_field
+source_version
+
+or field-level provenance.
+
+At MVP level, Company data is considered declarative/user-provided unless otherwise explicitly established by a future contract.
+
+33. INSEE / INPI Integration Boundary
+
+FC-08 is architecturally compatible with future retrieval from:
+
+INSEE
+INPI
+official company referentials
+
+However, FC-08 does not implement:
+
+SIREN lookup API integration;
+automatic enrichment;
+synchronization;
+official-data reconciliation;
+nomenclature versioning;
+source provenance.
+
+These belong to a future Feature Contract.
+
+34. Company Creation Principle
+
+Company creation and the initial UserCompany relationship must be atomic.
+
+The main onboarding operation is:
+
+POST /companies
+
+with:
+
+Company data
++
+role
+
+The operation must execute in a single database transaction.
+
+Either:
+
+Company + UserCompany
+
+are both created,
+
+or:
+
+neither is persisted.
+35. Company Creation Flow
+
+The expected flow is:
+
+POST /companies
+       │
+       ▼
+Validate Company
+       │
+       ▼
+Create Company
+       │
+       ▼
+Create UserCompany
+       │
+       ▼
+Commit transaction
+
+If any step fails:
+
+ROLLBACK
+36. Company API
+36.1 List Companies
+GET /companies
+
+Returns Companies accessible through active UserCompany relationships.
+
+36.2 Create Company
+POST /companies
+
+Creates:
+
+Company
+UserCompany
+
+atomically.
+
+36.3 Show Company
+GET /companies/:id
+
+Returns a Company accessible to the authenticated User.
+
+36.4 Update Company
+PATCH /companies/:id
+
+Updates permitted Company attributes.
+
+Authorization must be based on the authenticated User's active relationship with the Company.
+
+36.5 Delete Company
+DELETE /companies/:id
+
+Performs soft deletion.
+
+Physical deletion is not performed.
+
+37. UserCompany API
+37.1 List Relationships
+GET /user_companies
+
+Returns relationships belonging to the authenticated User.
+
+37.2 Create Relationship
+POST /user_companies
+
+Allows a new role to be added to an existing Company.
+
+This endpoint does not replace the atomic onboarding endpoint.
+
+37.3 Update Relationship
+PATCH /user_companies/:id
+
+The MVP permits modification of:
+
+role
+
+only.
+
+The following must not be modifiable through this endpoint:
+
+user_id
+company_id
+deleted_at
+37.4 Delete Relationship
+DELETE /user_companies/:id
+
+Soft-deletes the relationship.
+
+38. Onboarding API
+
+The principal onboarding endpoint is:
+
+POST /companies
+
+Example request:
+
+{
+  "company": {
+    "name": "Example Consulting",
+    "siren": "123456789",
+    "siret": "12345678900012",
+    "legal_form": "EI",
+    "tax_number": null,
+    "address_line_1": "1 Example Street",
+    "address_line_2": null,
+    "postal_code": "75001",
+    "city": "Paris",
+    "country": "FR",
+    "currency": "EUR",
+    "vat_regime": "franchise"
+  },
+  "role": "independent"
+}
+39. Role and Company Parameters
+
+role belongs to the UserCompany relationship.
+
+It is therefore not a Company attribute.
+
+The API must preserve this distinction.
+
+company.*
+    → Company
+
+role
+    → UserCompany
+40. wrap_parameters
+
+The CompaniesController must support Rails parameter wrapping for flat JSON payloads.
+
+The configuration must be equivalent to:
+
+wrap_parameters :company, include: [
+  :name,
+  :siren,
+  :siret,
+  :legal_form,
+  :tax_number,
+  :address_line_1,
+  :address_line_2,
+  :postal_code,
+  :city,
+  :country,
+  :currency,
+  :vat_regime
+]
+
+role must NOT be included in the wrapper.
+
+The controller must read:
+
+params[:role]
+
+separately.
+
+41. Flat JSON Compatibility
+
+The API must correctly process supported flat JSON requests through Rails parameter wrapping.
+
+Example:
+
+{
+  "name": "Example Consulting",
+  "siren": "123456789",
+  "role": "independent"
+}
+
+The Company attributes are wrapped by Rails.
+
+The role remains a relationship parameter.
+
+42. Parameter Security
+
+Only explicitly permitted Company attributes may be accepted.
+
+The following must never be mass-assigned from the Company request:
+
+id
+deleted_at
+created_at
+updated_at
+user_id
+
+The relationship role must be separately validated and authorized.
+
+43. Authorization
+
+A User may access a Company only when an appropriate active UserCompany relationship exists.
+
+Authorization must be explicit.
+
+A User must not gain access to a Company merely by knowing its ID.
+
+Cross-user access must return the standard unauthorized/forbidden API error according to the existing Foresy authorization contract.
+
+44. Standardized API Errors
+
+FC-08 must use the existing standardized API error contract.
+
+The response shape is:
+
+{
+  "code": "ERROR_CODE",
+  "message": "Human-readable message",
+  "details": {}
+}
+
+FC-08 must not introduce an alternative error format.
+
+Expected error categories include:
+
+validation errors;
+authentication errors;
+authorization errors;
+duplicate SIREN;
+duplicate SIRET;
+invalid SIREN;
+invalid role;
+missing required parameters;
+resource not found.
+
+Exact error codes must remain aligned with the existing application-wide error contract.
+
+45. Business Validation Rules
+45.1 SIREN
+
+SIREN:
+
+is mandatory;
+must be valid;
+must be unique.
+45.2 SIRET
+
+SIRET:
+
+is optional;
+if provided, must be valid according to the implemented format validation;
+must be unique when non-null.
+45.3 Company Name
+
+Name is mandatory.
+
+45.4 Role
+
+Role is mandatory for the initial UserCompany relationship.
+
+Role must be one of:
+
+independent
+client
+45.5 Duplicate Relationship
+
+An identical active relationship must not be created twice.
+
+Database uniqueness remains authoritative.
+
+46. Database Constraints
+
+The following constraints are mandatory.
+
+Company
+PRIMARY KEY(id)
+UNIQUE(siren)
+UNIQUE(siret)
+
+The unique SIRET index must permit multiple NULL values according to PostgreSQL semantics.
+
+UserCompany
+PRIMARY KEY(id)
+FOREIGN KEY(user_id) → users.id
+FOREIGN KEY(company_id) → companies.id
+UNIQUE(user_id, company_id, role)
+47. Sequential Migration Plan
+
+The implementation must first inspect the actual current schema before executing migrations.
+
+47.1 SIREN
+
+Current state:
+
+nullable
+non-unique index
+
+Target state:
+
+NOT NULL
+UNIQUE
+
+The existing non-unique SIREN index must be replaced, not duplicated.
+
+Migration sequence:
+
+remove_index :companies, :siren
+change_column_null :companies, :siren, false
+add_index :companies, :siren, unique: true
+
+Before changing nullability or uniqueness, existing data must be verified to satisfy the target constraints.
+
+48. SIRET
+
+Current state:
+
+NOT NULL
+UNIQUE
+
+Target state:
+
+NULL
+UNIQUE when non-null
+
+Migration:
+
+change_column_null :companies, :siret, true
+
+The existing unique index may remain.
+
+PostgreSQL allows multiple NULL values in a standard unique index.
+
+49. vat_regime
+
+Add:
+
+vat_regime :string
+
+Nullable.
+
+No PostgreSQL enum is introduced.
+
+No calculation logic is introduced.
+
+50. UserCompany deleted_at
+
+Add:
+
+deleted_at :datetime
+
+Nullable.
+
+This supports soft deletion of UserCompany relationships.
+
+51. UserCompany Role Enum
+
+The existing:
+
+user_company_role_enum
+
+must be retained.
+
+No migration to string is permitted.
+
+If the current enum does not contain the FC-08 supported roles, the migration must extend it without destroying existing valid values.
+
+52. Migration Compatibility
+
+The implementation must:
+
+inspect the actual current schema;
+inspect existing migrations;
+inspect existing model behavior;
+verify existing indexes;
+verify existing PostgreSQL enums;
+verify existing data constraints;
+only then implement the required migrations.
+
+The Feature Contract must not assume that the database state differs from the actual repository.
+
+53. No Breaking Changes
+
+FC-08 must not break:
+
+FC-06 Missions;
+FC-07 CRA;
+authentication;
+existing Company behavior;
+existing UserCompany behavior;
+existing API contracts;
+existing PostgreSQL enum values;
+existing UUID primary keys.
+
+Existing valid records must remain readable after migration.
+
+54. TDD Mandatory
+
+FC-08 must be implemented using strict TDD.
+
+No production behavior may be implemented without a corresponding test.
+
+Required test layers:
+
+model specs;
+request specs;
+RSwag request specifications;
+regression suite.
+55. Acceptance Criteria — Gherkin
+Scenario 1 — User has no Company
+Given an authenticated User with no Company relationship
+When the User requests their Companies
+Then the API returns an empty collection
+And no Company is created automatically
+Scenario 2 — Create Company as Independent
+Given an authenticated User
+When the User creates a Company with role "independent"
+Then the Company is created
+And a UserCompany relationship is created
+And the relationship role is "independent"
+Scenario 3 — Create Company as Client
+Given an authenticated User
+When the User creates a Company with role "client"
+Then the Company is created
+And a UserCompany relationship is created
+And the relationship role is "client"
+Scenario 4 — Multiple Companies
+Given an authenticated User
+And the User already has a relationship with Company A
+When the User creates Company B
+Then Company B is created
+And both Companies are accessible to the User
+Scenario 5 — Multiple Roles With Same Company
+Given a User has an "independent" relationship with Company A
+When the User adds a "client" relationship with Company A
+Then the second relationship is created
+And both roles coexist
+Scenario 6 — Duplicate Role
+Given a User has an "independent" relationship with Company A
+When the User attempts to create another "independent" relationship with Company A
+Then the request is rejected
+And no duplicate relationship is created
+Scenario 7 — Fictitious Company
+Given an authenticated User without a Company
+When the User accesses Foresy
+Then no fictitious Company is created
+And the User may continue without a Company
+Scenario 8 — Invalid SIREN
+Given an authenticated User
+When the User creates a Company with an invalid SIREN
+Then the request is rejected
+And the Company is not created
+And the UserCompany relationship is not created
+Scenario 9 — Duplicate SIREN
+Given Company A already exists with SIREN "123456789"
+When the User creates another Company with SIREN "123456789"
+Then the request is rejected
+And no duplicate Company is created
+Scenario 10 — SIRET Absent
+Given an authenticated User
+When the User creates a Company without a SIRET
+Then the Company is created
+And the SIRET is NULL
+Scenario 11 — Duplicate SIRET
+Given Company A already exists with SIRET "12345678900012"
+When the User creates another Company with SIRET "12345678900012"
+Then the request is rejected
+And no duplicate Company is created
+Scenario 12 — Atomicity
+Given an authenticated User
+When Company creation succeeds but UserCompany creation fails
+Then the transaction is rolled back
+And no Company remains persisted
+And no UserCompany remains persisted
+Scenario 13 — Unauthorized Company Access
+Given a Company belonging to another User
+When the authenticated User attempts to access that Company
+Then the request is rejected
+And the response uses the standardized API error format
+Scenario 14 — Soft Delete
+Given an active Company
+When the Company is deleted
+Then deleted_at is populated
+And the Company is excluded from Company.active
+And the Company remains persisted
+Scenario 15 — Flat JSON Parameters
+Given an authenticated User
+When the User submits Company attributes as flat JSON
+And provides role separately
+Then the request is processed correctly
+And the Company attributes are wrapped under Company parameters
+And role is processed as a UserCompany attribute
+56. Model Specs
+Company
+
+Tests must cover:
+
+required name;
+required SIREN;
+SIREN format;
+SIREN uniqueness;
+optional SIRET;
+SIRET uniqueness;
+legal_form nullable;
+country default;
+currency default;
+vat_regime storage;
+soft deletion;
+active scope;
+deleted scope;
+absence of default scope.
+UserCompany
+
+Tests must cover:
+
+required user;
+required company;
+supported roles;
+PostgreSQL enum behavior;
+(user_id, company_id, role) uniqueness;
+multiple roles;
+multiple companies;
+soft deletion;
+active scope;
+deleted scope;
+absence of default scope.
+57. Request Specs
+
+Request specs must cover:
+
+GET /companies;
+POST /companies;
+GET /companies/:id;
+PATCH /companies/:id;
+DELETE /companies/:id;
+GET /user_companies;
+POST /user_companies;
+PATCH /user_companies/:id;
+DELETE /user_companies/:id;
+authentication;
+authorization;
+validation;
+duplicate constraints;
+atomicity;
+standardized errors;
+flat JSON wrapping;
+role separation.
+58. RSwag
+
+RSwag documentation must be generated from the request specifications.
+
+No manual Swagger/OpenAPI edits are permitted.
+
+The documentation must describe:
+
+request parameters;
+request bodies;
+response schemas;
+successful responses;
+validation errors;
+authorization errors;
+examples;
+Company schema;
+UserCompany schema;
+role values.
+59. FC-06 Regression
+
+FC-06 must continue to operate without breaking changes.
+
+Required regression verification:
+
+RSpec FC-06
+
+must pass after FC-08 implementation.
+
+Mission behavior must not be modified as part of FC-08.
+
+60. FC-07 Regression
+
+FC-07 must continue to operate without breaking changes.
+
+Required regression verification:
+
+RSpec FC-07
+RSwag FC-07
+
+must pass after FC-08 implementation.
+
+CRA behavior must not be modified as part of FC-08.
+
+61. Quality Gates
+
+Before the feature is considered complete:
+
+RSpec
+0 failures
+RSwag
+0 failures
+RuboCop
+0 offenses
+Brakeman
+0 security warnings
+
+unless an existing, explicitly documented baseline exception applies.
+
+62. Definition of Done
+
+FC-08 is complete only when all of the following are true.
+
+Architecture
+ Company contains no user_id
+ User contains no company_id
+ UserCompany represents the relationship
+ RDD is respected
+ No default_scope
+Database
+ Existing UUID Company PK retained
+ Existing UUID UserCompany PK retained
+ users.id remains bigint
+ user_companies.user_id remains bigint
+ user_companies.company_id remains uuid
+ SIREN NOT NULL
+ SIREN UNIQUE
+ SIRET nullable
+ SIRET unique when non-null
+ vat_regime string added
+ UserCompany.deleted_at added
+ user_company_role_enum retained
+ (user_id, company_id, role) unique
+Models
+ Company validations implemented
+ UserCompany validations implemented
+ Company lifecycle scopes implemented
+ UserCompany lifecycle scopes implemented
+ No implicit lifecycle filtering
+API
+ Company CRUD implemented
+ UserCompany relationship management implemented
+ Atomic Company + UserCompany creation implemented
+ PATCH UserCompany modifies role only
+ Authorization enforced
+ Standardized error format used
+ wrap_parameters implemented
+ role excluded from Company wrapper
+TDD
+ Model specs written before implementation
+ Request specs written before controllers
+ RED → GREEN cycle respected
+ Edge cases tested
+ Atomicity tested
+ Authorization tested
+RSwag
+ All endpoints documented
+ Schemas generated from tests
+ Examples included
+ No manual Swagger modifications
+Quality
+ RSpec passes
+ RSwag passes
+ RuboCop passes
+ Brakeman passes
+Regression
+ FC-06 regression passes
+ FC-07 regression passes
+ No existing API contract broken
+Documentation
+ Feature Contract updated if implementation reveals a contract discrepancy
+ Any unavoidable deviation explicitly documented
+ Migration sequence recorded
+ Decision log maintained
+63. TDD Implementation Order
+
+The implementation must follow this order.
+
+Step 1 — Contract Freeze
+
+Freeze FC-08 before production code is written.
+
+Step 2 — Schema Verification
+
+Inspect:
+
+current schema;
+existing migrations;
+existing indexes;
+existing enums;
+Company model;
+UserCompany model;
+related specs.
+Step 3 — RED Company Model Specs
+
+Write failing tests for:
+
+name;
+SIREN;
+SIRET;
+legal_form;
+defaults;
+scopes;
+uniqueness.
+Step 4 — Database Migration
+
+Implement only the database changes required by the failing specifications.
+
+Step 5 — GREEN Company Model
+
+Implement validations and scopes until Company model specs pass.
+
+Step 6 — RED UserCompany Model Specs
+
+Write failing tests for:
+
+role;
+uniqueness;
+soft deletion;
+scopes;
+multiple roles.
+Step 7 — GREEN UserCompany Model
+
+Implement the relationship behavior.
+
+Step 8 — RED Request Specs
+
+Write request specifications before implementing controllers.
+
+Step 9 — GREEN Controllers / Services
+
+Implement:
+
+authorization;
+Company CRUD;
+UserCompany management;
+atomic onboarding;
+parameter wrapping;
+standardized errors.
+Step 10 — RSwag
+
+Generate Swagger/OpenAPI documentation from request specs.
+
+Step 11 — RuboCop
+
+Resolve all offenses.
+
+Step 12 — Brakeman
+
+Resolve or explicitly document all security warnings.
+
+Step 13 — Full Test Suite
+
+Run:
+
+RSpec
+RSwag
+Step 14 — Regression
+
+Explicitly verify:
+
+FC-06
+FC-07
+Step 15 — PR Readiness
+
+Verify:
+
+clean git history;
+feature branch;
+migration integrity;
+documentation;
+Definition of Done;
+no unrelated modifications.
+64. Decision Log
+D1 — Company exists independently of User
+
+Decision: Yes.
+
+Reason: Company is a business entity and must not own User relationships.
+
+D2 — User–Company relationship uses UserCompany
+
+Decision: Yes.
+
+Reason: Required by Relation-Driven Design.
+
+D3 — User may have no Company
+
+Decision: Yes.
+
+Reason: Required for onboarding and pre-company simulation.
+
+D4 — No fictitious Company
+
+Decision: Yes.
+
+Reason: Simulation must remain distinct from real legal entities.
+
+D5 — User role is contextual
+
+Decision: Yes.
+
+Reason: The same User may act differently with different Companies.
+
+D6 — Supported roles
+
+Decision: independent, client.
+
+D7 — Multiple roles with same Company
+
+Decision: Allowed.
+
+D8 — Multiple Companies
+
+Decision: Allowed.
+
+D9 — Relationship uniqueness
+
+Decision: Unique on (user_id, company_id, role).
+
+D10 — Company lifecycle
+
+Decision: deleted_at.
+
+D11 — Company PK
+
+Decision: Existing UUID retained.
+
+D12 — UserCompany PK
+
+Decision: Existing UUID retained.
+
+D13 — UserCompany user_id type
+
+Decision: bigint, matching users.id.
+
+D14 — UserCompany company_id type
+
+Decision: uuid, matching companies.id.
+
+D15 — Legal form storage
+
+Decision: String field legal_form.
+
+D16 — Legal form nullable
+
+Decision: Yes.
+
+D17 — SIREN
+
+Decision: Mandatory, valid, unique.
+
+D18 — SIRET
+
+Decision: Nullable and unique when present.
+
+D19 — VAT regime
+
+Decision: Nullable string.
+
+D20 — Country default
+
+Decision: FR.
+
+D21 — Currency default
+
+Decision: EUR.
+
+D22 — Provenance
+
+Decision: Out of FC-08 MVP.
+
+D23 — INSEE/INPI integration
+
+Decision: Future Feature Contract.
+
+D24 — Forecast / Scenario model
+
+Decision: Out of FC-08.
+
+D25 — CRA evolution
+
+Decision: Out of FC-08.
+
+D26 — Company onboarding endpoint
+
+Decision: POST /companies.
+
+D27 — Atomic onboarding
+
+Decision: Company + UserCompany created in one transaction.
+
+D28 — UserCompany PATCH
+
+Decision: Role only.
+
+D29 — Parameter wrapping
+
+Decision: wrap_parameters :company; role remains outside the Company wrapper.
+
+D30 — Standardized errors
+
+Decision: Existing { code, message, details } contract must be used.
+
+FC-08 Architectural Invariants
+INV-01 — Company Has No User FK
+
+Company must never contain:
+
+user_id
+INV-02 — User Has No Company FK
+
+User must never contain:
+
+company_id
+INV-03 — UserCompany Is the Relationship
+
+User–Company relationships must be represented by UserCompany.
+
+INV-04 — User Can Exist Without Company
+
+A User may have zero UserCompany records.
+
+INV-05 — No Fictitious Company
+
+Absence of Company must never be represented by a fake Company record.
+
+INV-06 — Role Is Contextual
+
+Role belongs to UserCompany, not User.
+
+INV-07 — SIREN Is Mandatory
+
+Every Company must have a SIREN.
+
+INV-08 — SIREN Is Valid
+
+Every Company SIREN must satisfy the implemented SIREN validation rules.
+
+INV-09 — SIREN Is Unique
+
+Two Companies cannot have the same SIREN.
+
+INV-10 — SIREN Is Present, Valid and Unique
+
+The SIREN must simultaneously satisfy presence, validity, and uniqueness constraints.
+
+INV-11 — SIRET Is Nullable
+
+A Company may have no SIRET.
+
+INV-12 — SIRET Is Unique When Present
+
+Two Companies cannot share the same non-null SIRET.
+
+INV-13 — VAT Regime Is Contextual
+
+vat_regime stores context only.
+
+It does not implement fiscal calculation.
+
+INV-14 — Legal Form Is Contextual
+
+legal_form stores Company legal-form information only.
+
+INV-15 — No Fictitious Legal Entity for Simulation
+
+Simulation must not create a real Company record.
+
+INV-16 — Atomic Company Onboarding
+
+Company creation and initial UserCompany creation are atomic.
+
+INV-17 — No Partial Onboarding
+
+A failed onboarding transaction must not leave an orphan Company.
+
+INV-18 — Relationship Role Uniqueness
+
+The same User, Company and Role combination may exist only once.
+
+INV-19 — Explicit Active Scope
+
+Active records must be queried through explicit lifecycle scopes.
+
+INV-20 — No Default Scope
+
+No default scope may be used to implement lifecycle behavior.
+
+INV-21 — Soft Delete
+
+Company and UserCompany deletion must use deleted_at.
+
+INV-22 — Role Is Outside Company Wrapping
+
+The Company parameter wrapper must not absorb role.
+
+Final Architectural Position
+
+FC-08 establishes the Company and User–Company relationship foundation without attempting to solve future domains prematurely.
+
+The resulting conceptual model is:
+
+                    ┌──────────────┐
+                    │     User     │
+                    │              │
+                    │ id: bigint   │
+                    └──────┬───────┘
+                           │
+                           │ user_id
+                           ▼
+                    ┌──────────────┐
+                    │ UserCompany  │
+                    │              │
+                    │ id: uuid     │
+                    │ role         │
+                    │ deleted_at   │
+                    └──────┬───────┘
+                           │
+                           │ company_id
+                           ▼
+                    ┌──────────────┐
+                    │   Company    │
+                    │              │
+                    │ id: uuid     │
+                    │ name         │
+                    │ siren        │
+                    │ siret        │
+                    │ legal_form   │
+                    │ vat_regime   │
+                    │ ...          │
+                    └──────────────┘
+
+This model supports:
+
+User
+ ├── Company A / independent
+ ├── Company A / client
+ ├── Company B / independent
+ └── Company C / client
+
+while preserving the critical distinction between:
+
+the User;
+the Company;
+the relationship;
+the role;
+the activity performed through that relationship.
+
+FC-08 deliberately does not solve:
+
+fiscal calculations;
+regulatory calculations;
+simulation;
+forecasting;
+CRA evolution;
+Mission activity separation;
+INSEE/INPI synchronization;
+field-level provenance.
+
+Those concerns remain available for future Feature Contracts without requiring a structural refactoring of the Company/UserCompany foundation.

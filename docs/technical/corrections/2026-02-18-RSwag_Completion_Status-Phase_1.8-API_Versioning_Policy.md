@@ -1,4 +1,6 @@
 # Phase 1.8: API Versioning Policy — TERMINÉ
+Historique / état au 2026-02-18
+
 
 **Document de politique — API Versioning**
 **Date** : 19 février 2026

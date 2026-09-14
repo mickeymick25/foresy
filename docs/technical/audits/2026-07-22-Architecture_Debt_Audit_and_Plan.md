@@ -1,4 +1,6 @@
 # 🏗️ Audit & Plan de Remédiation Architecture Foresy
+Historique / état au 2026-07-22
+
 
 **Date de l'audit :** 18 août 2026
 **Auditeur :** Zed Agent (revue automatisée)

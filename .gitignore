@@ -62,6 +62,10 @@ yarn-debug.log*
 *.swp
 *.swo
 
+# Ignore agent/RAG local config
+AGENTS.md
+.rag.yaml
+
 # Ignore RSpec example reports and logs
 spec/examples.txt
 # Environment variables

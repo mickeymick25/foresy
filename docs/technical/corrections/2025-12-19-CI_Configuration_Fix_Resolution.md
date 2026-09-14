@@ -1,4 +1,6 @@
 # 📋 CORRECTIONS TECHNIQUES - JANVIER 2025
+Historique / état au 2025-12-19
+
 
 ## 🎯 Vue d'Exécutive
 

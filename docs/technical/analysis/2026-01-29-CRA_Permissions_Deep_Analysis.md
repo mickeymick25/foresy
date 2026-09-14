@@ -1,4 +1,6 @@
 # Étude Approfondie des Tests CRA Permissions
+Historique / état au 2026-01-29
+
 ## Analyse Architecturale DDD - 29 Janvier 2026
 
 ---

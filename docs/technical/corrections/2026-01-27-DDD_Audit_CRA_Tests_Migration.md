@@ -1,4 +1,6 @@
 # DDD Audit CRA Tests Migration - 27 Janvier 2026
+Historique / état au 2026-01-27
+
 
 ## 📋 Résumé Exécutif
 

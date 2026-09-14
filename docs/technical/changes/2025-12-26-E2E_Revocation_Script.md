@@ -1,4 +1,6 @@
 # E2E Token Revocation Script - Platinum Level
+Historique / état au 2025-12-26
+
 
 **Date**: 26 décembre 2025  
 **Type**: Feature  

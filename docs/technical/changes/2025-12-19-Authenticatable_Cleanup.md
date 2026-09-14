@@ -1,4 +1,6 @@
 # Nettoyage et Documentation du Concern Authenticatable
+Historique / état au 2025-12-19
+
 
 **Date**: 19 décembre 2025 (soir)  
 **Type**: Refactoring / Documentation  

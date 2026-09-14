@@ -1,4 +1,6 @@
 # 2026-02-18 — DDD/RDD : État Final Stabilisé
+Historique / état au 2026-02-18
+
 
 **Document Officiel — État Production**  
 **Date** : 18 février 2026  

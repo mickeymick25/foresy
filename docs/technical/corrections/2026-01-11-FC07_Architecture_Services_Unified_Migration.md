@@ -1,4 +1,6 @@
 # FC07 Architecture Services Unified Migration - 26 Janvier 2026
+Historique / état au 2026-01-11
+
 
 ## 🎯 **Résumé Exécutif**
 

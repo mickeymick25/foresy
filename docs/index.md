@@ -1,4 +1,6 @@
 # 📚 Documentation Centrale - Projet Foresy
+Historique / état au 2025-12-31
+
 
 **Version :** 3.1  
 **Dernière mise à jour :** 31 décembre 2025  

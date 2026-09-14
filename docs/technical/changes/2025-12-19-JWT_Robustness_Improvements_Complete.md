@@ -1,3 +1,5 @@
+Historique / état au 2025-12-19
+
 
 # JWT Robustness Improvements - Complete Implementation
 

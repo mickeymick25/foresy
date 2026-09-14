@@ -1,3 +1,5 @@
+Historique / état au 2026-02-18
+
 /Users/michaelboitin/Documents/02_Dev/Foresy/docs/technical/corrections/2026-02-18-RSwag_Completion_Status.md
 # 2026-02-19 — RSwag Specs Completion Status
 

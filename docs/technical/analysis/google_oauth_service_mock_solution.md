@@ -1,4 +1,6 @@
 # 🛠️ Solution GoogleOAuth2Service Mock - Déplacement/Suppression
+Historique / état au 2025-12-19
+
 
 **Date :** 19 décembre 2025  
 **Contexte :** Analyse PR - Code de test dans zone production  

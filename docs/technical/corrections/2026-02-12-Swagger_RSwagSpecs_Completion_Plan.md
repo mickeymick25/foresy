@@ -1,4 +1,6 @@
 # 2026-02-12 - Swagger RSwagSpecs Completion Plan
+Historique / état au 2026-02-12
+
 
 **Date:** 12 February 2026  
 **Author:** Senior Product Architect + CTO  

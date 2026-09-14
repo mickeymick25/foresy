@@ -1,4 +1,6 @@
 # 🛠️ Solution Élimination pgcrypto - Migration Complète
+Historique / état au 2025-12-19
+
 
 **Date :** 19-20 décembre 2025  
 **Contexte :** Résolution Point n°1 PR - Migrations/pgcrypto/UUID  

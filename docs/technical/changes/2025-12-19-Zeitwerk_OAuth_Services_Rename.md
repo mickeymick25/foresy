@@ -1,4 +1,6 @@
 # 📋 Correction Zeitwerk - Renommage Services OAuth - 19 Décembre 2025
+Historique / état au 2025-12-19
+
 
 **Date :** 19 décembre 2025  
 **Projet :** Foresy API  

@@ -1,4 +1,6 @@
 # Plan de Rollback - Migration Rails 8.1.1 + Ruby 3.4.8
+Historique / état au 2025-12-26
+
 
 **Date :** 26 décembre 2025  
 **PR :** #8 - chore: Rails 8.1.1 + Ruby 3.4.8 Migration  

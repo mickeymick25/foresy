@@ -1,4 +1,6 @@
 # 2026-01-07 - FC-07 Mini-FC-02 : CRA CSV Export
+Historique / état au 2026-01-07
+
 
 **Type** : Feature Enhancement  
 **Feature Contract** : FC-07 CRA Management  

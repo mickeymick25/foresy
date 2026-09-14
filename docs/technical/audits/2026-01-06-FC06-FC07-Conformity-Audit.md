@@ -1,4 +1,6 @@
 # Audit de Conformité FC-06 & FC-07
+Historique / état au 2026-01-06
+
 
 **Date** : 6 janvier 2026  
 **Auditeur** : CTO Review Session  

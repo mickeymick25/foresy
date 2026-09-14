@@ -1,4 +1,6 @@
 # 🏗️ FC06 - Architecture DDD Standards Établis
+Historique / état au 2025-12-31
+
 
 **Date** : 31 décembre 2025  
 **Feature** : FC06 - Missions Management  

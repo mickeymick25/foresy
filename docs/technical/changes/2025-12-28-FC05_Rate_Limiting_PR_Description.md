@@ -1,4 +1,6 @@
 # 🔒 FC-05 — Rate Limiting Implementation (Platinum Level)
+Historique / état au 2025-12-28
+
 
 ## 📋 Feature Contract
 

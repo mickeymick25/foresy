@@ -1,4 +1,6 @@
 # 🧹 Nettoyage Autoload et Cohérence Nommage OAuth - 20 Décembre 2025
+Historique / état au 2025-12-20
+
 
 **Date :** 20 décembre 2025  
 **Projet :** Foresy API  

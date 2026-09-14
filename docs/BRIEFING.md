@@ -1,4 +1,6 @@
 # BRIEFING.md - Foresy API Project
+ÉTAT COURANT
+
 
 **For AI Context Understanding - Optimized for Fast Project Comprehension**  
 **Last Updated:** 29 janvier 2026 - Validation DDD/RDD CRA (491 tests GREEN)

@@ -1,4 +1,6 @@
 # 🔧 Résolution Docker Build Health Check - 23 Décembre 2025
+Historique / état au 2025-12-23
+
 
 **Date :** 23 décembre 2025  
 **Contexte :** Problème critique build Docker - Health check échouait avec OmniAuth session error  

@@ -1,4 +1,6 @@
 # 🔧 Correction Technique — FC-07 Concerns Namespace Fix
+Historique / état au 2026-01-03
+
 
 **Date** : 3 janvier 2026
 **Statut** : 🔴 EN COURS

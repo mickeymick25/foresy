@@ -1,4 +1,6 @@
 # 2025-12-23 - CI, Rubocop & Configuration Standards Fix
+Historique / état au 2025-12-23
+
 
 ## 🎯 **Objectif de la Correction**
 Corriger les problèmes de CI et de qualité de code en remettant les fichiers de configuration dans leur état Rails standard et en s'alignant sur les conventions Rails pour les noms de fichiers OAuth.

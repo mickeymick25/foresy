@@ -1,4 +1,6 @@
 # Feature Contract 05 - Rate Limiting : Correction des Tests RSpec
+Historique / état au 2025-12-29
+
 
 **Date :** 29 décembre 2025  
 **Status :** ✅ **COMPLÈTEMENT RÉSOLU** - 20/20 tests passent maintenant (100% de réussite)

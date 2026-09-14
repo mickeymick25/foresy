@@ -1,4 +1,6 @@
 # 🎉 FC06 - Missions Implementation Complete
+Historique / état au 2026-01-01
+
 
 **Date de Completion** : 1er janvier 2026  
 **Feature** : FC-06 - Missions Management  

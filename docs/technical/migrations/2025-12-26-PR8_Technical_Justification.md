@@ -1,4 +1,6 @@
 # 📋 Justification Technique - PR #8
+Historique / état au 2025-12-26
+
 
 ## Rails 8.1.1 + Ruby 3.4.8 Migration
 

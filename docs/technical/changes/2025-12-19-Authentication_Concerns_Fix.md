@@ -1,4 +1,6 @@
 # Correction des Concerns d'Authentification
+Historique / état au 2025-12-19
+
 
 **Date**: 19 décembre 2025 (soir)  
 **Type**: Correction critique  

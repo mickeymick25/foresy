@@ -1,4 +1,6 @@
 # Plan de Migration Rails 8.1.1
+Historique / état au 2025-12-25
+
 
 **Date de création:** 25 décembre 2025  
 **Date de complétion:** 26 décembre 2025  

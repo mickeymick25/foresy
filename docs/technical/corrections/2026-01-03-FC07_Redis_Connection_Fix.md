@@ -1,4 +1,6 @@
 # FC-07 Redis Connection Fix - Technical Documentation
+Historique / état au 2026-01-03
+
 **Date:** January 3, 2026  
 **Feature Contract:** 07_Feature Contract — CRA  
 **Status:** ✅ RESOLVED - Tests Now Passing  

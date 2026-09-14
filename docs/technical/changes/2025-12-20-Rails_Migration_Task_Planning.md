@@ -1,4 +1,6 @@
 # 🔄 Migration Rails 7.1.5.1 → 7.2+ - Planification Tâche Critique
+Historique / état au 2025-12-20
+
 
 **Date :** 20 décembre 2025  
 **Type :** 🔧 TASK - Planification Migration Critique  

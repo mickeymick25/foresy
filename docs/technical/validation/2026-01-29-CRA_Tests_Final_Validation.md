@@ -1,4 +1,6 @@
 # CRA Tests Final Validation - 29 Janvier 2026
+Historique / état au 2026-01-29
+
 ## Validation Finale des Tests Domain CRA Post-Migration DDD
 
 ---

@@ -1,4 +1,6 @@
 # 2026-02-15 — Plan de Migration DDD/RDD : Élimination des FK Inter-Domaines
+Historique / état au 2026-02-15
+
 
 **Plan de Migration — PLATINUM ABSOLU**  
 **Date** : 15 février 2026  

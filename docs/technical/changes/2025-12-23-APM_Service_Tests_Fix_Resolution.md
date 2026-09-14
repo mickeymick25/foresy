@@ -1,4 +1,6 @@
 # 🔧 Résolution APM Service Tests - 23 Décembre 2025
+Historique / état au 2025-12-23
+
 
 **Date :** 23 décembre 2025  
 **Contexte :** Tests APM (ApmService) échouaient - CI GitHub bloquée  

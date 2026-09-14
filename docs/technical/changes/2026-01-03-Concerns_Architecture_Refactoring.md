@@ -1,4 +1,6 @@
 # Concerns Architecture Refactoring - FC07 Implementation Fix
+Historique / état au 2026-01-03
+
 
 > **Date:** 3 Janvier 2026  
 > **Auteur:** CTO - Foresy Project  

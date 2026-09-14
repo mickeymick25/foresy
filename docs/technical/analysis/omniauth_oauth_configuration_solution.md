@@ -1,4 +1,6 @@
 # 🔐 Solution Configuration OmniAuth OAuth - Gestion Robuste des Secrets
+Historique / état au 2025-12-19
+
 
 **Date :** 19 décembre 2025  
 **Contexte :** Analyse PR - Configuration secrets OAuth fragile  

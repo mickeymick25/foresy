@@ -1,4 +1,6 @@
 # Résolution des Erreurs 500 en Production - 24 Décembre 2025
+Historique / état au 2025-12-24
+
 
 ## 🎯 Contexte
 

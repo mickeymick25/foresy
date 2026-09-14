@@ -1,4 +1,6 @@
 # 🏆 FC06 - DDD PLATINUM Standards Established
+Historique / état au 2026-01-04
+
 
 **Date** : 4 janvier 2026  
 **Feature** : FC-06 - Missions Management  

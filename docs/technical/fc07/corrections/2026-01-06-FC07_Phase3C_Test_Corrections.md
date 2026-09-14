@@ -1,4 +1,6 @@
 # FC-07 Phase 3C - Corrections Techniques
+Historique / état au 2026-01-06
+
 
 **Date** : 6 janvier 2026  
 **Phase** : 3C - Recalcul Automatique des Totaux CRA  

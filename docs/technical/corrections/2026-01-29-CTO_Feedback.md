@@ -1,3 +1,5 @@
+Historique / état au 2026-01-29
+
 
 # 🚀 Plan d'Action - Feedback CTO (Janvier 2026)
 

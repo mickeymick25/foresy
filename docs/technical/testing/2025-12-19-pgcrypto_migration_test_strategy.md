@@ -1,4 +1,6 @@
 # 🧪 Stratégie de Test Migration End-to-End - pgcrypto Elimination
+Historique / état au 2025-12-19
+
 
 **Date :** 19 décembre 2025  
 **Objectif :** Valider la migration pgcrypto → UUID Ruby sur environnement de staging  

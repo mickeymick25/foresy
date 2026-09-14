@@ -1,4 +1,6 @@
 # 📋 Plan d'Action — Revue PR #23
+Historique / état au 2026-08-18
+
 
 **Date de création :** 18 août 2026
 **PR :** [#23 — Remédiation Architecture + Phase 1.9](https://github.com/mickeymick25/foresy/pull/23)

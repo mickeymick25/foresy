@@ -1,4 +1,6 @@
 # 🔧 PGCrypto Compatibility Fix - Migration UUID Ruby
+Historique / état au 2025-12-21
+
 
 **Date :** 21 décembre 2025  
 **Type :** Migration corrective - Compatibilité environnements managés  

@@ -1,4 +1,6 @@
 # ✅ RÉSOLUTION - GoogleOAuth2Service Removal - Point 2 PR
+Historique / état au 2025-12-21
+
 
 **Date :** 21 décembre 2025  
 **Type :** Résolution - Clarification statut Point 2 PR  

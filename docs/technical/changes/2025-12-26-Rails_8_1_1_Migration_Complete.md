@@ -1,4 +1,6 @@
 # Migration Rails 8.1.1 - Complete
+Historique / état au 2025-12-26
+
 
 **Date:** 26 décembre 2025  
 **Type:** Major Upgrade  
