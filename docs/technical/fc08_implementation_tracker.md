@@ -12,17 +12,17 @@
 
 | Phase | Tâches | ⬜ À faire | 🟡 En cours | ✅ Terminé | % Avancement |
 |---|---|---|---|---|---|
-| **Phase 1 — Préparation** | 2 | 2 | 0 | 0 | 0% |
-| **Phase 2 — Model Specs (RED)** | 2 | 2 | 0 | 0 | 0% |
-| **Phase 3 — Migration DB** | 1 | 1 | 0 | 0 | 0% |
-| **Phase 4 — Model Implementation (GREEN)** | 2 | 2 | 0 | 0 | 0% |
+| **Phase 1 — Préparation** | 2 | 0 | 0 | 2 | 100% |
+| **Phase 2 — Model Specs (RED)** | 2 | 0 | 0 | 2 | 100% |
+| **Phase 3 — Migration DB** | 1 | 0 | 0 | 1 | 100% |
+| **Phase 4 — Model Implementation (GREEN)** | 2 | 0 | 0 | 2 | 100% |
 | **Phase 5 — Request Specs (RED)** | 2 | 2 | 0 | 0 | 0% |
 | **Phase 6 — Controllers/Services (GREEN)** | 2 | 2 | 0 | 0 | 0% |
 | **Phase 7 — RSwag** | 1 | 1 | 0 | 0 | 0% |
 | **Phase 8 — Quality Gates** | 4 | 4 | 0 | 0 | 0% |
 | **Phase 9 — Régression** | 2 | 2 | 0 | 0 | 0% |
 | **Phase 10 — PR** | 1 | 1 | 0 | 0 | 0% |
-| **Total** | **19** | **19** | **0** | **0** | **0%** |
+| **Total** | **19** | **12** | **0** | **7** | **37%** |
 
 ---
 
@@ -53,7 +53,7 @@
 | ID | Tâche | Statut | Implémentation |
 |---|---|---|---|
 | P4.1 | Company model — GREEN | ✅ | GREEN 27/27 le 14/09/2026 : siren presence+uniqueness+format, siret allow_nil (format+uniqueness conservés), scope .deleted (remplace only_deleted, cf. contrat §29), display_name nil-safe avec fallback siren |
-| P4.2 | UserCompany model — GREEN | ⬜ | Validations (user, company, role presence, role enum), uniqueness (user_id, company_id, role), scopes (.active, .deleted), pas de default_scope |
+| P4.2 | UserCompany model — GREEN | ✅ | GREEN 25/25 le 14/09/2026 : unicité (user_id, company_id, role) INV-18, discard/undiscard/discarded? §27, scopes .active/.deleted, doc contrat |
 
 ### Phase 5 — Request Specs (RED)
 
@@ -142,6 +142,13 @@
 - **Fichiers modifiés :** spec/models/user_company_spec.rb, spec/factories/user_companies.rb
 - **Tests :** 25 exemples, 11 échecs attendus (unicité (user, company, role), soft deletion, scopes .active/.deleted, pas de résurrection implicite §27). Correctif factory : associations créées (convention user_cras) + rôle déterministe + traits independent/client. Rôle invalide rejeté à l'affectation (enum strict, §25) — pin de comportement
 - **Commit :** test(fc08): P2.2 RED UserCompany model specs
+
+### 2026-09-14 — [P4.2] UserCompany model — GREEN
+
+- **Étape TDD :** GREEN (Step 7 du §63)
+- **Fichiers modifiés :** app/models/user_company.rb
+- **Tests :** 25 exemples, 0 échec. Régression précoce missions/CRA + specs FC-08 : 144 exemples, 0 échec
+- **Commit :** feat(fc08): P4.2 UserCompany model GREEN (unicité user+company+role, soft delete, scopes)
 
 ---
 

@@ -19,18 +19,21 @@
 # - No business foreign keys in User or Company models
 # - All relationships are explicit and trackable
 #
-# Validations:
+# Validations (FC-08 v3.2.3 — contract §25, §26, §45):
 # - user_id and company_id are required
-# - role must be either 'independent' or 'client'
-# - Unique constraint on user_id + company_id (prevents duplicate relations)
-# - Users can have multiple companies with different roles
+# - role must be either 'independent' or 'client' (§25)
+# - Unique constraint on (user_id, company_id, role) (INV-18) — a User can hold
+#   independent AND client roles for the same Company (§10)
+# - Users can have multiple companies with different roles (§11)
+#
+# Soft deletion (§27, INV-21):
+# - deleted_at marks the relationship as ended; records are retained for audit
+# - A deleted relationship is NOT implicitly resurrected by creating an identical
+#   active relationship — reactivation is an explicit operation (undiscard)
 #
 # Scopes:
-# - .by_role: filter by role (independent/client)
-# - .independent: users in companies with independent role
-# - .client: users in companies with client role
-# - .for_user: all relations for a specific user
-# - .for_company: all relations for a specific company
+# - .active / .deleted: explicit lifecycle scopes (INV-19, no default_scope INV-20)
+# - .by_role / .independent / .client / .for_user / .for_company
 class UserCompany < ApplicationRecord
   # Associations
   belongs_to :user, class_name: 'User', foreign_key: 'user_id', inverse_of: :user_companies
@@ -39,13 +42,32 @@ class UserCompany < ApplicationRecord
   # Enums matching PostgreSQL enum type
   enum :role, { independent: 'independent', client: 'client' }, validate: false
 
-  # Validations
+  # Validations (FC-08 v3.2.3)
   validates :user_id, presence: true
   validates :company_id, presence: true
   validates :role, presence: true, inclusion: { in: %w[independent client] }
 
-  # Ensure unique user-company relationship (no duplicates)
-  validates :user_id, uniqueness: { scope: :company_id, message: 'can only be associated once with a company' }
+  # INV-18 / §26: UNIQUE(user_id, company_id, role) — multiple roles coexist
+  # for the same User and Company, but an identical (user, company, role) exists once
+  validates :user_id, uniqueness: { scope: %i[user_id company_id role],
+                                    message: 'already has this role for this company' }
+
+  # Soft deletion (FC-08 contract §27, INV-21)
+  def discard
+    update(deleted_at: Time.current) if deleted_at.nil?
+  end
+
+  def undiscard
+    update(deleted_at: nil) if deleted_at.present?
+  end
+
+  def discarded?
+    deleted_at.present?
+  end
+
+  # Scopes (FC-08 contract §30 — explicit lifecycle, no default_scope, INV-19/20)
+  scope :active, -> { where(deleted_at: nil) }
+  scope :deleted, -> { where.not(deleted_at: nil) }
 
   # Scopes
   scope :by_role, ->(role) { where(role: role) }
