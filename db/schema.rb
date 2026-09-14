@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_17_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_14_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -35,14 +35,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_17_000000) do
     t.string "legal_form", comment: "Legal form (SARL, SAS, Auto-entrepreneur, etc.)"
     t.string "name", null: false, comment: "Company legal name"
     t.string "postal_code"
-    t.string "siren", comment: "SIREN number (9 digits, parent of SIRET)"
-    t.string "siret", null: false, comment: "SIRET number (14 digits for French companies)"
+    t.string "siren", null: false, comment: "SIREN number (9 digits, parent of SIRET)"
+    t.string "siret", comment: "SIRET number (14 digits for French companies)"
     t.string "tax_number", comment: "TVA/VAT number"
     t.datetime "updated_at", null: false
+    t.string "vat_regime"
     t.index ["currency"], name: "index_companies_on_currency"
     t.index ["deleted_at"], name: "index_companies_on_deleted_at"
     t.index ["name"], name: "index_companies_on_name"
-    t.index ["siren"], name: "index_companies_on_siren"
+    t.index ["siren"], name: "index_companies_on_siren", unique: true
     t.index ["siret"], name: "index_companies_on_siret", unique: true
     t.check_constraint "country::text ~ '^[A-Z]{2}$'::text", name: "company_country_format_constraint"
   end
@@ -171,6 +172,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_17_000000) do
   create_table "user_companies", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "company_id", null: false, comment: "Reference to companies.id (uuid)"
     t.datetime "created_at", null: false
+    t.datetime "deleted_at"
     t.enum "role", null: false, enum_type: "user_company_role_enum"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false, comment: "Reference to users.id (bigint)"
