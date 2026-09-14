@@ -39,7 +39,7 @@
 
 | ID | Tâche | Statut | Specs à écrire |
 |---|---|---|---|
-| P2.1 | Company model specs — RED | ⬜ | name presence, SIREN presence + format + uniqueness, SIRET optional + format + uniqueness, legal_form nullable, vat_regime storage, country default FR, currency default EUR, soft deletion, .active scope, .deleted scope, absence of default_scope |
+| P2.1 | Company model specs — RED | ✅ | 27 exemples, 9 échecs attendus (RED confirmé 14/09/2026) : SIREN requis/unique, SIRET optionnel, vat_regime, scope .deleted, contraintes DB (siren NOT NULL+UNIQUE, siret multi-NULL) |
 | P2.2 | UserCompany model specs — RED | ⬜ | user association, company association, role presence, valid roles (independent/client), PostgreSQL enum, uniqueness (user_id, company_id, role), multiple roles same company, multiple companies, soft deletion, .active scope, .deleted scope, absence of default_scope |
 
 ### Phase 3 — Migration DB
@@ -113,7 +113,14 @@
 - **Étape TDD :** N/A (préparation)
 - **Fichiers modifiés :** docs/technical/fc08_implementation_tracker.md
 - **Tests :** N/A — inspection db/schema.rb, db/migrate/20260101000000_initial_schema.rb, app/models/company.rb, app/models/user_company.rb
-- **Commit :** cf. historique branche feature/fc-08-companies
+- **Commit :** docs(fc08): P1.1-P1.2 gel contrat v3.2.3 + verification schema
+
+### 2026-09-14 — [P2.1] Company model specs — RED
+
+- **Étape TDD :** RED
+- **Fichiers modifiés :** spec/models/company_spec.rb
+- **Tests :** 27 exemples, 9 échecs attendus (SIREN requis/unique, SIRET optionnel, vat_regime storage+nullable, scope .deleted, UNIQUE(siren) DB, siren NOT NULL DB, siret multi-NULL DB)
+- **Commit :** test(fc08): P2.1 RED Company model specs
 
 ---
 
