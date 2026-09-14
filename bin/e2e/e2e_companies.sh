@@ -30,10 +30,20 @@ set -euo pipefail
 
 # Configuration
 API_BASE_URL="${API_BASE_URL:-http://localhost:3000}"
-TEST_EMAIL="e2e_companies_$(date +%s)@foresy.local"
-TEST_EMAIL_OTHER="e2e_companies_other_$(date +%s)@foresy.local"
+RUN_ID="$(date +%s)"
+TEST_EMAIL="e2e_companies_${RUN_ID}@foresy.local"
+TEST_EMAIL_OTHER="e2e_companies_other_${RUN_ID}@foresy.local"
 TEST_PASSWORD="TestPassword123!"
-LOG_FILE="/tmp/e2e_companies_$(date +%s).log"
+LOG_FILE="/tmp/e2e_companies_${RUN_ID}.log"
+
+# Run-unique French company identifiers. E2E data persists in the dev database
+# and FC-08 enforces UNIQUE(siren)/UNIQUE(siret) (INV-09/12): hard-coded values
+# would make any replay fail on uniqueness rules working as intended.
+TEST_SIREN="$(printf '%s' "$RUN_ID" | cut -c2-10)"
+TEST_SIRET="${TEST_SIREN}00012"
+CLIENT_SIREN="$(printf '%09d' "$(( (10#$TEST_SIREN + 1) % 1000000000 ))")"
+NO_SIRET_SIREN="$(printf '%09d' "$(( (10#$TEST_SIREN + 2) % 1000000000 ))")"
+ORPHAN_SIREN="$(printf '%09d' "$(( (10#$TEST_SIREN + 3) % 1000000000 ))")"
 
 # Colors for output
 RED='\033[0;31m'
@@ -190,8 +200,8 @@ main() {
     run_request "POST" "/api/v1/companies" "{
         \"company\": {
             \"name\": \"E2E Consulting\",
-            \"siren\": \"123456789\",
-            \"siret\": \"12345678900012\",
+            \"siren\": \"$TEST_SIREN\",
+            \"siret\": \"$TEST_SIRET\",
             \"legal_form\": \"EI\",
             \"vat_regime\": \"franchise\"
         },
@@ -213,7 +223,7 @@ main() {
 
     run_request "POST" "/api/v1/companies" "{
         \"name\": \"E2E Client Corp\",
-        \"siren\": \"987654321\",
+        \"siren\": \"$CLIENT_SIREN\",
         \"role\": \"client\"
     }" "$headers"
     if ! test_step "Create Company (flat JSON + role client)" 201 $HTTP_CODE; then
@@ -337,7 +347,7 @@ main() {
     log_info "=== Step 12: Duplicate SIREN Rejected (Scenario 9) ==="
 
     run_request "POST" "/api/v1/companies" "{
-        \"company\": { \"name\": \"Duplicate Corp\", \"siren\": \"123456789\" },
+        \"company\": { \"name\": \"Duplicate Corp\", \"siren\": \"$TEST_SIREN\" },
         \"role\": \"independent\"
     }" "$headers"
     if ! test_step "Duplicate SIREN rejected" 422 $HTTP_CODE; then
@@ -351,7 +361,7 @@ main() {
     log_info "=== Step 13: Create Company Without SIRET (Scenario 10) ==="
 
     run_request "POST" "/api/v1/companies" "{
-        \"company\": { \"name\": \"No Siret Corp\", \"siren\": \"111222333\" },
+        \"company\": { \"name\": \"No Siret Corp\", \"siren\": \"$NO_SIRET_SIREN\" },
         \"role\": \"independent\"
     }" "$headers"
     if ! test_step "Create Company without SIRET" 201 $HTTP_CODE; then
@@ -365,7 +375,7 @@ main() {
     log_info "=== Step 14: Atomicity — Invalid Role (Scenario 12) ==="
 
     run_request "POST" "/api/v1/companies" "{
-        \"company\": { \"name\": \"Orphan Corp\", \"siren\": \"333444555\" },
+        \"company\": { \"name\": \"Orphan Corp\", \"siren\": \"$ORPHAN_SIREN\" },
         \"role\": \"unsupported_role\"
     }" "$headers"
     if ! test_step "Atomic onboarding rolled back" 422 $HTTP_CODE; then

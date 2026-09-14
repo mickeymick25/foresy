@@ -1669,9 +1669,8 @@ components:
       required:
       - company
       - role
-      description: 'Atomic onboarding (§38). Flat JSON is also accepted via Rails
-        parameter wrapping (§41): Company attributes are wrapped and role is read
-        separately (§39-40, INV-22).'
+      description: Atomic onboarding. Flat JSON also accepted via wrapping; role is
+        read separately (INV-22).
       properties:
         company:
           "$ref": "#/components/schemas/companyCreateRequest"

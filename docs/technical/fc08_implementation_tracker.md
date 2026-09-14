@@ -3,7 +3,7 @@
 **Date de création :** 30 août 2026
 **Feature Contract :** FC-08 v3.2.3 — Company & User-Company Relationships
 **Statut :** 🟡 En cours
-**Branche :** `feature/fc-08-companies` (à créer)
+**Branche :** `feature/fc-08-companies`
 **Référence :** `docs/FeatureContract/08_Feature Contract — Entreprise Indépendant_[3.2.3]`
 
 ---
@@ -82,7 +82,7 @@
 | P8.1 | RuboCop | ✅ | `bundle exec rubocop` — 234 fichiers, 0 offense (14/09/2026) |
 | P8.2 | Brakeman | ✅ | 0 warning introduit par FC-08. 2 warnings Command Injection PRÉEXISTANTS dans GitLedgerRepository (code CRA hors périmètre, commits 10680ec2/a0ea0f97, entrée d'ignore obsolète antérieure) — documentés per contract §63 step 12 « explicitly document » |
 | P8.3 | RSpec full suite | ✅ | `bundle exec rspec` — 948 exemples, 0 échec |
-| P8.4 | RSwag suite | ✅ | Adaptation notée : pas de tag :swagger dans le projet — équivalent exécuté = `rake rswag:specs:swaggerize` (402 ex, 0 échec) + `rake swagger:audit_coverage` (PASSÉ, 37/37 routes) |
+| P8.4 | RSwag suite | ✅ | Adaptation notée : pas de tag :swagger dans le projet — équivalent exécuté = `rake rswag:specs:swaggerize` (402 ex, 0 échec) + `rake swagger:audit_coverage` (PASSÉ, 35/35 routes — re-vérifié 14/09/2026 lors de la vérification d'implémentation) |
 
 ### Phase 9 — Régression
 
@@ -179,6 +179,13 @@
 - **Tests :** e2e_companies.sh 19/19 PASSED en HTTP réel contre le serveur de dev (scénarios Gherkin 1, 2, 3, 5, 6, 8, 9, 10, 12, 13, 14, 15)
 - **Dette notée :** e2e_cra_lifecycle.sh et e2e_auth_flow.sh ont des bugs latents préexistants (return HTTP > 255 tronqué, parse d'environnement) qui les rendaient inexécutables même avant FC-08 — réparation complète hors périmètre FC-08
 - **Commit :** test(fc08): E2E companies (19/19 HTTP réel) + compat scripts hérités
+
+### 2026-09-14 — [E2E] Correction rejouabilité e2e_companies.sh (vérification implémentation)
+
+- **Constat :** re-vérification de l'implémentation FC-08 : `e2e_companies.sh` utilisait des SIREN/SIRET en dur (123456789, etc.) ; les données E2E persistent en base dev et FC-08 applique UNIQUE(siren)/UNIQUE(siret) (INV-09/12) — toute rejouée échouait en 422 « Siren has already been taken » (comportement FC-08 correct, script non rejouable)
+- **Fichiers modifiés :** bin/e2e/e2e_companies.sh — identifiants dérivés du RUN_ID (timestamp, cohérent avec les emails) : TEST_SIREN/TEST_SIRET, CLIENT_SIREN, NO_SIRET_SIREN, ORPHAN_SIREN ; l'étape 12 (Scenario 9) réutilise volontairement TEST_SIREN comme doublon de l'étape 3
+- **Tests :** 2 exécutions consécutives 19/19 PASSED en HTTP réel contre le serveur de dev — rejouabilité prouvée ; scénarios Gherkin couverts inchangés (1, 2, 3, 5, 6, 8, 9, 10, 12, 13, 14, 15)
+- **Commit :** à inclure dans la PR (P10.1)
 
 ---
 
