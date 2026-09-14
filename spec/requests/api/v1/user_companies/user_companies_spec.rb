@@ -162,7 +162,8 @@ RSpec.describe 'API V1 UserCompanies', type: :request do
 
         run_test! do |response|
           expect(response).to have_http_status(:forbidden)
-          expect_error_code(response, 'FORBIDDEN')
+          data = JSON.parse(response.body)
+          expect(data['code']).to eq('FORBIDDEN')
         end
       end
     end

@@ -16,13 +16,13 @@
 | **Phase 2 — Model Specs (RED)** | 2 | 0 | 0 | 2 | 100% |
 | **Phase 3 — Migration DB** | 1 | 0 | 0 | 1 | 100% |
 | **Phase 4 — Model Implementation (GREEN)** | 2 | 0 | 0 | 2 | 100% |
-| **Phase 5 — Request Specs (RED)** | 2 | 2 | 0 | 0 | 0% |
-| **Phase 6 — Controllers/Services (GREEN)** | 2 | 2 | 0 | 0 | 0% |
+| **Phase 5 — Request Specs (RED)** | 2 | 0 | 0 | 2 | 100% |
+| **Phase 6 — Controllers/Services (GREEN)** | 2 | 0 | 0 | 2 | 100% |
 | **Phase 7 — RSwag** | 1 | 1 | 0 | 0 | 0% |
 | **Phase 8 — Quality Gates** | 4 | 4 | 0 | 0 | 0% |
 | **Phase 9 — Régression** | 2 | 2 | 0 | 0 | 0% |
 | **Phase 10 — PR** | 1 | 1 | 0 | 0 | 0% |
-| **Total** | **19** | **12** | **0** | **7** | **37%** |
+| **Total** | **19** | **8** | **0** | **11** | **58%** |
 
 ---
 
@@ -66,8 +66,8 @@
 
 | ID | Tâche | Statut | Implémentation |
 |---|---|---|---|
-| P6.1 | CompaniesController — GREEN | ⬜ | wrap_parameters :company (include all Company attrs, exclude role), CRUD actions, authorization via UserCompany, atomic Company+UserCompany creation, standardized errors, CompaniesController < Api::V1::BaseController |
-| P6.2 | UserCompaniesController — GREEN | ⬜ | CRUD actions, PATCH role only, authorization (own relationships only), cross-user rejection, standardized errors, UserCompaniesController < Api::V1::BaseController |
+| P6.1 | CompaniesController — GREEN | ✅ | GREEN 32/32 (avec P6.2) le 14/09/2026 : wrap_parameters §40 (role exclu, INV-22), paramètres forts §42, autorisation UserCompany.active §43, onboarding atomique CompanyServices::Create (INV-16/17), erreurs standardisées plates §44, soft delete |
+| P6.2 | UserCompaniesController — GREEN | ✅ | GREEN 32/32 (avec P6.1) le 14/09/2026 : CRUD, PATCH role only (user_id/company_id/deleted_at structurellement ignorés), autorisation propriétaire, user_id forcé à l'utilisateur courant (§42), soft delete |
 
 ### Phase 7 — RSwag
 
@@ -156,6 +156,14 @@
 - **Fichiers modifiés :** spec/requests/api/v1/companies/companies_spec.rb (19 ex), spec/requests/api/v1/user_companies/user_companies_spec.rb (13 ex), config/routes.rb (resources companies + user_companies)
 - **Tests :** 32 exemples, 32 échecs (contrôleurs absents) — conventions maison : DSL RSwag, AuthenticationService.login, erreurs standardisées (codes UPPER_SNAKE), DELETE → 200
 - **Commit :** test(fc08): P5 request specs RED (companies + user_companies) + routes
+
+### 2026-09-14 — [P6.1 + P6.2] Controllers/Services — GREEN
+
+- **Étape TDD :** GREEN (Step 9 du §63)
+- **Fichiers modifiés :** app/services/company_services.rb (namespace Zeitwerk, pattern cra_services.rb), app/services/company_services/create.rb (onboarding atomique), app/controllers/api/v1/companies_controller.rb, app/controllers/api/v1/user_companies_controller.rb
+- **Tests :** 32 request specs GREEN (19+13). Régression globale : 948 exemples, 2 échecs — spec d'audit p4_6 épingle .only_deleted sur Company, mise à jour vers .deleted (contrat FC-08 §29) → 20/20 vert
+- **Décision :** erreurs standardisées plates {code, message, details} (§44, format render_error existant) ; rôle invalide → 422
+- **Commit :** feat(fc08): P6 contrôleurs + services GREEN (onboarding atomique, autorisation, soft delete)
 
 ---
 
