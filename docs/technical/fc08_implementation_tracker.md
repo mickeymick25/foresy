@@ -32,8 +32,8 @@
 
 | ID | Tâche | Statut | Notes |
 |---|---|---|---|
-| P1.1 | Contract Freeze — confirmer FC-08 v3.2.3 figé | ⬜ | Validé par review architecte |
-| P1.2 | Schema Verification — inspecter db/schema.rb, indexes, enums, models existants | ⬜ | Vérifier: companies (uuid PK, siren nullable, siret NOT NULL, index siren non-unique), user_companies (uuid PK, user_id bigint, company_id uuid, role enum, pas de deleted_at) |
+| P1.1 | Contract Freeze — confirmer FC-08 v3.2.3 figé | ✅ | Validé par review architecte. Gel acté le 14/09/2026 : statut Implementation-Ready / TDD-Ready, versions 3.0→3.2.3 tracées dans le repo |
+| P1.2 | Schema Verification — inspecter db/schema.rb, indexes, enums, models existants | ✅ | Constats 14/09/2026 : siren nullable + index non-unique (→ NOT NULL + UNIQUE) ; siret NOT NULL + unique (→ nullable, unique conservé) ; vat_regime absent (→ ajouter) ; user_companies.deleted_at absent (→ ajouter) ; UNIQUE(user_id, company_id, role) déjà présent ; enum user_company_role_enum = independent/client déjà conforme ; aucun contrôleur companies/user_companies ; convention maison .only_deleted (contrat exige .deleted) |
 
 ### Phase 2 — Model Specs (RED)
 
@@ -101,12 +101,19 @@
 
 ## 📝 Journal d'Exécution (TDD)
 
-### YYYY-MM-DD — [Tâche PX.Y]
+### 2026-09-14 — [P1.1] Contract Freeze
 
-- **Étape TDD :** RED / GREEN / REFACTOR
-- **Fichiers modifiés :**
-- **Tests :**
-- **Commit :**
+- **Étape TDD :** N/A (préparation)
+- **Fichiers modifiés :** docs/technical/fc08_implementation_tracker.md
+- **Tests :** N/A
+- **Commit :** cf. historique branche feature/fc-08-companies
+
+### 2026-09-14 — [P1.2] Schema Verification
+
+- **Étape TDD :** N/A (préparation)
+- **Fichiers modifiés :** docs/technical/fc08_implementation_tracker.md
+- **Tests :** N/A — inspection db/schema.rb, db/migrate/20260101000000_initial_schema.rb, app/models/company.rb, app/models/user_company.rb
+- **Commit :** cf. historique branche feature/fc-08-companies
 
 ---
 
