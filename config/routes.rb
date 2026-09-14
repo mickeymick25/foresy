@@ -24,6 +24,13 @@ Rails.application.routes.draw do
       post 'auth/:provider/callback', to: 'oauth#callback'
       get 'auth/failure', to: 'oauth#failure'
       post 'signup', to: 'users#create'
+
+      # Company routes (FC-08 — Entreprise Indépendant)
+      resources :companies, only: %i[index show create update destroy]
+
+      # UserCompany relationship routes (FC-08)
+      resources :user_companies, only: %i[index show create update destroy]
+
       resources :missions, only: %i[index show create destroy] do
         patch :update, on: :member
       end

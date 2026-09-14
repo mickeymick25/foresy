@@ -59,8 +59,8 @@
 
 | ID | Tâche | Statut | Specs à écrire |
 |---|---|---|---|
-| P5.1 | Company request specs — RED | ⬜ | GET /companies (empty, with companies), POST /companies (atomic Company+UserCompany, role independent/client, invalid SIREN, duplicate SIREN, SIRET absent, duplicate SIRET, atomicity rollback), GET /companies/:id (authorized, unauthorized, not found), PATCH /companies/:id (authorized, unauthorized), DELETE /companies/:id (soft delete), flat JSON wrapping, standardized errors |
-| P5.2 | UserCompany request specs — RED | ⬜ | GET /user_companies (list own), POST /user_companies (add role, duplicate role, invalid role), GET /user_companies/:id (authorized, cross-user), PATCH /user_companies/:id (role only, not user_id/company_id/deleted_at), DELETE /user_companies/:id (soft delete), authentication, authorization, cross-user access |
+| P5.1 | Company request specs — RED | ✅ | 19 exemples RED confirmés 14/09/2026 (routes ajoutées, contrôleurs absents) : list/atomic create/independent+client/invalid+duplicate SIREN/SIRET absent+duplicate/atomicité/flat JSON/show/patch/soft delete/cross-user 403/404 |
+| P5.2 | UserCompany request specs — RED | ✅ | 13 exemples RED confirmés 14/09/2026 : list own/POST add role/duplicate role/invalid role/user_id ignoré (§42)/show/PATCH role only + attributs protégés ignorés/DELETE soft delete/cross-user 403/401 |
 
 ### Phase 6 — Controllers/Services (GREEN)
 
@@ -148,7 +148,14 @@
 - **Étape TDD :** GREEN (Step 7 du §63)
 - **Fichiers modifiés :** app/models/user_company.rb
 - **Tests :** 25 exemples, 0 échec. Régression précoce missions/CRA + specs FC-08 : 144 exemples, 0 échec
-- **Commit :** feat(fc08): P4.2 UserCompany model GREEN (unicité user+company+role, soft delete, scopes)
+- **Commit :** feat(fc08): P4.2 UserCompany model GREEN (unicite user+company+role, soft delete, scopes)
+
+### 2026-09-14 — [P5.1 + P5.2] Request specs — RED
+
+- **Étape TDD :** RED (Step 8 du §63)
+- **Fichiers modifiés :** spec/requests/api/v1/companies/companies_spec.rb (19 ex), spec/requests/api/v1/user_companies/user_companies_spec.rb (13 ex), config/routes.rb (resources companies + user_companies)
+- **Tests :** 32 exemples, 32 échecs (contrôleurs absents) — conventions maison : DSL RSwag, AuthenticationService.login, erreurs standardisées (codes UPPER_SNAKE), DELETE → 200
+- **Commit :** test(fc08): P5 request specs RED (companies + user_companies) + routes
 
 ---
 
