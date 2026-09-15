@@ -194,6 +194,13 @@
 - **Décision (discipline one feature = one contract) :** D-8/D-9/D-10 documentés au registre de dette avec plan d'action CI Gate (§5) — correctifs en commits séparés sur accord CTO, pas dans le périmètre FC-08
 - **Commit :** docs(fc08): gate CTO — dette D-8/D-9/D-10 + plan d'action CI
 
+### 2026-09-15 — [CI Gate] D-9 + D-8 corrigés (2 jobs débloqués)
+
+- **D-9** : `bundle update rubyzip` 3.2.2 → 3.6.0 — `bundle-audit check --update` → 0 vulnérabilité ; suite 955/0. Commit `17943769`
+- **D-8** : mécanisme confirmé dans le code source Rails (`rescuable.rb` : « the most recently declared is the highest priority match ») — `StandardError` déclaré en dernier dans `StandardizedError` avalait les handlers spécifiques. Fix : `StandardError` déclaré en premier. TDD : RED spec (`signup {}` → 400, commité dans `users_spec.rb`) → GREEN. Suite 956/0 (contrat p1_2 : générique → 500, préservé) ; smoke 15/15. Commit `19b9c16c`
+- **RAG d'abord** : le plan D-8 a été corrigé après requête hub (`guides/error_contract.md` = contrat officiel ParameterMissing → 400 ; P1.2 = historique du bloc temporaire, piste distincte)
+- **Statut plan §5 :** étapes 1-2 ✅ — reste D-10 (isolement) + gate finale (6 checks verts)
+
 ### 2026-09-14 — [E2E] Correction rejouabilité e2e_companies.sh (vérification implémentation)
 
 - **Constat :** re-vérification de l'implémentation FC-08 : `e2e_companies.sh` utilisait des SIREN/SIRET en dur (123456789, etc.) ; les données E2E persistent en base dev et FC-08 applique UNIQUE(siren)/UNIQUE(siret) (INV-09/12) — toute rejouée échouait en 422 « Siren has already been taken » (comportement FC-08 correct, script non rejouable)

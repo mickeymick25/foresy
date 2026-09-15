@@ -59,8 +59,8 @@ Migration : `db/migrate/20260914000001_fc08_company_user_company_contract.rb` �
 
 | # | Action | Étape | Validation | Statut |
 |---|---|---|---|---|
-| 1 | **D-9 — rubyzip** | `bundle update rubyzip` (→ ≥ 3.4.0), commit `chore(security)` | `bundle-audit check --update` → 0 vuln ; job Security Audit vert | ⬜ À faire |
-| 2 | **D-8 — signup 500** | Qualifier la chaîne rescue (`handle_parameter_missing` ne capture pas — ordre `rescue_from` à vérifier dans `StandardizedError`) ; fix minimal → 400 MISSING_PARAMETER ; commit `fix(signup)` | `smoke_test.sh` test 6 vert ; job E2E vert | ⬜ À faire |
+| 1 | **D-9 — rubyzip** | `bundle update rubyzip` (→ ≥ 3.4.0), commit `chore(security)` | `bundle-audit check --update` → 0 vuln ; job Security Audit vert | ✅ Fait 15/09 (`17943769`) |
+| 2 | **D-8 — signup 500** | Mécanisme confirmé (rescuable.rb : dernier déclaré gagne) ; `StandardError` déclaré en premier dans `StandardizedError` ; RED spec ajouté (`users_spec.rb`) ; commit `fix(signup)` | Suite 956/0 ; smoke 15/15 ; p1_2 (500 générique) reste vert ; job E2E vert attendu | ✅ Fait 15/09 (`19b9c16c`) |
 | 3 | **D-10 — isolement** | `env -u DATABASE_URL RAILS_ENV=test bin/rails db:prepare` dans le conteneur ; documenter la procédure (dev guide) | Suite verte après rejeu E2E ×2 (plus de pollution croisée) | ⬜ À faire |
 | 4 | **Gate finale** | Push → re-vérifier les 6 checks de PR #24 | 6/6 verts → GO merge (CTO) | ⬜ À faire |
 
