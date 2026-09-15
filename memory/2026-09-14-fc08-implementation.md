@@ -25,4 +25,5 @@ Erreurs API standardisées en format plat `{code, message, details}` (concern `S
 
 ## fc08::006
 <!-- created: 2026-09-15 -->
-Gate CTO pre-merge (PR #24) : invariants 21/22 testés (spec architecture 7/7 ; INV-15 justifié — aucun code de simulation). CI : RuboCop corrigé ; 2 jobs bloqués par dette PRÉEXISTANTE : D-8 signup 500 (ParameterMissing rendu en 500, fix → 400 requis pour le job E2E) et D-9 CVE rubyzip ≥ 3.4.0 (requis pour Security Audit). Base dev polluée par les runs E2E → nettoyée (13 users e2e-*, 10 companies), suite 955/955 vert ; D-10 = isolement bases test/dev à créer. Plan d'action CI Gate : registre de dette §5.
+<!-- updated: 2026-09-15 -->
+Gate CTO pre-merge (PR #24) : invariants 21/22 testés (spec architecture 7/7 ; INV-15 justifié — aucun code de simulation). CI : RuboCop corrigé ; 2 jobs débloqués le 15/09 : D-8 signup 400 (StandardError déclaré en premier dans StandardizedError — dernier déclaré gagne, cf. rescuable.rb) et D-9 rubyzip 3.6.0 (CVE-2026-85396). Suite 956/0, smoke 15/15, contrat p1_2 préservé. Reste : D-10 isolement bases test/dev, puis gate finale 6/6 checks.
