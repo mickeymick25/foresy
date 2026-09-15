@@ -62,8 +62,16 @@ RSpec.describe 'P6.1 — GitLedgerRepository shell injection security' do
       end
     end
 
-    it 'commit_exists_for_cra? does not execute the malicious command' do
+    it 'commit_exists_for_cra? rejects invalid IDs without invoking Git (D-5)' do
       GitLedgerRepository.commit_exists_for_cra?(malicious_id)
+
+      # Renforcé : un ID hors motif sûr ne parvient JAMAIS à Git (court-circuit)
+      expect(Open3).not_to have_received(:capture3)
+    end
+
+    it 'commit_exists_for_cra? passes the ID as a single --grep argv element for a VALID id' do
+      valid_id = '123e4567-e89b-12d3-a456-426614174000'
+      GitLedgerRepository.commit_exists_for_cra?(valid_id)
 
       expect(Open3).to have_received(:capture3) do |*args, **_opts|
         # First argument must be the literal 'git' executable, not a shell string
@@ -71,11 +79,11 @@ RSpec.describe 'P6.1 — GitLedgerRepository shell injection security' do
         # No argument may be the bare destructive command tokens
         expect(args).not_to include('rm')
         expect(args).not_to include('-rf')
-        # The malicious id must be embedded inside a single --grep argument,
+        # The id must be embedded inside a single --grep argument,
         # not split into separate shell tokens
         grep_arg = args[args.index('--grep') + 1]
         expect(grep_arg).to be_a(String)
-        expect(grep_arg).to include(malicious_id)
+        expect(grep_arg).to include(valid_id)
       end
     end
 

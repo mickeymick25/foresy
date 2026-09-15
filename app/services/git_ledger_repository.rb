@@ -55,6 +55,8 @@ module GitLedgerRepository
     end
 
     def commit_exists_for_cra?(cra_id)
+      return false unless valid_cra_id?(cra_id)
+
       stdout, _stderr, status = Open3.capture3(
         'git', 'log', '--grep', "CRA locked.*#{cra_id}", '--oneline', chdir: LEDGER_PATH
       )
@@ -64,6 +66,8 @@ module GitLedgerRepository
     end
 
     def find_commit_info(cra_id)
+      return nil unless valid_cra_id?(cra_id)
+
       stdout, _stderr, status = Open3.capture3(
         'git', 'log', '--grep', "CRA locked.*#{cra_id}",
         '--pretty=format:%H|%s|%ad', '--date=iso', chdir: LEDGER_PATH
@@ -80,6 +84,16 @@ module GitLedgerRepository
     end
 
     private
+
+    # D-5 — durcissement : seul un identifiant sûr est admis dans les motifs --grep
+    # (alnum + tirets/underscores, sans métacaractères regex ni shell). Un ID
+    # invalide ou malveillant ne peut correspondre à aucun commit enregistré :
+    # refus silencieux (false/nil) sans invoquer Git.
+    SAFE_ID_PATTERN = /\A[A-Za-z0-9_-]{1,64}\z/.freeze
+
+    def valid_cra_id?(cra_id)
+      cra_id.to_s.match?(SAFE_ID_PATTERN)
+    end
 
     def initialize_repository
       FileUtils.mkdir_p(LEDGER_PATH)

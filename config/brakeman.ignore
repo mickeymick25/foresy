@@ -4,12 +4,15 @@
       "fingerprint": "735e3b0deeded6097728b35440a1a20130aea30f50dd6d4aae468d4ef8440ccb",
       "note": "TEST SUPPORT ONLY - Ce contrôleur est utilisé exclusivement pour les scénarios E2E. Il n'est jamais exposé en production. Le champ role est volontairement mass-assignable pour simplifier la création de fixtures de test."
     },
-
     {
-      "fingerprint": "ed1fa52b6ab02f31a4186f143fa92e28112f1367803fe9dec32fc39d26697650",
-      "note": "FALSE POSITIVE - DomainDriven concern utilise des noms de relation définis dans le code (pas d'input utilisateur). Les foreign_key et name proviennent de la configuration du modèle, pas de paramètres HTTP."
+      "fingerprint": "1c90df4cb4fb8f1ee865d8d78d971eeb13cf0a0c5de3a373667c8b85167c1ab0",
+      "note": "FALSE POSITIVE - D-5 : Open3.capture3 en tableau d'arguments (aucun shell intermédiaire, injection shell impossible). cra_id validé par SAFE_ID_PATTERN (alnum/-/_ max 64, aucun métacaractère regex ni shell) — les IDs invalides court-circuitent sans invoquer Git. Couvert par spec/integration/git_ledger_integration_spec.rb (cas malveillants)."
+    },
+    {
+      "fingerprint": "d92f052d8153ef280979a8b3c6239d7df6563ad5dda8d6ba5bd277da99f90e05",
+      "note": "FALSE POSITIVE - D-5 : même motif que 1c90df4c (find_commit_info). Open3 en tableau d'arguments + garde-fou SAFE_ID_PATTERN sur cra_id. Voir note du warning jumeau."
     }
   ],
-  "updated": "2026-01-05",
+  "updated": "2026-09-15",
   "brakeman_version": "7.1.2"
 }

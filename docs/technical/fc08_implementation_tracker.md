@@ -201,6 +201,14 @@
 - **RAG d'abord** : le plan D-8 a été corrigé après requête hub (`guides/error_contract.md` = contrat officiel ParameterMissing → 400 ; P1.2 = historique du bloc temporaire, piste distincte)
 - **Statut plan §5 :** étapes 1-2 ✅ — reste D-10 (isolement) + gate finale (6 checks verts)
 
+### 2026-09-15 — [Dette D-5] Brakeman GitLedger — RÉSOLUE
+
+- **Durcissement :** garde `SAFE_ID_PATTERN` (alnum/-/_ max 64) sur cra_id dans `GitLedgerRepository` — un ID malveillant court-circuite sans invoquer Git (contrat renforcé vs simple argv-array)
+- **Specs :** `git_ledger_integration_spec.rb` 13/0 (contrats d'erreur préservés : false/nil gracieux) ; `p6_1_git_ledger_security_spec.rb` mis à jour vers le contrat renforcé (malveillant → 0 invocation Git ; ID valide → argv array) — 23/0
+- **Brakeman :** `config/brakeman.ignore` régénéré (2 fingerprints D-5 ignorés avec justification FALSE POSITIVE, entrée obsolète `ed1fa52b` supprimée) → **0 warning**
+- **Suite :** 957/0 (sur `foresy_test`)
+- **Commit :** fix: D-5 durcissement GitLedger + ignore Brakeman régénéré
+
 ### 2026-09-15 — [Dette D-10] Isolement bases test/dev — RÉSOLUE
 
 - **Fix :** `foresy_test` créée dans le conteneur (`DATABASE_URL` sur le service `db` + `bin/rails db:prepare`) ; piège documenté (retirer DATABASE_URL vise localhost → Postgres injoignable depuis le conteneur)
