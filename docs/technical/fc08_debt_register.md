@@ -49,8 +49,22 @@ Migration : `db/migrate/20260914000001_fc08_company_user_company_contract.rb` �
 | D-5 | Brakeman préexistant | 2 warnings Command Injection dans `GitLedgerRepository` (code CRA, commits 10680ec2/a0ea0f97) + 1 entrée d'ignore obsolète — documentés per contrat §63 step 12 | 🟡 Moyenne | FC-07 |
 | D-6 | Cosmétique modèle | `UserCompany` : le scope d'unicité `[:user_id, :company_id, :role]` inclut `user_id` (attribut validé) en double — fonctionnellement équivalent à `[:company_id, :role]`, aucun impact | 🟢 Faible | FC-08 |
 | D-7 | Dépréciations Rack | `:unprocessable_entity` déprécié dans les matchers rspec-rails 8.0.2 — warnings cosmétiques transverses, sans rapport avec FC-08 | 🟢 Faible | Transverse |
+| D-8 | Signup 500 sur body vide — **bloque CI (job E2E)** | `POST /api/v1/signup` avec `{}` rend 500 (`{"code":"INTERNAL_SERVER_ERROR","message":"param is missing…: user"}`) au lieu de 400/422 attendu par `smoke_test.sh` (test 6). Endpoint non touché par FC-08 — dernier commit le concernant : `a460dedc` (pré-FC-08, wrap_parameters). Le job E2E (skipped sur main depuis le 19/08) ne l'avait jamais détecté | 🔴 Bloque CI | Users / StandardizedError |
+| D-9 | CVE rubyzip — **bloque CI (Security Audit)** | `rubyzip 3.2.2` : CVE-2026-85396 (High, path traversal, fix ≥ 3.4.0), advisory DB du 13/09/2026 — postérieure au dernier CI vert (main, 31/08). Dépendance transitive (rswag), pas introduite par FC-08. `bundle audit check --update` échoue | 🔴 Bloque CI | Transverse |
+| D-10 | Isolation bases test/dev (conteneur) | Le conteneur web exporte `DATABASE_URL=…foresy_development` → RSpec et E2E partagent la base dev ; `foresy_test` n'existe pas localement. La pollution E2E (10 companies, 13 users `e2e-*`, SIREN 123456789 en dur) a fait échouer 28 tests — fausse alerte de régression. Base nettoyée le 15/09 → 955/955 vert. À créer : `foresy_test` + procédure documentée | 🟡 Moyenne | Transverse |
 
-## 5. Prochaines Actions
+## 5. Plan d'Action — CI Gate PR #24 (avant merge)
+
+> Constat : RuboCop corrigé (`7262d92c`) ; Tests & Coverage et API Contracts verts. **D-8 et D-9 bloquent les 2 jobs restants** (E2E, Security Audit) ; Quality Gate est agrégat. Discipline « one feature = one contract » : correctifs en commits séparés, étiquetés, sur accord CTO.
+
+| # | Action | Étape | Validation | Statut |
+|---|---|---|---|---|
+| 1 | **D-9 — rubyzip** | `bundle update rubyzip` (→ ≥ 3.4.0), commit `chore(security)` | `bundle-audit check --update` → 0 vuln ; job Security Audit vert | ⬜ À faire |
+| 2 | **D-8 — signup 500** | Qualifier la chaîne rescue (`handle_parameter_missing` ne capture pas — ordre `rescue_from` à vérifier dans `StandardizedError`) ; fix minimal → 400 MISSING_PARAMETER ; commit `fix(signup)` | `smoke_test.sh` test 6 vert ; job E2E vert | ⬜ À faire |
+| 3 | **D-10 — isolement** | `env -u DATABASE_URL RAILS_ENV=test bin/rails db:prepare` dans le conteneur ; documenter la procédure (dev guide) | Suite verte après rejeu E2E ×2 (plus de pollution croisée) | ⬜ À faire |
+| 4 | **Gate finale** | Push → re-vérifier les 6 checks de PR #24 | 6/6 verts → GO merge (CTO) | ⬜ À faire |
+
+## 6. Prochaines Actions
 
 1. **D-3 / P10.1** — Ouvrir la PR vers main (seule tâche restante du plan de suivi)
 2. **D-4** (hors FC-08) — Réparer `e2e_cra_lifecycle.sh` / `e2e_auth_flow.sh`

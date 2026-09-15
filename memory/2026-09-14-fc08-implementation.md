@@ -22,3 +22,7 @@ Dette transverse tracée dans `docs/technical/fc08_debt_register.md` : D-2 couve
 ## fc08::005
 <!-- created: 2026-09-14 -->
 Erreurs API standardisées en format plat `{code, message, details}` (concern `StandardizedError`, contrat §44) — le helper de test `ErrorResponseHelper` attend un format imbriqué et n'est pas aligné.
+
+## fc08::006
+<!-- created: 2026-09-15 -->
+Gate CTO pre-merge (PR #24) : invariants 21/22 testés (spec architecture 7/7 ; INV-15 justifié — aucun code de simulation). CI : RuboCop corrigé ; 2 jobs bloqués par dette PRÉEXISTANTE : D-8 signup 500 (ParameterMissing rendu en 500, fix → 400 requis pour le job E2E) et D-9 CVE rubyzip ≥ 3.4.0 (requis pour Security Audit). Base dev polluée par les runs E2E → nettoyée (13 users e2e-*, 10 companies), suite 955/955 vert ; D-10 = isolement bases test/dev à créer. Plan d'action CI Gate : registre de dette §5.

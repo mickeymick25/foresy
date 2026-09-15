@@ -186,6 +186,14 @@
 - **Description :** `docs/technical/changes/2026-09-14-FC08_Companies_PR_Description.md` (résumé, evidence de tests, 18 commits, DoD 9/9, points d'attention revue)
 - **Commit :** docs(fc08): description de PR (P10.1) au format maison
 
+### 2026-09-15 — [Gate CTO] Revue pre-merge PR #24 (A/B/C)
+
+- **Gate A — Invariants :** spec d'architecture ajouté (`spec/models/fc08_architecture_invariants_spec.rb`, 7/7) : INV-01/02/03/04/06 épinglés par tests → 21/22 invariants testés, INV-15 justifié (aucun code de simulation dans `app/` — vérifié). Commits `ff73a65e` + `7262d92c` (newline RuboCop)
+- **Gate B — CI :** 4 jobs rouges investigués sur 3 runs. RuboCop = offense newline (corrigée). Security Audit = CVE rubyzip (D-9, préexistante). E2E = signup 500 préexistant (D-8). Quality Gate = agrégat. Fausse alerte intermédiaire : 28 échecs causés par la pollution E2E de la base dev (D-10) — base nettoyée → **955/955 vert** ; la CI (base test propre) l'avait confirmé (Tests & Coverage SUCCESS)
+- **Gate C — Diff :** 111 fichiers = ~22 code FC-08 + 89 docs, dont ~79 du commit de réorg `b7f3cb0e` (réalisé sur main avant la branche ; main jamais poussé — il voyage donc dans la PR). Expliqué au CTO
+- **Décision (discipline one feature = one contract) :** D-8/D-9/D-10 documentés au registre de dette avec plan d'action CI Gate (§5) — correctifs en commits séparés sur accord CTO, pas dans le périmètre FC-08
+- **Commit :** docs(fc08): gate CTO — dette D-8/D-9/D-10 + plan d'action CI
+
 ### 2026-09-14 — [E2E] Correction rejouabilité e2e_companies.sh (vérification implémentation)
 
 - **Constat :** re-vérification de l'implémentation FC-08 : `e2e_companies.sh` utilisait des SIREN/SIRET en dur (123456789, etc.) ; les données E2E persistent en base dev et FC-08 applique UNIQUE(siren)/UNIQUE(siret) (INV-09/12) — toute rejouée échouait en 422 « Siren has already been taken » (comportement FC-08 correct, script non rejouable)
