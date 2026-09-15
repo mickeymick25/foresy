@@ -39,11 +39,15 @@ module StandardizedError
   }.freeze
 
   included do
+    # D-8 — StandardError déclaré EN PREMIER : Rails résout les handlers du plus
+    # récemment déclaré vers le plus ancien (rescuable.rb, reverse_each), donc les
+    # handlers spécifiques ci-dessous gagnent sur leur classe exacte, et
+    # StandardError ne capture que le reste (contrat 500 épinglé par p1_2).
+    rescue_from StandardError, with: :handle_standard_error
     rescue_from ActiveRecord::RecordNotFound, with: :handle_record_not_found
     rescue_from ActiveRecord::RecordInvalid, with: :handle_record_invalid
     rescue_from ActionController::ParameterMissing, with: :handle_parameter_missing
     rescue_from ActionController::UnpermittedParameters, with: :handle_unpermitted_parameters
-    rescue_from StandardError, with: :handle_standard_error
   end
 
   private

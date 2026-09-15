@@ -66,10 +66,27 @@ RSpec.describe 'API V1 Users', type: :request do
           expect(data['message']).to be_a(String)
           expect(data['message']).not_to be_empty
           expect(data['details']['errors']).to be_an(Array)
+          expect(data['details']['errors']).to be_an(Array)
           expect(data['details']['errors']).not_to be_empty
           expect(data.key?('error')).to be false
         end
       end
+    end
+  end
+
+  # D-8 — contrat error_contract.md : ParameterMissing → 400 MISSING_PARAMETER
+  # (le handler StandardError ne doit pas avaler les exceptions spécifiques)
+  describe 'POST /api/v1/signup with empty payload (ParameterMissing contract)' do
+    before { RateLimitService.clear_rate_limit('auth/signup', '127.0.0.1') }
+
+    it 'returns 400 MISSING_PARAMETER with the standardized flat error shape' do
+      post '/api/v1/signup', params: {}, as: :json
+
+      expect(response).to have_http_status(:bad_request)
+      data = JSON.parse(response.body)
+      expect(data['code']).to eq('MISSING_PARAMETER')
+      expect(data['message']).to be_present
+      expect(data.key?('error')).to be false
     end
   end
 end
