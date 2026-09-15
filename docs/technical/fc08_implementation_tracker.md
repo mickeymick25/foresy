@@ -2,7 +2,7 @@
 
 **Date de création :** 30 août 2026
 **Feature Contract :** FC-08 v3.2.3 — Company & User-Company Relationships
-**Statut :** 🟢 Terminé — 19/19 tâches, PR #24 ouverte
+**Statut :** 🟢 Terminé et MERGÉ — 19/19 tâches, PR #24 mergée le 15/09/2026
 **Branche :** `feature/fc-08-companies`
 **Référence :** `docs/FeatureContract/08_Feature Contract — Entreprise Indépendant_[3.2.3]`
 
@@ -95,7 +95,7 @@
 
 | ID | Tâche | Statut | Action |
 |---|---|---|---|
-| P10.1 | Pull Request | ✅ | PR #24 ouverte le 14/09/2026 : https://github.com/mickeymick25/foresy/pull/24 — description au format maison (`docs/technical/changes/2026-09-14-FC08_Companies_PR_Description.md`), evidence de tests, DoD 9/9 |
+| P10.1 | Pull Request | ✅ | PR #24 **MERGÉE** le 15/09/2026 (main `059bbfb5..d57cff40`) : https://github.com/mickeymick25/foresy/pull/24 — description au format maison, evidence de tests, DoD 9/9, CI 6/6 verts |
 
 ---
 

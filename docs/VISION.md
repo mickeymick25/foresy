@@ -191,7 +191,7 @@ Confirm readiness to implement Feature Contracts following this vision.
 | FC-05 | Rate Limiting | ✅ DONE | - | Protection brute force |
 | FC-06 | Missions | ✅ DONE | 30 | PR #12 merged |
 | FC-07 | CRA (Compte Rendu d'Activité) | ✅ DONE | 491 | TDD PLATINUM, tag `fc-07-complete`, PLATINUM CERTIFIED (28 Jan 2026) |
-| FC-08 | Entreprise Indépendant | 📋 NEXT | - | Base fiscale & légale |
+| FC-08 | Entreprise Indépendant | ✅ DONE (PR #24) | 14-15/09/2026 | Base fiscale & légale |
 | FC-09 | Notifications & Alertes | 📋 PLANNED | - | - |
 
 ### FC-07 Mini-FCs Completed

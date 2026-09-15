@@ -44,7 +44,7 @@ Migration : `db/migrate/20260914000001_fc08_company_user_company_contract.rb` �
 |---|---|---|---|---|
 | D-1 | INV-01/02 par inspection | `Company` sans `user_id` / `User` sans `company_id` vérifiés par inspection du schéma (P1.2), pas par spec automatisée — à épingler par un test d'architecture si souhaité | 🟢 Faible | FC-08 |
 | D-2 | Couverture de lignes (SimpleCov) | Aucun outil de couverture de lignes en place (gem absente, `coverage/` vide) — chantier transverse à chiffrer séparément | 🟡 Moyenne | Transverse |
-| D-3 | P10.1 — Pull Request | Ouvrir la PR `feature/fc-08-companies` → main (description, evidence de tests, checklist Definition of Done) | 🔴 Restante | FC-08 |
+| D-3 | ~~P10.1 — Pull Request~~ | ~~Ouvrir la PR `feature/fc-08-companies` → main~~ **MERGÉE le 15/09/2026** (PR #24) — restent les conditions post-merge CTO : tag version, déploiement staging E2E, monitoring prod 24-48h | ✅ Résolue | FC-08 |
 | D-4 | Scripts E2E hérités | `e2e_cra_lifecycle.sh` et `e2e_auth_flow.sh` : bugs latents préexistants (return HTTP > 255 tronqué, parse d'environnement) les rendant inexécutables — réparation complète hors périmètre FC-08 | 🟡 Moyenne | FC-07 / auth |
 | D-5 | Brakeman préexistant | 2 warnings Command Injection dans `GitLedgerRepository` (code CRA, commits 10680ec2/a0ea0f97) + 1 entrée d'ignore obsolète — documentés per contrat §63 step 12 | 🟡 Moyenne | FC-07 |
 | D-6 | Cosmétique modèle | `UserCompany` : le scope d'unicité `[:user_id, :company_id, :role]` inclut `user_id` (attribut validé) en double — fonctionnellement équivalent à `[:company_id, :role]`, aucun impact | 🟢 Faible | FC-08 |
