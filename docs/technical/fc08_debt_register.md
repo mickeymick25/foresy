@@ -51,7 +51,7 @@ Migration : `db/migrate/20260914000001_fc08_company_user_company_contract.rb` �
 | D-7 | Dépréciations Rack | `:unprocessable_entity` déprécié dans les matchers rspec-rails 8.0.2 — warnings cosmétiques transverses, sans rapport avec FC-08 | 🟢 Faible | Transverse |
 | D-8 | Signup 500 sur body vide — **bloque CI (job E2E)** | `POST /api/v1/signup` avec `{}` rend 500 (`{"code":"INTERNAL_SERVER_ERROR","message":"param is missing…: user"}`) au lieu de 400/422 attendu par `smoke_test.sh` (test 6). Endpoint non touché par FC-08 — dernier commit le concernant : `a460dedc` (pré-FC-08, wrap_parameters). Le job E2E (skipped sur main depuis le 19/08) ne l'avait jamais détecté | 🔴 Bloque CI | Users / StandardizedError |
 | D-9 | CVE rubyzip — **bloque CI (Security Audit)** | `rubyzip 3.2.2` : CVE-2026-85396 (High, path traversal, fix ≥ 3.4.0), advisory DB du 13/09/2026 — postérieure au dernier CI vert (main, 31/08). Dépendance transitive (rswag), pas introduite par FC-08. `bundle audit check --update` échoue | 🔴 Bloque CI | Transverse |
-| D-10 | Isolation bases test/dev (conteneur) | Le conteneur web exporte `DATABASE_URL=…foresy_development` → RSpec et E2E partagent la base dev ; `foresy_test` n'existe pas localement. La pollution E2E (10 companies, 13 users `e2e-*`, SIREN 123456789 en dur) a fait échouer 28 tests — fausse alerte de régression. Base nettoyée le 15/09 → 955/955 vert. À créer : `foresy_test` + procédure documentée | 🟡 Moyenne | Transverse |
+| D-10 | Isolation bases test/dev (conteneur) | **RÉSOLUE 15/09** : `foresy_test` créée, procédure documentée dans `docs/technical/testing/test_database_isolation.md` (piège DATABASE_URL, TRUNCATE dev). Validation : suite 956/0 après rejeu E2E ×2 — isolement prouvé | ✅ Résolue | Transverse |
 | D-11 | Dépréciation Node.js 20 dans les actions GitHub — **5 warnings CI/CD** | `actions/checkout@v4` et `actions/upload-artifact@v4` tournent sous Node 20, forcé par GitHub vers Node 24 (constat CTO, 5 warnings sur la CI de PR #24, 15/09). Non bloquant, sans rapport avec FC-08. Fix futur : bump des versions d'actions dans `.github/workflows/ci.yml` quand les versions compatibles Node 24 sont stabilisées, avec run CI vert avant merge | 🟢 Faible | CI/CD transverse |
 
 ## 5. Plan d'Action — CI Gate PR #24 (avant merge)
@@ -67,12 +67,11 @@ Migration : `db/migrate/20260914000001_fc08_company_user_company_contract.rb` �
 
 ## 6. Prochaines Actions
 
-1. **D-3 / P10.1** — Merge de PR #24 (gate finale passée : 6/6 checks verts, 15/09)
-2. **D-10** (hors FC-08) — Créer `foresy_test` dans le conteneur + documenter la procédure d'isolement
+1. ~~D-10~~ ✅ Résolue (15/09) — guide `docs/technical/testing/test_database_isolation.md`
+2. **D-5** (hors FC-08) — Traiter les warnings Brakeman préexistants `GitLedgerRepository` et l'entrée d'ignore obsolète
 3. **D-4** (hors FC-08) — Réparer `e2e_cra_lifecycle.sh` / `e2e_auth_flow.sh`
-4. **D-5** (hors FC-08) — Traiter les warnings Brakeman préexistants `GitLedgerRepository` et l'entrée d'ignore obsolète
-5. **D-11** (hors FC-08) — Bump des actions GitHub (Node 24) : `checkout`/`upload-artifact` — dette CI/CD, opportuniste
-6. **D-2** (transverse) — Couverture de lignes (SimpleCov) à chiffrer
+4. **D-2** (transverse) — Couverture de lignes (SimpleCov) à chiffrer
+5. **D-11** (hors FC-08) — Bump des actions GitHub (Node 24) — dette CI/CD, opportuniste
 
 ---
 

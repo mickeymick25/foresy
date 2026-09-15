@@ -201,6 +201,13 @@
 - **RAG d'abord** : le plan D-8 a été corrigé après requête hub (`guides/error_contract.md` = contrat officiel ParameterMissing → 400 ; P1.2 = historique du bloc temporaire, piste distincte)
 - **Statut plan §5 :** étapes 1-2 ✅ — reste D-10 (isolement) + gate finale (6 checks verts)
 
+### 2026-09-15 — [Dette D-10] Isolement bases test/dev — RÉSOLUE
+
+- **Fix :** `foresy_test` créée dans le conteneur (`DATABASE_URL` sur le service `db` + `bin/rails db:prepare`) ; piège documenté (retirer DATABASE_URL vise localhost → Postgres injoignable depuis le conteneur)
+- **Validation :** suite 956/0 sur `foresy_test` ; rejeu E2E ×2 (dev re-polluée : 6 companies) puis suite sur `foresy_test` — toujours 956/0 → isolement prouvé
+- **Documentation :** `docs/technical/testing/test_database_isolation.md`
+- **Commit :** chore: D-10 isolement bases test/dev
+
 ### 2026-09-14 — [E2E] Correction rejouabilité e2e_companies.sh (vérification implémentation)
 
 - **Constat :** re-vérification de l'implémentation FC-08 : `e2e_companies.sh` utilisait des SIREN/SIRET en dur (123456789, etc.) ; les données E2E persistent en base dev et FC-08 applique UNIQUE(siren)/UNIQUE(siret) (INV-09/12) — toute rejouée échouait en 422 « Siren has already been taken » (comportement FC-08 correct, script non rejouable)
