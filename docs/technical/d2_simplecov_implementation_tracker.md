@@ -24,12 +24,12 @@
 | Phase | Contenu | Gate de validation | Statut |
 |---|---|---|---|
 | **P0** | Cadrage : chiffrage mergé + 3 décisions actées | — | ✅ fait 16/09 |
-| **P1** | Instrumentation : gems, `.simplecov`, boot SimpleCov, purge artefacts | Suite **957/0** avec rapport généré **sans échec** ; RuboCop 0 offense | ⬜ |
-| **P2** | Baseline réelle : % lignes, % branche, fichiers couverts, top sous-couverts | Chiffres consignés au journal (mesure sur `foresy_test`, conteneur — guide D-10) | ⬜ |
-| **P3** | Rapports : HTML + Cobertura XML | `coverage/index.html` + `coverage/coverage.xml` présents et exploitables | ⬜ |
-| **P4** | CI : artefact/remontée | Artefact `coverage/` de la PR contient HTML + XML ; aucun job ajouté | ⬜ |
-| **P5** | Documentation : guide + registre + suivi + décisions tracées | `docs/technical/testing/line_coverage.md` créé ; registre/suivi à jour (incl. rattrapage shas merges A6 `8d19bce8` / D-11 `689a4b15`) | ⬜ |
-| **P6** | Décision du seuil 95 % | **Hors périmètre PR #29 — APRÈS mesure** (décision co-CTO) | ⬜ post-PR |
+| **P1** | Instrumentation : gems, `.simplecov`, boot SimpleCov, purge | Suite **957/0** avec rapport généré **sans échec** ; RuboCop 0 offense | ✅ fait 16/09 |
+| **P2** | Baseline réelle : % lignes, % branche, fichiers couverts, top sous-couverts | Chiffres consignés au journal (mesure sur `foresy_test`, conteneur — guide D-10) | ✅ **72.78 % lignes / 44.82 % branches** |
+| **P3** | Rapports : HTML + Cobertura XML | `coverage/index.html` + `coverage/coverage.xml` présents et exploitables | ✅ fait (XML parsé OK) |
+| **P4** | CI : artefact/remontée | Artefact `coverage/` de la PR contient HTML + XML ; aucun job ajouté | ✅ plomberie en place — artefact à constater sur la CI de la PR |
+| **P5** | Documentation : guide + registre + suivi + décisions tracées | `docs/technical/testing/line_coverage.md` créé ; registre/suivi à jour (incl. rattrapage shas merges A6 `8d19bce8` / D-11 `689a4b15`) | ✅ fait |
+| **P6** | Décision du seuil 95 % | **Hors périmètre PR #29 — APRÈS mesure** (décision co-CTO) | ⬜ post-PR — baseline : 72.78 % lignes / 44.82 % branches |
 
 ## 3. Détail d'implémentation
 
@@ -88,7 +88,23 @@
 - Périmètre arrêté : mesurer, ne pas corriger ; seuil 95 % post-mesure ; README différé après D-2
 - Constats techniques relevés (§1) — dont le point d'entrée `.rspec` qui charge l'app au boot : boot SimpleCov dédié requis
 
-*(entrées suivantes à l'exécution)*
+### 2026-09-16 — [P1] Instrumentation exécutée
+- Gems `simplecov` 1.3.0 + `simplecov-cobertura` 4.0.0 (group :test, lockfile) ; APIs vérifiées en conteneur
+- `.simplecov` : lignes + branches, filtres, groupes (Models/Controllers/Services), MultiFormatter HTML+Cobertura, **pas de `minimum_coverage`** (D-2.1)
+- Boot dédié : `spec/coverage_boot.rb` (SimpleCov d'abord, puis `config/environment`) + `.rspec` réécrit — un require tardif aurait donné une couverture vide
+- Purge artefacts périmés `coverage/` (janvier 2026, non suivis) ; RuboCop 0 offense après autocorrect
+- **Gate P1 ✅ : suite 957 exemples, 0 échec sur `foresy_test` avec rapport généré sans échec** — TDD non applicable (outillage, validation par exécution)
+
+### 2026-09-16 — [P2-P3] Baseline mesurée + rapports
+- **Baseline : 72.78 % lignes (2879/3956) / 44.82 % branches (744/1660)** — par couche : Models 84.8 %, Services 80.5 %, Controllers 61.2 %, Autres 64.9 % (branches 46.7 / 62.5 / 27.9 / 19.5 %)
+- **Top sous-couverts :** concerns API (access_validation 18.1 %, error_handlers ~35-37 %, parameter_extractors ~36-42 %, response_formatter 37.3 %), `CraServices::List` 24.6 %, `OAuthConcern` 32.7 %, `GitLedgerService` 44.7 % — branches d'erreur/extraction partiellement exercées par les request specs/E2E (sujet P6, hors périmètre)
+- **P3 ✅ :** `coverage/index.html` + `coverage/coverage.xml` générés, XML parsé OK (line-rate 0.7278 / branch-rate 0.4482)
+- **P4 ✅ (plomberie) :** CI inchangée — artefact à constater sur la CI de la PR
+
+### 2026-09-16 — [P5] Documentation exécutée
+- Guide `docs/technical/testing/line_coverage.md` (procédure, lecture, baseline, politique de seuils 2 phases)
+- Registre : D-2 ✅ résolue (baseline chiffrée, seuil P6) ; rattrapage shas merges A6 `8d19bce8` / D-11 `689a4b15`
+- Chiffrage : décisions actées consignées (§5) ; **README hors périmètre** (décision co-CTO)
 
 ## 6. Références
 

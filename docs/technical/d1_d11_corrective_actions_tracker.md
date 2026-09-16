@@ -24,7 +24,7 @@
 | 5 | Mémoire : validation humaine `fc08::007` + proposition `fc08::008` | A5 (périmée) | `memory` | workflow hub : proposition → validation humaine → Git → memory-indexer | ✅ `fc08::007` validée humain (co-CTO 16/09) — pas de `fc08::008` ; entrée amendée + hub resynchronisé |
 | 6 | Réindexation hub (`index-project.sh`) | — | — | tracker requêtable dans `foresy__knowledge` | ✅ fait 16/09 (rejeu après push, vérifié par requête) |
 | 7 | Identité Git : `.git/config` du dépôt portait `foresy-ledger` (racine d'A6) | A6 | `chore(git)` | commits signés humain | ✅ close 16/09 (branche `chore/a6-git-container-identity`) — auto-réparante dans le conteneur |
-| 8 | D-2 chiffrage SimpleCov / D-11 bump actions GitHub (Node 24) | D-2, D-11 | `docs(d2)` / `ci(d11)` | chiffrage documenté / CI verte après bump | 🟡 16/09 : chiffrage D-2 produit + bump D-11 posé (branche `chore/d2-d11-quality-tooling`) — décisions CTO D-2 en attente, merge D-11 après CI verte |
+| 8 | D-2 chiffrage SimpleCov / D-11 bump actions GitHub (Node 24) | D-2, D-11 | `docs(d2)` / `ci(d11)` | chiffrage documenté / CI verte sans warnings | ✅ close 16/09 — chiffrage mergé (PR #28, `689a4b15`), D-11 résolue (0 warning vérifié), D-2 implémentée + **baseline mesurée 72.78 % lignes / 44.82 % branches** (PR #29) |
 
 ## 2. Détail des actions
 
@@ -62,9 +62,9 @@
 - **Close (branche `chore/a6-git-container-identity`) :** investigation — `run_git` force `chdir: LEDGER_PATH` (L177) donc le ledger ne pollue pas le dépôt applicatif ; le conteneur `web` bind-monte `.:/app:cached` → `.git/config` partagé, déjà corrigé ; identité rendue **auto-réparante** via la commande du service `web` (compose) — `git config user.name/email` à chaque `docker compose up`, surcharge `GIT_USER_NAME`/`GIT_USER_EMAIL` ; `docker compose config -q` validé, sans recréation du conteneur en cours
 - **Hors périmètre (par design) :** identité `foresy-ledger` du dépôt `cra-ledger`, posée par `GitLedgerRepository.configure_identity` (scopée au ledger)
 
-### Action 8 — D-2 / D-11 — 🟡 livrables posés le 16/09 (branche `chore/d2-d11-quality-tooling`)
-- **D-2 :** chiffrage produit — `docs/technical/changes/2026-09-16-D2_SimpleCov_Chiffrage.md` : gems `simplecov` + `simplecov-cobertura`, `.simplecov` (lignes + branche, seuil 95% standard maison), ~3 h effectives, plomberie CI déjà en place ; **3 décisions CTO en attente** (seuil initial, Cobertura, planification sprint)
-- **D-11 :** bump posé — `actions/checkout@v4`→`@v5` (×5, Node 24 natif — vérifié par annotations CI à 0 sur les jobs sans upload) et `actions/upload-artifact@v4`→`@v7` (×3 — **v5 ciblait encore Node 20**, constaté par l'annotation CI du 16/09 sur les 3 jobs avec upload ; v7.0.1 dernière stable) ; YAML validé (`YAML OK` en conteneur) ; gate documentée : run CI vert **et 0 warning Node** sur la PR avant merge
+### Action 8 — D-2 / D-11 — ✅ close (16/09)
+- **D-2 :** ✅ résolue — chiffrage mergé (PR #28) puis implémentation (PR #29) : `simplecov` 1.3.0 + `simplecov-cobertura` 4.0.0, boot dédié (`.rspec` charge l'app au boot), **baseline mesurée 72.78 % lignes / 44.82 % branches** (Models 84.8 %, Services 80.5 %, Controllers 61.2 %) ; guide `docs/technical/testing/line_coverage.md` ; seuil 95 % à statuer post-mesure (P6)
+- **D-11 :** ✅ résolue — `checkout@v5` + `upload-artifact@v7` (v5 ciblait encore Node 20, constaté par annotations), mergée via PR #28 (`689a4b15`) ; 0 annotation Node vérifié sur les 6 jobs
 
 ## 3. Journal d'exécution
 
@@ -118,6 +118,27 @@
 - **Vérifications :** conteneur `web` : `git config user.name` → `Michael Boitin` (bind mount `.:/app:cached`, config partagée) ; `docker compose config -q` → SYNTAX OK, interpolation `${GIT_USER_NAME:-Michael Boitin}` résolue correctement
 - **Fix déclaratif :** commande du service `web` (docker-compose.yml) — `git config user.name/email` auto-réparant à chaque `up`, env surchargeables ; commentaire de périmètre (ledger non concerné)
 - **Branche :** `chore/a6-git-container-identity` — commit `chore(git)`
+
+### 2026-09-16 — [Action 8 / D-2 P1] Instrumentation SimpleCov — 957/0 avec rapport
+- **Gems :** `simplecov` 1.3.0 + `simplecov-cobertura` 4.0.0 (group :test, lockfile) ; APIs vérifiées (`CoberturaFormatter`, `MultiFormatter`, `SimpleCov.start`)
+- **`.simplecov`** : lignes + branches, filtres, groupes (Models/Controllers/Services), MultiFormatter HTML+Cobertura, **pas de `minimum_coverage`** (D-2.1)
+- **Boot dédié :** constat `.rspec` charge `./config/environment` au boot (avant helpers) → `spec/coverage_boot.rb` (SimpleCov d'abord, puis `config/environment`) + `.rspec` réécrit — un require tardif aurait donné une couverture vide
+- **Purge :** artefacts périmés `coverage/` (janvier 2026, non suivis par Git) ; RuboCor 0 offense après autocorrect (2 final newlines)
+- **Gate P1 :** suite **957 exemples, 0 échec** sur `foresy_test` avec rapport généré sans échec — TDD non applicable (outillage, validation par exécution) ; RuboCop 0 offense après autocorrect (2 final newlines)
+- **Commit :** `chore(d2)` — Gemfile, Gemfile.lock, `.simplecov`, `spec/coverage_boot.rb`, `.rspec`
+
+### 2026-09-16 — [Action 8 / D-2 P2-P3] Baseline mesurée + rapports
+- **Baseline (suite 957/0, `foresy_test`) :** **72.78 % lignes** (2879/3956) / **44.82 % branches** (744/1660)
+- **Par couche :** Models 84.8 % / Services 80.5 % / Controllers 61.2 % / Autres 64.9 % (branches : 46.7 / 62.5 / 27.9 / 19.5 %)
+- **Top sous-couverts :** concerns API (access_validation 18.1 %, error_handlers ~35-37 %, parameter_extractors ~36-42 %, response_formatter 37.3 %), `CraServices::List` 24.6 %, `OAuthConcern` 32.7 %, `GitLedgerService` 44.7 % — concerns partiellement exercés par request specs/E2E, branches d'erreur à densifier (sujet P6, hors périmètre)
+- **Rapports P3 :** `coverage/index.html` + `coverage/coverage.xml` générés, XML parsé OK (line-rate 0.7278 / branch-rate 0.4482)
+- **P4 :** CI inchangée — `COVERAGE=true` + upload `coverage/` déjà en place, l'artefact contient désormais HTML + XML
+
+### 2026-09-16 — [Action 8 / D-2 P5] Documentation
+- Guide `docs/technical/testing/line_coverage.md` (procédure, lecture, baseline, politique de seuils 2 phases)
+- Registre : D-2 ✅ résolue (baseline chiffrée, seuil P6) ; rattrapage shas merges A6 `8d19bce8` / D-11 `689a4b15`
+- Chiffrage : décisions actées D-2.1/2.2/2.3 consignées (§5)
+- **README hors périmètre** (décision co-CTO : pass doc post-D-2 avec les métriques réelles)
 
 ## 4. Références
 
