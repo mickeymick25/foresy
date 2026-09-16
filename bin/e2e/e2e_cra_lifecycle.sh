@@ -20,7 +20,8 @@
 # - CI-safe
 # - Comprehensive error handling and logging
 
-# -e is NOT set: make_request returns the HTTP code as its exit status;
+# -e is NOT set: run_request sets the HTTP_CODE/HTTP_BODY globals (D-4: the
+# historical exit-status pattern truncated codes > 255, e.g. 422->166);
 # assertions are explicit via test_step (a 201 from curl is a "failure" for set -e)
 set -uo pipefail
 

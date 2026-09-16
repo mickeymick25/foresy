@@ -204,7 +204,7 @@
 ### 2026-09-15 — [Dette D-5] Brakeman GitLedger — RÉSOLUE
 
 - **Durcissement :** garde `SAFE_ID_PATTERN` (alnum/-/_ max 64) sur cra_id dans `GitLedgerRepository` — un ID malveillant court-circuite sans invoquer Git (contrat renforcé vs simple argv-array)
-- **Specs :** `git_ledger_integration_spec.rb` 13/0 (contrats d'erreur préservés : false/nil gracieux) ; `p6_1_git_ledger_security_spec.rb` mis à jour vers le contrat renforcé (malveillant → 0 invocation Git ; ID valide → argv array) — 23/0
+- **Specs :** `git_ledger_integration_spec.rb` 13/0 (contrats d'erreur préservés : false/nil gracieux) ; `p6_1_git_ledger_security_spec.rb` mis à jour vers le contrat renforcé (malveillant → 0 invocation Git ; ID valide → argv array) — 10/0 (23/0 cumulé avec `git_ledger_integration_spec.rb`) *(rectifié le 16/09 : le « 23/0 » initial attribuait à tort à p6_1 seule la somme 13+10 des deux specs D-5)*
 - **Brakeman :** `config/brakeman.ignore` régénéré (2 fingerprints D-5 ignorés avec justification FALSE POSITIVE, entrée obsolète `ed1fa52b` supprimée) → **0 warning**
 - **Suite :** 957/0 (sur `foresy_test`)
 - **Commit :** fix: D-5 durcissement GitLedger + ignore Brakeman régénéré
