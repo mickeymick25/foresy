@@ -23,7 +23,7 @@
 | 4 | Pousser la branche + ouvrir la PR → `main` | A2 | — | description maison ; CI 6/6 verts | ✅ **MERGÉE** le 16/09 12:53 UTC — PR #25, merge commit `8d6c9918`, 9 commits, +390/−120, verdict co-CTO GREEN FOR MERGE |
 | 5 | Mémoire : validation humaine `fc08::007` + proposition `fc08::008` | A5 (périmée) | `memory` | workflow hub : proposition → validation humaine → Git → memory-indexer | ✅ `fc08::007` validée humain (co-CTO 16/09) — pas de `fc08::008` ; entrée amendée + hub resynchronisé |
 | 6 | Réindexation hub (`index-project.sh`) | — | — | tracker requêtable dans `foresy__knowledge` | ✅ fait 16/09 (rejeu après push, vérifié par requête) |
-| 7 | Identité Git : `.git/config` du dépôt portait `foresy-ledger` (racine d'A6) | A6 | `chore(git)` | commits signés humain | 🟡 fait (host) / conteneur à décider |
+| 7 | Identité Git : `.git/config` du dépôt portait `foresy-ledger` (racine d'A6) | A6 | `chore(git)` | commits signés humain | ✅ close 16/09 (branche `chore/a6-git-container-identity`) — auto-réparante dans le conteneur |
 | 8 | D-2 chiffrage SimpleCov / D-11 bump actions GitHub (Node 24) | D-2, D-11 | — | chiffrage documenté / CI verte après bump | ⬜ |
 
 ## 2. Détail des actions
@@ -57,9 +57,10 @@
 - `index-project.sh /Users/michaelboitin/Documents/02_Dev/Foresy` exécuté le 16/09 après push : 53 chunks écrits (dont tracker 11, description PR 4), mémoires inchangées
 - Vérification : le présent tracker requêtable dans `foresy__knowledge` (top résultat le 16/09)
 
-### Action 7 — Identité Git (A6)
+### Action 7 — Identité Git (A6) — ✅ close (16/09)
 - **Constat de revue :** cause racine repo-locale — `.git/config` du host portait `user.name=foresy-ledger` / `user.email=ledger@foresy.internal` (181 commits signés, y compris le rapport du 16/09) → corrigé vers `Michael Boitin <mickeymick25@gmail.com>` (identité des 170 commits historiques)
-- **Reste ouvert (décision CTO) :** identité des shells du conteneur qui committent le dépôt applicatif (l'identité `foresy-ledger` reste légitime dans le dépôt `cra-ledger` via `GitLedgerRepository.configure_identity`) — config explicite conteneur ou discipline « commits depuis le host »
+- **Close (branche `chore/a6-git-container-identity`) :** investigation — `run_git` force `chdir: LEDGER_PATH` (L177) donc le ledger ne pollue pas le dépôt applicatif ; le conteneur `web` bind-monte `.:/app:cached` → `.git/config` partagé, déjà corrigé ; identité rendue **auto-réparante** via la commande du service `web` (compose) — `git config user.name/email` à chaque `docker compose up`, surcharge `GIT_USER_NAME`/`GIT_USER_EMAIL` ; `docker compose config -q` validé, sans recréation du conteneur en cours
+- **Hors périmètre (par design) :** identité `foresy-ledger` du dépôt `cra-ledger`, posée par `GitLedgerRepository.configure_identity` (scopée au ledger)
 
 ### Action 8 — D-2 / D-11 (ouvertes, conformes à leur déclaration)
 - **D-2 :** chiffrage SimpleCov à produire (gem absente ; `coverage/` ne contient que des artefacts périmés de janvier 2026)
@@ -111,6 +112,12 @@
 ### 2026-09-16 — [Action 5] Mémoire fc08::007 validée humain (A5 close)
 - `fc08::007` marquée validée (co-CTO 16/09, GREEN FOR MERGE) — contenu amendé vers l'état final : anomalies A1/A3/A4/A7 résolues via PR #25, A5 périmée (hub synchronisé), A6 racine corrigée ; restes : A6 conteneur, D-2, D-11
 - Pas de `fc08::008` (décision co-CTO : « pas de travail supplémentaire ») ; hub resynchronisé après commit (cf. action 6)
+
+### 2026-09-16 — [Action 7] A6 close — identité conteneur auto-réparante
+- **Investigation :** `run_git` (L177) force `chdir: LEDGER_PATH` → l'identité ledger est scopée à `cra-ledger`, elle n'explique pas la pollution du dépôt applicatif ; la cause reste le `.git/config` repo-local (corrigé le 16/09 au matin)
+- **Vérifications :** conteneur `web` : `git config user.name` → `Michael Boitin` (bind mount `.:/app:cached`, config partagée) ; `docker compose config -q` → SYNTAX OK, interpolation `${GIT_USER_NAME:-Michael Boitin}` résolue correctement
+- **Fix déclaratif :** commande du service `web` (docker-compose.yml) — `git config user.name/email` auto-réparant à chaque `up`, env surchargeables ; commentaire de périmètre (ledger non concerné)
+- **Branche :** `chore/a6-git-container-identity` — commit `chore(git)`
 
 ## 4. Références
 
