@@ -232,6 +232,17 @@
 - **Tests :** 2 exécutions consécutives 19/19 PASSED en HTTP réel contre le serveur de dev — rejouabilité prouvée ; scénarios Gherkin couverts inchangés (1, 2, 3, 5, 6, 8, 9, 10, 12, 13, 14, 15)
 - **Commit :** à inclure dans la PR (P10.1)
 
+### 2026-09-16 — [Vérification] Dette D-1→D-11 — niveau platinium
+
+- **Périmètre :** toute la dette du registre, depuis D-1 (D-4 incluse) — branche `chore/d4-e2e-scripts-repair` (HEAD `1de4d154`)
+- **Méthode :** revue du contrat/registre/journal + revue de code + exécutions réelles (suite, specs ciblées, RuboCop, Brakeman, bundle-audit, smoke, E2E rejoués ×2) + requêtes hub RAG (`foresy__knowledge`/`foresy__memories` via proxy MCP documenté — outils `chroma_*` non attachés à la session) + API GitHub
+- **Résultats :** suite 957/0 (`foresy_test`), Brakeman 0 warning (3 ignorés justifiés), bundle-audit 0 vuln, smoke 15/15, e2e_cra ×2 PASSED, e2e_auth ×2 PASSED, specs ciblées 7/0 + 13/0 + 10/0 + 4/0
+- **Conformes platinium :** D-1 (spec invariants), D-8 (TDD + RAG d'abord), D-9, D-10 ; conformes à leur déclaration (ouvertes) : D-2, D-6, D-7, D-11 ; D-3 résolue (v0.1.1)
+- **Anomalies :** A1 RuboCop cassé par D-5 (2 offenses L92 `SAFE_ID_PATTERN` — `Lint/UselessConstantScoping`, `Style/RedundantFreeze`) ; A2 PR D-4 non ouverte (branche poussée) ; A3 commentaire obsolète e2e_cra L23-24 (`make_request`) ; A4 journal D-5 « p6_1 23/0 » (réel 10/0, 23 = somme 13+10) ; A5 memory-indexer en attente (hub `fc08::006` périmée, pré-D-4) ; A6 identité Git conteneur `foresy-ledger` (traçabilité humaine) ; annexe hub : `e2e_mcp_test.py` `anyio.run(main())` → `anyio.run(main)`
+- **Rapport complet :** `docs/technical/changes/2026-09-16-D1-D11_Debt_Verification_Report.md`
+- **Décision :** correctifs étiquetés proposés sur accord (`style(d5)`, `docs(d4)`, PR D-4) — mémoire `fc08::007` proposée, validation humaine en attente
+- **Commit :** à valider (workflow mémoire : l'agent propose, l'humain valide, Git trace, puis memory-indexer)
+
 ---
 
 ## 🔗 Références
