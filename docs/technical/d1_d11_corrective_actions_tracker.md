@@ -63,7 +63,7 @@
 
 ### Action 8 — D-2 / D-11 — 🟡 livrables posés le 16/09 (branche `chore/d2-d11-quality-tooling`)
 - **D-2 :** chiffrage produit — `docs/technical/changes/2026-09-16-D2_SimpleCov_Chiffrage.md` : gems `simplecov` + `simplecov-cobertura`, `.simplecov` (lignes + branche, seuil 95% standard maison), ~3 h effectives, plomberie CI déjà en place ; **3 décisions CTO en attente** (seuil initial, Cobertura, planification sprint)
-- **D-11 :** bump posé — `actions/checkout@v4`→`@v5` (×5) et `actions/upload-artifact@v4`→`@v5` (×3) dans `ci.yml` ; YAML validé (`YAML OK` en conteneur) ; gate documentée : run CI vert sur la PR avant merge
+- **D-11 :** bump posé — `actions/checkout@v4`→`@v5` (×5, Node 24 natif — vérifié par annotations CI à 0 sur les jobs sans upload) et `actions/upload-artifact@v4`→`@v7` (×3 — **v5 ciblait encore Node 20**, constaté par l'annotation CI du 16/09 sur les 3 jobs avec upload ; v7.0.1 dernière stable) ; YAML validé (`YAML OK` en conteneur) ; gate documentée : run CI vert **et 0 warning Node** sur la PR avant merge
 
 ## 3. Journal d'exécution
 
