@@ -46,7 +46,7 @@
 - **Gate :** YAML valide ; Brakeman 0 warning vérifié localement avec ce fichier (exécuté en revue)
 
 ### Action 4 — PR D-4 (A2)
-- **État :** origin à `1de4d154` ; le commit `548774d9` (rapport + registre + journal + fc08::007) et les commits correctifs sont locaux → pousser
+- **État :** branche poussée sur origin à `96ab549e` (vague complète : D-4 + vérification platinium + correctifs A1/A3/A4/A7 + docs de suivi)
 - **Description PR :** `docs/technical/changes/2026-09-16-D4_PR_Description.md` (format maison) — périmètre : D-4 + correctifs post-vérification A1/A3/A4/A7 + suivi d'implémentation
 - **Ouverture :** CTO (CLI `gh` absente du host) — via GitHub web ou après installation de gh
 
@@ -55,8 +55,8 @@
 - **Reste :** validation humaine de `fc08::007` par le CTO ; proposition `fc08::008` (revue conjointe du 16/09 : gates fraîches, A7, actions 1-8) — workflow : proposition → validation humaine → Git → memory-indexer
 
 ### Action 6 — Réindexation
-- `index-project.sh /Users/michaelboitin/Documents/02_Dev/Foresy` à rejouer après les commits correctifs
-- Vérification : le tracker doit être requêtable dans `foresy__knowledge`
+- `index-project.sh /Users/michaelboitin/Documents/02_Dev/Foresy` exécuté le 16/09 après push : 53 chunks écrits (dont tracker 11, description PR 4), mémoires inchangées
+- Vérification : le présent tracker requêtable dans `foresy__knowledge` (top résultat le 16/09)
 
 ### Action 7 — Identité Git (A6)
 - **Constat de revue :** cause racine repo-locale — `.git/config` du host portait `user.name=foresy-ledger` / `user.email=ledger@foresy.internal` (181 commits signés, y compris le rapport du 16/09) → corrigé vers `Michael Boitin <mickeymick25@gmail.com>` (identité des 170 commits historiques)
