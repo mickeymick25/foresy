@@ -209,6 +209,15 @@
 - **Suite :** 957/0 (sur `foresy_test`)
 - **Commit :** fix: D-5 durcissement GitLedger + ignore Brakeman régénéré
 
+### 2026-09-15 — [Dette D-4] Scripts E2E hérités — RÉSOLUE
+
+- **Branche :** `chore/d4-e2e-scripts-repair` (process : branche dédiée + PR, fin des pushes directs sur main)
+- **e2e_cra_lifecycle.sh — 4 corrections structurelles :** (1) pattern `run_request`/`HTTP_CODE`/`HTTP_BODY` — le return-code historique tronquait les codes > 255 (422→166, 500→244, 409→153) ; (2) `"month": $(date +%m)` = JSON invalide (`09`, zéro non significatif) → `%-m` — cause racine du 500 « parsing request parameters » ; (3) comparaisons flottantes (l'API renvoie `30000.0`, awk `float_eq`) ; (4) code mort nettoyé (`X_response` captures vides, user_id inexistant dans la réponse signup)
+- **Audit intégral préalable :** le fichier a été relu ligne à ligne après conversion (15 sites, aucun risque de staleness HTTP_BODY)
+- **e2e_auth_flow.sh :** conforme en l'état (curl direct, pas de return-code) — vérifié PASSED
+- **Rejeux :** cra PASSED ×3, auth PASSED ×2 — déterminisme prouvé
+- **Commit :** fix: D-4 réparation scripts E2E hérités
+
 ### 2026-09-15 — [Dette D-10] Isolement bases test/dev — RÉSOLUE
 
 - **Fix :** `foresy_test` créée dans le conteneur (`DATABASE_URL` sur le service `db` + `bin/rails db:prepare`) ; piège documenté (retirer DATABASE_URL vise localhost → Postgres injoignable depuis le conteneur)
