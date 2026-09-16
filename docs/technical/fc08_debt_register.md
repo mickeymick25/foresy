@@ -45,8 +45,8 @@ Migration : `db/migrate/20260914000001_fc08_company_user_company_contract.rb` �
 | D-1 | INV-01/02 par inspection | `Company` sans `user_id` / `User` sans `company_id` vérifiés par inspection du schéma (P1.2), pas par spec automatisée — à épingler par un test d'architecture si souhaité | 🟢 Faible | FC-08 |
 | D-2 | Couverture de lignes (SimpleCov) | Aucun outil de couverture de lignes en place (gem absente, `coverage/` vide) — chantier transverse à chiffrer séparément | 🟡 Moyenne | Transverse |
 | D-3 | ~~P10.1 — Pull Request~~ | ~~Ouvrir la PR `feature/fc-08-companies` → main~~ **MERGÉE le 15/09/2026** (PR #24) — restent les conditions post-merge CTO : tag version, déploiement staging E2E, monitoring prod 24-48h | ✅ Résolue | FC-08 |
-| D-4 | Scripts E2E hérités | `e2e_cra_lifecycle.sh` et `e2e_auth_flow.sh` : bugs latents préexistants (return HTTP > 255 tronqué, parse d'environnement) les rendant inexécutables — réparation complète hors périmètre FC-08 | 🟡 Moyenne | FC-07 / auth |
-| D-5 | Brakeman préexistant | **RÉSOLUE 15/09** : durcissement `GitLedgerRepository` (garde `SAFE_ID_PATTERN` sur cra_id — refus silencieux sans invoquer Git, spec p6_1 mise à jour vers le contrat renforcé) ; `config/brakeman.ignore` régénéré (2 fingerprints ignorés avec justification, entrée obsolète supprimée) → **Brakeman 0 warning** | ✅ Résolue | FC-07 |
+| D-4 | Scripts E2E hérités | **RÉSOLUE 15/09** (branche `chore/d4-e2e-scripts-repair`) : `e2e_cra_lifecycle.sh` réparé — pattern `run_request`/`HTTP_CODE` (codes > 255 tronqués : 422→166, 500→244, 409→153), `"month": 09` JSON invalide → `%-m`, comparaisons décimales flottantes (awk), code mort nettoyé ; `e2e_auth_flow.sh` vérifié conforme en l'état. Rejeux : PASSED ×2 ; **vérif. 16/09** : rejeux indépendants ×2 PASSED chacun — ⚠️ reste PR à ouvrir (branche poussée sans PR) + commentaire d'en-tête L23-24 obsolète (`make_request`) | ✅ Résolue | FC-07 / auth |
+| D-5 | Brakeman préexistant | **RÉSOLUE 15/09** : durcissement `GitLedgerRepository` (garde `SAFE_ID_PATTERN` sur cra_id — refus silencieux sans invoquer Git, spec p6_1 mise à jour vers le contrat renforcé) ; `config/brakeman.ignore` régénéré (2 fingerprints ignorés avec justification, entrée obsolète supprimée) → **Brakeman 0 warning** ; ⚠️ **vérif. 16/09** : 2 offenses RuboCop introduites à L92 (`Lint/UselessConstantScoping`, `Style/RedundantFreeze`) — gate 0-offense cassée sur main, correctif `style(d5)` en attente | 🟡 Résolue (réserve RuboCop) | FC-07 |
 | D-6 | Cosmétique modèle | `UserCompany` : le scope d'unicité `[:user_id, :company_id, :role]` inclut `user_id` (attribut validé) en double — fonctionnellement équivalent à `[:company_id, :role]`, aucun impact | 🟢 Faible | FC-08 |
 | D-7 | Dépréciations Rack | `:unprocessable_entity` déprécié dans les matchers rspec-rails 8.0.2 — warnings cosmétiques transverses, sans rapport avec FC-08 | 🟢 Faible | Transverse |
 | D-8 | Signup 500 sur body vide — **bloque CI (job E2E)** | `POST /api/v1/signup` avec `{}` rend 500 (`{"code":"INTERNAL_SERVER_ERROR","message":"param is missing…: user"}`) au lieu de 400/422 attendu par `smoke_test.sh` (test 6). Endpoint non touché par FC-08 — dernier commit le concernant : `a460dedc` (pré-FC-08, wrap_parameters). Le job E2E (skipped sur main depuis le 19/08) ne l'avait jamais détecté | 🔴 Bloque CI | Users / StandardizedError |
@@ -67,11 +67,20 @@ Migration : `db/migrate/20260914000001_fc08_company_user_company_contract.rb` �
 
 ## 6. Prochaines Actions
 
-1. ~~D-10~~ ✅ Résolue (15/09) — guide `docs/technical/testing/test_database_isolation.md`
-2. **D-5** (hors FC-08) — Traiter les warnings Brakeman préexistants `GitLedgerRepository` et l'entrée d'ignore obsolète
-3. **D-4** (hors FC-08) — Réparer `e2e_cra_lifecycle.sh` / `e2e_auth_flow.sh`
-4. **D-2** (transverse) — Couverture de lignes (SimpleCov) à chiffrer
-5. **D-11** (hors FC-08) — Bump des actions GitHub (Node 24) — dette CI/CD, opportuniste
+1. **`style(d5)`** — ✅ Fait 16/09 (`650d80c1`) : `SAFE_ID_PATTERN` déplacée au niveau module + `.freeze` retiré — RuboCop 235 fichiers 0 offense, suite 957/0
+2. **PR D-4** — ✅ **PR #25 ouverte** le 16/09 (https://github.com/mickeymick25/foresy/pull/25) : branche complète — D-4 + correctifs post-vérification A1/A3/A4/A7 + docs de suivi — description maison collée ; fusion sur CI 6/6 verts. Le commentaire obsolète L23-24 a été corrigé au passage (`4caa50ec`)
+3. **`docs(d5)`** — ✅ Fait 16/09 (`4caa50ec`) : journal rectifié — p6_1 = 10/0 (23 = somme 13+10 des deux specs D-5)
+4. **Mémoire** — valider `fc08::007` (le hub l'indexe déjà — A5 constatée périmée en revue conjointe) puis proposer `fc08::008` (revue du 16/09) ; memory-indexer après validation humaine
+5. **D-2** (transverse) — Couverture de lignes (SimpleCov) à chiffrer
+6. **D-11** (hors FC-08) — Bump des actions GitHub (Node 24) — dette CI/CD, opportuniste
+7. **Hygiène identité Git** — ✅ `.git/config` du dépôt corrigé vers l'identité humaine le 16/09 (racine d'A6 côté host, 181 commits concernés) ; reste : config du conteneur (décision CTO)
+8. **A7 (nouvelle, détectée en revue conjointe 16/09)** — ✅ CI corrigée (`11432c68`) : `--ignore-config` pointé vers `config/brakeman.ignore` — le fichier racine référencé depuis `3ce4c7d7` (30/01) n'existait plus ; suivi dédié : `docs/technical/d1_d11_corrective_actions_tracker.md`
+
+## 7. Vérification d'implémentation (16/09/2026)
+
+Vérification platinium D-1→D-11 : **fond conforme** (suite 957/0, Brakeman 0, bundle-audit 0, smoke 15/15, E2E rejoués ×2) ; 4 anomalies documentées (RuboCop cassé par D-5 ; PR D-4 non ouverte ; commentaire obsolète L23-24 ; journal D-5 surévalué p6_1 10/0 vs « 23/0 ») — rapport complet : `docs/technical/changes/2026-09-16-D1-D11_Debt_Verification_Report.md`.
+
+**Revue conjointe CTO du 16/09 (après-midi)** : anomalies A1-A4 re-contrôlées par exécution puis corrigées (A1 `650d80c1` ; A3+A4 `4caa50ec`) ; A5 constatée **périmée** (le hub indexe déjà `fc08::007` et `fc08::006` à jour) ; **A7 détectée** (CI `--ignore-config` vers un fichier supprimé) et corrigée (`11432c68`) ; A6 racine corrigée (`.git/config` du dépôt → identité humaine). Gates froides : RuboCop 235 fichiers 0 offense, suite 957/0. Suivi dédié : `docs/technical/d1_d11_corrective_actions_tracker.md`.
 
 ---
 

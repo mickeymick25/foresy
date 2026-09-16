@@ -128,7 +128,7 @@ jobs:
         run: |
           echo "🔍 Running Brakeman security analysis..."
           bundle exec brakeman \
-            --ignore-config=.brakeman.ignore \
+            --ignore-config=config/brakeman.ignore \
             --no-exit-on-warn \
             --confidence-level=2
           echo "✅ Brakeman scan completed"

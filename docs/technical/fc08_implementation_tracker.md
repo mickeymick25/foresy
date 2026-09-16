@@ -204,10 +204,19 @@
 ### 2026-09-15 — [Dette D-5] Brakeman GitLedger — RÉSOLUE
 
 - **Durcissement :** garde `SAFE_ID_PATTERN` (alnum/-/_ max 64) sur cra_id dans `GitLedgerRepository` — un ID malveillant court-circuite sans invoquer Git (contrat renforcé vs simple argv-array)
-- **Specs :** `git_ledger_integration_spec.rb` 13/0 (contrats d'erreur préservés : false/nil gracieux) ; `p6_1_git_ledger_security_spec.rb` mis à jour vers le contrat renforcé (malveillant → 0 invocation Git ; ID valide → argv array) — 23/0
+- **Specs :** `git_ledger_integration_spec.rb` 13/0 (contrats d'erreur préservés : false/nil gracieux) ; `p6_1_git_ledger_security_spec.rb` mis à jour vers le contrat renforcé (malveillant → 0 invocation Git ; ID valide → argv array) — 10/0 (23/0 cumulé avec `git_ledger_integration_spec.rb`) *(rectifié le 16/09 : le « 23/0 » initial attribuait à tort à p6_1 seule la somme 13+10 des deux specs D-5)*
 - **Brakeman :** `config/brakeman.ignore` régénéré (2 fingerprints D-5 ignorés avec justification FALSE POSITIVE, entrée obsolète `ed1fa52b` supprimée) → **0 warning**
 - **Suite :** 957/0 (sur `foresy_test`)
 - **Commit :** fix: D-5 durcissement GitLedger + ignore Brakeman régénéré
+
+### 2026-09-15 — [Dette D-4] Scripts E2E hérités — RÉSOLUE
+
+- **Branche :** `chore/d4-e2e-scripts-repair` (process : branche dédiée + PR, fin des pushes directs sur main)
+- **e2e_cra_lifecycle.sh — 4 corrections structurelles :** (1) pattern `run_request`/`HTTP_CODE`/`HTTP_BODY` — le return-code historique tronquait les codes > 255 (422→166, 500→244, 409→153) ; (2) `"month": $(date +%m)` = JSON invalide (`09`, zéro non significatif) → `%-m` — cause racine du 500 « parsing request parameters » ; (3) comparaisons flottantes (l'API renvoie `30000.0`, awk `float_eq`) ; (4) code mort nettoyé (`X_response` captures vides, user_id inexistant dans la réponse signup)
+- **Audit intégral préalable :** le fichier a été relu ligne à ligne après conversion (15 sites, aucun risque de staleness HTTP_BODY)
+- **e2e_auth_flow.sh :** conforme en l'état (curl direct, pas de return-code) — vérifié PASSED
+- **Rejeux :** cra PASSED ×3, auth PASSED ×2 — déterminisme prouvé
+- **Commit :** fix: D-4 réparation scripts E2E hérités
 
 ### 2026-09-15 — [Dette D-10] Isolement bases test/dev — RÉSOLUE
 
@@ -222,6 +231,17 @@
 - **Fichiers modifiés :** bin/e2e/e2e_companies.sh — identifiants dérivés du RUN_ID (timestamp, cohérent avec les emails) : TEST_SIREN/TEST_SIRET, CLIENT_SIREN, NO_SIRET_SIREN, ORPHAN_SIREN ; l'étape 12 (Scenario 9) réutilise volontairement TEST_SIREN comme doublon de l'étape 3
 - **Tests :** 2 exécutions consécutives 19/19 PASSED en HTTP réel contre le serveur de dev — rejouabilité prouvée ; scénarios Gherkin couverts inchangés (1, 2, 3, 5, 6, 8, 9, 10, 12, 13, 14, 15)
 - **Commit :** à inclure dans la PR (P10.1)
+
+### 2026-09-16 — [Vérification] Dette D-1→D-11 — niveau platinium
+
+- **Périmètre :** toute la dette du registre, depuis D-1 (D-4 incluse) — branche `chore/d4-e2e-scripts-repair` (HEAD `1de4d154`)
+- **Méthode :** revue du contrat/registre/journal + revue de code + exécutions réelles (suite, specs ciblées, RuboCop, Brakeman, bundle-audit, smoke, E2E rejoués ×2) + requêtes hub RAG (`foresy__knowledge`/`foresy__memories` via proxy MCP documenté — outils `chroma_*` non attachés à la session) + API GitHub
+- **Résultats :** suite 957/0 (`foresy_test`), Brakeman 0 warning (3 ignorés justifiés), bundle-audit 0 vuln, smoke 15/15, e2e_cra ×2 PASSED, e2e_auth ×2 PASSED, specs ciblées 7/0 + 13/0 + 10/0 + 4/0
+- **Conformes platinium :** D-1 (spec invariants), D-8 (TDD + RAG d'abord), D-9, D-10 ; conformes à leur déclaration (ouvertes) : D-2, D-6, D-7, D-11 ; D-3 résolue (v0.1.1)
+- **Anomalies :** A1 RuboCop cassé par D-5 (2 offenses L92 `SAFE_ID_PATTERN` — `Lint/UselessConstantScoping`, `Style/RedundantFreeze`) ; A2 PR D-4 non ouverte (branche poussée) ; A3 commentaire obsolète e2e_cra L23-24 (`make_request`) ; A4 journal D-5 « p6_1 23/0 » (réel 10/0, 23 = somme 13+10) ; A5 memory-indexer en attente (hub `fc08::006` périmée, pré-D-4) ; A6 identité Git conteneur `foresy-ledger` (traçabilité humaine) ; annexe hub : `e2e_mcp_test.py` `anyio.run(main())` → `anyio.run(main)`
+- **Rapport complet :** `docs/technical/changes/2026-09-16-D1-D11_Debt_Verification_Report.md`
+- **Décision :** correctifs étiquetés proposés sur accord (`style(d5)`, `docs(d4)`, PR D-4) — mémoire `fc08::007` proposée, validation humaine en attente
+- **Commit :** à valider (workflow mémoire : l'agent propose, l'humain valide, Git trace, puis memory-indexer)
 
 ---
 

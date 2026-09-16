@@ -26,4 +26,9 @@ Erreurs API standardisées en format plat `{code, message, details}` (concern `S
 ## fc08::006
 <!-- created: 2026-09-15 -->
 <!-- updated: 2026-09-15 -->
-Gate CTO pre-merge (PR #24) : invariants 21/22 testés (spec architecture 7/7 ; INV-15 justifié — aucun code de simulation). CI : RuboCop corrigé ; 2 jobs débloqués le 15/09 : D-8 signup 400 (StandardError déclaré en premier dans StandardizedError — dernier déclaré gagne, cf. rescuable.rb) et D-9 rubyzip 3.6.0 (CVE-2026-85396). Suite 956/0, smoke 15/15, contrat p1_2 préservé. Merge PR #24 le 15/09 (tag v0.1.1). Dette : D-5 résolue (durcissement GitLedger SAFE_ID_PATTERN + ignore Brakeman régénéré → 0 warning), D-10 résolue (foresy_test + guide isolation). Reste : D-2 (SimpleCov), D-4 (scripts E2E hérités), D-11 (Node 24 actions).
+Gate CTO pre-merge (PR #24) : invariants 21/22 testés (spec architecture 7/7 ; INV-15 justifié — aucun code de simulation). CI : RuboCop corrigé ; 2 jobs débloqués le 15/09 : D-8 signup 400 (StandardError déclaré en premier dans StandardizedError — dernier déclaré gagne, cf. rescuable.rb) et D-9 rubyzip 3.6.0 (CVE-2026-85396). Suite 956/0, smoke 15/15, contrat p1_2 préservé. Merge PR #24 le 15/09 (tag v0.1.1). Dette : D-5 résolue (durcissement GitLedger SAFE_ID_PATTERN + ignore Brakeman régénéré → 0 warning), D-10 résolue (foresy_test + guide isolation), D-4 résolue (scripts E2E hérités réparés — run_request/HTTP_CODE, JSON month %m → %-m, flottants awk ; branche `chore/d4-e2e-scripts-repair`). Reste : D-2 (SimpleCov), D-11 (Node 24 actions).
+
+## fc08::007
+<!-- created: 2026-09-16 -->
+<!-- updated: 2026-09-16 -->
+Vérification dette D-1→D-11 le 16/09 (branche `chore/d4-e2e-scripts-repair`, rapport `docs/technical/changes/2026-09-16-D1-D11_Debt_Verification_Report.md`) : fond conforme — suite 957/0, Brakeman 0, bundle-audit 0, smoke 15/15, E2E cra/auth rejoués ×2 ; anomalies à traiter : D-5 casse RuboCop (2 offenses `SAFE_ID_PATTERN` L92, correctif `style(d5)`), PR D-4 à ouvrir, journal D-5 surévalué (p6_1 = 10/0), memory-indexer en attente (hub fc08::006 périmée).

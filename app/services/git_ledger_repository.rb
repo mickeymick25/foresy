@@ -14,6 +14,12 @@ module GitLedgerRepository
   LEDGER_PATH = '/app/cra-ledger'
   LEDGER_BRANCH = 'main'
 
+  # D-5 — durcissement : seul un identifiant sûr est admis dans les motifs --grep
+  # (alnum + tirets/underscores, sans métacaractères regex ni shell). Un ID
+  # invalide ou malveillant ne peut correspondre à aucun commit enregistré :
+  # refus silencieux (false/nil) sans invoquer Git.
+  SAFE_ID_PATTERN = /\A[A-Za-z0-9_-]{1,64}\z/
+
   class << self
     def exists?
       File.exist?(LEDGER_PATH)
@@ -84,12 +90,6 @@ module GitLedgerRepository
     end
 
     private
-
-    # D-5 — durcissement : seul un identifiant sûr est admis dans les motifs --grep
-    # (alnum + tirets/underscores, sans métacaractères regex ni shell). Un ID
-    # invalide ou malveillant ne peut correspondre à aucun commit enregistré :
-    # refus silencieux (false/nil) sans invoquer Git.
-    SAFE_ID_PATTERN = /\A[A-Za-z0-9_-]{1,64}\z/.freeze
 
     def valid_cra_id?(cra_id)
       cra_id.to_s.match?(SAFE_ID_PATTERN)
