@@ -24,7 +24,7 @@
 | 5 | Mémoire : validation humaine `fc08::007` + proposition `fc08::008` | A5 (périmée) | `memory` | workflow hub : proposition → validation humaine → Git → memory-indexer | ✅ `fc08::007` validée humain (co-CTO 16/09) — pas de `fc08::008` ; entrée amendée + hub resynchronisé |
 | 6 | Réindexation hub (`index-project.sh`) | — | — | tracker requêtable dans `foresy__knowledge` | ✅ fait 16/09 (rejeu après push, vérifié par requête) |
 | 7 | Identité Git : `.git/config` du dépôt portait `foresy-ledger` (racine d'A6) | A6 | `chore(git)` | commits signés humain | 🟡 fait (host) / conteneur à décider |
-| 8 | D-2 chiffrage SimpleCov / D-11 bump actions GitHub (Node 24) | D-2, D-11 | — | chiffrage documenté / CI verte après bump | ⬜ |
+| 8 | D-2 chiffrage SimpleCov / D-11 bump actions GitHub (Node 24) | D-2, D-11 | `docs(d2)` / `ci(d11)` | chiffrage documenté / CI verte après bump | 🟡 16/09 : chiffrage D-2 produit + bump D-11 posé (branche `chore/d2-d11-quality-tooling`) — décisions CTO D-2 en attente, merge D-11 après CI verte |
 
 ## 2. Détail des actions
 
@@ -61,9 +61,9 @@
 - **Constat de revue :** cause racine repo-locale — `.git/config` du host portait `user.name=foresy-ledger` / `user.email=ledger@foresy.internal` (181 commits signés, y compris le rapport du 16/09) → corrigé vers `Michael Boitin <mickeymick25@gmail.com>` (identité des 170 commits historiques)
 - **Reste ouvert (décision CTO) :** identité des shells du conteneur qui committent le dépôt applicatif (l'identité `foresy-ledger` reste légitime dans le dépôt `cra-ledger` via `GitLedgerRepository.configure_identity`) — config explicite conteneur ou discipline « commits depuis le host »
 
-### Action 8 — D-2 / D-11 (ouvertes, conformes à leur déclaration)
-- **D-2 :** chiffrage SimpleCov à produire (gem absente ; `coverage/` ne contient que des artefacts périmés de janvier 2026)
-- **D-11 :** bump `actions/checkout` + `actions/upload-artifact` (Node 24) — opportuniste, avec run CI vert avant merge
+### Action 8 — D-2 / D-11 — 🟡 livrables posés le 16/09 (branche `chore/d2-d11-quality-tooling`)
+- **D-2 :** chiffrage produit — `docs/technical/changes/2026-09-16-D2_SimpleCov_Chiffrage.md` : gems `simplecov` + `simplecov-cobertura`, `.simplecov` (lignes + branche, seuil 95% standard maison), ~3 h effectives, plomberie CI déjà en place ; **3 décisions CTO en attente** (seuil initial, Cobertura, planification sprint)
+- **D-11 :** bump posé — `actions/checkout@v4`→`@v5` (×5) et `actions/upload-artifact@v4`→`@v5` (×3) dans `ci.yml` ; YAML validé (`YAML OK` en conteneur) ; gate documentée : run CI vert sur la PR avant merge
 
 ## 3. Journal d'exécution
 
