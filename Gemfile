@@ -75,4 +75,6 @@ group :test do
   gem 'rspec_junit_formatter'
   gem 'selenium-webdriver'
   gem 'shoulda-matchers', '~> 5.0'
+  gem 'simplecov'
+  gem 'simplecov-cobertura'
 end
