@@ -20,7 +20,7 @@
 | 1 | RuboCop L92 : `SAFE_ID_PATTERN` sous `private` + `.freeze` | A1 | `style(d5)` | RuboCop 0 offense ; suite 957/0 ; specs D-5 23/0 | ✅ fait 16/09 (`650d80c1`) |
 | 2 | Commentaire obsolète `e2e_cra_lifecycle.sh` L23-24 + journal D-5 « p6_1 23/0 » | A3, A4 | `docs(d4)` | commentaire-only + RuboCop | ✅ fait 16/09 (`4caa50ec`) |
 | 3 | CI : pointer `--ignore-config` vers `config/brakeman.ignore` | **A7 (nouvelle)** | `ci(a7)` | YAML valide + Brakeman 0 warning local ; CI verte à la PR | ✅ fait 16/09 (`11432c68`) |
-| 4 | Pousser la branche + ouvrir la PR → `main` | A2 | — | description maison prête ; checks CI attendus 6/6 | 🟡 poussée + description prête — ouverture par le CTO (`gh` absente du host) |
+| 4 | Pousser la branche + ouvrir la PR → `main` | A2 | — | description maison prête ; checks CI attendus 6/6 | ✅ PR #25 ouverte le 16/09 (8 commits, +386/−120) — fusion après CI 6/6 verts |
 | 5 | Mémoire : validation humaine `fc08::007` + proposition `fc08::008` | A5 (périmée) | `memory` | workflow hub : proposition → validation humaine → Git → memory-indexer | ⬜ |
 | 6 | Réindexation hub (`index-project.sh`) | — | — | tracker requêtable dans `foresy__knowledge` | ✅ fait 16/09 (rejeu après push, vérifié par requête) |
 | 7 | Identité Git : `.git/config` du dépôt portait `foresy-ledger` (racine d'A6) | A6 | `chore(git)` | commits signés humain | 🟡 fait (host) / conteneur à décider |
@@ -46,9 +46,8 @@
 - **Gate :** YAML valide ; Brakeman 0 warning vérifié localement avec ce fichier (exécuté en revue)
 
 ### Action 4 — PR D-4 (A2)
-- **État :** branche poussée sur origin à `96ab549e` (vague complète : D-4 + vérification platinium + correctifs A1/A3/A4/A7 + docs de suivi)
-- **Description PR :** `docs/technical/changes/2026-09-16-D4_PR_Description.md` (format maison) — périmètre : D-4 + correctifs post-vérification A1/A3/A4/A7 + suivi d'implémentation
-- **Ouverture :** CTO (CLI `gh` absente du host) — via GitHub web ou après installation de gh
+- **État :** ✅ **PR #25 ouverte** le 16/09 (12:30 UTC) par le CTO : https://github.com/mickeymick25/foresy/pull/25 — 8 commits, 9 fichiers, +386/−120 ; description maison collée ; fusion sur CI 6/6 verts
+- **Description PR :** `docs/technical/changes/2026-09-16-D4_PR_Description.md` (format maison)
 
 ### Action 5 — Mémoire (A5)
 - **Constat de revue :** A5 est périmée — le hub indexe déjà `fc08::007` (created 16/09) et `fc08::006` à jour ; écart de process noté (indexer couru avant validation humaine)
@@ -95,8 +94,13 @@
 - Bundle-audit : **0 vulnérabilité** (DB 13/09, exécuté en revue) ; smoke **15/15** (exécuté en revue)
 
 ### 2026-09-16 — [Actions 4 + 6] Push + réindexation
-- Branche `chore/d4-e2e-scripts-repair` poussée sur origin (inclut le présent lot docs) ; PR à ouvrir par le CTO — description : `docs/technical/changes/2026-09-16-D4_PR_Description.md`
+- Branche `chore/d4-e2e-scripts-repair` poussée sur origin (inclut le présent lot docs) ; description PR prête : `docs/technical/changes/2026-09-16-D4_PR_Description.md`
 - `index-project.sh` re-exécuté sur la racine du projet — vérification : le présent tracker requêtable dans `foresy__knowledge`
+
+### 2026-09-16 — [Action 4] PR #25 ouverte (A2)
+- **PR :** https://github.com/mickeymick25/foresy/pull/25 — titre « D-4 & correctifs post-vérification D-1→D-11 (A1, A3, A4, A7) », ouverte par le CTO (web) avec la description maison
+- **Vérifiée via API GitHub :** head `636d6a9e`, base `main` (`47e9de01`), 8 commits, 9 fichiers, +386/−120, mergeable
+- **CI :** Tests & Coverage ✅ vert sur `636d6a9e` (12:32 UTC) ; les autres jobs en cours au moment de la mise à jour — fusion à faire sur 6/6 verts
 
 ## 4. Références
 

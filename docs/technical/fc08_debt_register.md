@@ -68,7 +68,7 @@ Migration : `db/migrate/20260914000001_fc08_company_user_company_contract.rb` �
 ## 6. Prochaines Actions
 
 1. **`style(d5)`** — ✅ Fait 16/09 (`650d80c1`) : `SAFE_ID_PATTERN` déplacée au niveau module + `.freeze` retiré — RuboCop 235 fichiers 0 offense, suite 957/0
-2. **PR D-4** — 🟡 Branche poussée à jour (inclut les correctifs post-vérification) ; description prête : `docs/technical/changes/2026-09-16-D4_PR_Description.md` — ouverture par le CTO (CLI `gh` absente du host). Le commentaire obsolète L23-24 a été corrigé au passage (`4caa50ec`)
+2. **PR D-4** — ✅ **PR #25 ouverte** le 16/09 (https://github.com/mickeymick25/foresy/pull/25) : branche complète — D-4 + correctifs post-vérification A1/A3/A4/A7 + docs de suivi — description maison collée ; fusion sur CI 6/6 verts. Le commentaire obsolète L23-24 a été corrigé au passage (`4caa50ec`)
 3. **`docs(d5)`** — ✅ Fait 16/09 (`4caa50ec`) : journal rectifié — p6_1 = 10/0 (23 = somme 13+10 des deux specs D-5)
 4. **Mémoire** — valider `fc08::007` (le hub l'indexe déjà — A5 constatée périmée en revue conjointe) puis proposer `fc08::008` (revue du 16/09) ; memory-indexer après validation humaine
 5. **D-2** (transverse) — Couverture de lignes (SimpleCov) à chiffrer
