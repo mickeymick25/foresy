@@ -57,11 +57,19 @@ services:
         BUNDLER_VERSION: "2.6.2"
     command: >
       bash -c "
+        git config user.name '${GIT_USER_NAME:-Michael Boitin}' &&
+        git config user.email '${GIT_USER_EMAIL:-mickeymick25@gmail.com}' &&
         rm -f tmp/pids/server.pid &&
         bundle install --quiet &&
         bundle exec rails db:prepare &&
         bundle exec rails s -p 3000 -b '0.0.0.0'
       "
+    # A6 (dette registre) — traçabilité humaine : le dépôt applicatif est bind-mounté
+    # (.:/app:cached), donc .git/config est partagé host↔conteneur. La commande ci-dessus
+    # rend l'identité Git auto-réparante à chaque `docker compose up` (surcharge possible
+    # via GIT_USER_NAME/GIT_USER_EMAIL). L'identité `foresy-ledger` du ledger cra-ledger
+    # reste hors périmètre : elle est posée par GitLedgerRepository.configure_identity
+    # avec chdir LEDGER_PATH (scopée au dépôt cra-ledger, par design).
     volumes:
       - .:/app:cached
       - bundle_cache:/app/vendor/bundle

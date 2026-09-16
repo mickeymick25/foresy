@@ -73,7 +73,7 @@ Migration : `db/migrate/20260914000001_fc08_company_user_company_contract.rb` �
 4. **Mémoire** — ✅ `fc08::007` **validée humain** le 16/09 (co-CTO, GREEN FOR MERGE) — pas de `fc08::008` (« pas de travail supplémentaire ») ; entrée amendée à l'état final + hub resynchronisé
 5. **D-2** (transverse) — ✅ chiffrage produit le 16/09 (`docs/technical/changes/2026-09-16-D2_SimpleCov_Chiffrage.md` — ~3 h, 3 décisions CTO) ; implémentation à planifier (sprint dédié)
 6. **D-11** (hors FC-08) — ✅ bump posé le 16/09 (branche `chore/d2-d11-quality-tooling` : `checkout@v5` ×5 + `upload-artifact@v7` ×3 — v5 d'upload-artifact ciblait encore Node 20, corrigé après lecture des annotations CI) — merge après run CI vert **et 0 warning Node**
-7. **Hygiène identité Git** — ✅ `.git/config` du dépôt corrigé vers l'identité humaine le 16/09 (racine d'A6 côté host, 181 commits concernés) ; reste : config du conteneur (décision CTO)
+7. **Hygiène identité Git** — ✅ **A6 close le 16/09** (branche `chore/a6-git-container-identity`) : `.git/config` corrigé (racine des 181 commits `foresy-ledger`) ; conteneur vérifié — bind mount `.:/app:cached`, config partagée ; identité **auto-réparante** via la commande du service `web` (compose, surcharge `GIT_USER_NAME`/`GIT_USER_EMAIL`) ; ledger `cra-ledger` non concerné (identité `foresy-ledger` posée par `GitLedgerRepository.configure_identity` avec `chdir LEDGER_PATH` — scopée, par design)
 8. **A7 (nouvelle, détectée en revue conjointe 16/09)** — ✅ CI corrigée (`11432c68`) : `--ignore-config` pointé vers `config/brakeman.ignore` — le fichier racine référencé depuis `3ce4c7d7` (30/01) n'existait plus ; suivi dédié : `docs/technical/d1_d11_corrective_actions_tracker.md`
 
 ## 7. Vérification d'implémentation (16/09/2026)
