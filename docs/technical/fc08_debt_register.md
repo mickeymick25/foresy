@@ -67,17 +67,20 @@ Migration : `db/migrate/20260914000001_fc08_company_user_company_contract.rb` �
 
 ## 6. Prochaines Actions
 
-1. **`style(d5)`** — corriger les 2 offenses RuboCop (`git_ledger_repository.rb` L92) — restaure la gate 0-offense
-2. **PR D-4** — ouvrir la PR de `chore/d4-e2e-scripts-repair` (branche poussée, PR absente) + corriger le commentaire obsolète L23-24
-3. **`docs(d5)`** — rectifier le journal : p6_1 = 10 exemples (le « 23/0 » est la somme 13+10 des deux specs D-5)
-4. **Mémoire** — valider `fc08::007` (proposition du 16/09) puis relancer `memory-indexer` (le hub indexe encore la version pré-D-4 de `fc08::006`)
+1. **`style(d5)`** — ✅ Fait 16/09 (`650d80c1`) : `SAFE_ID_PATTERN` déplacée au niveau module + `.freeze` retiré — RuboCop 235 fichiers 0 offense, suite 957/0
+2. **PR D-4** — 🟡 Branche poussée à jour (inclut les correctifs post-vérification) ; description prête : `docs/technical/changes/2026-09-16-D4_PR_Description.md` — ouverture par le CTO (CLI `gh` absente du host). Le commentaire obsolète L23-24 a été corrigé au passage (`4caa50ec`)
+3. **`docs(d5)`** — ✅ Fait 16/09 (`4caa50ec`) : journal rectifié — p6_1 = 10/0 (23 = somme 13+10 des deux specs D-5)
+4. **Mémoire** — valider `fc08::007` (le hub l'indexe déjà — A5 constatée périmée en revue conjointe) puis proposer `fc08::008` (revue du 16/09) ; memory-indexer après validation humaine
 5. **D-2** (transverse) — Couverture de lignes (SimpleCov) à chiffrer
 6. **D-11** (hors FC-08) — Bump des actions GitHub (Node 24) — dette CI/CD, opportuniste
-7. **Hygiène** — configurer l'identité Git du conteneur (commits actuels `foresy-ledger` = traçabilité humaine perdue, cf. §7)
+7. **Hygiène identité Git** — ✅ `.git/config` du dépôt corrigé vers l'identité humaine le 16/09 (racine d'A6 côté host, 181 commits concernés) ; reste : config du conteneur (décision CTO)
+8. **A7 (nouvelle, détectée en revue conjointe 16/09)** — ✅ CI corrigée (`11432c68`) : `--ignore-config` pointé vers `config/brakeman.ignore` — le fichier racine référencé depuis `3ce4c7d7` (30/01) n'existait plus ; suivi dédié : `docs/technical/d1_d11_corrective_actions_tracker.md`
 
 ## 7. Vérification d'implémentation (16/09/2026)
 
 Vérification platinium D-1→D-11 : **fond conforme** (suite 957/0, Brakeman 0, bundle-audit 0, smoke 15/15, E2E rejoués ×2) ; 4 anomalies documentées (RuboCop cassé par D-5 ; PR D-4 non ouverte ; commentaire obsolète L23-24 ; journal D-5 surévalué p6_1 10/0 vs « 23/0 ») — rapport complet : `docs/technical/changes/2026-09-16-D1-D11_Debt_Verification_Report.md`.
+
+**Revue conjointe CTO du 16/09 (après-midi)** : anomalies A1-A4 re-contrôlées par exécution puis corrigées (A1 `650d80c1` ; A3+A4 `4caa50ec`) ; A5 constatée **périmée** (le hub indexe déjà `fc08::007` et `fc08::006` à jour) ; **A7 détectée** (CI `--ignore-config` vers un fichier supprimé) et corrigée (`11432c68`) ; A6 racine corrigée (`.git/config` du dépôt → identité humaine). Gates froides : RuboCop 235 fichiers 0 offense, suite 957/0. Suivi dédié : `docs/technical/d1_d11_corrective_actions_tracker.md`.
 
 ---
 

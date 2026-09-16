@@ -17,12 +17,12 @@
 
 | # | Action | Anomalie | Étiquette commit | Gate de validation | Statut |
 |---|---|---|---|---|---|
-| 1 | RuboCop L92 : `SAFE_ID_PATTERN` sous `private` + `.freeze` | A1 | `style(d5)` | RuboCop 0 offense ; suite 957/0 ; specs D-5 23/0 | ⬜ |
-| 2 | Commentaire obsolète `e2e_cra_lifecycle.sh` L23-24 + journal D-5 « p6_1 23/0 » | A3, A4 | `docs(d4)` | commentaire-only + RuboCop | ⬜ |
-| 3 | CI : pointer `--ignore-config` vers `config/brakeman.ignore` | **A7 (nouvelle)** | `ci(a7)` | YAML valide + Brakeman 0 warning local ; CI verte à la PR | ⬜ |
-| 4 | Pousser la branche + ouvrir la PR → `main` | A2 | — | description maison prête ; checks CI attendus 6/6 | ⬜ |
+| 1 | RuboCop L92 : `SAFE_ID_PATTERN` sous `private` + `.freeze` | A1 | `style(d5)` | RuboCop 0 offense ; suite 957/0 ; specs D-5 23/0 | ✅ fait 16/09 (`650d80c1`) |
+| 2 | Commentaire obsolète `e2e_cra_lifecycle.sh` L23-24 + journal D-5 « p6_1 23/0 » | A3, A4 | `docs(d4)` | commentaire-only + RuboCop | ✅ fait 16/09 (`4caa50ec`) |
+| 3 | CI : pointer `--ignore-config` vers `config/brakeman.ignore` | **A7 (nouvelle)** | `ci(a7)` | YAML valide + Brakeman 0 warning local ; CI verte à la PR | ✅ fait 16/09 (`11432c68`) |
+| 4 | Pousser la branche + ouvrir la PR → `main` | A2 | — | description maison prête ; checks CI attendus 6/6 | 🟡 poussée + description prête — ouverture par le CTO (`gh` absente du host) |
 | 5 | Mémoire : validation humaine `fc08::007` + proposition `fc08::008` | A5 (périmée) | `memory` | workflow hub : proposition → validation humaine → Git → memory-indexer | ⬜ |
-| 6 | Réindexation hub (`index-project.sh`) | — | — | tracker requêtable dans `foresy__knowledge` | ⬜ |
+| 6 | Réindexation hub (`index-project.sh`) | — | — | tracker requêtable dans `foresy__knowledge` | ✅ fait 16/09 (rejeu après push, vérifié par requête) |
 | 7 | Identité Git : `.git/config` du dépôt portait `foresy-ledger` (racine d'A6) | A6 | `chore(git)` | commits signés humain | 🟡 fait (host) / conteneur à décider |
 | 8 | D-2 chiffrage SimpleCov / D-11 bump actions GitHub (Node 24) | D-2, D-11 | — | chiffrage documenté / CI verte après bump | ⬜ |
 
@@ -71,6 +71,32 @@
 ### 2026-09-16 — [Action 7] Identité Git repo-locale corrigée (A6)
 - `.git/config` : `foresy-ledger <ledger@foresy.internal>` → `Michael Boitin <mickeymick25@gmail.com>` (identité historique du dépôt, cohérente avec le compte GitHub)
 - Les commits de la vague corrective sont signés humain ; le conteneur reste à traiter (décision CTO)
+
+### 2026-09-16 — [Action 1] style(d5) — A1 corrigée
+- **Fichier :** `app/services/git_ledger_repository.rb` — `SAFE_ID_PATTERN` déplacée au niveau module (commentaire D-5 conservé), `.freeze` retiré (regexp gelée par défaut)
+- **Gates :** RuboCop ciblé 0 offense ; specs D-5 23/0 (`git_ledger_integration` 13/0 + `p6_1_git_ledger_security` 10/0, re-exécutées) ; gates froides de fin de vague : RuboCop 235 fichiers 0 offense, suite 957/0
+- **Nature :** style uniquement, aucun changement de comportement
+- **Commit :** `650d80c1`
+
+### 2026-09-16 — [Action 2] docs(d4) — A3 + A4 corrigées
+- `bin/e2e/e2e_cra_lifecycle.sh` L23-24 : commentaire réécrit sur le pattern réel `run_request` → globales `HTTP_CODE`/`HTTP_BODY` (référence D-4 : troncature des codes > 255)
+- `docs/technical/fc08_implementation_tracker.md` : journal D-5 rectifié — p6_1 = 10/0, 23 = cumul 13+10 des deux specs D-5 (mention de rectification datée)
+- **Nature :** commentaire + docs, sans effet comportemental — l'evidence E2E ×2 du 16/09 reste valable
+- **Commit :** `4caa50ec`
+
+### 2026-09-16 — [Action 3] ci(a7) — A7 corrigée (anomalie nouvelle)
+- `.github/workflows/ci.yml` L131 : `--ignore-config=.brakeman.ignore` → `--ignore-config=config/brakeman.ignore`
+- **Gates :** YAML parsé OK (conteneur) ; Brakeman 0 warning / 3 ignorés vérifié avec ce fichier (exécution du 16/09) ; CI réelle validée à l'ouverture de la PR (action 4)
+- **Commit :** `11432c68`
+
+### 2026-09-16 — [Gates finales de la vague corrective (HEAD `11432c68`)]
+- RuboCop : **235 fichiers, 0 offense** — gate 0-offense restaurée (A1)
+- Suite RSpec (`foresy_test`) : **957 exemples, 0 échec**
+- Bundle-audit : **0 vulnérabilité** (DB 13/09, exécuté en revue) ; smoke **15/15** (exécuté en revue)
+
+### 2026-09-16 — [Actions 4 + 6] Push + réindexation
+- Branche `chore/d4-e2e-scripts-repair` poussée sur origin (inclut le présent lot docs) ; PR à ouvrir par le CTO — description : `docs/technical/changes/2026-09-16-D4_PR_Description.md`
+- `index-project.sh` re-exécuté sur la racine du projet — vérification : le présent tracker requêtable dans `foresy__knowledge`
 
 ## 4. Références
 
