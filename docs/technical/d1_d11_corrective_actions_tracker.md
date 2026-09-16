@@ -20,8 +20,8 @@
 | 1 | RuboCop L92 : `SAFE_ID_PATTERN` sous `private` + `.freeze` | A1 | `style(d5)` | RuboCop 0 offense ; suite 957/0 ; specs D-5 23/0 | ✅ fait 16/09 (`650d80c1`) |
 | 2 | Commentaire obsolète `e2e_cra_lifecycle.sh` L23-24 + journal D-5 « p6_1 23/0 » | A3, A4 | `docs(d4)` | commentaire-only + RuboCop | ✅ fait 16/09 (`4caa50ec`) |
 | 3 | CI : pointer `--ignore-config` vers `config/brakeman.ignore` | **A7 (nouvelle)** | `ci(a7)` | YAML valide + Brakeman 0 warning local ; CI verte à la PR | ✅ fait 16/09 (`11432c68`) |
-| 4 | Pousser la branche + ouvrir la PR → `main` | A2 | — | description maison prête ; checks CI attendus 6/6 | ✅ PR #25 ouverte le 16/09 (8 commits, +386/−120) — fusion après CI 6/6 verts |
-| 5 | Mémoire : validation humaine `fc08::007` + proposition `fc08::008` | A5 (périmée) | `memory` | workflow hub : proposition → validation humaine → Git → memory-indexer | ⬜ |
+| 4 | Pousser la branche + ouvrir la PR → `main` | A2 | — | description maison ; CI 6/6 verts | ✅ **MERGÉE** le 16/09 12:53 UTC — PR #25, merge commit `8d6c9918`, 9 commits, +390/−120, verdict co-CTO GREEN FOR MERGE |
+| 5 | Mémoire : validation humaine `fc08::007` + proposition `fc08::008` | A5 (périmée) | `memory` | workflow hub : proposition → validation humaine → Git → memory-indexer | ✅ `fc08::007` validée humain (co-CTO 16/09) — pas de `fc08::008` ; entrée amendée + hub resynchronisé |
 | 6 | Réindexation hub (`index-project.sh`) | — | — | tracker requêtable dans `foresy__knowledge` | ✅ fait 16/09 (rejeu après push, vérifié par requête) |
 | 7 | Identité Git : `.git/config` du dépôt portait `foresy-ledger` (racine d'A6) | A6 | `chore(git)` | commits signés humain | 🟡 fait (host) / conteneur à décider |
 | 8 | D-2 chiffrage SimpleCov / D-11 bump actions GitHub (Node 24) | D-2, D-11 | — | chiffrage documenté / CI verte après bump | ⬜ |
@@ -45,13 +45,13 @@
 - **Effet :** l'ignore-liste maintenue est appliquée en CI ; le job n'affichera plus les 3 warnings déjà justifiés comme FALSE POSITIVE
 - **Gate :** YAML valide ; Brakeman 0 warning vérifié localement avec ce fichier (exécuté en revue)
 
-### Action 4 — PR D-4 (A2)
-- **État :** ✅ **PR #25 ouverte** le 16/09 (12:30 UTC) par le CTO : https://github.com/mickeymick25/foresy/pull/25 — 8 commits, 9 fichiers, +386/−120 ; description maison collée ; fusion sur CI 6/6 verts
+### Action 4 — PR D-4 (A2) — ✅ MERGÉE
+- **PR #25 :** ouverte 12:30 UTC, **mergée 12:53 UTC le 16/09** par le CTO — merge commit `8d6c9918` (style « Create a merge commit » : 9 commits préservés avec leurs hashes), 9 fichiers, +390/−120 ; verdict co-CTO : GREEN FOR MERGE ; CI 6/6 verts pré-merge (head `6c21aa49`)
 - **Description PR :** `docs/technical/changes/2026-09-16-D4_PR_Description.md` (format maison)
 
-### Action 5 — Mémoire (A5)
-- **Constat de revue :** A5 est périmée — le hub indexe déjà `fc08::007` (created 16/09) et `fc08::006` à jour ; écart de process noté (indexer couru avant validation humaine)
-- **Reste :** validation humaine de `fc08::007` par le CTO ; proposition `fc08::008` (revue conjointe du 16/09 : gates fraîches, A7, actions 1-8) — workflow : proposition → validation humaine → Git → memory-indexer
+### Action 5 — Mémoire (A5) — ✅ close
+- **Validation :** `fc08::007` validée humain le 16/09 (revue co-CTO, GREEN FOR MERGE) — décision : « pas de travail supplémentaire », pas de `fc08::008`
+- **Trace :** entrée `fc08::007` amendée à l'état final (anomalies résolues via PR #25) + marqueur `validated: 2026-09-16` — commit `memory:` ; hub resynchronisé
 
 ### Action 6 — Réindexation
 - `index-project.sh /Users/michaelboitin/Documents/02_Dev/Foresy` exécuté le 16/09 après push : 53 chunks écrits (dont tracker 11, description PR 4), mémoires inchangées
@@ -99,8 +99,18 @@
 
 ### 2026-09-16 — [Action 4] PR #25 ouverte (A2)
 - **PR :** https://github.com/mickeymick25/foresy/pull/25 — titre « D-4 & correctifs post-vérification D-1→D-11 (A1, A3, A4, A7) », ouverte par le CTO (web) avec la description maison
-- **Vérifiée via API GitHub :** head `636d6a9e`, base `main` (`47e9de01`), 8 commits, 9 fichiers, +386/−120, mergeable
-- **CI :** Tests & Coverage ✅ vert sur `636d6a9e` (12:32 UTC) ; les autres jobs en cours au moment de la mise à jour — fusion à faire sur 6/6 verts
+- **Vérifiée via API GitHub :** head `6c21aa49`, base `main` (`47e9de01`), 9 commits, 9 fichiers, +390/−120, mergeable
+- **CI :** 6/6 verts sur le head `6c21aa49` (12:33-12:37 UTC) — Tests & Coverage, Security Audit (désormais coordonnée avec la commande maison, A7), Code Quality (0-offense, A1), API Contracts, E2E (job PR-only, D-4 + D-8 tenus), Quality Gate
+
+### 2026-09-16 — [Action 4] PR #25 MERGÉE (A2 close)
+- **Merge :** 12:53 UTC par le CTO — merge commit `8d6c9918` (parents `47e9de01` + `6c21aa49`), message au format maison `merge(d1-d11): D-4 & correctifs post-vérification (PR #25, GREEN FOR MERGE)`, 9 commits préservés, 9 fichiers, +390/−120
+- **Verdict co-CTO (revue 16/09) :** GREEN FOR MERGE — platinium confirmé (gates, traçabilité, commits séparés, TDD/DDD, périmètre clair, aucun bruit)
+- **Précisions pour le dossier :** (1) 9 commits — le 9ᵉ (`6c21aa49`, mise à jour du suivi) poussé après la création de la PR, inclus dans le 6/6 CI ; (2) le constat « A5 périmée » provient de la revue conjointe du 16/09, pas du rapport ; (3) TDD — les actions 1-3 sont non comportementales (style/docs/CI), aucun nouveau cycle RED→GREEN dans la vague : conformité prouvée par la stabilité 957/0 + CI 6/6 (l'evidence TDD réelle porte sur D-4 : bugs documentés → scripts rejouables ; et D-8 : RED→GREEN, PR #24)
+- **Décisions co-CTO :** A5 validée humain, pas de `fc08::008` ; A6 conteneur → PR séparée ; D-2 → chiffrage (sprint dédié) ; D-11 → opportuniste
+
+### 2026-09-16 — [Action 5] Mémoire fc08::007 validée humain (A5 close)
+- `fc08::007` marquée validée (co-CTO 16/09, GREEN FOR MERGE) — contenu amendé vers l'état final : anomalies A1/A3/A4/A7 résolues via PR #25, A5 périmée (hub synchronisé), A6 racine corrigée ; restes : A6 conteneur, D-2, D-11
+- Pas de `fc08::008` (décision co-CTO : « pas de travail supplémentaire ») ; hub resynchronisé après commit (cf. action 6)
 
 ## 4. Références
 

@@ -3,7 +3,7 @@
 **Date de mise à jour :** 14 septembre 2026
 **Contrat :** FC-08 v3.2.3
 **Autorité :** `docs/FeatureContract/08_Feature Contract — Entreprise Indépendant_[3.2.3]`
-**Statut :** 🟢 Phases 1-9 terminées — seule P10.1 (PR) restante
+**Statut :** 🟢 FC-08 mergée (PR #24, v0.1.1) · dette D-1→D-11 vérifiée le 16/09 · correctifs post-vérification **MERGÉS** (PR #25, GREEN FOR MERGE)
 
 ---
 
@@ -45,7 +45,7 @@ Migration : `db/migrate/20260914000001_fc08_company_user_company_contract.rb` �
 | D-1 | INV-01/02 par inspection | `Company` sans `user_id` / `User` sans `company_id` vérifiés par inspection du schéma (P1.2), pas par spec automatisée — à épingler par un test d'architecture si souhaité | 🟢 Faible | FC-08 |
 | D-2 | Couverture de lignes (SimpleCov) | Aucun outil de couverture de lignes en place (gem absente, `coverage/` vide) — chantier transverse à chiffrer séparément | 🟡 Moyenne | Transverse |
 | D-3 | ~~P10.1 — Pull Request~~ | ~~Ouvrir la PR `feature/fc-08-companies` → main~~ **MERGÉE le 15/09/2026** (PR #24) — restent les conditions post-merge CTO : tag version, déploiement staging E2E, monitoring prod 24-48h | ✅ Résolue | FC-08 |
-| D-4 | Scripts E2E hérités | **RÉSOLUE 15/09** (branche `chore/d4-e2e-scripts-repair`) : `e2e_cra_lifecycle.sh` réparé — pattern `run_request`/`HTTP_CODE` (codes > 255 tronqués : 422→166, 500→244, 409→153), `"month": 09` JSON invalide → `%-m`, comparaisons décimales flottantes (awk), code mort nettoyé ; `e2e_auth_flow.sh` vérifié conforme en l'état. Rejeux : PASSED ×2 ; **vérif. 16/09** : rejeux indépendants ×2 PASSED chacun — ⚠️ reste PR à ouvrir (branche poussée sans PR) + commentaire d'en-tête L23-24 obsolète (`make_request`) | ✅ Résolue | FC-07 / auth |
+| D-4 | Scripts E2E hérités | **RÉSOLUE 15/09** (branche `chore/d4-e2e-scripts-repair`) : `e2e_cra_lifecycle.sh` réparé — pattern `run_request`/`HTTP_CODE` (codes > 255 tronqués : 422→166, 500→244, 409→153), `"month": 09` JSON invalide → `%-m`, comparaisons décimales flottantes (awk), code mort nettoyé ; `e2e_auth_flow.sh` vérifié conforme en l'état. Rejeux : PASSED ×2 ; **vérif. 16/09** : rejeux indépendants ×2 PASSED chacun ; **MERGÉE via PR #25 le 16/09** (GREEN FOR MERGE, merge commit `8d6c9918`) — commentaire L23-24 corrigé (`4caa50ec`) | ✅ Résolue (mergée) | FC-07 / auth |
 | D-5 | Brakeman préexistant | **RÉSOLUE 15/09** : durcissement `GitLedgerRepository` (garde `SAFE_ID_PATTERN` sur cra_id — refus silencieux sans invoquer Git, spec p6_1 mise à jour vers le contrat renforcé) ; `config/brakeman.ignore` régénéré (2 fingerprints ignorés avec justification, entrée obsolète supprimée) → **Brakeman 0 warning** ; ⚠️ **vérif. 16/09** : 2 offenses RuboCop introduites à L92 (`Lint/UselessConstantScoping`, `Style/RedundantFreeze`) — gate 0-offense cassée sur main, correctif `style(d5)` en attente | 🟡 Résolue (réserve RuboCop) | FC-07 |
 | D-6 | Cosmétique modèle | `UserCompany` : le scope d'unicité `[:user_id, :company_id, :role]` inclut `user_id` (attribut validé) en double — fonctionnellement équivalent à `[:company_id, :role]`, aucun impact | 🟢 Faible | FC-08 |
 | D-7 | Dépréciations Rack | `:unprocessable_entity` déprécié dans les matchers rspec-rails 8.0.2 — warnings cosmétiques transverses, sans rapport avec FC-08 | 🟢 Faible | Transverse |
@@ -68,9 +68,9 @@ Migration : `db/migrate/20260914000001_fc08_company_user_company_contract.rb` �
 ## 6. Prochaines Actions
 
 1. **`style(d5)`** — ✅ Fait 16/09 (`650d80c1`) : `SAFE_ID_PATTERN` déplacée au niveau module + `.freeze` retiré — RuboCop 235 fichiers 0 offense, suite 957/0
-2. **PR D-4** — ✅ **PR #25 ouverte** le 16/09 (https://github.com/mickeymick25/foresy/pull/25) : branche complète — D-4 + correctifs post-vérification A1/A3/A4/A7 + docs de suivi — description maison collée ; fusion sur CI 6/6 verts. Le commentaire obsolète L23-24 a été corrigé au passage (`4caa50ec`)
+2. **PR D-4** — ✅ **PR #25 MERGÉE** le 16/09 12:53 UTC (merge commit `8d6c9918`, verdict co-CTO GREEN FOR MERGE) — branche complète : D-4 + correctifs A1/A3/A4/A7 + docs de suivi ; CI 6/6 verts pré-merge
 3. **`docs(d5)`** — ✅ Fait 16/09 (`4caa50ec`) : journal rectifié — p6_1 = 10/0 (23 = somme 13+10 des deux specs D-5)
-4. **Mémoire** — valider `fc08::007` (le hub l'indexe déjà — A5 constatée périmée en revue conjointe) puis proposer `fc08::008` (revue du 16/09) ; memory-indexer après validation humaine
+4. **Mémoire** — ✅ `fc08::007` **validée humain** le 16/09 (co-CTO, GREEN FOR MERGE) — pas de `fc08::008` (« pas de travail supplémentaire ») ; entrée amendée à l'état final + hub resynchronisé
 5. **D-2** (transverse) — Couverture de lignes (SimpleCov) à chiffrer
 6. **D-11** (hors FC-08) — Bump des actions GitHub (Node 24) — dette CI/CD, opportuniste
 7. **Hygiène identité Git** — ✅ `.git/config` du dépôt corrigé vers l'identité humaine le 16/09 (racine d'A6 côté host, 181 commits concernés) ; reste : config du conteneur (décision CTO)
@@ -81,6 +81,8 @@ Migration : `db/migrate/20260914000001_fc08_company_user_company_contract.rb` �
 Vérification platinium D-1→D-11 : **fond conforme** (suite 957/0, Brakeman 0, bundle-audit 0, smoke 15/15, E2E rejoués ×2) ; 4 anomalies documentées (RuboCop cassé par D-5 ; PR D-4 non ouverte ; commentaire obsolète L23-24 ; journal D-5 surévalué p6_1 10/0 vs « 23/0 ») — rapport complet : `docs/technical/changes/2026-09-16-D1-D11_Debt_Verification_Report.md`.
 
 **Revue conjointe CTO du 16/09 (après-midi)** : anomalies A1-A4 re-contrôlées par exécution puis corrigées (A1 `650d80c1` ; A3+A4 `4caa50ec`) ; A5 constatée **périmée** (le hub indexe déjà `fc08::007` et `fc08::006` à jour) ; **A7 détectée** (CI `--ignore-config` vers un fichier supprimé) et corrigée (`11432c68`) ; A6 racine corrigée (`.git/config` du dépôt → identité humaine). Gates froides : RuboCop 235 fichiers 0 offense, suite 957/0. Suivi dédié : `docs/technical/d1_d11_corrective_actions_tracker.md`.
+
+**Merge PR #25 (16/09, 12:53 UTC)** : merge commit `8d6c9918` — **verdict co-CTO GREEN FOR MERGE** (platinium confirmé : gates, traçabilité, commits séparés, TDD/DDD, aucun bruit) ; anomalies A1/A3/A4/A7 closes, A5 close (`fc08::007` validée humain). Restent : A6 conteneur (PR séparée), D-2 SimpleCov (chiffrage), D-11 Node 24 (opportuniste) — décisions co-CTO de la revue du 16/09.
 
 ---
 
