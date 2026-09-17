@@ -232,6 +232,15 @@
 - **Tests :** 2 exécutions consécutives 19/19 PASSED en HTTP réel contre le serveur de dev — rejouabilité prouvée ; scénarios Gherkin couverts inchangés (1, 2, 3, 5, 6, 8, 9, 10, 12, 13, 14, 15)
 - **Commit :** à inclure dans la PR (P10.1)
 
+### 2026-09-17 — [P6.1] Verrou de couverture — FAIT
+
+- **Branche :** `chore/p61-coverage-lock` (PR en cours) — plan de campagne : `docs/technical/testing/coverage_campaign_p6.md`
+- **Nettoyage :** `foresy_test` polluée (SIREN en dur + session `authrepro`) → TRUNCATE → 962/0 ; incident tracé dans le guide d'isolement et le plan P6 §5
+- **Mesures baseline ×2 :** 73,21 % lignes / 45,07 % branches — **identiques ×2** (seeds différents) → déterminisme confirmé ; écart vs 16/09 (72,78 %) = code évolué (D-5, D-12)
+- **Verrou :** `minimum_coverage line: 72.5` dans `.simplecov` — suite avec verrou : 962/0
+- **Décisions CTO actées** : verrou 72,5 / trajectoire 95 avec palier 90 (P6.6) / zone morte comportementale / branch coverage P6.6 — vagues 1→4 documentées dans le plan
+- **Commit :** feat(p6.1): verrou couverture line 72.5 + plan de campagne
+
 ### 2026-09-16 — [Vérification] Dette D-1→D-11 — niveau platinium
 
 - **Périmètre :** toute la dette du registre, depuis D-1 (D-4 incluse) — branche `chore/d4-e2e-scripts-repair` (HEAD `1de4d154`)

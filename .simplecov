@@ -24,6 +24,11 @@ SimpleCov.start do
   add_group 'Controllers', 'app/controllers'
   add_group 'Services', 'app/services'
 
+  # P6.1 — verrou initial (décision CTO du 17/09) : baseline mesurée x2 à 73.21 %
+  # lignes / 45.07 % branches sur foresy_test (962 exemples). Marge : 0.71 pt.
+  # Trajectoire : 95 % avec palier décisionnel à 90 % (P6.6). Branch coverage : P6.6.
+  minimum_coverage line: 72.5
+
   SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new(
     [SimpleCov::Formatter::HTMLFormatter, SimpleCov::Formatter::CoberturaFormatter]
   )
