@@ -11,7 +11,9 @@ require 'open3'
 # (no shell interpolation), so CRA IDs cannot perform shell injection. stderr
 # is logged instead of being silenced, and exit status is checked explicitly.
 module GitLedgerRepository
-  LEDGER_PATH = '/app/cra-ledger'
+  # D-12 — chemin configurable pour les environnements non-Docker (ex. runners CI).
+  # Fallback par défaut : contrat FC-07 (« Local path: /app/cra-ledger ») — INV-D12-02.
+  LEDGER_PATH = ENV.fetch('GIT_LEDGER_PATH', '/app/cra-ledger')
   LEDGER_BRANCH = 'main'
 
   # D-5 — durcissement : seul un identifiant sûr est admis dans les motifs --grep

@@ -2,7 +2,7 @@ name: 🚀 CI/CD Pipeline - Clean Architecture
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
   pull_request:
     branches: [main]
 
@@ -298,6 +298,10 @@ jobs:
     needs: [tests, contracts]
     if: github.event_name == 'pull_request'
 
+    # D-12 — le chemin du ledger est résolu dans le shell via $RUNNER_TEMP
+    # (variable d'environnement standard du runner — pas d'expression ${{ runner.* }}
+    # dans ce contexte, GitHub la rejette : "Unrecognized named-value: 'runner'")
+
     services:
       postgres:
         image: postgres:16-alpine
@@ -345,8 +349,14 @@ jobs:
           REDIS_URL: redis://localhost:6379/0
           SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE || '' }}
           JWT_SECRET: ${{ secrets.JWT_SECRET || '' }}
+          # D-12 — le VRAI Git Ledger est exercé par ce serveur. Ce flag reste au
+          # niveau step : les acceptance specs RSpec du job ne doivent PAS l'hériter
+          # (INV-D12-01 : sans =true, aucun test RSpec n'exécute le vrai ledger).
+          GIT_LEDGER_REAL: 'true'
         run: |
           echo "🚀 Preparing Rails server..."
+          export GIT_LEDGER_PATH="${RUNNER_TEMP}/cra-ledger"
+          echo "   Ledger path: $GIT_LEDGER_PATH"
           rm -f tmp/pids/server.pid
           bundle exec rails server -e test -p 3000 -b 0.0.0.0 -d
           echo "✅ Rails server started in background"
@@ -377,10 +387,6 @@ jobs:
           JWT_SECRET: ${{ secrets.JWT_SECRET || '' }}
           E2E_MODE: true
         run: |
-          # D-12 (registre) — les scripts E2E shell hérités (e2e_cra_lifecycle.sh,
-          # e2e_auth_flow.sh — réparés D-4) restent hors CI : LEDGER_PATH = '/app/cra-ledger'
-          # est codé en dur pour le conteneur Docker et inexistant/non créable sur les runners.
-          # Intégration CI future = rendre LEDGER_PATH configurable (chiffrage séparé).
           echo "🧪 Running E2E acceptance tests..."
           bundle exec rspec spec/acceptance/ --format documentation
           echo "🧪 Running smoke tests..."
@@ -388,6 +394,45 @@ jobs:
             chmod +x ./bin/e2e/smoke_test.sh
             ./bin/e2e/smoke_test.sh
           fi
+
+          # D-12 — PREUVE DURCIE (P0 revue co-CTO) : rev-list >= 1 ne suffit PAS
+          # (ensure_initialized! crée un Initial commit). Le scénario de lock doit
+          # créer un NOUVEAU commit Git, dont le message EST le lock :
+          # "CRA locked — cra:<uuid> — M/YYYY" (cra_id + mois/année du run courant).
+          # e2e_auth ne touche pas au ledger : le dernier commit reste celui du lock.
+          echo "🔍 D-12 proof: snapshot du ledger avant le scénario..."
+          GIT_LEDGER_PATH="${RUNNER_TEMP}/cra-ledger"
+          if [ -d "${GIT_LEDGER_PATH}/.git" ]; then
+            LEDGER_BEFORE=$(git -C "${GIT_LEDGER_PATH}" rev-list --count HEAD)
+          else
+            LEDGER_BEFORE=0
+            echo "   (ledger pas encore initialisé — normal avant le premier lock)"
+          fi
+          echo "Ledger path: ${GIT_LEDGER_PATH}"
+          echo "Ledger commits BEFORE: $LEDGER_BEFORE"
+
+          echo "🧪 Running legacy E2E shell scripts (D-12, real Git Ledger)..."
+          chmod +x ./bin/e2e/e2e_cra_lifecycle.sh ./bin/e2e/e2e_auth_flow.sh
+          ./bin/e2e/e2e_cra_lifecycle.sh
+          ./bin/e2e/e2e_auth_flow.sh
+
+          echo "🔍 D-12 proof: verifying the REAL Git ledger commit created by the CRA lock..."
+          LEDGER_AFTER=$(git -C "${GIT_LEDGER_PATH}" rev-list --count HEAD)
+          LAST_MSG=$(git -C "${GIT_LEDGER_PATH}" log -1 --format=%s)
+          LOCK_MONTH=$(date +%-m)
+          LOCK_YEAR=$(date +%Y)
+          echo "Ledger commits AFTER: $LEDGER_AFTER (delta: $((LEDGER_AFTER - LEDGER_BEFORE)))"
+          echo "Last commit message: $LAST_MSG"
+
+          if [ "$LEDGER_AFTER" -le "$LEDGER_BEFORE" ]; then
+            echo "❌ D-12: aucun NOUVEAU commit Git créé par le lock CRA (delta nul)"
+            exit 1
+          fi
+          if ! echo "$LAST_MSG" | grep -qE "^CRA locked — cra:[0-9a-f-]{36} — ${LOCK_MONTH}/${LOCK_YEAR}$"; then
+            echo "❌ D-12: le dernier commit n'est pas le lock CRA attendu (cra_id/mois/année)"
+            exit 1
+          fi
+          echo "✅ D-12: le lock CRA a créé un NOUVEAU commit Git réel — cra_id dans le message"
           echo "✅ E2E tests completed"
 
   # ═══════════════════════════════════════════════════════════════

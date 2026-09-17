@@ -98,7 +98,10 @@ parse_json() {
         echo "$json" | jq -r ".$field" 2>/dev/null || echo ""
     else
         # Basic JSON parsing fallback (limited functionality)
-        echo "$json" | grep -o "\"$field\"[[:space:]]*:[[:space:]]*\"[^\"]*\"" | cut -d'"' -f4 || echo ""
+        # D-12 : matche aussi les valeurs NUMÉRIQUES (line_total, total_days,
+        # total_amount…) — le pattern chaîne-only échouait silencieusement sans jq
+        echo "$json" | grep -oE "\"$field\"[[:space:]]*:[[:space:]]*[^,}]+" \
+            | sed -E "s/\"$field\"[[:space:]]*:[[:space:]]*//" | tr -d '"' || echo ""
     fi
 }
 
