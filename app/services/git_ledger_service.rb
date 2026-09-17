@@ -13,9 +13,8 @@
 #   - GitLedgerPayload (git_ledger_payload.rb)
 class GitLedgerService
   # FC-07 PLATINUM: Use contract-specified path for Render compatibility
-  # Contract: "Local path: /app/cra-ledger"
-  LEDGER_PATH = '/app/cra-ledger'
-  LEDGER_BRANCH = 'main'
+  # Contract: "Local path: /app/cra-ledger" — résolu par GitLedgerRepository
+  # (D-12 : configurable via GIT_LEDGER_PATH, fallback /app/cra-ledger — INV-D12-02)
 
   # GitLedgerError
   #
@@ -32,7 +31,10 @@ class GitLedgerService
 
   class << self
     def commit_cra_lock!(cra)
-      return fake_commit(cra) if Rails.env.test?
+      # D-12 / INV-D12-01 — fake uniquement en test ET sans activation explicite.
+      # Trois états de GIT_LEDGER_REAL : absent → fake, != "true" (1/yes/false/TRUE/on) →
+      # fake, == "true" → vrai repository Git. Aucune valeur accidentelle n'active le réel.
+      return fake_commit(cra) if Rails.env.test? && ENV['GIT_LEDGER_REAL'] != 'true'
 
       validate_cra!(cra)
       GitLedgerRepository.ensure_initialized!
