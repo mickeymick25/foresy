@@ -17,6 +17,7 @@ AllCops:
     - "storage/**/*"
     - "tmp/**/*"
     - "log/**/*"
+    - "coverage/**/*"
     - ".github/**/*"
     - "docker-compose*.yml"
     - "Dockerfile*"
