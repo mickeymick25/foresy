@@ -14,7 +14,7 @@
 | Phase | Contenu | Véhicule de tests | Gate | Statut |
 |---|---|---|---|---|
 | **P6.0** | Analyse exhaustive des manques (documentée) | — | Document d'analyse revu CTO | ✅ fait 17/09 — `2026-09-17-P6_Coverage_Gap_Analysis.md` |
-| **P6.1** | **Verrou anti-régression** : `minimum_coverage line: 72.5` dans `.simplecov` | Non-régression | Suite 957/0 avec verrou actif ; la CI échoue sous 72.5 % | ⬜ |
+| **P6.1** | **Verrou anti-régression** : `minimum_coverage line: 72.5` dans `.simplecov` — **après vérification du déterminisme** (recommandation co-CTO 17/09 : baseline mesurée ×2 sur le même commit, lignes + branches ; verrou calé sur la valeur minimale observée, pas un run unique) | Non-régression | Suite 957/0 avec verrou actif ; la CI échoue sous le seuil | ⬜ |
 | **P6.2 — Wave 1** | Sécurité & erreurs critiques : `access_validation` (77 l., 0/46 branches !), error_handlers cras/cra_entries, `standardized_error` | **Intégration** (request specs 403/404/422/409) | Suite verte (957+ nouvelles) ; re-mesure documentée ; RuboCop 0 ; CI 6/6 | ⬜ |
 | **P6.3 — Wave 2** | Extraction/formatage + rate limiting + OAuth : parameter_extractors ×3, response_formatters ×2, rate_limitables ×3, `o_auth_concern`, o_auth services | **Intégration** (429, params invalides) + **unitaire** (services OAuth) | Idem + verrou relevé à la valeur re-mesurée − 0.3 | ⬜ |
 | **P6.4 — Wave 3** | Services & lib unitaires + contrôleurs + models : `CraServices::List` (filtres), `git_ledger_service`, `application_result`, `cra_errors`, models marge | **Unitaire** + intégration ledger | Idem | ⬜ |
@@ -61,7 +61,7 @@
 
 ## 6. Décisions attendues du CTO (avant P6.1)
 
-1. **Verrou initial** : `minimum_coverage line: 72.5` — recommandé (baseline 72.78, marge fine)
+1. **Verrou initial** : `minimum_coverage line: 72.5` — recommandé, **conditionné à la mesure ×2 du déterminisme** (recommandation co-CTO 17/09 : la baseline 72.78 % doit être stable run à run avant de figer le seuil ; marge fine de 0.28 pt)
 2. **Trajectoire** : waves 1→4 (95 %) ou arrêt décisionnel à 90 % après Wave 3 ?
 3. **Zone morte** : couvrir `apm_service` et fichiers infra (par défaut) ou exclusion documentée ?
 4. **Verrou branches** : différer à P6.6 après re-mesure (recommandé) ?

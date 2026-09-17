@@ -1,7 +1,7 @@
 # P6.0 — Analyse exhaustive des manques de couverture (SimpleCov)
 
 **Date :** 17 septembre 2026
-**Source :** `coverage/.resultset.json` du run de référence (suite complète **957 exemples, 0 échec**, base `foresy_test`, conteneur) — mesures re-productibles via `coverage/gap_analysis.rb` (non commité, dossier gitignoré)
+**Source :** `coverage/.resultset.json` du run de référence (suite complète **957 exemples, 0 échec**, base `foresy_test`, conteneur, SimpleCov 1.3.0, commit `b8237402`+docs — état main au 17/09) — mesures re-productibles via **`scripts/coverage_gap_analysis.rb` (versionné)** : exécuter la suite complète puis le script (usage en en-tête du script ; E2E shell n'y contribuent pas — le process serveur n'est pas instrumenté)
 **Baseline (16-17/09) :** **72.78 % lignes (2879/3956)** · **44.82 % branches (744/1660)** — guide `docs/technical/testing/line_coverage.md`
 **Portée :** code applicatif `app/` (78 fichiers Ruby, filtres `.simplecov` : spec/, config/, db/, bin/, vendor/, `__test_support__/`)
 **Objet :** documenter **où sont les manques** et **par quel type de test les combler** (unitaire / intégration / non-régression / E2E) — base du plan P6 (`p6_coverage_implementation_tracker.md`)
