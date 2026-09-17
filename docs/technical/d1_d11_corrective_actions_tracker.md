@@ -134,7 +134,14 @@
 - **Rapports P3 :** `coverage/index.html` + `coverage/coverage.xml` générés, XML parsé OK (line-rate 0.7278 / branch-rate 0.4482)
 - **P4 :** CI inchangée — `COVERAGE=true` + upload `coverage/` déjà en place, l'artefact contient désormais HTML + XML
 
-### 2026-09-16 — [Action 8 / D-2 P5] Documentation
+### 2026-09-16 — [Revue CI co-CTO — PR #29] P0 + P1 corrigés sur la branche
+- **P0 (bloquant) :** la Quality Gate ignore `needs.e2e.result` — un échec E2E laissait la gate verte. Corrigé : condition étendue avec `E2E_OK` (success **ou skipped** hors PR), échec E2E affiché explicitement dans les failed jobs
+- **P1 — Brakeman strict :** retrait `--no-exit-on-warn` — tout warning non ignoré (config/brakeman.ignore) fait échouer le Security Audit (gate « 0 warning » bloquante, cohérente avec D-5)
+- **P1b — E2E shell hors CI (D-12) :** `LEDGER_PATH` `/app/cra-ledger` codé en dur (L13, aucune ENV) + specs isolées en tmpdir → en CI, `/app` non créable par le runner : intégration immédiate des scripts shell impossible ; statut formel documenté (option b) + registre D-12 (intégration future = LEDGER_PATH configurable, à chiffrer)
+- **Recommandations appliquées :** étape bloquante 📋 « Validate Coverage Report » (existence + parse XML + line-rate/branch-rate) et étape 🏛️ « DDD Invariants » (fc08_architecture_invariants + p4_6_default_scope) dans le job tests ; YAML validé (`YAML OK`)
+- **Suivi du seuil 95 % :** inchangé (P6 post-baseline, D-2.1) — la CI ne bloque pas sur la couverture en phase 1
+
+### 2026-09-16 — [Action 8 / D-2 P5] Documentation exécutée
 - Guide `docs/technical/testing/line_coverage.md` (procédure, lecture, baseline, politique de seuils 2 phases)
 - Registre : D-2 ✅ résolue (baseline chiffrée, seuil P6) ; rattrapage shas merges A6 `8d19bce8` / D-11 `689a4b15`
 - Chiffrage : décisions actées D-2.1/2.2/2.3 consignées (§5)

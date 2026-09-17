@@ -94,6 +94,23 @@ jobs:
             --format json \
             --out coverage/rspec.json
 
+      - name: 📋 Validate Coverage Report (D-2)
+        if: always()
+        run: |
+          test -f coverage/coverage.xml || { echo "❌ coverage/coverage.xml manquant"; exit 1; }
+          ruby -rrexml/document -e '
+            d = REXML::Document.new(File.read("coverage/coverage.xml"))
+            r = d.root
+            puts "Coverage XML valide — line-rate=#{r.attributes["line-rate"]} branch-rate=#{r.attributes["branch-rate"]}"
+          ' || { echo "❌ coverage/coverage.xml invalide"; exit 1; }
+
+      - name: 🏛️ DDD Invariants (gate explicite)
+        run: |
+          bundle exec rspec \
+            spec/models/fc08_architecture_invariants_spec.rb \
+            spec/integration/p4_6_default_scope_removal_spec.rb \
+            --format documentation
+
       - name: 📋 Upload test results
         if: always()
         uses: actions/upload-artifact@v7
@@ -127,9 +144,10 @@ jobs:
       - name: 🔍 Brakeman Security Scan
         run: |
           echo "🔍 Running Brakeman security analysis..."
+          # P1 revue CI co-CTO (16/09) : tout warning NON ignoré (config/brakeman.ignore)
+          # fait échouer le job — gate « 0 warning » désormais bloquante
           bundle exec brakeman \
             --ignore-config=config/brakeman.ignore \
-            --no-exit-on-warn \
             --confidence-level=2
           echo "✅ Brakeman scan completed"
 
@@ -359,6 +377,10 @@ jobs:
           JWT_SECRET: ${{ secrets.JWT_SECRET || '' }}
           E2E_MODE: true
         run: |
+          # D-12 (registre) — les scripts E2E shell hérités (e2e_cra_lifecycle.sh,
+          # e2e_auth_flow.sh — réparés D-4) restent hors CI : LEDGER_PATH = '/app/cra-ledger'
+          # est codé en dur pour le conteneur Docker et inexistant/non créable sur les runners.
+          # Intégration CI future = rendre LEDGER_PATH configurable (chiffrage séparé).
           echo "🧪 Running E2E acceptance tests..."
           bundle exec rspec spec/acceptance/ --format documentation
           echo "🧪 Running smoke tests..."
@@ -396,11 +418,17 @@ jobs:
           echo "  🧪 E2E:             ${{ needs.e2e.result || 'skipped (not PR)' }}"
           echo ""
 
-          # Validation finale
+          # Validation finale — P0 revue CI co-CTO (16/09) : l'E2E est BLOQUANT sur les PR.
+          # Hors PR (push main/develop), le job E2E est 'skipped' par design et n'invalide pas la gate.
+          E2E_OK=false
+          if [[ "${{ needs.e2e.result }}" == "success" || "${{ needs.e2e.result }}" == "skipped" ]]; then
+            E2E_OK=true
+          fi
           if [[ "${{ needs.tests.result }}" == "success" &&
                 "${{ needs.security.result }}" == "success" &&
                 "${{ needs.lint.result }}" == "success" &&
-                "${{ needs.contracts.result }}" == "success" ]]; then
+                "${{ needs.contracts.result }}" == "success" &&
+                "${E2E_OK}" == "true" ]]; then
             echo "🎉 ALL QUALITY GATES PASSED! ✅"
             echo "🚀 Ready for production!"
             exit 0
@@ -412,6 +440,7 @@ jobs:
             [[ "${{ needs.security.result }}" != "success" ]] && echo "  - Security: ${{ needs.security.result }}"
             [[ "${{ needs.lint.result }}" != "success" ]] && echo "  - Linting: ${{ needs.lint.result }}"
             [[ "${{ needs.contracts.result }}" != "success" ]] && echo "  - Contracts: ${{ needs.contracts.result }}"
+            if [[ "${E2E_OK}" != "true" ]]; then echo "  - E2E: ${{ needs.e2e.result }}"; fi
             exit 1
           fi
 

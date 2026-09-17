@@ -27,7 +27,7 @@
 | **P1** | Instrumentation : gems, `.simplecov`, boot SimpleCov, purge | Suite **957/0** avec rapport généré **sans échec** ; RuboCop 0 offense | ✅ fait 16/09 |
 | **P2** | Baseline réelle : % lignes, % branche, fichiers couverts, top sous-couverts | Chiffres consignés au journal (mesure sur `foresy_test`, conteneur — guide D-10) | ✅ **72.78 % lignes / 44.82 % branches** |
 | **P3** | Rapports : HTML + Cobertura XML | `coverage/index.html` + `coverage/coverage.xml` présents et exploitables | ✅ fait (XML parsé OK) |
-| **P4** | CI : artefact/remontée | Artefact `coverage/` de la PR contient HTML + XML ; aucun job ajouté | ✅ plomberie en place — artefact à constater sur la CI de la PR |
+| **P4** | CI : artefact/remontée | Artefact `coverage/` de la PR contient HTML + XML ; aucun job ajouté | ✅ fait + **assertion bloquante XML ajoutée au job tests** (revue CI co-CTO P0/P1 : 📋 Validate Coverage Report) — artefact à constater sur la CI de la PR |
 | **P5** | Documentation : guide + registre + suivi + décisions tracées | `docs/technical/testing/line_coverage.md` créé ; registre/suivi à jour (incl. rattrapage shas merges A6 `8d19bce8` / D-11 `689a4b15`) | ✅ fait |
 | **P6** | Décision du seuil 95 % | **Hors périmètre PR #29 — APRÈS mesure** (décision co-CTO) | ⬜ post-PR — baseline : 72.78 % lignes / 44.82 % branches |
 
