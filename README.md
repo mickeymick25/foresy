@@ -327,4 +327,4 @@ Ce projet est sous license MIT. Voir le fichier `LICENSE` pour plus de détails.
 
 ---
 
-**Foresy API** — API Rails moderne, sécurisée et entièrement testée. Architecture DDD/RDD, 957 tests verts, baseline couverture 72.78 % lignes / 44.82 % branches, 0 vulnérabilités. Prête pour la production.
+**Foresy API** — API Rails moderne, sécurisée et validée par les gates Platinium actuelles (957 tests verts, CI 6/6 bloquante incl. E2E). Architecture DDD/RDD, baseline couverture mesurée (72,78 % lignes / 44,82 % branches), dettes résiduelles explicitement tracées (D-12, P6).
