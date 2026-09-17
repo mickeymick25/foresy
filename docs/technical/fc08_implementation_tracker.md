@@ -240,6 +240,7 @@
 - **Verrou :** `minimum_coverage line: 72.5` dans `.simplecov` — suite avec verrou : 962/0
 - **Décisions CTO actées** : verrou 72,5 / trajectoire 95 avec palier 90 (P6.6) / zone morte comportementale / branch coverage P6.6 — vagues 1→4 documentées dans le plan
 - **Commit :** feat(p6.1): verrou couverture line 72.5 + plan de campagne
+- **Incident CI corrigé :** run PR #34 rouge (Setup database exit 2) — cause racine : SimpleCov **auto-démarré dans les tâches `rails db:*`** (Bundler auto-require en test, `.simplecov` auto-charge) → couverture du boot minimal ~12,6 % < verrou 72,5 → at_exit SimpleCov exit 2. Fix `6812b9b8` : `require: false` sur les gems (chargement uniquement via `spec/coverage_boot` = rspec, comme conçu au chiffrage D-2). Revalidation locale : db tasks sans SimpleCov, suite 962/0, couverture 73,21 %, verrou tenu
 
 ### 2026-09-16 — [Vérification] Dette D-1→D-11 — niveau platinium
 

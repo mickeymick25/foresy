@@ -56,5 +56,16 @@ avant toute mesure — l'incident est tracé dans le plan P6 §5 et le guide.
 - Wave 2 (extraction, rate limiting, OAuth) → Wave 3 → Wave 4 → **P6.6** (mesure finale,
   décision 90/95, branch coverage, exclusions)
 
+## 7. Incident CI corrigé dans ce PR (post-revue co-CTO 17/09)
+
+**Constat :** run PR #34 rouge — job « Tests & Coverage » échoue à « Setup database » (exit 2).
+**Cause racine :** les gems SimpleCov étaient **auto-requirées par Bundler** en environnement
+test → SimpleCov démarrait pendant `rails db:drop db:create db:schema:load` (via l'auto-load de
+`.simplecov`), mesurait le boot minimal (~12,6 %) et le verrou P6.1 faisait échouer le process
+(exit 2) — le verrou s'appliquait alors à toutes les invocations `rails`, pas seulement rspec.
+**Fix (`6812b9b8`) :** `gem 'simplecov', require: false` + `simplecov-cobertura, require: false`
+— SimpleCov ne se charge que via `spec/coverage_boot` (conforme au design D-2). Revalidation :
+db tasks sans SimpleCov, suite 962/0, couverture 73,21 %, verrou tenu.
+
 ---
 *Description générée le 17/09/2026 — campagne P6, branche `chore/p61-coverage-lock`*
