@@ -298,6 +298,11 @@ jobs:
     needs: [tests, contracts]
     if: github.event_name == 'pull_request'
 
+    # D-12 — chemin du ledger partagé entre les steps du job :
+    # le serveur (création des commits) et la preuve finale (lecture rev-list)
+    env:
+      GIT_LEDGER_PATH: ${{ runner.temp }}/cra-ledger
+
     services:
       postgres:
         image: postgres:16-alpine
@@ -345,9 +350,9 @@ jobs:
           REDIS_URL: redis://localhost:6379/0
           SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE || '' }}
           JWT_SECRET: ${{ secrets.JWT_SECRET || '' }}
-          # D-12 — le VRAI Git Ledger est exercé en CI : chemin inscriptible du runner
-          # + activation explicite (INV-D12-01 : sans GIT_LEDGER_REAL=true, fake commit)
-          GIT_LEDGER_PATH: ${{ runner.temp }}/cra-ledger
+          # D-12 — le VRAI Git Ledger est exercé par ce serveur. Ce flag reste au
+          # niveau step : les acceptance specs RSpec du job ne doivent PAS l'hériter
+          # (INV-D12-01 : sans =true, aucun test RSpec n'exécute le vrai ledger).
           GIT_LEDGER_REAL: 'true'
         run: |
           echo "🚀 Preparing Rails server..."
@@ -381,10 +386,6 @@ jobs:
           JWT_SECRET: ${{ secrets.JWT_SECRET || '' }}
           E2E_MODE: true
         run: |
-          # D-12 (registre) — les scripts E2E shell hérités (e2e_cra_lifecycle.sh,
-          # e2e_auth_flow.sh — réparés D-4) restent hors CI : LEDGER_PATH = '/app/cra-ledger'
-          # est codé en dur pour le conteneur Docker et inexistant/non créable sur les runners.
-          # Intégration CI future = rendre LEDGER_PATH configurable (chiffrage séparé).
           echo "🧪 Running E2E acceptance tests..."
           bundle exec rspec spec/acceptance/ --format documentation
           echo "🧪 Running smoke tests..."
