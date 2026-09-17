@@ -345,6 +345,10 @@ jobs:
           REDIS_URL: redis://localhost:6379/0
           SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE || '' }}
           JWT_SECRET: ${{ secrets.JWT_SECRET || '' }}
+          # D-12 — le VRAI Git Ledger est exercé en CI : chemin inscriptible du runner
+          # + activation explicite (INV-D12-01 : sans GIT_LEDGER_REAL=true, fake commit)
+          GIT_LEDGER_PATH: ${{ runner.temp }}/cra-ledger
+          GIT_LEDGER_REAL: 'true'
         run: |
           echo "🚀 Preparing Rails server..."
           rm -f tmp/pids/server.pid
@@ -387,6 +391,24 @@ jobs:
           if [ -f "./bin/e2e/smoke_test.sh" ]; then
             chmod +x ./bin/e2e/smoke_test.sh
             ./bin/e2e/smoke_test.sh
+          fi
+
+          # D-12 — scripts E2E shell hérités (réparés en D-4) : parcours HTTP complet
+          # avec le VRAI Git Ledger (GIT_LEDGER_REAL=true sur le serveur ci-dessus)
+          echo "🧪 Running legacy E2E shell scripts (D-12, real Git Ledger)..."
+          chmod +x ./bin/e2e/e2e_cra_lifecycle.sh ./bin/e2e/e2e_auth_flow.sh
+          ./bin/e2e/e2e_cra_lifecycle.sh
+          ./bin/e2e/e2e_auth_flow.sh
+
+          # D-12 — PREUVE : le lock a bien créé un commit Git dans le ledger
+          # (pas seulement HTTP 200 — cf. ambiguïté historique du step 10 du script)
+          echo "🔍 D-12 proof: verifying the REAL Git ledger commit..."
+          git -C "$GIT_LEDGER_PATH" log --oneline | head -5
+          LEDGER_COMMITS=$(git -C "$GIT_LEDGER_PATH" rev-list --count HEAD)
+          echo "Ledger commits: $LEDGER_COMMITS"
+          if [ "$LEDGER_COMMITS" -lt 1 ]; then
+            echo "❌ D-12: aucun commit dans le ledger — HTTP 200 seul est insuffisant"
+            exit 1
           fi
           echo "✅ E2E tests completed"
 
