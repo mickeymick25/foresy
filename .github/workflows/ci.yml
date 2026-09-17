@@ -12,7 +12,7 @@ env:
 
 jobs:
   # ═══════════════════════════════════════════════════════════════
-  # 🧪 TESTS - RSpec UNIQUEMENT
+  # 🧪 TESTS, COVERAGE & ARCHITECTURE — RSpec + assertion Cobertura + gate DDD
   # ═══════════════════════════════════════════════════════════════
   tests:
     name: 🧪 Tests & Coverage
