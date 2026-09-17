@@ -1,4 +1,4 @@
 ``` Foresy/.rspec
---require ./config/environment
+--require ./spec/coverage_boot
 --format progress
 --color

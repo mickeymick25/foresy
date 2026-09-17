@@ -47,11 +47,13 @@
 | Risques | (1) « fausse assurance » : couverture de lignes ≠ couverture contractuelle — les invariants (21/22) et l'E2E restent les gates de fond ; (2) un seuil dur 95% peut exiger des specs complémentaires sur le code faiblement couvert — **à chiffrer après la baseline** ; (3) le merge de couverture multi-jobs n'est pas nécessaire (suite single-job) |
 | Non-cibles | badge externe (Codecov/Coveralls), couverture des scripts shell E2E, merge multi-OS |
 
-## 5. Décisions attendues du CTO
+## 5. Décisions actées (co-CTO, checkpoint du 16/09)
 
-1. **Seuil initial** : rapport sans échec (recommandé) ou seuil dur 95% dès le premier commit ?
-2. **Cobertura XML** : oui (recommandé — annotations/outils CI) / non (HTML seul) ?
-3. **Planification** : sprint ½ journée ; specs complémentaires éventuelles chiffrées séparément post-baseline
+1. **D-2.1 — Seuil initial** : ✅ rapport sans échec — la baseline est mesurée d'abord ; le seuil `minimum_coverage 95` est la décision P6, **après mesure**
+2. **D-2.2 — Cobertura XML** : ✅ oui
+3. **D-2.3 — Planification** : ✅ sprint maintenant — implémentation PR #29 (~3 h effectives)
+4. **Philosophie confirmée** : la première PR répond à « Quelle est réellement notre couverture actuelle ? » — pas de correction artificielle des fichiers sous-couverts
+5. **Baseline mesurée (16/09)** : **72.78 % lignes (2879/3956) / 44.82 % branches (744/1660)** — détail par couche et fichiers sous-couverts : `docs/technical/testing/line_coverage.md` §4
 
 ## 6. Références
 
