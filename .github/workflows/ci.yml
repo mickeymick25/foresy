@@ -2,7 +2,7 @@ name: 🚀 CI/CD Pipeline - Clean Architecture
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
   pull_request:
     branches: [main]
 
@@ -298,10 +298,9 @@ jobs:
     needs: [tests, contracts]
     if: github.event_name == 'pull_request'
 
-    # D-12 — chemin du ledger partagé entre les steps du job :
-    # le serveur (création des commits) et la preuve finale (lecture rev-list)
-    env:
-      GIT_LEDGER_PATH: ${{ runner.temp }}/cra-ledger
+    # D-12 — le chemin du ledger est résolu dans le shell via $RUNNER_TEMP
+    # (variable d'environnement standard du runner — pas d'expression ${{ runner.* }}
+    # dans ce contexte, GitHub la rejette : "Unrecognized named-value: 'runner'")
 
     services:
       postgres:
@@ -356,6 +355,8 @@ jobs:
           GIT_LEDGER_REAL: 'true'
         run: |
           echo "🚀 Preparing Rails server..."
+          export GIT_LEDGER_PATH="${RUNNER_TEMP}/cra-ledger"
+          echo "   Ledger path: $GIT_LEDGER_PATH"
           rm -f tmp/pids/server.pid
           bundle exec rails server -e test -p 3000 -b 0.0.0.0 -d
           echo "✅ Rails server started in background"
@@ -400,12 +401,14 @@ jobs:
           # "CRA locked — cra:<uuid> — M/YYYY" (cra_id + mois/année du run courant).
           # e2e_auth ne touche pas au ledger : le dernier commit reste celui du lock.
           echo "🔍 D-12 proof: snapshot du ledger avant le scénario..."
-          if [ -d "$GIT_LEDGER_PATH/.git" ]; then
-            LEDGER_BEFORE=$(git -C "$GIT_LEDGER_PATH" rev-list --count HEAD)
+          GIT_LEDGER_PATH="${RUNNER_TEMP}/cra-ledger"
+          if [ -d "${GIT_LEDGER_PATH}/.git" ]; then
+            LEDGER_BEFORE=$(git -C "${GIT_LEDGER_PATH}" rev-list --count HEAD)
           else
             LEDGER_BEFORE=0
             echo "   (ledger pas encore initialisé — normal avant le premier lock)"
           fi
+          echo "Ledger path: ${GIT_LEDGER_PATH}"
           echo "Ledger commits BEFORE: $LEDGER_BEFORE"
 
           echo "🧪 Running legacy E2E shell scripts (D-12, real Git Ledger)..."
@@ -414,8 +417,8 @@ jobs:
           ./bin/e2e/e2e_auth_flow.sh
 
           echo "🔍 D-12 proof: verifying the REAL Git ledger commit created by the CRA lock..."
-          LEDGER_AFTER=$(git -C "$GIT_LEDGER_PATH" rev-list --count HEAD)
-          LAST_MSG=$(git -C "$GIT_LEDGER_PATH" log -1 --format=%s)
+          LEDGER_AFTER=$(git -C "${GIT_LEDGER_PATH}" rev-list --count HEAD)
+          LAST_MSG=$(git -C "${GIT_LEDGER_PATH}" log -1 --format=%s)
           LOCK_MONTH=$(date +%-m)
           LOCK_YEAR=$(date +%Y)
           echo "Ledger commits AFTER: $LEDGER_AFTER (delta: $((LEDGER_AFTER - LEDGER_BEFORE)))"
