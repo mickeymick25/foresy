@@ -23,7 +23,6 @@ module Api
       include Api::V1::Cras::ErrorHandler
       include Api::V1::Cras::RateLimitable
       include Api::V1::Cras::ParameterExtractor
-      include Api::V1::Cras::AccessValidation
       include Common::ResponseFormatter
 
       before_action :authenticate_access_token!

@@ -23,7 +23,7 @@
 
 | Cible | Lignes utiles / non couvertes | Taux |
 |---|---|---|
-| `app/controllers/concerns/api/v1/cras/access_validation.rb` | 94 / 77 | 18,09 % |
+| `app/controllers/concerns/api/v1/cras/access_validation.rb` | 94 / 77 | 18,09 % — **supprimé en W1-D1 (18/09)** |
 | `app/controllers/concerns/api/v1/cras/error_handler.rb` | 76 / 49 | 35,53 % |
 | `app/controllers/concerns/api/v1/cra_entries/error_handler.rb` | 73 / 46 | 36,99 % |
 | `app/controllers/concerns/common/error_handler.rb` | 36 / 17 | 52,78 % |
@@ -31,7 +31,7 @@
 
 ## 3. Séquence validée
 
-### W1-D1 — Suppression du concern mort `Api::V1::Cras::AccessValidation` — ⬜ à faire
+### W1-D1 — Suppression du concern mort `Api::V1::Cras::AccessValidation` — ✅ FAIT (18/09)
 
 **Décision CTO (GO 18/09) :** dette legacy démontrée — mêmes critères que le cleanup P6.1-bis. **On ne le caractérise pas pour augmenter SimpleCov.**
 
@@ -77,6 +77,14 @@
 **Commit :** `fix(p6): align standardized error contract`
 
 ## 4. Journal de suivi
+
+### 2026-09-18 — W1-D1 clôturée — suppression du concern mort
+
+- **Gates (séquence CTO) :** retrait de l'`include` (CrasController L26) ✓ → grep exhaustif post-suppression (`app/`, `config/`, `lib/`, `bin/`, `spec/` — `.rb`/`.rake`) : **zéro référence de code** ✓ → RSpec **962/0 — compte inchangé** ✓ → RuboCop **0 offense** (228 files) ✓ → Brakeman **0 warning** ✓
+- **Mesure SimpleCov réelle (conteneur, `foresy_test` propre) :** **74,54 % lignes (2885/3870) · 46,35 % branches (750/1618)** — vs 73,21 % / 45,07 % avant suppression : **+1,33 pt lignes, +1,28 pt branches**, sans un test artificiel (l'univers est réduit du code mort, le comportement est inchangé — 962 exemples identiques)
+- **Base de branche vérifiée (contrôle CTO pré-lancement) :** `547c8d8a` = tête de `chore/p61-coverage-lock` (descendant de `f1f42652` par les commits docs-only `37a1aedd` + `547c8d8a`, tous CI verts) — référence du tracker confirmée exacte
+- **Commit :** `chore(p6): remove dead AccessValidation concern`
+- **Suivant :** W1-D2 (caractérisation sécurité vivante) — non démarré, conformément à la règle de clôture
 
 ### 2026-09-18 — GO Wave 1 + reconnaissance pré-D1
 
