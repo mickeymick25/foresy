@@ -74,6 +74,29 @@ RSpec.describe 'CRA Permissions', type: :request do
       end
     end
 
+    # W1-D2 — chemin de sécurité vivant FC06 : accès via-missions (pas créateur)
+    # L'utilisateur est lié à une société, elle-même liée à une mission du CRA
+    # (pivot cra_missions) — `Cra.accessible_to` doit lui ouvrir l'accès.
+    context 'when the user has access via missions (FC06 via-missions path)' do
+      let(:via_missions_user) { create(:user) }
+      let(:via_missions_token) { AuthenticationService.login(via_missions_user, '127.0.0.1', 'Test Agent')[:token] }
+      let(:via_missions_headers) { { 'Authorization' => "Bearer #{via_missions_token}" } }
+
+      before do
+        via_missions_company = create(:company)
+        create(:user_company, user: via_missions_user, company: via_missions_company, role: 'independent')
+        accessible_mission = create(:mission, :time_based, :with_creator, creator: user)
+        create(:mission_company, mission: accessible_mission, company: via_missions_company, role: 'independent')
+        create(:cra_mission, cra: cra, mission: accessible_mission)
+      end
+
+      it 'returns 200 OK' do
+        get "/api/v1/cras/#{cra.id}", headers: via_missions_headers
+
+        expect(response).to have_http_status(:ok)
+      end
+    end
+
     context 'without authentication' do
       it 'returns 401 unauthorized' do
         get "/api/v1/cras/#{cra.id}"

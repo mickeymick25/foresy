@@ -50,7 +50,7 @@
 
 **Commit :** `chore(p6): remove dead AccessValidation concern`
 
-### W1-D2 — Caractérisation de la sécurité vivante — ⬜ à faire
+### W1-D2 — Caractérisation de la sécurité vivante — ✅ FAIT (18/09)
 
 **Périmètre :** ce qui tourne réellement — `Cra.accessible_to` (scope pivot RDD), `CrasController#validate_cra_access!`, et le **chemin via-missions** (FC06 : CRA d'un autre créateur accessible par les missions liées aux sociétés de l'utilisateur — le seul chemin de sécurité vivant non caractérisé).
 
@@ -77,6 +77,20 @@
 **Commit :** `fix(p6): align standardized error contract`
 
 ## 4. Journal de suivi
+
+### 2026-09-18 — W1-D2 clôturée — caractérisation de la sécurité vivante (via-missions)
+
+- **Specs ajoutées (8, suite 962 → 970) :** `spec/models/cra_access_spec.rb` (nouveau, 7 exemples — voie via-missions FC06, rôles pivots, séparation société/mission, 3 observations soft-delete) + 1 contexte requête dans `spec/requests/api/v1/cras/permissions_spec.rb` (via-missions → GET show 200)
+- **Ce que démontre le scénario via-missions :** le chemin de sécurité vivant **fonctionne de bout en bout** — `Cra.accessible_to` inclut le CRA d'un autre créateur lorsque l'utilisateur est lié (user_company, rôle independent **ou client**) à une société elle-même liée à une mission du CRA (pivot cra_missions) ; la requête réelle renvoie 200 avec le payload complet. **Caractérisation pure — aucun cycle RED requis pour ce chemin.**
+- **Observations aux frontières (démontrées vertes telles quelles — relevées pour décision CTO) :**
+  1. **Mission soft-deletée ⇒ l'accès via-missions persiste** — le scope ne filtre pas `missions.deleted_at`
+  2. **User_company soft-deleté (FC-08) ⇒ l'accès via-missions persiste** — le scope ne filtre pas `user_companies.deleted_at` : une révocation d'adhésion ne se propage PAS à l'autorisation CRA
+  3. CRA soft-deleté retourné par le scope nu — **sans impact API** (tous les appelants chaînent `.active`), documenté tel quel
+  → Les points 1 et 2 sont des candidats cycles RED → GREEN (correction du scope) — **décision CTO attendue avant tout basculement d'attente**
+- **Gates :** RSpec **970/0** ✓ · RuboCop **0 offense** (229 files) ✓ · Brakeman **0 warning** ✓
+- **Mesure SimpleCov réelle :** **74,70 % lignes (2891/3870) · 46,66 % branches (755/1618)** — vs 74,54 % post-W1-D1 : **+0,16 pt lignes** (conséquence de la caractérisation réelle, pas d'un objectif)
+- **Commit :** `test(p6): characterize CRA access control`
+- **Suivant :** W1-D3 (error_handlers) — non démarré
 
 ### 2026-09-18 — W1-D1 clôturée — suppression du concern mort
 
