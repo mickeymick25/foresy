@@ -67,5 +67,35 @@ test → SimpleCov démarrait pendant `rails db:drop db:create db:schema:load` (
 — SimpleCov ne se charge que via `spec/coverage_boot` (conforme au design D-2). Revalidation :
 db tasks sans SimpleCov, suite 962/0, couverture 73,21 %, verrou tenu.
 
+## 8. Incident CI corrigé dans ce PR (2e, résiduel — qualifié le 18/09)
+
+**Constat :** après le fix `6812b9b8`, le run PR restait rouge — chronologie : « Setup database »
+exit 2 (corrigé §7) → « Run RSpec » exit 2 (`|| true` posé en diagnostic, `1c6cafc1`) →
+« 🏛️ DDD Invariants » exit 2 (état `d3a08877`) alors que les 27 invariants passent (0 échec).
+
+**Cause racine :** le verrou `minimum_coverage line: 72.5` posé dans le bloc `start` de
+`.simplecov` s'appliquait à **tout run rspec** (auto-chargé par `.rspec → spec/coverage_boot`).
+Le gate DDD (2 fichiers → 62,85 %) puis l'acceptance du job E2E (subset) couvrent
+mécaniquement moins que la suite → SimpleCov exit 2 (`ExitCodes::MINIMUM_COVERAGE`) avec
+des specs vertes. Par ailleurs le `|| true` avalait échecs de specs ET violation du verrou :
+le verrou n'avait plus aucune mordance en CI.
+
+**Fix (P6.1-bis) :** verrou armé au dernier moment dans un `at_exit` de `.simplecov`
+(enregistré après celui de SimpleCov → LIFO → s'exécute avant ; SimpleCov relit le seuil
+via `build_coverage_limits`). Condition « suite complète » : `@files_or_directories_to_run
+== [default_path]` (ivar rspec-core 3.13 — le getter n'est plus exposé) ET pas de filtre
+`-e`/`-t`. Fail-closed : si la détection dérive, le verrou s'arme. `|| true` retiré du step
+principal CI — suite et verrou échouent à nouveau le job (steps `if: always()` préservés).
+
+**Validation (conteneur, `foresy_test` propre, miroir CI) :**
+
+| Run | Verrou | Résultat | Exit |
+|---|---|---|---|
+| Suite complète (formateurs CI) | armé, tenu | 962/0 — 73,21 % / 45,07 % | 0 |
+| Suite complète, seuil temporaire 99,9 | armé → violation | 73,21 % < 99,9 | **2** (dents prouvées) |
+| Gate DDD (2 fichiers, comme CI) | désarmé | 27/0 | 0 |
+| Acceptance (job E2E, `E2E_MODE`) | désarmé | 31/0 | 0 |
+| Filtre `-e` (résout `[spec]` mais partiel) | désarmé | 0 exécutable | 0 |
+
 ---
 *Description générée le 17/09/2026 — campagne P6, branche `chore/p61-coverage-lock`*

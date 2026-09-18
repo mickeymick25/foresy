@@ -232,6 +232,14 @@
 - **Tests :** 2 exécutions consécutives 19/19 PASSED en HTTP réel contre le serveur de dev — rejouabilité prouvée ; scénarios Gherkin couverts inchangés (1, 2, 3, 5, 6, 8, 9, 10, 12, 13, 14, 15)
 - **Commit :** à inclure dans la PR (P10.1)
 
+### 2026-09-18 — [P6.1-bis] Verrou de couverture : périmètre suite complète — CI réparée
+
+- **Constat :** run PR #34 rouge à l'étape « 🏛️ DDD Invariants » (exit 2) alors que les 27 invariants passent (0 échec). Chronologie complète : `7172643d` (verrou) → « Setup database » exit 2 (fix `6812b9b8` require:false) → « Run RSpec » exit 2 (`|| true` posé en diagnostic `1c6cafc1`) → gate DDD exit 2 (défaut résiduel sur `d3a08877`)
+- **Cause racine :** `minimum_coverage line: 72.5` posé dans le bloc `start` de `.simplecov` s'appliquait à **tout run rspec** (auto-charge via `.rspec → spec/coverage_boot`). Le gate DDD (2 fichiers → 62,85 %) et l'acceptance du job E2E (subset) couvrent mécaniquement moins que la suite → exit 2 SimpleCov (MINIMUM_COVERAGE) specs vertes. Par ailleurs le `|| true` du step principal avalait échecs de specs ET violation du verrou : le verrou n'avait plus de mordance en CI
+- **Fix :** verrou armé au dernier moment dans un `at_exit` de `.simplecov` (enregistré après celui de SimpleCov → LIFO → s'exécute avant ; SimpleCov relit le seuil à son tour via `build_coverage_limits`). Condition « suite complète » : `@files_or_directories_to_run == [default_path]` (ivar rspec-core 3.13 — le getter n'est plus exposé) ET pas de filtre `-e`/`-t` (`full_description.nil?` + `inclusion_filter.empty?`). Fail-closed : si la détection dérive, le verrou s'arme quand même
+- **CI :** `|| true` retiré du step principal — échec de specs ou de verrou échoue le job ; steps `if: always()` préservés (rspec.xml, rapports, diagnostic P6.1)
+- **Validation (conteneur, `foresy_test` propre, miroir CI)** : suite complète **962/0, 73,21 % / 45,07 %, exit 0** (verrou tenu) · gate DDD **27/0, exit 0** · acceptance `E2E_MODE` **31/0, exit 0** · filtre `-e` exit 0 · test négatif seuil 99,9 : **exit 2** (dents prouvées)
+
 ### 2026-09-17 — [P6.1] Verrou de couverture — FAIT
 
 - **Branche :** `chore/p61-coverage-lock` (PR en cours) — plan de campagne : `docs/technical/testing/coverage_campaign_p6.md`

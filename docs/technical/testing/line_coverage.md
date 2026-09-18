@@ -14,7 +14,7 @@
 - **`.rspec`** : `--require ./spec/coverage_boot`
 - **Formatters** : HTML (`coverage/index.html`) + Cobertura XML (`coverage/coverage.xml`)
 - **CI** : `COVERAGE=true` + upload `coverage/` déjà en place — l'artefact contient désormais HTML + XML (aucun job ajouté)
-- **Pas de seuil dur** en phase 1 (D-2.1) — le seuil 95 % est la décision P6, post-mesure
+- **Verrou P6.1 (17/09, décision CTO)** : `minimum_coverage line: 72.5` — armé uniquement sur les runs **de la suite complète** (cf. §5) ; CI bloquante (le `|| true` historique du step principal a été retiré — P6.1-bis)
 
 ## 2. Exécuter et mesurer
 
@@ -48,8 +48,10 @@ Lecture : ces concerns sont partiellement exercés par les request specs/E2E (ch
 
 ## 5. Politique de seuils (2 phases)
 
-- **Phase 1 (actuelle)** : rapport sans échec — `minimum_coverage` **absent** (D-2.1)
-- **Phase 2 (P6, post-baseline)** : décision du CTO — `minimum_coverage 95` (standard maison) et/ou seuils par groupe ; alors corriger les fichiers critiques en priorité (specs complémentaires chiffrées séparément)
+- **Phase 1 (16/09)** : rapport sans échec — `minimum_coverage` absent (D-2.1)
+- **Phase 2 (active depuis P6.1, 17/09)** : verrou CTO `minimum_coverage line: 72.5` dans `.simplecov` (baseline 73,21 %, marge 0,71 pt ; trajectoire 95 %, palier décisionnel 90 % à P6.6)
+  - **Périmètre du verrou (P6.1-bis, 18/09)** : suite complète uniquement — un run rspec avec fichiers/dossiers explicites (gate DDD, `spec/acceptance/`, fichier ciblé) ou filtré (`-e`, `-t`) mesure la couverture et régénère les rapports **sans échec au seuil** ; les runs complets échouent (exit 2) sous 72,5 %. Raison d'être : un subset couvre mécaniquement moins que la suite, l'échec au seuil n'y est pas une régression (incident CI 17→18/09, journal P6.1-bis)
+  - **Enforcement** : local (exit 2 au run complet) **et CI** (step principal du job « Tests & Coverage ») ; corriger les fichiers critiques en priorité reste le sujet des vagues P6 (specs complémentaires chiffrées séparément)
 
 ## 6. Références
 

@@ -28,7 +28,7 @@ Si la couverture révèle un bug existant, il devient un vrai cycle RED → corr
 |---|---|
 | Nettoyage environnement | `foresy_test` polluée (SIREN en dur + session `authrepro`) → TRUNCATE → 962/0 |
 | **Mesure baseline ×2** | **73,21 % lignes / 45,07 % branches** — identiques ×2 (seeds différents) → déterminisme confirmé. Écart vs baseline du 16/09 (72,78 %) : code évolué depuis (D-5, D-12) |
-| Verrou | `minimum_coverage line: 72.5` dans `.simplecov` (marge 0,71 pt) |
+| Verrou | `minimum_coverage line: 72.5` dans `.simplecov` — **armé uniquement sur les runs de la suite complète** (P6.1-bis, cf. journal) : un subset (gate DDD, acceptance E2E, fichier ciblé) mesure la couverture et régénère les rapports, sans échec au seuil |
 | Vérification | Suite avec verrou : **962/0** ✅ |
 
 ## 4. Séquence des vagues
