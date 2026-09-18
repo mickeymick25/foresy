@@ -38,10 +38,13 @@ Si la couverture révèle un bug existant, il devient un vrai cycle RED → corr
 P6.1 ✅
  └─ verrou minimum_coverage line: 72.5 (ce PR)
 Wave 1 → sécurité et erreurs critiques
- ├─ access_validation (77 lignes / 0 sur 46 branches)
- ├─ error_handlers
- ├─ standardized_error
- └─ intégration associée
+ ├─ W1-D1 : suppression du concern mort `Api::V1::Cras::AccessValidation`
+ │  (éclipsé à 100 % — dette legacy démontrée, GO CTO 18/09 ; ne se caractérise pas,
+ │  mêmes critères que le cleanup P6.1-bis)
+ ├─ W1-D2 : caractérisation sécurité vivante (`Cra.accessible_to` + via-missions)
+ ├─ W1-D3 : error_handlers
+ ├─ W1-D4 : standardized_error (+ fc08::005)
+ └─ Suivi d'implémentation : `docs/technical/testing/p6_wave1_tracker.md`
 Wave 2
  ├─ **démarrage : caractérisation `OAuthCodeExchangeService`** (flow code-exchange
  │  de production non testé, découvert par l'incident corpus CI — retour du verrou à 72,5)
