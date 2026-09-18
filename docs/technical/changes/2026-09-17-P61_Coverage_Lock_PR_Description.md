@@ -136,5 +136,32 @@ l'infrastructure pure).
 **État P6 :** P6.1 — **LOCKED / TEMPORARY BASELINE** · P6.1-bis — **CLOSED après
 validation CI verte** · dette couverture OAuth → **Wave 2**.
 
+## 10. Incident CI #4 — job « Contracts » : subset `--pattern` du RakeTask rswag (run `175818e9`)
+
+**Constat :** `tests` ✅ (verrou 72,0 tenu — première CI verte du job) · `security` ✅ ·
+`lint` ✅ · **`contracts` ❌ exit 2** à `rake rswag:specs:swaggerize` — **404 exemples
+verts, couverture 47,94 %** (257/536). Premier run du job depuis l'introduction du
+verrou (toujours *skipped* : `needs: tests` jamais satisfait avant).
+
+**Cause racine :** angle mort de la détection « suite complète » (P6.1-bis) — le
+`RSpec::Core::RakeTask` de rswag (attribut `t.pattern`) invoque rspec avec
+`--pattern 'spec/requests/**/*, spec/api/**/*, spec/integration/**/*'` **sans argument
+de fichier** : `files_or_directories` vaut alors `[default_path]` et les filtres sont
+vides → le verrou s'armait sur un subset. Reproduit en conteneur à l'identique.
+
+**Fix :** la garde intègre `pattern`/`exclude_pattern`, comparés à l'at_exit aux
+défauts d'une **instance fraîche** de `RSpec::Core::Configuration` — rspec applique
+`--pattern` avant de charger les `--require` (constaté : un snapshot au boot capture
+le pattern déjà surchargé) ; l'instance fraîche reste drift-proof et fail-closed.
+
+**Validation :**
+
+| Run | Verrou | Résultat | Exit |
+|---|---|---|---|
+| `rake rswag:specs:swaggerize` (subset `--pattern`) | désarmé | 404/0 — 47,94 % | 0 |
+| Suite complète lazy @ 72,0 | armé, tenu | 962/0 — 73,21 % | 0 |
+| Suite complète CI-sim @ 72,0 | armé, tenu | 962/0 — 72,34 % | 0 |
+| Négatif CI-sim @ seuil 72,9 | armé → violation | 72,34 % < 72,9 | **2** (dents prouvées) |
+
 ---
 *Description générée le 17/09/2026 — campagne P6, branche `chore/p61-coverage-lock`*

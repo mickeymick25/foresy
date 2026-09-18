@@ -42,8 +42,8 @@ end
 # APRÈS celui de SimpleCov (LIFO : il s'exécute AVANT), au moment où la
 # configuration RSpec est certainement peuplée — SimpleCov relit le seuil à son
 # tour dans son propre at_exit (build_coverage_limits). Un run avec
-# fichiers/dossiers explicites garde la mesure et les rapports, sans échec au
-# seuil.
+# fichiers/dossiers explicites ou filtré (--pattern, -e, -t) garde la mesure et
+# les rapports, sans échec au seuil.
 #
 # Décisions CTO (17→18/09) :
 # - 17/09 : baseline mesurée x2 à 73,21 % lignes / 45,07 % branches (962 exemples,
@@ -57,17 +57,32 @@ end
 #   rattaché à la couverture de ce fichier en Wave 2 (premier travail de Wave 2).
 #   Aucune exclusion SimpleCov pour lui — le gap doit rester visible.
 #   L'objectif 95 % reste inchangé. Branch coverage : P6.6.
+# P6.1-bis — garde --pattern (incident #4, job CI « Contracts ») : le RakeTask
+# de rswag (`rake rswag:specs:swaggerize`) invoque rspec avec `--pattern <globs>`
+# SANS argument de fichier — files_or_directories vaut alors [default_path] et
+# les filtres sont vides, et le verdict « suite complète » armerait le verrou
+# sur un subset (404 exemples verts, 47,94 %, exit 2). rspec applique --pattern
+# à la configuration AVANT de charger les --require : un snapshot au boot est
+# donc inopérant. La comparaison se fait donc à l'at_exit contre une instance
+# fraîche de Configuration, dont pattern/exclude_pattern lazy-initialisés
+# valent les DÉFAUTS réels de la version courante — sans hardcodage, et
+# fail-closed si l'API dérive.
+
 at_exit do
   # rspec-core 3.13 : le getter `files_or_directories_to_run` n'est plus exposé —
   # l'ivar posée par le setter reste la source de vérité. Sans argument, RSpec
-  # l'initialise à [default_path]. Un filtrage par nom (`-e`/--example) ou par
-  # tag (`-t`) résout aussi [default_path] tout en n'exécutant qu'une sous-partie
-  # → vérifiés séparément via full_description/inclusion_filter.
+  # l'initialise à [default_path]. Un filtrage par nom (`-e`/--example), par
+  # tag (`-t`) ou par glob (`--pattern`, ex. RakeTask rswag) résout aussi
+  # [default_path] tout en n'exécutant qu'une sous-partie → vérifiés séparément
+  # via full_description/inclusion_filter et les snapshots de patterns.
   # Si l'API dérive (comparaison qui ne matche plus), le verrou s'arme : fail-closed,
   # un garde-fou de régression ne fail-ouvre pas.
   explicit_files = RSpec.configuration.instance_variable_get(:@files_or_directories_to_run)
+  fresh_defaults = RSpec::Core::Configuration.new
   full_suite = explicit_files == [RSpec.configuration.default_path] &&
                RSpec.configuration.full_description.nil? &&
-               RSpec.configuration.inclusion_filter.empty?
+               RSpec.configuration.inclusion_filter.empty? &&
+               RSpec.configuration.pattern == fresh_defaults.pattern &&
+               RSpec.configuration.exclude_pattern == fresh_defaults.exclude_pattern
   SimpleCov.minimum_coverage line: 72.0 if full_suite
 end
