@@ -106,7 +106,8 @@ CI **67,27 %** (3113/4627) vs 73,21 % (2903/3965) en conteneur. Reproduction loc
 **Cause racine :** `config.eager_load = ENV['CI'].present?` (`config/environments/test.rb:20`)
 → le runner CI charge tous les fichiers autoloadés ; le conteneur (lazy) ne charge que les
 référencés. Delta : **662 lignes pertinentes / 9 fichiers morts** — 7 services legacy
-`Api::V1::*` (le plan `legacy_cleanup_plan.md` du 07/01, jamais exécuté, les listait comme
+`Api::V1::*` (le plan du 07/01 — jamais exécuté, régularisé le 18/09 dans
+`docs/technical/changes/2026-01-07-Legacy_Cleanup_Plan.md` — les listait comme
 « jamais utilisés » depuis la migration FC-07) + `app/lib/http_status_map.rb` +
 `app/lib/mission_errors.rb` (zéro référence active).
 

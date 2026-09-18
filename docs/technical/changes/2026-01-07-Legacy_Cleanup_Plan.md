@@ -6,6 +6,13 @@
 > mesurait encore ces services morts : 67,27 % CI vs 73,21 % conteneur.
 > Chaîne causale complète : journal P6.1-bis
 > (`docs/technical/fc08_implementation_tracker.md`).
+>
+> **Régularisé le 18/09/2026** : déplacé depuis la racine du dépôt vers
+> `docs/technical/changes/` (convention du dépôt + indexation RAG).
+> Historique : artifact de session agent du 27/01 (commit `589f98d4`,
+> auteur `foresy-ledger` — identité conteneur pré-A6), posé hors de
+> l'arborescence documentaire et non référencé par `docs/index.md` —
+> d'où son oubli pendant 8 mois (jamais exécuté jusqu'à P6.1-bis).
 
 ## 🎯 Objectif
 Nettoyer complètement les services legacy Api::V1::* et leurs tests non utilisés pour finaliser la migration DDD.
