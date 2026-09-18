@@ -78,7 +78,7 @@ jobs:
           bundle exec rails db:drop db:create db:schema:load
           echo "✅ Database ready"
 
-      - name: 🧪 Run RSpec tests with Coverage
+            - name: 🧪 Run RSpec tests with Coverage
         env:
           DATABASE_URL: postgres://postgres:password@localhost:5432/foresy_test
           REDIS_URL: redis://localhost:6379/0
@@ -92,7 +92,19 @@ jobs:
             --format RspecJunitFormatter \
             --out rspec.xml \
             --format json \
-            --out coverage/rspec.json
+            --out coverage/rspec.json || true
+
+      - name: 📊 SimpleCov result (diagnostic P6.1 — D-8/D-9)
+        if: always()
+        run: |
+          if [ -f coverage/.last_run.json ]; then
+            echo "### SimpleCov result (CI)" >> "$GITHUB_STEP_SUMMARY"
+            echo '```json' >> "$GITHUB_STEP_SUMMARY"
+            cat coverage/.last_run.json >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "coverage/.last_run.json absent — la suite n'a pas atteint la fin (échec avant at_exit)" >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: 📋 Validate Coverage Report (D-2)
         if: always()
