@@ -45,9 +45,18 @@ end
 # fichiers/dossiers explicites garde la mesure et les rapports, sans échec au
 # seuil.
 #
-# Décision CTO du 17/09 : baseline mesurée x2 à 73,21 % lignes / 45,07 % branches
-# (962 exemples). Marge : 0,71 pt. Trajectoire : 95 % avec palier décisionnel à 90 %
-# (P6.6). Branch coverage : P6.6.
+# Décisions CTO (17→18/09) :
+# - 17/09 : baseline mesurée x2 à 73,21 % lignes / 45,07 % branches (962 exemples,
+#   corpus conteneur lazy). Trajectoire : 95 % avec palier décisionnel à 90 % (P6.6).
+# - 18/09 (recalibration temporaire bornée) : le corpus d'enforcement CI (eager
+#   load, ENV['CI']) post-cleanup est mesuré à 72,34 % — l'écart vs lazy est le
+#   chemin OAuth code-exchange (`o_auth_code_exchange_service.rb` : code de
+#   production non testé, appelé par OAuthValidationService.extract_oauth_data),
+#   transféré à P6 Wave 2. Seuil TRANSITOIRE 72,0 (marge +0,34 pt sur corpus CI) :
+#   ce n'est PAS un baseline qualitatif ; le retour à 72,5 est explicitement
+#   rattaché à la couverture de ce fichier en Wave 2 (premier travail de Wave 2).
+#   Aucune exclusion SimpleCov pour lui — le gap doit rester visible.
+#   L'objectif 95 % reste inchangé. Branch coverage : P6.6.
 at_exit do
   # rspec-core 3.13 : le getter `files_or_directories_to_run` n'est plus exposé —
   # l'ivar posée par le setter reste la source de vérité. Sans argument, RSpec
@@ -60,5 +69,5 @@ at_exit do
   full_suite = explicit_files == [RSpec.configuration.default_path] &&
                RSpec.configuration.full_description.nil? &&
                RSpec.configuration.inclusion_filter.empty?
-  SimpleCov.minimum_coverage line: 72.5 if full_suite
+  SimpleCov.minimum_coverage line: 72.0 if full_suite
 end

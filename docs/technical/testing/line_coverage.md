@@ -49,8 +49,8 @@ Lecture : ces concerns sont partiellement exercés par les request specs/E2E (ch
 ## 5. Politique de seuils (2 phases)
 
 - **Phase 1 (16/09)** : rapport sans échec — `minimum_coverage` absent (D-2.1)
-- **Phase 2 (active depuis P6.1, 17/09)** : verrou CTO `minimum_coverage line: 72.5` dans `.simplecov` (baseline 73,21 %, marge 0,71 pt ; trajectoire 95 %, palier décisionnel 90 % à P6.6)
-  - **Périmètre du verrou (P6.1-bis, 18/09)** : suite complète uniquement — un run rspec avec fichiers/dossiers explicites (gate DDD, `spec/acceptance/`, fichier ciblé) ou filtré (`-e`, `-t`) mesure la couverture et régénère les rapports **sans échec au seuil** ; les runs complets échouent (exit 2) sous 72,5 %. Raison d'être : un subset couvre mécaniquement moins que la suite, l'échec au seuil n'y est pas une régression (incident CI 17→18/09, journal P6.1-bis)
+- **Phase 2 (active depuis P6.1, 17/09 ; recalibrée 18/09)** : verrou CTO `minimum_coverage` dans `.simplecov` — **72,0 % transitoire** (décision CTO 18/09). Baseline documenté de référence : **72,34 % sur le corpus CI eager-load post-cleanup** (73,21 % sur le corpus conteneur lazy) ; marge +0,34 pt. **Le retour à 72,5 est explicitement rattaché à la couverture de `OAuthCodeExchangeService` en Wave 2** (code de production non testé — le gap reste visible : aucune exclusion SimpleCov pour ce fichier). Le 72,0 n'est pas un baseline qualitatif ; trajectoire 95 % inchangée (palier décisionnel 90 % à P6.6)
+  - **Périmètre du verrou (P6.1-bis, 18/09)** : suite complète uniquement — un run rspec avec fichiers/dossiers explicites (gate DDD, `spec/acceptance/`, fichier ciblé) ou filtré (`-e`, `-t`) mesure la couverture et régénère les rapports **sans échec au seuil** ; les runs complets échouent (exit 2) sous le seuil. Raison d'être : un subset couvre mécaniquement moins que la suite, l'échec au seuil n'y est pas une régression (incident CI 17→18/09, journal P6.1-bis)
   - **Enforcement** : local (exit 2 au run complet) **et CI** (step principal du job « Tests & Coverage ») ; corriger les fichiers critiques en priorité reste le sujet des vagues P6 (specs complémentaires chiffrées séparément)
 
 ## 6. Références

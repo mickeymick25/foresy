@@ -97,5 +97,44 @@ principal CI — suite et verrou échouent à nouveau le job (steps `if: always(
 | Acceptance (job E2E, `E2E_MODE`) | désarmé | 31/0 | 0 |
 | Filtre `-e` (résout `[spec]` mais partiel) | désarmé | 0 exécutable | 0 |
 
+## 9. Incident CI #3 — corpus eager-load, cleanup legacy exécuté, recalibration 72,0 transitoire (GO CTO 18/09)
+
+**Constat (run `b097c87c`) :** exit 2 au step principal — **962/0 specs vertes**, couverture
+CI **67,27 %** (3113/4627) vs 73,21 % (2903/3965) en conteneur. Reproduction locale exacte
+(`CI=1` dans le conteneur : mêmes chiffres à la décimale près).
+
+**Cause racine :** `config.eager_load = ENV['CI'].present?` (`config/environments/test.rb:20`)
+→ le runner CI charge tous les fichiers autoloadés ; le conteneur (lazy) ne charge que les
+référencés. Delta : **662 lignes pertinentes / 9 fichiers morts** — 7 services legacy
+`Api::V1::*` (le plan `legacy_cleanup_plan.md` du 07/01, jamais exécuté, les listait comme
+« jamais utilisés » depuis la migration FC-07) + `app/lib/http_status_map.rb` +
+`app/lib/mission_errors.rb` (zéro référence active).
+
+**Fix (cleanup exécuté, GO CTO) :** suppression des 9 fichiers — le plan 07/01 est marqué
+« Phase 1 exécutée » avec relevé exact. Validation : **962/0 inchangé** (zéro impact
+fonctionnel), RuboCop **0**, Brakeman **0**, grep résiduel = commentaires de migration
+uniquement. Corpus CI-sim : 67,27 % → **72,34 %** (2932/4053) ; lazy inchangé 73,21 %.
+
+**Écart résiduel (+88 lignes corpus CI) :** 8 lignes scaffolding Rails (100 %) +
+**80 lignes `o_auth_code_exchange_service.rb` à 26,25 %** — code de **production** actif
+(flow OAuth #2 code-exchange, appelé par `OAuthValidationService.extract_oauth_data`)
+jamais exercé par les specs (les 31 tests OAuth ne couvrent que le flow OmniAuth).
+Pas du code mort → ni supprimé, ni exclu du verrou.
+
+**Recalibration temporaire bornée (décision CTO 18/09, option 1/3) — quatre conditions :**
+
+1. **72,0 est un seuil temporaire**, pas le nouveau baseline qualitatif de Foresy
+2. **Baseline documenté de référence : 72,34 %** sur le corpus CI eager-load post-cleanup
+3. **Retour à 72,5 explicitement rattaché à la couverture de `OAuthCodeExchangeService`
+   dans Wave 2** (premier travail de Wave 2)
+4. **Aucune exclusion SimpleCov** pour ce fichier — le gap doit rester visible
+
+L'objectif 95 % reste inchangé. Options rejetées par le CTO : couvrir le fichier dans cette
+PR (Wave 2 entrerait dans une PR « verrou ») et l'exclure du verrou (ce n'est pas de
+l'infrastructure pure).
+
+**État P6 :** P6.1 — **LOCKED / TEMPORARY BASELINE** · P6.1-bis — **CLOSED après
+validation CI verte** · dette couverture OAuth → **Wave 2**.
+
 ---
 *Description générée le 17/09/2026 — campagne P6, branche `chore/p61-coverage-lock`*

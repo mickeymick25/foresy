@@ -22,14 +22,15 @@ Pas de tests artificiels pour SimpleCov. Pour chaque zone :
 **comportement existant → caractérisation → RED si un comportement attendu manque → GREEN → refactor si nécessaire.**
 Si la couverture révèle un bug existant, il devient un vrai cycle RED → correction → GREEN, traité explicitement — jamais contourné pour préserver la baseline.
 
-## 3. P6.1 — Verrou initial (état : ✅ fait)
+## 3. P6.1 — Verrou initial (état : 🔒 LOCKED / TEMPORARY BASELINE)
 
 | Étape | Résultat |
 |---|---|
 | Nettoyage environnement | `foresy_test` polluée (SIREN en dur + session `authrepro`) → TRUNCATE → 962/0 |
 | **Mesure baseline ×2** | **73,21 % lignes / 45,07 % branches** — identiques ×2 (seeds différents) → déterminisme confirmé. Écart vs baseline du 16/09 (72,78 %) : code évolué depuis (D-5, D-12) |
-| Verrou | `minimum_coverage line: 72.5` dans `.simplecov` — **armé uniquement sur les runs de la suite complète** (P6.1-bis, cf. journal) : un subset (gate DDD, acceptance E2E, fichier ciblé) mesure la couverture et régénère les rapports, sans échec au seuil |
+| Verrou | `minimum_coverage` dans `.simplecov` — **armé uniquement sur les runs de la suite complète** (P6.1-bis, cf. journal) : un subset (gate DDD, acceptance E2E, fichier ciblé) mesure la couverture et régénère les rapports, sans échec au seuil. **Seuil transitoire 72,0** (décision CTO 18/09 — cf. ligne « Recalibration » ci-dessous) |
 | Vérification | Suite avec verrou : **962/0** ✅ |
+| **Recalibration (18/09, incident CI 17→18/09 — cf. journal P6.1-bis)** | Corpus d'enforcement CI (eager load, `ENV['CI']`) ≠ corpus conteneur (lazy) : 67,27 % vs 73,21 % → cleanup legacy exécuté (9 fichiers morts, plan 07/01) → corpus CI post-cleanup **72,34 %**. **Baseline documenté de référence : 72,34 % corpus CI** · seuil **72,0 transitoire** (marge +0,34 pt) · retour à **72,5 rattaché à la couverture de `OAuthCodeExchangeService` en Wave 2** · aucune exclusion SimpleCov pour ce fichier · 72,0 ≠ baseline qualitatif · **trajectoire 95 % inchangée** |
 
 ## 4. Séquence des vagues
 
@@ -42,9 +43,11 @@ Wave 1 → sécurité et erreurs critiques
  ├─ standardized_error
  └─ intégration associée
 Wave 2
+ ├─ **démarrage : caractérisation `OAuthCodeExchangeService`** (flow code-exchange
+ │  de production non testé, découvert par l'incident corpus CI — retour du verrou à 72,5)
  ├─ extraction
  ├─ rate limiting
- └─ OAuth
+ └─ OAuth (suite)
 Wave 3
  ├─ services/lib
  ├─ List / filtres
