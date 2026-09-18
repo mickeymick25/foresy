@@ -50,7 +50,7 @@
 
 **Commit :** `chore(p6): remove dead AccessValidation concern`
 
-### W1-D2 — Caractérisation de la sécurité vivante — ✅ FAIT (18/09)
+### W1-D2 — Caractérisation de la sécurité vivante — ✅ FAIT (18/09) · clôture définitive : réévaluation CTO après W1-D2-BUG
 
 **Périmètre :** ce qui tourne réellement — `Cra.accessible_to` (scope pivot RDD), `CrasController#validate_cra_access!`, et le **chemin via-missions** (FC06 : CRA d'un autre créateur accessible par les missions liées aux sociétés de l'utilisateur — le seul chemin de sécurité vivant non caractérisé).
 
@@ -60,7 +60,19 @@
 
 **Commit :** `test(p6): characterize CRA access control`
 
-### W1-D3 — Caractérisation des error_handlers — ⬜ à faire
+### W1-D2-BUG — Soft-delete propagation dans l autorisation CRA — ✅ CYCLE TERMINÉ (arbitrage CTO 18/09)
+
+**Arbitrage :** les deux observations de frontière de W1-D2 sont des **bugs** (mission soft-deletée → accès persistant ; user_company révoqué FC-08 → accès persistant). Le scope nu (CRA soft-deleté) est **confirmé non exposé** (appelants chaînent `.active`) — sans correction. `Mission.accessible_to` : détermination par caractérisation requise, **pas de correction préventive spéculative**.
+
+**Cycle exécuté :** RED (bascule des 2 attentes en négatives métier) → **2 échecs exactement, pour la raison attendue** (l'accès persiste) → cause racine : la sous-requête via-missions de `relation_accessible_to` ne filtre ni `missions.deleted_at` ni `user_companies.deleted_at` (pivots `cra_missions`/`mission_companies` : hard delete, aucun filtre requis) → **GREEN : correction minimale (2 lignes** — conditions `deleted_at: nil` sur `missions` et `user_companies` dans la sous-requête ; aucun refactor du mécanisme) → ciblé 9/0 (7 CRA + 2 Mission).
+
+**Détermination `Mission.accessible_to` (vigilance CTO) :** `spec/models/mission_access_spec.rb` — témoin positif via-companies ✓ + **OBSERVATION : le même défaut est démontré** — une adhésion révoquée (user_company soft-deleté) continue d'octroyer l'accès à la mission (`via_companies` sans filtre `user_companies.deleted_at`). **Aucune correction appliquée** — décision CTO requise (même chaîne d'autorisation, `MissionsController#validate_mission_access!` l'appelle en production).
+
+**Régression :** FC06 positif via-missions reste **200** en requête (incluse dans la suite) · suite **972/0** (970 + 2 détermination Mission) · RuboCop **0** (230 files) · Brakeman **0** · SimpleCov réel : **74,70 % lignes (2891/3870) · 46,66 % branches (755/1618)** — inchangé vs D2 (la correction ajoute 2 lignes au corpus du scope déjà couvert).
+
+**Commit :** `fix(p6): l'autorisation CRA filtre missions et user_companies soft-deletées (W1-D2-BUG)`
+
+### W1-D3 — Caractérisation des error_handlers — ⏸ bloquée (arbitrage CTO post-D2-BUG)
 
 **Périmètre :** traverser chaque handler non exercé des 3 fichiers, avec assertion du contrat `{ code, message, details }` (référence : `docs/technical/guides/error_contract.md`) — notamment : `handle_cra_locked_error`, `handle_cra_submitted_error`, `handle_duplicate_cra_error`, `handle_invalid_transition_error`, `handle_rate_limit_exceeded`, `handle_internal_error`, `handle_cra_month/year/currency_error`, `handle_no_independent_company_error`, et les équivalents `cra_entries` + `common`.
 
@@ -77,6 +89,19 @@
 **Commit :** `fix(p6): align standardized error contract`
 
 ## 4. Journal de suivi
+
+### 2026-09-18 — W1-D2-BUG clôturé — RED → GREEN : propagation du soft-delete dans l autorisation CRA
+
+- **Observation initiale (W1-D2) :** mission soft-deletée ⇒ accès persistant ; user_company soft-deleté (FC-08 : révocation) ⇒ accès persistant. Arbitrage CTO : **bugs — cycle RED → GREEN requis** ; scope nu CRA : non exposé, sans correction ; `Mission.accessible_to` : caractériser pour déterminer, aucune correction préventive
+- **RED démontré :** bascule des 2 observations en attentes négatives métier — **exactement 2 échecs** (exit 1), pour la raison attendue : `Cra.accessible_to(member)` inclut encore le CRA après soft-delete. Les 5 autres caractérisations restent vertes
+- **Cause racine :** `Cra.relation_accessible_to` — la sous-requête via-missions joint `missions` et `user_companies` sans condition `deleted_at` : une relation supprimée reste une voie d autorisation active
+- **Correction minimale :** 2 lignes dans la sous-requête — `.where(user_companies: { …, deleted_at: nil })` + `.where(missions: { deleted_at: nil })`. Pivots `cra_missions`/`mission_companies` : hard delete (schéma) — aucun filtre requis. **Aucun refactor du mécanisme d autorisation**
+- **GREEN :** ciblé **9/0** (7 CRA — dont les 2 négatives basculées + le témoin FC06 + l observation scope nu conservée — et 2 Mission) ; FC06 positif en requête reste **200**
+- **Détermination `Mission.accessible_to` :** même défaut **démontré** par observation (`via_companies` sans filtre `user_companies.deleted_at` — la révocation d adhésion n invalide pas l accès mission). **Non corrigé** — décision CTO (dette ouverte, même chaîne d autorisation que CRA)
+- **Gates :** suite **972/0** (970 + 2) ✓ · RuboCop **0** (230 files — 3 offenses de layout dans mes specs, corrigées avant commit) ✓ · Brakeman **0** ✓
+- **Mesure SimpleCov réelle :** **74,70 % lignes (2891/3870) · 46,66 % branches (755/1618)** — identique à la clôture D2 (la correction ne fait pas varier le corpus mesuré)
+- **Commit :** `fix(p6): l'autorisation CRA filtre missions et user_companies soft-deletées (W1-D2-BUG)`
+- **État de vague :** W1-D1 ✅ · W1-D2 ✅ (caractérisation) + W1-D2-BUG ✅ · W1-D3 ⏸ · W1-D4 ⏸ — **clôture définitive D2 + GO D3 : réévaluation CTO**
 
 ### 2026-09-18 — W1-D2 clôturée — caractérisation de la sécurité vivante (via-missions)
 

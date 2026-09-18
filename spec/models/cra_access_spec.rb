@@ -74,31 +74,33 @@ RSpec.describe 'Cra.accessible_to', type: :model do
     end
   end
 
-  describe 'comportement observé aux frontières (soft delete) — relevé pour décision' do
-    it 'OBSERVATION : un CRA soft-deleté reste retourné par le scope nu (les appelants chaînent .active)' do
+  describe 'propagation du soft-delete dans l autorisation (W1-D2-BUG — arbitrage CTO 18/09)' do
+    it 'n accorde plus l accès via une mission soft-deletée' do
+      cra = create(:cra, :with_creator, creator: creator, year: 2026, month: 2)
+      create(:cra_mission, cra: cra, mission: linked_mission)
+      linked_mission.update!(deleted_at: Time.current)
+
+      expect(Cra.accessible_to(member)).not_to include(cra)
+    end
+
+    it 'ne donne plus accès après révocation d adhésion (user_company soft-deleté — FC-08)' do
+      cra = create(:cra, :with_creator, creator: creator, year: 2026, month: 3)
+      create(:cra_mission, cra: cra, mission: linked_mission)
+
+      member.user_companies.update_all(deleted_at: Time.current)
+
+      expect(Cra.accessible_to(member)).not_to include(cra)
+    end
+
+    # Arbitrage CTO 18/09 : comportement du scope nu NON exposé (tous les appelants
+    # chaînent .active) — conservé tel quel, sans correction.
+    it 'OBSERVATION conservée : CRA soft-deleté retourné par le scope nu' do
       cra = create(:cra, :with_creator, creator: creator, year: 2026, month: 1)
       create(:cra_mission, cra: cra, mission: linked_mission)
       cra.update!(deleted_at: Time.current)
 
       expect(Cra.accessible_to(member)).to include(cra)
       expect(Cra.accessible_to(member).active).not_to include(cra)
-    end
-
-    it 'OBSERVATION : une mission soft-deletée continue d octroyer l accès via-missions' do
-      cra = create(:cra, :with_creator, creator: creator, year: 2026, month: 2)
-      create(:cra_mission, cra: cra, mission: linked_mission)
-      linked_mission.update!(deleted_at: Time.current)
-
-      expect(Cra.accessible_to(member)).to include(cra)
-    end
-
-    it 'OBSERVATION : un user_company soft-deleté (FC-08) continue d octroyer l accès via-missions' do
-      cra = create(:cra, :with_creator, creator: creator, year: 2026, month: 3)
-      create(:cra_mission, cra: cra, mission: linked_mission)
-
-      member.user_companies.update_all(deleted_at: Time.current)
-
-      expect(Cra.accessible_to(member)).to include(cra)
     end
   end
 end
