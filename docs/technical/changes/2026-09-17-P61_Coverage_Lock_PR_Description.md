@@ -1,18 +1,38 @@
-# P6.1 — Verrou de couverture `minimum_coverage line: 72.5` — Description de PR
+# P6.1/P6.1-bis — Verrou de couverture temporaire 72,0 % (initial 72,5) + cleanup legacy — Description de PR
 
-**Date :** 17 septembre 2026
-**Décision CTO :** GO P6.1 (checkpoint post-D-12) — verrou initial + trajectoire 95 %
+**Date :** 17 septembre 2026 (résumé aligné sur le head final le 19/09 — revue co-CTO)
+**Décision CTO :** GO P6.1 (checkpoint post-D-12) — verrou initial + trajectoire 95 % ;
+recalibration temporaire bornée 72,0 (18/09, cf. §9) ; clôture P6.1-bis (CI verte `f1f42652`)
 **Branche :** `chore/p61-coverage-lock` → `main`
 **Plan de campagne :** `docs/technical/testing/coverage_campaign_p6.md`
 
 ---
 
-## 1. Résumé
+## 1. Résumé (aligné sur le head final `547c8d8a`)
 
-P6.1 pose le **verrou initial de couverture** décidé par le CTO : `minimum_coverage line: 72.5`
-dans `.simplecov`, appuyé sur une baseline **mesurée deux fois de façon identique** (déterminisme
-confirmé). Aucun travail Wave 1 dans ce PR — uniquement le verrou + le plan de campagne + le
-nettoyage environnement documenté.
+Cette PR pose le **verrou de couverture P6.1** et le **stabilise** (P6.1-bis). Verrou initial
+proposé : **72,5 %** — **seuil effectif final : 72,0 % temporaire** (recalibration bornée,
+décision CTO 18/09, cf. §9). La PR contient également :
+
+- le **cleanup de 9 fichiers legacy morts** (plan du 07/01 enfin exécuté : 6 services
+  `Api::V1::Cras::*` + `Api::V1::CraEntries::ListService` + `app/lib/http_status_map.rb` +
+  `app/lib/mission_errors.rb`, zéro référence active) — révélés par la divergence de corpus
+  lazy/eager (67,27 % CI vs 73,21 % conteneur) ; le corpus CI passe à **72,34 %** post-cleanup ;
+- la **correction du cas rswag `--pattern`** (le `RakeTask` invoque rspec sans argument de
+  fichier — le verrou s'armait à tort sur un subset, cf. §10) ;
+- le **retrait du `|| true`** du step CI principal (le verrou est bloquant sur la suite complète) ;
+- le plan de campagne P6, la description des 4 incidents CI (§7-10), la mémoire `fc08::010`
+  amendée (validation CTO, post-CI-verte) et la régularisation du plan legacy cleanup dans
+  `docs/technical/changes/`.
+
+**Pourquoi 72,0 et non 72,5 :** le corpus d'enforcement CI (eager load, `ENV['CI']`) post-cleanup
+mesure **72,34 %** (baseline officielle, mesurée ×2) contre 73,21 % en corpus conteneur lazy —
+l'écart résiduel est `OAuthCodeExchangeService`, **code de production actif non testé**, transféré
+à **Wave 2**. **Retour à 72,5 % : explicitement rattaché à la couverture de ce fichier en Wave 2.**
+Trajectoire 95 % inchangée (palier décisionnel 90 % à P6.6). Aucune exclusion SimpleCov.
+
+Périmètre final : P6.1 verrou + P6.1-bis stabilisation (4 incidents CI résolus) + cleanup legacy
++ recalibration CI temporaire + documentation de campagne.
 
 ## 2. Preuves (environnements)
 
@@ -26,14 +46,22 @@ nettoyage environnement documenté.
 Écart vs baseline du 16/09 (72,78 % / 44,82 %) : le code a évolué (D-5 durcissement GitLedger,
 D-12 `LEDGER_PATH` + specs). Documenté tel quel — aucune retouche pour aligner les chiffres.
 
-## 3. Fichiers modifiés
+## 3. Fichiers modifiés (18 au total — head final `547c8d8a`)
 
 | Fichier | Changement |
 |---|---|
-| `.simplecov` | `minimum_coverage line: 72.5` + commentaire P6.1 (baseline, marge 0,71 pt, trajectoire) |
-| `docs/technical/testing/coverage_campaign_p6.md` | Nouveau — décisions CTO (72,5 / 95 palier 90 / zone morte comportementale / branch P6.6), règle TDD P6.0, séquence vagues 1→4, environnement de mesure, incident `foresy_test` |
-| `docs/technical/fc08_implementation_tracker.md` | Journal P6.1 |
-| `memory/2026-09-14-fc08-implementation.md` | Mémoire durable `fc08::010` |
+| `.simplecov` | Verrou P6.1 : armé dans un `at_exit` uniquement sur la **suite complète** (détecteurs : files_or_directories, `-e`/`-t`, `--pattern`, exclude_pattern — fail-closed) ; **seuil 72,0 temporaire** (décision 18/09) |
+| `Gemfile` | `simplecov` + `simplecov-cobertura` `require: false` (fix incident #1 — chargement uniquement via `spec/coverage_boot`) |
+| `.github/workflows/ci.yml` | `|| true` retiré (verrou bloquant) ; step diagnostic P6.1 (`if: always()`) ; YAML corrigé |
+| **9 fichiers supprimés** | `app/services/api/v1/cras/{create,update,list,lifecycle,export,destroy}_service.rb`, `app/services/api/v1/cra_entries/list_service.rb`, `app/lib/http_status_map.rb`, `app/lib/mission_errors.rb` — plan 07/01 exécuté (§9) |
+| `legacy_cleanup_plan.md` → `docs/technical/changes/2026-01-07-Legacy_Cleanup_Plan.md` | Régularisé dans l'arborescence documentaire (convention + indexation RAG), marqué « Phase 1 exécutée » avec relevé |
+| `docs/technical/testing/coverage_campaign_p6.md` | Nouveau — décisions CTO, règle TDD P6.0, séquence des vagues, recalibration 72,0 (§3) |
+| `docs/technical/testing/line_coverage.md` | Guide : périmètre du verrou, politique de seuils, phase 2 transitoire |
+| `docs/technical/fc08_implementation_tracker.md` | Journal P6.1 + P6.1-bis + incidents + clôture |
+| `docs/technical/changes/2026-09-17-P61_Coverage_Lock_PR_Description.md` | Cette description (§7-10 : les 4 incidents) |
+| `memory/2026-09-14-fc08-implementation.md` | Mémoire `fc08::010` amendée (P6.1-bis complet — validation CTO post-CI-verte) |
+
+Historique du 17/09 (inchangé, cf. §2) : verrou initial 72,5 posé, plan de campagne, journal, mémoire — la recalibration 72,0 est documentée §9.
 
 ## 4. Décisions CTO actées (checkpoint 17/09)
 
