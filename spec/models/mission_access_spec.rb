@@ -26,10 +26,9 @@ RSpec.describe 'Mission.accessible_to', type: :model do
     expect(Mission.accessible_to(member)).to include(mission)
   end
 
-  it 'OBSERVATION : une adhésion révoquée (user_company soft-deleté — FC-08) ' \
-     'continue d octroyer l accès à la mission' do
+  it 'ne donne plus accès après révocation d adhésion (user_company soft-deleté — FC-08)' do
     member.user_companies.update_all(deleted_at: Time.current)
 
-    expect(Mission.accessible_to(member)).to include(mission)
+    expect(Mission.accessible_to(member)).not_to include(mission)
   end
 end
