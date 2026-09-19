@@ -1,5 +1,19 @@
 # Plan de Nettoyage des Legacy Services - Foresy
 
+> **✅ PHASE 1 EXÉCUTÉE le 18 septembre 2026** (PR P6.1-bis, branche
+> `chore/p61-coverage-lock`) — relevé d'exécution en fin de document.
+> Le verrou de couverture P6.1 a révélé en CI que le corpus eager-load
+> mesurait encore ces services morts : 67,27 % CI vs 73,21 % conteneur.
+> Chaîne causale complète : journal P6.1-bis
+> (`docs/technical/fc08_implementation_tracker.md`).
+>
+> **Régularisé le 18/09/2026** : déplacé depuis la racine du dépôt vers
+> `docs/technical/changes/` (convention du dépôt + indexation RAG).
+> Historique : artifact de session agent du 27/01 (commit `589f98d4`,
+> auteur `foresy-ledger` — identité conteneur pré-A6), posé hors de
+> l'arborescence documentaire et non référencé par `docs/index.md` —
+> d'où son oubli pendant 8 mois (jamais exécuté jusqu'à P6.1-bis).
+
 ## 🎯 Objectif
 Nettoyer complètement les services legacy Api::V1::* et leurs tests non utilisés pour finaliser la migration DDD.
 
@@ -143,6 +157,29 @@ Nettoyer complètement les services legacy Api::V1::* et leurs tests non utilis�
 
 ---
 
-**Statut** : 🟡 EN ATTENTE DE VALIDATION
+**Statut** : ✅ PHASE 1 EXÉCUTÉE (18 septembre 2026)
 **Priorité** : HAUTE (Architecture)
 **Impact** : POSITIF (Nettoyage architectural)
+
+## 📝 Relevé d'exécution (18 septembre 2026)
+
+**Fichiers supprimés (9)** — `app/services/api/` entier, plus l'extension vérifiée `app/lib` :
+
+- `app/services/api/v1/cras/{create,update,list,lifecycle,export,destroy}_service.rb` (6)
+- `app/services/api/v1/cra_entries/list_service.rb` — seul rescapé de la liste du plan ;
+  les autres `cra_entries` legacy (`destroy/create/update`) avaient déjà disparu du dépôt
+- Extension vérifiée (GO CTO 18/09) : `app/lib/http_status_map.rb`, `app/lib/mission_errors.rb`
+  — zéro référence active (grep exhaustif app/config/lib/spec/bin), jamais chargés en lazy
+
+**Tests legacy (§1.3 du plan)** : déjà absents du dépôt — rien à supprimer.
+
+**Vérification §2.1 (références mortes)** : grep exhaustif — seuls subsistent des commentaires
+`# Migrated from Api::V1::Cras::* to CraServices namespace` (documentation des nouveaux
+services, volontaires).
+
+**Validation** : suite 962/0 inchangée (zéro impact fonctionnel — les fichiers étaient
+morts) · RuboCop 0 · Brakeman 0 · corpus CI-sim 67,27 % → **72,34 %**.
+
+**Hors périmètre** : `app/services/o_auth_code_exchange_service.rb` (chargé par l'eager
+load CI, 26,25 %) — NON supprimé : code de production actif (flow OAuth code-exchange,
+appelé par `OAuthValidationService`). Dette de couverture transférée à P6 Wave 2.

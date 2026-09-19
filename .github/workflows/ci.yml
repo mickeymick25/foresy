@@ -87,12 +87,29 @@ jobs:
           COVERAGE: true
         run: |
           echo "🧪 Running RSpec with coverage..."
+          # Suite complète = mesure de référence : le verrou P6.1 (minimum_coverage
+          # line 72.5, armé par .simplecov uniquement sur les runs complets) fait
+          # échouer ce step si la couverture régresse. Un échec de specs échoue
+          # aussi le job — les steps suivants (if: always()) produisent quand même
+          # rspec.xml, les rapports de couverture et le diagnostic P6.1.
           bundle exec rspec \
             --format progress \
             --format RspecJunitFormatter \
             --out rspec.xml \
             --format json \
             --out coverage/rspec.json
+
+      - name: 📊 SimpleCov result (diagnostic P6.1 — D-8/D-9)
+        if: always()
+        run: |
+          if [ -f coverage/.last_run.json ]; then
+            echo "### SimpleCov result (CI)" >> "$GITHUB_STEP_SUMMARY"
+            echo '```json' >> "$GITHUB_STEP_SUMMARY"
+            cat coverage/.last_run.json >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "coverage/.last_run.json absent — la suite n'a pas atteint la fin (échec avant at_exit)" >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: 📋 Validate Coverage Report (D-2)
         if: always()
