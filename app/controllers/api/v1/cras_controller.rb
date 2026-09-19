@@ -20,10 +20,8 @@ module Api
     # - Uses StandardizedError concern methods
     class CrasController < Api::V1::BaseController
       include Pagy::Backend
-      include Api::V1::Cras::ErrorHandler
       include Api::V1::Cras::RateLimitable
       include Api::V1::Cras::ParameterExtractor
-      include Api::V1::Cras::AccessValidation
       include Common::ResponseFormatter
 
       before_action :authenticate_access_token!
@@ -189,6 +187,18 @@ module Api
         else
           error_unprocessable_entity(message)
         end
+      end
+
+      # W1-D3-B : relocalisé depuis Api::V1::Cras::ErrorHandler (concern supprimé —
+      # seul handler vivant du concern, prouvé par la caractérisation
+      # spec/requests/api/v1/rate_limiting/cra_rate_limit_contract_spec.rb).
+      # Chaîne préservée : check_rate_limit! → handle_rate_limit_exceeded
+      # → error_too_many_requests → 429, code RATE_LIMIT_EXCEEDED
+      # (contrat d'émission 429 — docs/technical/guides/error_contract.md).
+      def handle_rate_limit_exceeded(message = 'Rate limit exceeded for CRA operations')
+        Rails.logger.warn "CRA Rate limit exceeded: #{message}"
+
+        error_too_many_requests(message, { resource_type: 'CRA' })
       end
 
       def set_cra

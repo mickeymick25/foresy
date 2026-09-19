@@ -37,11 +37,19 @@ Si la couverture révèle un bug existant, il devient un vrai cycle RED → corr
 ```
 P6.1 ✅
  └─ verrou minimum_coverage line: 72.5 (ce PR)
-Wave 1 → sécurité et erreurs critiques
- ├─ access_validation (77 lignes / 0 sur 46 branches)
- ├─ error_handlers
- ├─ standardized_error
- └─ intégration associée
+Wave 1 ✅ CLÔTURÉE (19/09, validation CTO)
+ ├─ W1-D1 : suppression du concern mort `Api::V1::Cras::AccessValidation`
+ │  (éclipsé à 100 % — dette legacy démontrée, GO CTO 18/09 ; ne se caractérise pas,
+ │  mêmes critères que le cleanup P6.1-bis)
+ ├─ W1-D2 : caractérisation sécurité vivante (`Cra.accessible_to` + via-missions)
+ ├─ W1-D2-BUG : 2 bugs soft-delete corrigés (RED → GREEN arbitré — CRA + Mission)
+ ├─ W1-D3 : concerns d'erreur — 2 chemins rate-limit vivants caractérisés (A),
+ │  divergence 429 documentée sans breaking change, 3 concerns morts supprimés (B)
+ ├─ W1-D4 : standardized_error caractérisé + fc08::005 tranchée (helper mort)
+ └─ Suivi d'implémentation : `docs/technical/testing/p6_wave1_tracker.md`
+     PR : `docs/technical/changes/2026-09-19-P6_Wave1_PR_Description.md`
+     Bilan mesuré : 76,49 % lignes / 47,60 % branches, 977 exemples, 0 test artificiel
+     Verrou 72,0 INCHANGÉ (retour 72,5 = Wave 2, arbitrage CTO 19/09)
 Wave 2
  ├─ **démarrage : caractérisation `OAuthCodeExchangeService`** (flow code-exchange
  │  de production non testé, découvert par l'incident corpus CI — retour du verrou à 72,5)
@@ -63,6 +71,13 @@ P6.6
 ```
 
 Objectif Wave 1 : **traverser les chemins d'échec et de sécurité non exercés** — pas monter un pourcentage.
+
+### Dettes identifiées pendant Wave 1 — reportées à la réévaluation de fin de campagne (arbitrage CTO 19/09)
+
+- `spec/support/error_response_helper.rb` (fc08::005) : helper mort (zéro usage — aucune incompatibilité démontrable par exécution) — **maintenu temporairement, dette distincte**
+- 6 helpers `standardized_error` sans appelant + 4 latents `rate_limitable` : suppression/conservation à arbitrer par groupe
+- `handle_unpermitted_parameters` / `handle_record_not_found` : injoignables (config), documentés
+- D3-3 : couches d'erreur vivantes des contrôleurs — réévaluation séparée
 
 ## 5. Environnement de mesure
 
