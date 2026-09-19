@@ -72,7 +72,7 @@
 
 **Commit :** `fix(p6): l'autorisation CRA filtre missions et user_companies soft-deletées (W1-D2-BUG)`
 
-### W1-D3 — Caractérisation des error_handlers — ⏸ bloquée (arbitrage CTO post-D2-BUG)
+### W1-D3 — Caractérisation des error_handlers — ▶ EN COURS (D3-A ✅ le 19/09, D3-B en attente d'arbitrage divergence)
 
 **Périmètre :** traverser chaque handler non exercé des 3 fichiers, avec assertion du contrat `{ code, message, details }` (référence : `docs/technical/guides/error_contract.md`) — notamment : `handle_cra_locked_error`, `handle_cra_submitted_error`, `handle_duplicate_cra_error`, `handle_invalid_transition_error`, `handle_rate_limit_exceeded`, `handle_internal_error`, `handle_cra_month/year/currency_error`, `handle_no_independent_company_error`, et les équivalents `cra_entries` + `common`.
 
@@ -89,6 +89,16 @@
 **Commit :** `fix(p6): align standardized error contract`
 
 ## 4. Journal de suivi
+
+### 2026-09-19 — W1-D3 reconnaissance + D3-A clôturée — caractérisation des 2 chemins rate-limit vivants
+
+- **Reconnaissance (arbitrage CTO du 19/09) :** les 3 concerns ciblés sont à ~97 % morts/éclipsés — `Cras::ErrorHandler` : 1 handler vivant (`handle_rate_limit_exceeded`, via `Common::RateLimitable#check_rate_limit!` non éclipsé sur CrasController) · `CraEntries::ErrorHandler` : 1 handler vivant (idem — aucune version locale ne l'éclipse) · `Common::ErrorHandler` : 0 (100 % éclipsé — ses 4 rescue_from se résolvent vers les versions API-spécifiques conformes). Décisions CTO : D3-2 GO (caractériser les 2 chemins), D3-1(a) GO conditionnel (suppression APRÈS vert), D3-3 reporté en fin de vague
+- **D3-A (3 specs, `spec/requests/api/v1/rate_limiting/cra_rate_limit_contract_spec.rb`) :** les deux chemins réels caractérisés — stub déterministe du seul limiter (`Common::RedisRateLimiter#allow? → false`), flux contrôleur intégralement exécuté. Résultats observés : **429 + contrat plat** sur les deux chemins ; `details { resource_type: 'CRA' }` côté CRA, **pas de details côté CRA-entries** (asymétrie, contrat : details optionnels)
+- **DIVERGENCE DOCUMENTÉE ↔ RÉELLE (arbitrage CTO requis avant D3-B) :** les deux chemins émettent **`code: 'RATE_LIMIT_EXCEEDED'`**, pas `TOO_MANY_REQUESTS` — `error_too_many_requests` rend `ERROR_CODES[:rate_limit_exceeded]` (standardized_error.rb), et `error_contract.md` liste les DEUX codes pour le même helper (table 4xx `TOO_MANY_REQUESTS` + ligne « `RATE_LIMIT_EXCEEDED` — alias »). L'émission est **cohérente sur tous les chemins rate-limit** (login/signup/refresh/missions/CRA). Recommandation : aligner le document sur l'implémentation (le changer le code serait un breaking change client) — décision CTO
+- **Note technique :** `Common::RedisRateLimiter` est définie lexicalement dans `module Common` (après la fermeture de `module RateLimitable`) — aucune correspondance fichier Zeitwerk : inaccessible depuis un spec tant que le concern n'est pas chargé (référence `Common::RateLimitable.name` en préambule)
+- **Gates :** suite **975/0** (972 + 3) ✓ · RuboCop **0** (231 files) ✓ · Brakeman **0** ✓ · **SimpleCov réel : 74,85 % lignes (2897/3870) · 46,72 % branches (756/1618)** — +0,15 pt lignes vs clôture D2-BUG
+- **Commit :** `test(p6): characterize API rate limit error handlers`
+- **Suivant :** D3-B (suppression des concerns morts/éclipsés + relocalisation des 2 handlers vivants) — **après arbitrage de la divergence ci-dessus**
 
 ### 2026-09-18 — W1-D2-BUG (suite) — RED → GREEN : propagation du soft-delete dans l autorisation Mission
 
