@@ -90,6 +90,14 @@
 
 ## 4. Journal de suivi
 
+### 2026-09-19 — W1-D3 divergence documentaire — arbitrage CTO : doc alignée sur l'implémentation, code inchangé
+
+- **Divergence documentaire détectée lors de la caractérisation D3-A :** les deux chemins rate-limit vivants émettent `code: "RATE_LIMIT_EXCEEDED"` (HTTP 429), alors que la table 4xx du guide attribuait `TOO_MANY_REQUESTS` au même helper — le guide listait les deux codes de façon contradictoire
+- **Implémentation existante confirmée :** `error_too_many_requests` rend `ERROR_CODES[:rate_limit_exceeded]` (standardized_error.rb) ; émission cohérente sur tous les chemins rate-limit de l'API (login/signup/refresh/missions/CRA) — prouvée par les specs D3-A (429 + contrat plat) et par lecture des `check_rate_limit!` locaux
+- **Aucun changement de contrat API :** modifier le code pour émettre `TOO_MANY_REQUESTS` serait un breaking change client, hors objectif D3 (arbitrage CTO 19/09)
+- **Documentation alignée :** `error_contract.md` — `RATE_LIMIT_EXCEEDED` documenté comme **code émis pour tout 429** ; `TOO_MANY_REQUESTS` conservé comme code défini dans `ERROR_CODES` mais **jamais émis** (réservé) ; section « Contrat d'émission 429 » ajoutée
+- **Commit :** `docs(p6): align rate limit error contract`
+
 ### 2026-09-19 — W1-D3 reconnaissance + D3-A clôturée — caractérisation des 2 chemins rate-limit vivants
 
 - **Reconnaissance (arbitrage CTO du 19/09) :** les 3 concerns ciblés sont à ~97 % morts/éclipsés — `Cras::ErrorHandler` : 1 handler vivant (`handle_rate_limit_exceeded`, via `Common::RateLimitable#check_rate_limit!` non éclipsé sur CrasController) · `CraEntries::ErrorHandler` : 1 handler vivant (idem — aucune version locale ne l'éclipse) · `Common::ErrorHandler` : 0 (100 % éclipsé — ses 4 rescue_from se résolvent vers les versions API-spécifiques conformes). Décisions CTO : D3-2 GO (caractériser les 2 chemins), D3-1(a) GO conditionnel (suppression APRÈS vert), D3-3 reporté en fin de vague

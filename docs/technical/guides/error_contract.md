@@ -54,13 +54,13 @@ L'ancien format utilisait des schémas variés selon les endpoints :
 | `NOT_FOUND` | 404 | `error_not_found` | Ressource introuvable |
 | `CONFLICT` | 409 | `error_conflict` | Conflit d'état (duplicate, locked) |
 | `UNPROCESSABLE_ENTITY` | 422 | `error_unprocessable_entity` | Erreur de validation métier |
-| `TOO_MANY_REQUESTS` | 429 | `error_too_many_requests` | Rate limit dépassé |
 | `INVALID_PAYLOAD` | 422 | `error_invalid_payload` | Payload invalide (paramètres) |
 | `INVALID_PARAMETER` | 400 | `error_invalid_parameter` | Paramètre invalide |
 | `MISSING_PARAMETER` | 400 | `error_missing_parameter` | Paramètre requis manquant |
 | `INVALID_ENUM` | 400 | `error_invalid_enum` | Valeur d'enum invalide |
 | `MALFORMED_JSON` | 400 | `error_malformed_json` | JSON malformé |
-| `RATE_LIMIT_EXCEEDED` | 429 | `error_too_many_requests` | Alias pour rate limit |
+| `RATE_LIMIT_EXCEEDED` | 429 | `error_too_many_requests` | **Code émis pour tout 429** — rate limit dépassé (W1-D3 D3-A : alignement du document sur l'implémentation, `error_too_many_requests` rend `ERROR_CODES[:rate_limit_exceeded]`)
+| `TOO_MANY_REQUESTS` | 429 | — | Code défini dans `ERROR_CODES`, **jamais émis** (réservé — aucune réponse réelle ne le porte)
 
 ### 5xx — Erreurs serveur
 
@@ -145,6 +145,14 @@ details = response['details']       # Hash (optionnel)
 | `DELETE /api/v1/cras/:id` | CRA locked | `CONFLICT` | 409 |
 | `GET /api/v1/cras/:id` | Not found | `NOT_FOUND` | 404 |
 | `POST /api/v1/cras/:id/submit` | No entries | `UNPROCESSABLE_ENTITY` | 422 |
+
+---
+
+**Contrat d'émission 429 (clarifié le 19/09/2026 — W1-D3 D3-A)** : tous les chemins
+de rate limiting de l'API (login, signup, refresh, missions, CRAs, CRA entries)
+émettent `code: "RATE_LIMIT_EXCEEDED"` avec HTTP 429 — le helper `error_too_many_requests`
+rend `ERROR_CODES[:rate_limit_exceeded]`. Le code `TOO_MANY_REQUESTS` existe dans la table
+des codes mais n'est émis par aucune réponse.
 
 ---
 
