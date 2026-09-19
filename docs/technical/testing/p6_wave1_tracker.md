@@ -80,7 +80,7 @@
 
 **Commit :** `test(p6): characterize API error handlers`
 
-### W1-D4 — `standardized_error` : branches restantes + fc08::005 — ⬜ à faire
+### W1-D4 — `standardized_error` : branches restantes + fc08::005 — ✅ FAIT (19/09, caractérisation pure)
 
 **Périmètre :** branches non traversées (`error_invalid_enum`, `error_malformed_json`, `error_missing_parameter`, `error_unauthorized`, `handle_unpermitted_parameters`, `handle_parameter_missing`, helpers `validate_required_params`/`validate_enum`/`validate_json`) ; puis règle fc08::005 : **si** la caractérisation démontre l'incompatibilité du helper (`{error: {code}}` imbriqué vs contrat plat) → RED → correction **minimale** du helper.
 
@@ -89,6 +89,16 @@
 **Commit :** `fix(p6): align standardized error contract`
 
 ## 4. Journal de suivi
+
+### 2026-09-19 — W1-D4 clôturée — caractérisation pure, fc08::005 tranchée par les faits
+
+- **Caractérisation vivante (2 specs, `spec/requests/api/v1/standardized_error_contract_spec.rb`, suite 975 → 977) :** `error_unauthorized` via POST /auth/login sans email — **401 + contrat plat, message « Email is required »** (branche `login_params[:email].blank?` jamais assertée) ; `handle_parameter_missing` + `error_missing_parameter` via POST /signup sans wrapper `user` (`params.require(:user)` de UsersController#user_params) — **400 + MISSING_PARAMETER + details { parameter: "user" }**. Les 2 specs vertes d'emblée : **caractérisation pure, aucun cycle RED**
+- **Latents documentés (aucun test artificiel, P6.0) :** `error_invalid_enum`, `error_malformed_json`, `validate_required_params` (deux copies — StandardizedError et Common::ParameterExtractor), `validate_enum`, `validate_json` — **zéro appelant** dans `app/` ; `handle_unpermitted_parameters` — **injoignable** : `action_on_unpermitted_parameters` non configuré (= :log par défaut, l'exception n'est jamais levée) ; contexte : `handle_record_not_found` injoignable aussi (aucun `.find(params)` dans les contrôleurs — les 404 réels transitent par CraErrors/`error_not_found`)
+- **fc08::005 — détermination par preuve d'exécution (critère CTO) :** `ErrorResponseHelper#expect_error_response` — **zéro usage dans toute la suite** (grep : seule sa définition existe) → helper **MORT** → l'incompatibilité `{error: {code}}` vs `{code}` **n'est pas démontrable par exécution** → **aucune modification du helper** (règle conditionnelle respectée) → statut à arbitrer séparément (suppression du fichier `spec/support/error_response_helper.rb` ou maintien)
+- **Vérification par-ligne (rapport frais, 977 exemples) :** `standardized_error.rb` **69,05 %** — cibles couvertes : `error_unauthorized` (L82-83), `error_missing_parameter` (L114-117), `handle_parameter_missing` (L170-172)
+- **Gates :** suite **977/0** (975 + 2) ✓ · RuboCop **0** ✓ · Brakeman **0** ✓ · **SimpleCov réel : 76,49 % lignes (2825/3693) · 47,60 % branches (756/1588)**
+- **Commit :** `test(p6): characterize standardized error handling`
+- **État de vague :** W1-D1 ✅ · W1-D2 ✅ + D2-BUG ✅ · W1-D3 ✅ (A/B + divergence) · **W1-D4 ✅** — **Wave 1 complète : réévaluation de clôture CTO (latents/latentes à arbitrer + fc08::005 statut)**
 
 ### 2026-09-19 — W1-D3-B clôturé — suppression des 3 concerns morts/éclipsés + relocalisation des handlers vivants
 
