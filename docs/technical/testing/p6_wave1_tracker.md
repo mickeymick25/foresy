@@ -90,6 +90,16 @@
 
 ## 4. Journal de suivi
 
+### 2026-09-19 — WAVE 1 CLÔTURÉE (validation CTO) — décisions finales et suite
+
+- **Clôture de vague validée par le CTO** : bilan conforme P6.0 — la progression (73,21 % → 76,49 % lignes, 45,07 % → 47,60 % branches) est la conséquence des caractérisations et des suppressions de code démontré mort, pas l'objectif. **0 test artificiel, 2 bugs d'autorisation corrigés, 4 zones de code mort supprimées, 1 divergence documentaire sans breaking change**
+- **fc08::005 (statut définitif)** : helper `expect_error_response` **maintenu temporairement** et **tracé comme dette distincte** — la preuve (zéro usage) ne permet pas de conclure à l'inutilité du fichier dans l'architecture globale sans examen des références hors suite ; pas de cleanup opportuniste dans cette vague
+- **Latents (6 helpers `standardized_error` + 4 `rate_limitable`) : pas de cycle** — identifiés, suppression/conservation à arbitrer par groupe **en fin de campagne** (D3-3 idem, réévaluation séparée)
+- **Verrou : INCHANGÉ** — 72,0 transitoire maintenu malgré 76,49 % mesurés ; retour à 72,5 contractuellement rattaché à Wave 2 (`OAuthCodeExchangeService`), arbitrage CTO 19/09
+- **Périmètre de la PR Wave 1 : tel quel** — pas d'ajout (ni helper, ni latents, ni D3-3)
+- **Suite validée :** merge PR #34 → PR Wave 1 (description : `docs/technical/changes/2026-09-19-P6_Wave1_PR_Description.md`) → **CI 6/6 arbitre** → réévaluation finale Wave 1 → Wave 2
+- **PR #34 vérifiée prête à merger** : `mergeable: true`, état `clean`, 11 commits (+410/−1319) — l'exécution du merge est humaine (pas d'accès authentifié GitHub côté agent)
+
 ### 2026-09-19 — W1-D4 clôturée — caractérisation pure, fc08::005 tranchée par les faits
 
 - **Caractérisation vivante (2 specs, `spec/requests/api/v1/standardized_error_contract_spec.rb`, suite 975 → 977) :** `error_unauthorized` via POST /auth/login sans email — **401 + contrat plat, message « Email is required »** (branche `login_params[:email].blank?` jamais assertée) ; `handle_parameter_missing` + `error_missing_parameter` via POST /signup sans wrapper `user` (`params.require(:user)` de UsersController#user_params) — **400 + MISSING_PARAMETER + details { parameter: "user" }**. Les 2 specs vertes d'emblée : **caractérisation pure, aucun cycle RED**
