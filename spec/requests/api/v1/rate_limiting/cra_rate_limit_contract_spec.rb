@@ -4,12 +4,12 @@
 # ErrorHandler ciblés (plan : docs/technical/testing/p6_wave1_tracker.md §3 W1-D3,
 # arbitrage CTO 19/09 — D3-A avant toute suppression D3-B).
 #
-# Chemins réels caractérisés :
+# Chemins réels caractérisés (relocalisés W1-D3-B depuis les concerns supprimés) :
 #   CrasController#create       → Common::RateLimitable#check_rate_limit!
-#                               → Api::V1::Cras::ErrorHandler#handle_rate_limit_exceeded
+#                               → CrasController#handle_rate_limit_exceeded
 #                               → error_too_many_requests → 429 + details { resource_type: 'CRA' }
 #   CraEntriesController#create → Common::RateLimitable#check_rate_limit!
-#                               → Api::V1::CraEntries::ErrorHandler#handle_rate_limit_exceeded
+#                               → CraEntriesController#handle_rate_limit_exceeded
 #                               → error_too_many_requests → 429 (sans details)
 #
 # Le stub fixe uniquement la réponse du limiter (RedisRateLimiter#allow? → false)
@@ -33,7 +33,7 @@ RSpec.describe 'CRA rate limit error contract', type: :request do
     allow_any_instance_of(Common::RedisRateLimiter).to receive(:allow?).and_return(false)
   end
 
-  describe 'POST /api/v1/cras — via Api::V1::Cras::ErrorHandler#handle_rate_limit_exceeded' do
+  describe 'POST /api/v1/cras — via CrasController#handle_rate_limit_exceeded' do
     it 'returns 429 with the flat error contract (code, message, details)' do
       post '/api/v1/cras', params: { month: 9, year: 2026, currency: 'EUR' }, headers: headers
 
@@ -59,7 +59,7 @@ RSpec.describe 'CRA rate limit error contract', type: :request do
     end
   end
 
-  describe 'POST /api/v1/cras/:cra_id/entries — via Api::V1::CraEntries::ErrorHandler#handle_rate_limit_exceeded' do
+  describe 'POST /api/v1/cras/:cra_id/entries — via CraEntriesController#handle_rate_limit_exceeded' do
     let(:cra) { create(:cra, :with_creator, creator: user, year: 2026, month: 9) }
 
     it 'returns 429 with the flat error contract' do

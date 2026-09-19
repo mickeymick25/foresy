@@ -72,7 +72,7 @@
 
 **Commit :** `fix(p6): l'autorisation CRA filtre missions et user_companies soft-deletées (W1-D2-BUG)`
 
-### W1-D3 — Caractérisation des error_handlers — ▶ EN COURS (D3-A ✅ le 19/09, D3-B en attente d'arbitrage divergence)
+### W1-D3 — Caractérisation des error_handlers — D3-A ✅ · D3-B ✅ (19/09) — clôture de vague : réévaluation CTO (GO W1-D4 attendu)
 
 **Périmètre :** traverser chaque handler non exercé des 3 fichiers, avec assertion du contrat `{ code, message, details }` (référence : `docs/technical/guides/error_contract.md`) — notamment : `handle_cra_locked_error`, `handle_cra_submitted_error`, `handle_duplicate_cra_error`, `handle_invalid_transition_error`, `handle_rate_limit_exceeded`, `handle_internal_error`, `handle_cra_month/year/currency_error`, `handle_no_independent_company_error`, et les équivalents `cra_entries` + `common`.
 
@@ -89,6 +89,17 @@
 **Commit :** `fix(p6): align standardized error contract`
 
 ## 4. Journal de suivi
+
+### 2026-09-19 — W1-D3-B clôturé — suppression des 3 concerns morts/éclipsés + relocalisation des handlers vivants
+
+- **Supprimés (preuve au grep, arbitrage CTO 19/09) :** `Api::V1::Cras::ErrorHandler` (18 handlers morts — CrasController route tout via `handle_cra_error`/`render_result_error`), `Api::V1::CraEntries::ErrorHandler` (~24 handlers éclipsés par les 11 méthodes locales du contrôleur), `Common::ErrorHandler` (100 % éclipsé — ses 4 `rescue_from` sur les contrôleurs CRA retombent désormais sur `StandardizedError` (ApplicationController), contrat-conforme et uniforme)
+- **Relocalisés (chaîne préservée à l'identique, sans nouvelle abstraction) :** `handle_rate_limit_exceeded` → `CrasController` (429 + `details { resource_type: 'CRA' }`) et → `CraEntriesController` (429 sans details) — preuve : les 3 specs D3-A **restent vertes sans modification d'attente**
+- **Le grep final a révélé un appelant vivant non prévu :** `log_api_error` — 5 appels dans les blocs `rescue StandardError` de `CraEntriesController` — relocalisée dans le contrôleur (sinon `NoMethodError` latent en production sur toute exception inattendue) : la gate grep a joué exactement son rôle
+- **Includes nettoyés :** `Api::V1::Cras::ErrorHandler` (CrasController), `Api::V1::CraEntries::ErrorHandler` (CraEntriesController) — les `RateLimitable`/`ParameterExtractor` restent (vivants)
+- **Méthodes latentes conservées (hors périmètre D3, non réparées avant suppression — arbitrage CTO) :** `render_cra_rate_limit_response`, `render_cra_entry_rate_limit_response`, `get_rate_limit_config`, `render_rate_limit_response` (dans les concerns rate_limitable survivants, zéro appelant)
+- **Gates de comparaison :** exemples **975 avant → 975 après** (inchangé) ✓ · specs rate-limit **3/0** (relocalisation prouvée) ✓ · aucune régression (suite 975/0) ✓ · RuboCop **0** (228 files) ✓ · Brakeman **0** ✓ · **SimpleCov réel : 76,49 % lignes (2825/3693) · 47,60 % branches (756/1588)** — vs 74,85 %/46,72 % avant cleanup : **+1,64 pt lignes, +0,88 pt branches** (conséquence mécanique du retrait du corpus mort, pas d'ajout de tests)
+- **Commits :** `docs(p6): align rate limit error contract` (`2c6a3cd7`) · `chore(p6): remove dead API error handlers`
+- **État de vague :** W1-D1 ✅ · W1-D2 ✅ + D2-BUG ✅ · W1-D3-A ✅ + divergence doc ✅ + **W1-D3-B ✅** · W1-D4 ⏸ — **clôture W1-D3 : réévaluation CTO, GO W1-D4 attendu**
 
 ### 2026-09-19 — W1-D3 divergence documentaire — arbitrage CTO : doc alignée sur l'implémentation, code inchangé
 
