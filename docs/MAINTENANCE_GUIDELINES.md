@@ -17,7 +17,7 @@ Ces guidelines garantissent la **cohérence documentaire** à travers tous les d
 3. **BRIEFING.md** - État actuel et développement
 4. **README.md** - Métriques source de vérité ⭐
 5. **Feature Contracts** - Documents techniques spécifiques
-6. **DDD_Audit_CRA_Tests_Migration.md** - Source autoritaire architecture
+6. **[DONE]_2026_01_27_DDD_Audit_CRA_Tests_Migration.md** - Source autoritaire architecture
 
 ---
 
@@ -428,7 +428,7 @@ v1.3 : Dashboard temps réel
 - **README.md** : Source vérité métriques
 - **Scripts** : `scripts/validate_docs.sh` (future)
 - **Templates** : Correction documentaire
-- **Audit** : `DDD_Audit_CRA_Tests_Migration.md`
+- **Audit** : `[DONE]_2026_01_27_DDD_Audit_CRA_Tests_Migration.md`
 
 ---
 

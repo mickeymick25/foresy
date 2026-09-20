@@ -3,7 +3,7 @@
 # 🔴 P3.2 — Nettoyage Code Mort : suppression des concerns modèles orphelins
 #
 # This spec characterizes the fix for audit point M1
-# (see docs/technical/audits/2026-07-22-Architecture_Debt_Audit_and_Plan.md).
+# (see docs/technical/audits/[DONE]_2026_07_22_Architecture_Debt_Audit_and_Plan.md).
 #
 # The following model concerns exist but are NEVER included by any model:
 #

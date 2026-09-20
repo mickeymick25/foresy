@@ -12,7 +12,7 @@ require 'rails_helper'
 # - Database constraints (partial unique index, CHECK role)
 #
 # @see app/models/user_mission.rb
-# @see docs/technical/corrections/2026-02-15-DDD_Relation-Driven_Correction.md
+# @see docs/technical/corrections/[DONE]_2026_02_15_DDD_Relation-Driven_Migration_Plan.md
 #
 RSpec.describe UserMission, type: :model do
   # Factories

@@ -3,7 +3,7 @@
 # 🔴 P1.1 — Stabilisation Runtime : suppression de la couche de services cassée
 #
 # This spec characterizes the fix for audit point S1
-# (see docs/technical/audits/2026-07-22-Architecture_Debt_Audit_and_Plan.md).
+# (see docs/technical/audits/[DONE]_2026_07_22_Architecture_Debt_Audit_and_Plan.md).
 #
 # The CraEntries::* services (app/services/cra_entries/) referenced
 # ::Domain::CraEntry::CraEntry which does NOT exist. Any call to these

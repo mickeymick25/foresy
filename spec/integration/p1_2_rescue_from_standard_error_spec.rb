@@ -3,7 +3,7 @@
 # 🔴 P1.2 — Stabilisation Runtime : conflit rescue_from StandardError
 #
 # This spec characterizes the fix for audit point C2
-# (see docs/technical/audits/2026-07-22-Architecture_Debt_Audit_and_Plan.md).
+# (see docs/technical/audits/[DONE]_2026_07_22_Architecture_Debt_Audit_and_Plan.md).
 #
 # ApplicationController defines a rescue_from StandardError that RE-RAISES
 # the exception (commented # TEMPORARY). This neutralizes the

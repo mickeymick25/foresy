@@ -4,7 +4,7 @@
 # accessible in production, even if E2E_MODE=true is mistakenly set.
 #
 # This spec characterizes the security fix for audit point F3
-# (see docs/technical/audits/2026-07-22-Architecture_Debt_Audit_and_Plan.md).
+# (see docs/technical/audits/[DONE]_2026_07_22_Architecture_Debt_Audit_and_Plan.md).
 #
 # Defense in depth strategy:
 #   1. config/routes.rb: routes not mounted in production

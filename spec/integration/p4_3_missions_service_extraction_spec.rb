@@ -4,7 +4,7 @@
 # dans des Service Objects (MissionServices::*), suivant le pattern CraServices::*.
 #
 # This spec characterizes the fix for audit point C10
-# (see docs/technical/audits/2026-07-22-Architecture_Debt_Audit_and_Plan.md).
+# (see docs/technical/audits/[DONE]_2026_07_22_Architecture_Debt_Audit_and_Plan.md).
 #
 # Invariants:
 # 1. MissionServices::Create / Update / Delete exist and return ApplicationResult

@@ -9,7 +9,7 @@
 # - Trigger protection for creator immutability
 # - No global unique index → allows future multi-role support
 #
-# @see docs/technical/corrections/2026-02-15-DDD_Relation-Driven_Correction.md
+# @see docs/technical/corrections/[DONE]_2026_02_15_DDD_Relation-Driven_Migration_Plan.md
 #
 class UserMission < ApplicationRecord
   # ⚠️ PLATINUM: No global unique index on (user_id, mission_id)

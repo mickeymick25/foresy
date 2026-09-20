@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # W1-D2 — Caractérisation de la sécurité vivante : `Cra.accessible_to`
-# (plan : docs/technical/testing/p6_wave1_tracker.md §3 W1-D2)
+# (plan : docs/technical/testing/[DONE]_2026_09_18_p6_wave1_tracker.md §3 W1-D2)
 #
 # Le scope est la source d'autorisation RÉELLE de l'API CRA :
 # - CrasController#validate_cra_access! → Cra.accessible_to(user).active

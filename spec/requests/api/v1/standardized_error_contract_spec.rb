@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # W1-D4 — Caractérisation des branches VIVANTES de StandardizedError
-# (plan : docs/technical/testing/p6_wave1_tracker.md §3 W1-D4 — arbitrage CTO 19/09)
+# (plan : docs/technical/testing/[DONE]_2026_09_18_p6_wave1_tracker.md §3 W1-D4 — arbitrage CTO 19/09)
 #
 # Caractérisées via chemins API réels :
 #   error_unauthorized       — POST /auth/login sans email (AuthenticationController,
@@ -12,7 +12,7 @@
 # Latents documentés puis supprimés en réévaluation finale W1 (arbitrage CTO 19/09) :
 #   error_invalid_enum, error_malformed_json, validate_required_params,
 #   validate_enum, validate_json — zéro appelant, supprimés
-#   (codes INVALID_ENUM/MALFORMED_JSON : réservés, jamais émis — error_contract.md)
+#   (codes INVALID_ENUM/MALFORMED_JSON : réservés, jamais émis — 2026_08_18_error_contract.md)
 #   handle_unpermitted_parameters : injoignable — action_on_unpermitted_parameters
 #     non configuré (= :log par défaut, l'exception n'est jamais levée) — conservé (ceinture rescue_from)
 require 'rails_helper'

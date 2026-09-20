@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # W1-D3 — Caractérisation des deux seuls chemins VIVANTS des concerns
-# ErrorHandler ciblés (plan : docs/technical/testing/p6_wave1_tracker.md §3 W1-D3,
+# ErrorHandler ciblés (plan : docs/technical/testing/[DONE]_2026_09_18_p6_wave1_tracker.md §3 W1-D3,
 # arbitrage CTO 19/09 — D3-A avant toute suppression D3-B).
 #
 # Chemins réels caractérisés (relocalisés W1-D3-B depuis les concerns supprimés) :
@@ -41,7 +41,7 @@ RSpec.describe 'CRA rate limit error contract', type: :request do
 
       json = JSON.parse(response.body)
       # Caractérisation du comportement RÉEL : error_too_many_requests rend
-      # ERROR_CODES[:rate_limit_exceeded] — divergence vs error_contract.md
+      # ERROR_CODES[:rate_limit_exceeded] — divergence vs 2026_08_18_error_contract.md
       # (qui liste TOO_MANY_REQUESTS ET « RATE_LIMIT_EXCEEDED — alias ») —
       # arbitrage CTO tracé au journal W1-D3.
       expect(json['code']).to eq('RATE_LIMIT_EXCEEDED')

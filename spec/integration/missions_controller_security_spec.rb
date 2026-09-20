@@ -4,7 +4,7 @@
 # output to stdout.
 #
 # This spec characterizes the security fix for audit point C3
-# (see docs/technical/audits/2026-07-22-Architecture_Debt_Audit_and_Plan.md).
+# (see docs/technical/audits/[DONE]_2026_07_22_Architecture_Debt_Audit_and_Plan.md).
 #
 # The MissionsController had 10 `puts` statements in set_mission and
 # validate_mission_access! that printed internal state (params, IDs,
