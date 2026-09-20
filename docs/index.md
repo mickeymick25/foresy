@@ -26,7 +26,7 @@ Foresy/
 └── docs/
     ├── index.md                 # Documentation centrale (ce fichier)
     ├── BRIEFING.md              # Contexte projet pour IA
-    ├── [Obsolete]_2025_12_26_BACKLOG.md               # Backlog produit et roadmap
+    ├── BACKLOG.md               # Backlog produit et roadmap
     ├── VISION.md                # Vision produit et principes architecture
     ├── FeatureContract/         # Contrats de fonctionnalités
     │   ├── 01_...OAuth          # Feature Contract OAuth
@@ -155,7 +155,7 @@ docker compose exec web bundle exec brakeman -q
 ### 🎯 **Feature Contract 06 — Missions (31/12/2025)** ✅ PR #12 MERGED (1 Jan 2026)
 1. **[📋 Feature Contract 06](./FeatureContract/06_Feature%20Contract%20—%20Missions.md)** - Contrat source de vérité
 2. **[📝 Changelog FC-06](./technical/changes/[DONE]_2025_12_31_FC06_Missions_Implementation.md)** - Documentation technique complète de l'implémentation
-3. **[📊 [Obsolete]_2025_12_26_BACKLOG.md](./[Obsolete]_2025_12_26_BACKLOG.md)** - Roadmap mise à jour avec FC-06 mergé
+3. **[📊 BACKLOG.md](./BACKLOG.md)** - Backlog transverse (chantiers ouverts, priorités)
 4. **[🧪 Script E2E Missions](../bin/e2e/e2e_missions.sh)** - 6 tests E2E (tous passent)
 
 ### 🧪 **Tests E2E Infrastructure**

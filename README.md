@@ -247,7 +247,7 @@ JWT_SECRET=your_jwt_secret_key
 | [Plan de remédiation](docs/technical/audits/[DONE]_2026_07_22_Architecture_Debt_Audit_and_Plan.md) | Audit 25 points + 25 tâches (100% terminé) |
 | [Release notes v0.1.0](docs/RELEASE_NOTES_v0.1.0.md) | Breaking changes, nouveautés, déploiement |
 | [Collection Postman](docs/postman/Foresy_API.postman_collection.json) | 28 endpoints avec scripts de test |
-| [BACKLOG](docs/[Obsolete]_2025_12_26_BACKLOG.md) | Roadmap produit et tâches restantes |
+| [BACKLOG](docs/BACKLOG.md) | Backlog transverse et tâches restantes |
 | [Index documentation](docs/index.md) | Navigation centrale |
 
 ## 📊 Monitoring & Observabilité

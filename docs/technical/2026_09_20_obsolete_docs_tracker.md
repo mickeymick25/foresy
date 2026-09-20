@@ -30,7 +30,7 @@
 | Document | Verdict | Preuve d'enquête | Suivi |
 |---|---|---|---|
 | `corrections/2026_01_05_TECH-DEBT-dry-monads-missing.md` | **[Obsolete]** | **Décision contraire actée dans le document même** : « Statut : ✅ RÉSOLU · Résolution : Suppression de Dry::Monads, migration vers exceptions métier FC07 · **Décision CTO : Exceptions métier > Dry::Monads** » (5 raisons : paradigme isolé, non aligné FC07, friction ActiveRecord, dette cognitive, adoption partielle) ; alternative appliquée (`CraErrors`, 9 services refactorés, Zeitwerk OK) ; dry-monads absent du Gemfile = conséquence de la décision, pas un oubli | ⏳ TODO |
-| `docs/BACKLOG.md` (racine docs/ — hors docs/technical) | **[Obsolete]** (GO CTO 20/09 — traitement explicite **séparé**, artefact distinct de la campagne docs/technical) | Décision **2.2 actée le 2026-09-10** (qualification du corpus) : « La roadmap produit vit désormais dans ROADMAP.md — source canonique unique » ; le contenu restant est périmé (850 tests, Rswag 248, RuboCop 223 files — état du 18/08 vs 977 tests aujourd'hui) ; créé le **2025-12-26** (git) | ⏳ TODO |
+| `docs/BACKLOG.md` (racine docs/ — hors docs/technical) | **ARCHIVE + RELANCE** : `[Obsolete]_2025_12_26_BACKLOG.md` = archive de l'ancien backlog (le verdict [Obsolete] demeure pour l'ANCIEN contenu) ; **nouveau `docs/BACKLOG.md` vivant créé le 20/09** | Décision 2.2 (10/09) : ROADMAP.md canonique → ancien contenu périmé archivé (850 tests vs 977 actuels, créé le 2025-12-26) ; **demande CTO 20/09 : conserver un BACKLOG** — relance en backlog **transverse** (chantiers non couverts par ROADMAP/registre/campagne + pointeurs, règles anti-drift dans le fichier) | ✅ FAIT |
 | `analysis/[DONE]_2025_12_19_google_oauth_service_mock_solution.md` | **[DONE] → [Obsolete]** (GO CTO 20/09) | La solution implémentée a été **annulée** : `GoogleOAuth2Service` supprimé le 21/12/2025 (`changes/[DONE]_2025_12_21_GoogleOAuth2Service_Removal_Resolution.md` — point 2 PR) ; le traitement documenté n'existe plus dans l'architecture finale. **Chaîne historique conservée dans le tracker** | ⏳ TODO |
 | `changes/[DONE]_2025_12_18_GoogleOauthService_Fix_Resolution.md` | **[DONE] → [Obsolete]** (GO CTO 20/09) | Fix Zeitwerk `GoogleOauthService` **supersédé le 21/12** par la suppression du service — même chaîne d'annulation | ⏳ TODO |
 | `analysis/[DONE]_2025_12_19_csrf_security_analysis_same_site_none.md` | **[Obsolete]** (GO CTO 20/09) | La proposition (SameSite=None) n'est pas restée différée : la stratégie d'architecture a changé — **suppression complète des sessions le 22/12** (stateless). La solution décrite n'est pas celle qui a été livrée ; le document est conservé comme **trace historique** | ⏳ TODO |
@@ -80,6 +80,13 @@ L'enquête révèle **3 requalifications** de `2026_09_20_documentation_hygiene_
 **Périmètre maintenu : strictement documentaire — aucune modification fonctionnelle ; W2-D2 reste sur sa branche dédiée, sans mélange.**
 
 ## 6. Journal de suivi
+
+### 2026-09-20 (quinquies) — Relance du BACKLOG transverse (demande CTO) — réponse « doublon hub RAG ? »
+
+- **Demande CTO :** conserver un BACKLOG dans `docs/` — est-ce un doublon du hub RAG ? **Réponse : non** — rôles complémentaires : le hub est un **index sémantique** (recherche d'états/décisions, mémoires `fc08::xxx`), le BACKLOG est un **document d'action curaté** (quoi faire ensuite, priorités, pointeurs) ; le hub indexe le BACKLOG — le garder court/daté protège l'index (l'ancien BACKLOG du 18/08 avait été indexé avec des métriques périmées comme « état courant »)
+- **Décision appliquée :** archive conservée (`[Obsolete]_2025_12_26_BACKLOG.md` — le verdict [Obsolete] demeure pour l'ANCIEN contenu) + **nouveau `docs/BACKLOG.md` vivant** : backlog transverse — 13 chantiers ouverts datés (W2-D2 actif, P1, audit chore/p6-coverage-plan, D3-3, verrou 72,5, handle_user_error, E2E OAuth credentials, alerting, réindexation hub, link-rot, drift ROADMAP/FC-08, performance, monitoring), sources canoniques pointées (ROADMAP · registre dette · campagne P6), **règles anti-drift** (pointe sans recopier, métriques datées, MAJ à chaque état substantiel)
+- **ROADMAP.md prose alignée** (décision 2.2 évoluée le 20/09) ; références README/index/BRIEFING/audits/changes réalignées sur le BACKLOG vivant
+- **Réindexation du hub RAG requise post-merge** (les renames PR #37 + obsolete ont déplacé tous les chemins indexés) — ajoutée au BACKLOG (#9)
 
 ### 2026-09-20 (quater) — Exécution O0→O3 complète — gates verts — O4 en cours
 
