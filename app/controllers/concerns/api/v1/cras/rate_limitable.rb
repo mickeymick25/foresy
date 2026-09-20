@@ -84,24 +84,6 @@ module Api
             request.headers['X-Real-IP'] ||
             '0.0.0.0'
         end
-
-        def render_cra_rate_limit_response(limit, reset_time)
-          headers['X-RateLimit-Limit'] = limit.to_s
-          headers['X-RateLimit-Remaining'] = '0'
-          headers['X-RateLimit-Reset'] = reset_time.to_s
-          headers['Retry-After'] = (reset_time - Time.current.to_i).to_s
-
-          render json: {
-            error: 'cra_rate_limit_exceeded',
-            message: 'CRA operation rate limit exceeded',
-            resource_type: 'CRA',
-            rate_limit: {
-              limit: limit,
-              reset_time: reset_time,
-              window_seconds: cra_rate_window
-            }
-          }, status: :too_many_requests
-        end
       end
     end
   end

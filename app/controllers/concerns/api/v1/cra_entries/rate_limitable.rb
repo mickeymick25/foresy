@@ -83,24 +83,6 @@ module Api
             '0.0.0.0'
         end
 
-        def render_cra_entry_rate_limit_response(limit, reset_time)
-          headers['X-RateLimit-Limit'] = limit.to_s
-          headers['X-RateLimit-Remaining'] = '0'
-          headers['X-RateLimit-Reset'] = reset_time.to_s
-          headers['Retry-After'] = (reset_time - Time.current.to_i).to_s
-
-          render json: {
-            error: 'cra_entry_rate_limit_exceeded',
-            message: 'CRA entry operation rate limit exceeded',
-            resource_type: 'CRA Entry',
-            rate_limit: {
-              limit: limit,
-              reset_time: reset_time,
-              window_seconds: cra_entry_rate_window
-            }
-          }, status: :too_many_requests
-        end
-
         def check_cra_locked_for_entry_modification!(cra)
           return unless cra.present?
 

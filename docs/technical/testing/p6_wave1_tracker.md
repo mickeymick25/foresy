@@ -201,7 +201,62 @@
 - [ ] Journal complet + docs de campagne à jour (`coverage_campaign_p6.md`)
 - [ ] PR Wave 1 ouverte au format maison après merge PR #34 — CI 6/6 = clôture de la vague
 
-## 6. Références
+## 6. Réévaluation finale Wave 1 (lancée le 19/09 — dossier d'arbitrage)
+
+### Arbitrages CTO (validés le 19/09)
+
+| Groupe | Décision | Base de preuve |
+|---|---|---|
+| G1 — 6 latents `standardized_error` | **SUPPRIMER** (codes `INVALID_ENUM`/`MALFORMED_JSON` conservés dans `ERROR_CODES`, documentés « réservés, jamais émis ») | Zéro appelant, grep ×2 |
+| G2 — 4 latents `rate_limitable` | **SUPPRIMER** | Zéro appelant + ancien format hors contrat (divergence latente) |
+| G3 — `spec/support/error_response_helper.rb` (fc08::005) | **SUPPRIMER LE FICHIER** — clôturée « résolue par suppression » | Examen intégral : 2 méthodes, format imbriqué pré-contrat, zéro usage, auto-inclusion = piège |
+| G4 — D3-3 (couches vivantes, ~76 lignes) | **REPORTER post-Wave 2** — dette vivante identifiée, ni caractérisation ni suppression ni refactor | Chemins de production vivants, chantier ~15-20 specs requête autonome |
+
+**Garde :** verrou 72,0 inchangé pendant ce cycle — l'évolution mécanique du corpus ne justifie pas à elle seule une remontée du seuil.
+
+### Journal d'exécution — 2026-09-19 : cycle unique G1+G2+G3 (branche `chore/p6-w1-reevaluation-cleanup`)
+
+- **Supprimés :** `standardized_error.rb` — `error_invalid_enum`, `error_malformed_json`, section `Validation Helpers` (`validate_required_params`, `validate_enum`, `validate_json`) ; `Common::ParameterExtractor` — copie `validate_required_params` (méthode seule, fichier vivant conservé) ; `Common::RateLimitable` — `render_rate_limit_response`, `get_rate_limit_config` ; `Cras::RateLimitable` — `render_cra_rate_limit_response` ; `CraEntries::RateLimitable` — `render_cra_entry_rate_limit_response` ; **fichier complet** `spec/support/error_response_helper.rb` (fc08::005 clôturée)
+- **Incident de périmètre (transparent) :** une première édition de `Common::RateLimitable` a dépassé le périmètre en supprimant les fondations vivantes (`rate_limit_key`, `rate_limit_config`, `default_*`) — **immédiatement restauré**, diff final vérifié : exactement −25 lignes (les 2 méthodes arbitrées)
+- **Guide d'erreur :** `INVALID_ENUM` + `MALFORMED_JSON` → « réservés, jamais émis » (miroir du traitement `TOO_MANY_REQUESTS` D3-A)
+- **Conservés (hors périmètre arbitré) :** `handle_unpermitted_parameters`/`handle_record_not_found` (ceinture `rescue_from` documentée injoignable), `validate_date_range!` (non arbitré), tout D3-3
+
+**Objectif CTO :** transformer les dettes identifiées en décisions explicites avant Wave 2 — sans mélanger dette Wave 1 et périmètre OAuth.
+
+### Groupe 1 — 6 latents `standardized_error` (reconnaissance confirmée : zéro appelant, grep ×2)
+
+| Méthode | Nature | Analyse |
+|---|---|---|
+| `error_invalid_enum` | Helper de contrat (code `INVALID_ENUM` documenté) | Zéro appelant — jamais émis. Même statut que `TOO_MANY_REQUESTS` après D3-A : code défini, non émis. Suppression du helper → le code devient « réservé » dans le contrat |
+| `error_malformed_json` | Helper de contrat (code `MALFORMED_JSON` documenté) | Idem — et Rails rejette déjà le JSON invalide en amont des contrôleurs |
+| `validate_required_params` (copie StandardizedError) | Utilitaire pur | Zéro appelant |
+| `validate_required_params` (copie Common::ParameterExtractor) | Utilitaire pur — le fichier extracteur est VIVANT | Zéro appelant : seule la méthode est morte, pas le fichier |
+| `validate_enum` | Utilitaire pur | Zéro appelant (les validations enum réelles vivent dans les modèles `validate_enum_values`) |
+| `validate_json` | Utilitaire pur | Zéro appelant |
+
+### Groupe 2 — 4 latents `rate_limitable` (reconnaissance confirmée : zéro appelant)
+
+| Méthode | Nature | Analyse |
+|---|---|---|
+| `render_cra_rate_limit_response` | Rendu ancien format (`{error: 'cra_rate_limit_exceeded', ...}`) | Morte **et** divergence latente : si jamais appelée, elle émettrait un format hors contrat — suppression doublement justifiée |
+| `render_cra_entry_rate_limit_response` | Idem (ancien format) | Idem |
+| `get_rate_limit_config` | Table de config non câblée | Zéro appelant — le rate limiting réel utilise `rate_limit_config`/`RateLimitService` |
+| `render_rate_limit_response` (Common) | Rendu ancien format | Zéro appelant (appelle `handle_rate_limit_exceeded` — résolution saine si appelée, mais jamais appelée) |
+
+### Groupe 3 — `spec/support/error_response_helper.rb` (fc08::005 — examen complet réalisé, condition co-CTO satisfaite)
+
+Lecture intégrale : **deux** méthodes (`expect_error_response` + `expect_error_code`), toutes deux au **format imbriqué pré-standardisation** (`data['error']['code']` — antérieur au contrat plat Phase 1.9), toutes deux **zéro usage** dans toute la suite. Le fichier s'auto-inclut dans tous les request specs (`RSpec.configure`) — c'est un **piège latent** : tout dev qui l'utiliserait obtiendrait des assertions faussées contre le contrat réel. Impact suppression : **nul** (rien ne l'appelle, compte de specs inchangé, hors corpus app/).
+
+### Groupe 4 — D3-3 : couches d'erreur vivantes des contrôleurs (mesure fraîche)
+
+| Contrôleur | Couverture | Non couvert |
+|---|---|---|
+| `CraEntriesController` | 64,63 % (147 utiles) | **52 lignes** — ~11 corps de handlers `rescue_from` (L198-249), blocs `rescue StandardError` des actions (L58-149), branches `handle_service_error` (L256-258) |
+| `CrasController` | 78,18 % (110 utiles) | **24 lignes** — branches `render_result_error` (L180-186 : bad_request/internal), une branche index (L76), un maillon `handle_cra_error` (L241) |
+
+**Nature du non-couvert : ce sont des chemins VIVANTS de production** (ceinture défensive `rescue_from` — les services ne lèvent pas d'exceptions métier par contrat, donc ces handlers ne s'exécutent que sur défaillance inattendue) + branches de dispatch de résultats d'erreur non exercées. **Caractérisables honnêtement** (stub d'un service qui lève chaque `CraErrors::*` → assertion du code HTTP/contrat mappé) — mais c'est un chantier de ~15-20 specs requête, de taille « étape de vague », pas un appendice de réévaluation.
+
+## 7. Références
 
 - Plan de campagne : `docs/technical/testing/coverage_campaign_p6.md`
 - Contrat d'erreur : `docs/technical/guides/error_contract.md`

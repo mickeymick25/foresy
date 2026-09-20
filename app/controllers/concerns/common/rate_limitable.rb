@@ -60,31 +60,6 @@ module Common
       3600 # 1 hour in seconds
     end
 
-    def render_rate_limit_response(limit, reset_time)
-      headers['X-RateLimit-Limit'] = limit.to_s
-      headers['X-RateLimit-Remaining'] = '0'
-      headers['X-RateLimit-Reset'] = reset_time.to_s
-      headers['Retry-After'] = (reset_time - Time.current.to_i).to_s
-
-      handle_rate_limit_exceeded
-    end
-
-    # Specific rate limits for different endpoints
-    def get_rate_limit_config
-      case "#{controller_name}:#{action_name}"
-      when 'cras:create', 'cra_entries:create'
-        { limit: 10, window: 3600, message: 'Too many create requests' }
-      when 'cras:update', 'cra_entries:update', 'cras:destroy', 'cra_entries:destroy'
-        { limit: 50, window: 3600, message: 'Too many modification requests' }
-      when 'cras:submit', 'cras:lock'
-        { limit: 5, window: 3600, message: 'Too many lifecycle requests' }
-      when 'sessions:create', 'users:create'
-        { limit: 5, window: 3600, message: 'Too many authentication requests' }
-      else
-        { limit: 100, window: 3600, message: 'Rate limit exceeded' }
-      end
-    end
-
     def extract_client_identifier
       # Enhanced version for rate limiting
       api_key ||
