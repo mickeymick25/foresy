@@ -120,7 +120,7 @@ The recalculation logic for `total_days` and `total_amount` is orchestrated in s
 
 **Documentation**: 
 - `docs/technical/fc07/` - Complete documentation
-- `docs/technical/fc07/phases/FC07-Phase3C-Completion-Report.md` - Phase 3C details
+- `docs/technical/fc07/phases/[DONE]_2026_01_05_FC07-Phase3C-Completion-Report.md` - Phase 3C details
 
 **Verification Command**:
 ```bash
@@ -187,7 +187,7 @@ docker compose exec web bundle exec rspec spec/services/cra_entries/ spec/models
 - **Security Model Documented**: Model A (logout = session-scoped, refresh = user-bound)
 - **Contract Compliance**: Strict Gherkin criteria verified
 - **Compatibility**: macOS/Linux, CI-safe
-- **Documentation**: `docs/technical/changes/2025-12-26-E2E_Revocation_Script.md`
+- **Documentation**: `docs/technical/changes/[DONE]_2025_12_26_E2E_Revocation_Script.md`
 
 ### Dec 26, 2025 - 🚀 Rails 8.1.1 Migration (MAJOR UPGRADE)
 - **Objective**: Upgrade from Rails 7.1.5.1 (EOL) to Rails 8.1.1
@@ -211,7 +211,7 @@ docker compose exec web bundle exec rspec spec/services/cra_entries/ spec/models
   - `ostruct` will be removed from default gems in Ruby 4.0 (rswag-ui)
   - `:unprocessable_entity` deprecated in Rack (use `:unprocessable_content`)
 - **Result**: Full compatibility maintained, no breaking changes
-- **Documentation**: `docs/technical/changes/2025-12-26-Rails_8_1_1_Migration_Complete.md`
+- **Documentation**: `docs/technical/changes/[DONE]_2025_12_26_Rails_8_1_1_Migration_Complete.md`
 
 ### Dec 24, 2025 - 🔒 Token Revocation Endpoints (NEW FEATURE)
 - **Objective**: Allow users to invalidate their JWT tokens proactively
@@ -224,12 +224,12 @@ docker compose exec web bundle exec rspec spec/services/cra_entries/ spec/models
   - Returns revoked_count for revoke_all
   - Isolated per user
 - **Result**: 221 tests pass, 12 new tests for revocation
-- **Documentation**: `docs/technical/guides/token_revocation_strategy.md`
+- **Documentation**: `docs/technical/guides/2025_12_24_token_revocation_strategy.md`
 
 ### Dec 24, 2025 - 📖 OAuth Flow Documentation (DOCS)
 - **Objective**: Complete documentation of OAuth flow for frontend integration
 - **Contents**: State/CSRF protection, scopes, JWT claims, React/Vue examples
-- **Documentation**: `docs/technical/guides/oauth_flow_documentation.md`
+- **Documentation**: `docs/technical/guides/2025_12_24_oauth_flow_documentation.md`
 
 ### Dec 24, 2025 - 🧪 OAuth Feature Contract Tests (TESTS)
 - **Objective**: Improve OAuth test coverage to match Feature Contract
@@ -333,7 +333,7 @@ docker compose exec web bundle exec rspec spec/services/cra_entries/ spec/models
   - Fixed rswag OAuth specs to expect integer IDs (`type: :integer`)
 - **Result**: 149 tests pass, 0 Rubocop offenses, Swagger regenerated
 - **Impact**: 100% compatibility with all managed PostgreSQL environments (RDS, CloudSQL, Heroku, Azure)
-- **Documentation**: `docs/technical/corrections/2025-12-19-pgcrypto_elimination_solution.md`
+- **Documentation**: `docs/technical/corrections/[DONE]_2025_12_19_pgcrypto_elimination_solution.md`
 
 ### Dec 19, 2025 (soir) - 🧹 Authenticatable Cleanup (MEDIUM)
 - **Objective**: Unify ambiguous methods and add unit tests
@@ -348,7 +348,7 @@ docker compose exec web bundle exec rspec spec/services/cra_entries/ spec/models
   - Created `spec/controllers/concerns/authenticatable_spec.rb` with 29 unit tests
 - **Result**: 149 tests pass, 0 Rubocop violations
 - **Impact**: Better maintainability, clear authentication flow documentation
-- **Documentation**: `docs/technical/changes/2025-12-19-Authenticatable_Cleanup.md`
+- **Documentation**: `docs/technical/changes/[DONE]_2025_12_19_Authenticatable_Cleanup.md`
 
 ### Dec 19, 2025 (soir) - 🔧 Authentication Concerns Fix (CRITICAL)
 - **Objective**: Fix 20+ test failures related to authentication concerns
@@ -364,7 +364,7 @@ docker compose exec web bundle exec rspec spec/services/cra_entries/ spec/models
   - Fixed JsonWebToken spec logging expectations
 - **Result**: 120 tests pass, 0 Rubocop violations
 - **Impact**: Full test suite restored, authentication flow working correctly
-- **Documentation**: `docs/technical/changes/2025-12-19-Authentication_Concerns_Fix.md`
+- **Documentation**: `docs/technical/changes/[DONE]_2025_12_19_Authentication_Concerns_Fix.md`
 
 ### Dec 20, 2025 - 🔧 Major Code Quality & Security Improvements (CRITICAL)
 - **Objective**: Complete codebase quality improvement and security hardening session
@@ -391,7 +391,7 @@ docker compose exec web bundle exec rspec spec/services/cra_entries/ spec/models
   - Regenerated Swagger documentation automatically
 - **Result**: 97 tests pass, Swagger auto-generated with 48 examples
 - **Impact**: Full Feature Contract compliance, auto-synchronized documentation
-- **Documentation**: `docs/technical/changes/2025-12-19-Rswag_OAuth_Specs_Feature_Contract.md`
+- **Documentation**: `docs/technical/changes/[DONE]_2025_12_19_Rswag_OAuth_Specs_Feature_Contract.md`
 
 ### Dec 19, 2025 - 🔧 Zeitwerk OAuth Services Rename (CRITICAL)
 - **Problem**: CI failing with `uninitialized constant OauthTokenService` due to Zeitwerk naming convention
@@ -403,7 +403,7 @@ docker compose exec web bundle exec rspec spec/services/cra_entries/ spec/models
   - Updated `require_relative` paths in controller and specs
 - **Result**: CI 100% functional, 87 tests pass
 - **Impact**: Zeitwerk autoloading now works correctly
-- **Documentation**: `docs/technical/changes/2025-12-19-Zeitwerk_OAuth_Services_Rename.md`
+- **Documentation**: `docs/technical/changes/[DONE]_2025_12_19_Zeitwerk_OAuth_Services_Rename.md`
 
 ### Dec 19, 2025 - 🔒 Security & Secrets Configuration (CRITICAL)
 - **Problem**: Secrets exposed in code + CI failing due to missing environment variables
@@ -416,7 +416,7 @@ docker compose exec web bundle exec rspec spec/services/cra_entries/ spec/models
   - Added `spec/examples.txt` to `.gitignore`
 - **Result**: CI 100% functional with secure secrets configuration
 - **Impact**: Security reinforced, no secrets exposed in repository
-- **Documentation**: `docs/technical/changes/2025-12-19-Security_CI_Complete_Fix.md`
+- **Documentation**: `docs/technical/changes/[DONE]_2025_12_19_Security_CI_Complete_Fix.md`
 
 ### Dec 18, 2025 - Documentation Centralization
 - **Action**: Complete documentation reorganization under `docs/`
@@ -452,7 +452,7 @@ docker compose exec web bundle exec rspec spec/services/cra_entries/ spec/models
    - **Bug critique résolu**: check_user_permissions nil → ApplicationResult
    - **Export fonctionnel**: CraServices::Export 26/26 verts
    - **Impact**: FC-07 entièrement opérationnel, domaine certifié Platinium
-   - **Doc**: `docs/technical/corrections/2026-01-27-DDD_Audit_CRA_Tests_Migration.md`
+   - **Doc**: `docs/technical/corrections/[DONE]_2026_01_27_DDD_Audit_CRA_Tests_Migration.md`
    - **Next**: FC-08 Entreprise Indépendant (Next Feature Contract)
 
 ### Known Limitations
@@ -605,7 +605,7 @@ Foresy/
    - **Task**: ~~Plan migration from Rails 7.1.5.1 to 7.2+~~ Migrated to Rails 8.1.1
    - **Impact**: Brakeman EOL warning removed, security restored
    - **Result**: Ruby 3.4.8 + Rails 8.1.1 + YJIT enabled
-   - **Documentation**: `docs/technical/changes/2025-12-26-Rails_8_1_1_Migration_Complete.md`
+   - **Documentation**: `docs/technical/changes/[DONE]_2025_12_26_Rails_8_1_1_Migration_Complete.md`
 
 ### Medium Priority (Maintenance)
 2. **Documentation Maintenance**

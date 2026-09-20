@@ -95,7 +95,7 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 - **Format unifié** : `{ code, message, details }` sur tous les endpoints
 - **Codes standardisés** : BAD_REQUEST, UNAUTHORIZED, FORBIDDEN, NOT_FOUND, CONFLICT, UNPROCESSABLE_ENTITY, TOO_MANY_REQUESTS, INVALID_PAYLOAD, INTERNAL_SERVER_ERROR
 - **Masquage production** : `error_internal` masque les détails en prod, les expose en dev/test
-- 📖 [Documentation complète](docs/technical/guides/error_contract.md)
+- 📖 [Documentation complète](docs/technical/guides/2026_08_18_error_contract.md)
 
 ### Documentation & Qualité
 - **Swagger/OpenAPI** : 402 specs RSwag, audit 35/35 routes documentées
@@ -222,7 +222,7 @@ docker compose exec web bundle exec rails runner scripts/test_git_ledger.rb
 
 L'API utilise **Supabase** (PostgreSQL managed) en production pour éviter l'expiration du free tier Render (90 jours).
 
-📖 [Stratégie de migration DB](docs/technical/guides/migration_strategy.md)
+📖 [Stratégie de migration DB](docs/technical/guides/2026_08_18_migration_strategy.md)
 
 ### Configuration OAuth
 
@@ -241,10 +241,10 @@ JWT_SECRET=your_jwt_secret_key
 
 | Document | Description |
 |----------|-------------|
-| [Contrat d'erreur](docs/technical/guides/error_contract.md) | Format unifié, tous les codes, migration clients |
-| [Stratégie migration DB](docs/technical/guides/migration_strategy.md) | Squash, commandes, réversibilité |
-| [Git Ledger](docs/technical/guides/git_ledger_operations.md) | Permissions, sécurité, checklist staging |
-| [Plan de remédiation](docs/technical/audits/2026-07-22-Architecture_Debt_Audit_and_Plan.md) | Audit 25 points + 25 tâches (100% terminé) |
+| [Contrat d'erreur](docs/technical/guides/2026_08_18_error_contract.md) | Format unifié, tous les codes, migration clients |
+| [Stratégie migration DB](docs/technical/guides/2026_08_18_migration_strategy.md) | Squash, commandes, réversibilité |
+| [Git Ledger](docs/technical/guides/2026_08_18_git_ledger_operations.md) | Permissions, sécurité, checklist staging |
+| [Plan de remédiation](docs/technical/audits/[DONE]_2026_07_22_Architecture_Debt_Audit_and_Plan.md) | Audit 25 points + 25 tâches (100% terminé) |
 | [Release notes v0.1.0](docs/RELEASE_NOTES_v0.1.0.md) | Breaking changes, nouveautés, déploiement |
 | [Collection Postman](docs/postman/Foresy_API.postman_collection.json) | 28 endpoints avec scripts de test |
 | [BACKLOG](docs/BACKLOG.md) | Roadmap produit et tâches restantes |
@@ -268,10 +268,10 @@ JWT_SECRET=your_jwt_secret_key
   auto-réparant (A6), Node 24 — checkout@v5 + upload-artifact@v7 (D-11), chiffrage SimpleCov,
   D-12 tracée (E2E shell hors CI)
 - 📊 **SimpleCov** (D-2, PR #29) : lignes + branches, baseline **72.78 % lignes / 44.82 % branches**,
-  rapport HTML + Cobertura XML, guide line_coverage.md
+  rapport HTML + Cobertura XML, guide 2026_09_16_line_coverage.md
 - 🛡️ **CI durcie** (revue co-CTO) : E2E bloquant dans la Quality Gate, Brakeman strict,
   gate DDD explicite 🏛️, assertion bloquante coverage.xml — **6/6 verts + 0 annotation**
-- ✅ **957 tests**, 0 failures — registre de dette à jour (`docs/technical/fc08_debt_register.md`)
+- ✅ **957 tests**, 0 failures — registre de dette à jour (`docs/technical/2026_09_14_fc08_debt_register.md`)
 
 ### v0.1.0 (18 Août 2026) — Remédiation Architecture + DDD Finalisé 🏆
 - 🏗️ **25/25 tâches** de remédiation architecture (P0-P6) en TDD strict

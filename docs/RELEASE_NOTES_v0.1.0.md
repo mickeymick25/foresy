@@ -22,7 +22,7 @@ Le format de toutes les réponses d'erreur change :
 { "code": "INVALID_PAYLOAD", "message": "Description", "details": {} }
 ```
 
-📖 Documentation complète : [`docs/technical/guides/error_contract.md`](technical/guides/error_contract.md)
+📖 Documentation complète : [`docs/technical/guides/2026_08_18_error_contract.md`](technical/guides/2026_08_18_error_contract.md)
 
 ### Colonnes DB supprimées
 
@@ -84,10 +84,10 @@ Sur 4 modèles (Company, Cra, CraEntry, Mission). Utiliser `.active` expliciteme
 
 | Document | Description |
 |---|---|
-| [`error_contract.md`](technical/guides/error_contract.md) | Format d'erreur, tous les codes, exemples, migration clients |
-| [`migration_strategy.md`](technical/guides/migration_strategy.md) | Squash DB, commandes, réversibilité |
-| [`git_ledger_operations.md`](technical/guides/git_ledger_operations.md) | Permissions, sécurité, checklist staging |
-| [`[Done]_remediation/`](technical/[Done]_remediation/) | Suivi complet 25/25 tâches (P0-P6) |
+| [`2026_08_18_error_contract.md`](technical/guides/2026_08_18_error_contract.md) | Format d'erreur, tous les codes, exemples, migration clients |
+| [`2026_08_18_migration_strategy.md`](technical/guides/2026_08_18_migration_strategy.md) | Squash DB, commandes, réversibilité |
+| [`2026_08_18_git_ledger_operations.md`](technical/guides/2026_08_18_git_ledger_operations.md) | Permissions, sécurité, checklist staging |
+| [`[DONE]_remediation/`](technical/[DONE]_remediation/) | Suivi complet 25/25 tâches (P0-P6) |
 
 ---
 

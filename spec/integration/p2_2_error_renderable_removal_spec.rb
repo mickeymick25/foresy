@@ -3,7 +3,7 @@
 # 🔴 P2.2 — Unification Erreurs : suppression du concern orphelin ErrorRenderable
 #
 # This spec characterizes the fix for audit point C1
-# (see docs/technical/audits/2026-07-22-Architecture_Debt_Audit_and_Plan.md).
+# (see docs/technical/audits/[DONE]_2026_07_22_Architecture_Debt_Audit_and_Plan.md).
 #
 # ErrorRenderable is a concern that defines a different error format
 # ({ error: { code, message, details } }) but is NEVER included in

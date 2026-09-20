@@ -3,7 +3,7 @@
 # 🔴 P4.2 — Cohérence Archi : extraire extract_client_ip_for_rate_limiting
 #
 # This spec characterizes the fix for audit point C6
-# (see docs/technical/audits/2026-07-22-Architecture_Debt_Audit_and_Plan.md).
+# (see docs/technical/audits/[DONE]_2026_07_22_Architecture_Debt_Audit_and_Plan.md).
 #
 # The method extract_client_ip_for_rate_limiting was duplicated 3 times
 # (AuthenticationController, UsersController, MissionsController).

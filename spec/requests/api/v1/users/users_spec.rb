@@ -74,7 +74,7 @@ RSpec.describe 'API V1 Users', type: :request do
     end
   end
 
-  # D-8 — contrat error_contract.md : ParameterMissing → 400 MISSING_PARAMETER
+  # D-8 — contrat 2026_08_18_error_contract.md : ParameterMissing → 400 MISSING_PARAMETER
   # (le handler StandardError ne doit pas avaler les exceptions spécifiques)
   describe 'POST /api/v1/signup with empty payload (ParameterMissing contract)' do
     before { RateLimitService.clear_rate_limit('auth/signup', '127.0.0.1') }

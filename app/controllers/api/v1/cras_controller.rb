@@ -194,7 +194,7 @@ module Api
       # spec/requests/api/v1/rate_limiting/cra_rate_limit_contract_spec.rb).
       # Chaîne préservée : check_rate_limit! → handle_rate_limit_exceeded
       # → error_too_many_requests → 429, code RATE_LIMIT_EXCEEDED
-      # (contrat d'émission 429 — docs/technical/guides/error_contract.md).
+      # (contrat d'émission 429 — docs/technical/guides/2026_08_18_error_contract.md).
       def handle_rate_limit_exceeded(message = 'Rate limit exceeded for CRA operations')
         Rails.logger.warn "CRA Rate limit exceeded: #{message}"
 
