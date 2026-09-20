@@ -9,11 +9,12 @@
 #   handle_parameter_missing — POST /signup sans wrapper `user` : params.require(:user)
 #     + error_missing_parameter   (UsersController#user_params lève ParameterMissing)
 #
-# Latents/injoignables — documentés au journal, AUCUN test artificiel (P6.0) :
+# Latents documentés puis supprimés en réévaluation finale W1 (arbitrage CTO 19/09) :
 #   error_invalid_enum, error_malformed_json, validate_required_params,
-#   validate_enum, validate_json : zéro appelant dans app/
+#   validate_enum, validate_json — zéro appelant, supprimés
+#   (codes INVALID_ENUM/MALFORMED_JSON : réservés, jamais émis — error_contract.md)
 #   handle_unpermitted_parameters : injoignable — action_on_unpermitted_parameters
-#     non configuré (= :log par défaut, l'exception n'est jamais levée)
+#     non configuré (= :log par défaut, l'exception n'est jamais levée) — conservé (ceinture rescue_from)
 require 'rails_helper'
 
 RSpec.describe 'StandardizedError contract', type: :request do

@@ -57,8 +57,8 @@ L'ancien format utilisait des schémas variés selon les endpoints :
 | `INVALID_PAYLOAD` | 422 | `error_invalid_payload` | Payload invalide (paramètres) |
 | `INVALID_PARAMETER` | 400 | `error_invalid_parameter` | Paramètre invalide |
 | `MISSING_PARAMETER` | 400 | `error_missing_parameter` | Paramètre requis manquant |
-| `INVALID_ENUM` | 400 | `error_invalid_enum` | Valeur d'enum invalide |
-| `MALFORMED_JSON` | 400 | `error_malformed_json` | JSON malformé |
+| `INVALID_ENUM` | 400 | — | Code défini dans `ERROR_CODES`, **jamais émis** (réservé — helper supprimé en réévaluation W1, zéro appelant) |
+| `MALFORMED_JSON` | 400 | — | Code défini dans `ERROR_CODES`, **jamais émis** (réservé — helper supprimé en réévaluation W1 ; Rails rejette le JSON invalide en amont des contrôleurs) |
 | `RATE_LIMIT_EXCEEDED` | 429 | `error_too_many_requests` | **Code émis pour tout 429** — rate limit dépassé (W1-D3 D3-A : alignement du document sur l'implémentation, `error_too_many_requests` rend `ERROR_CODES[:rate_limit_exceeded]`)
 | `TOO_MANY_REQUESTS` | 429 | — | Code défini dans `ERROR_CODES`, **jamais émis** (réservé — aucune réponse réelle ne le porte)
 
