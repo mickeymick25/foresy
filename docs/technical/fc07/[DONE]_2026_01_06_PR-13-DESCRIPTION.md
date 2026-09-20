@@ -47,7 +47,7 @@ Implémentation complète du **Feature Contract 07** — Gestion des Comptes Ren
 - `spec/requests/api/v1/cras/` — 9 tests request
 
 ### Documentation
-- [📋 FC-07 Documentation Centrale](./README.md)
+- [📋 FC-07 Documentation Centrale](./[DONE]_2026_01_05_README.md)
 - [🔍 Mini-FC-01 Filtering](./enhancements/[DONE]_2026_01_06_MINI-FC-01-CRA-Filtering.md)
 - [📤 Mini-FC-02 Export CSV](./enhancements/[DONE]_2026_01_06_MINI-FC-02-CRA-Export.md)
 

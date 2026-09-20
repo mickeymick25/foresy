@@ -71,7 +71,7 @@ Foresy/
 ### 🎯 **Feature Contract 07 — CRA (7/01/2026)** 🏆 **100% TERMINÉ - TDD PLATINUM**
 1. **[📋 Documentation Centrale FC-07](./technical/fc07/[DONE]_2026_01_05_README.md)** - Vue d'ensemble et navigation complète
 2. **[📚 Méthodologie TDD/DDD](./technical/fc07/methodology/[DONE]_2026_01_05_fc07_methodology_tracker.md)** - Suivi méthodologique
-3. **[🔧 Implémentation Technique](./technical/fc07/implementation/fc07_technical_implementation.md)** - Documentation technique
+3. **[🔧 Implémentation Technique](./technical/fc07/[DONE]_2026_01_05_README.md)** - Documentation technique
 4. **[🏗️ Phases Complétées](./technical/fc07/phases/)** - Toutes phases terminées
 5. **[📤 Mini-FC-02 CRA Export](./technical/fc07/enhancements/[DONE]_2026_01_06_MINI-FC-02-CRA-Export.md)** - Export CSV ✨ NEW
 6. **[🔍 Mini-FC-01 Filtering](./technical/fc07/enhancements/[DONE]_2026_01_06_MINI-FC-01-CRA-Filtering.md)** - Filtrage CRAs
@@ -153,7 +153,7 @@ docker compose exec web bundle exec brakeman -q
 > ✅ **FC-07 TERMINÉ — 449 tests GREEN, taggé `fc-07-complete`, prêt pour production.**
 
 ### 🎯 **Feature Contract 06 — Missions (31/12/2025)** ✅ PR #12 MERGED (1 Jan 2026)
-1. **[📋 Feature Contract 06](./FeatureContract/06_Feature%20Contract%20—%20Missions)** - Contrat source de vérité
+1. **[📋 Feature Contract 06](./FeatureContract/06_Feature%20Contract%20—%20Missions.md)** - Contrat source de vérité
 2. **[📝 Changelog FC-06](./technical/changes/[DONE]_2025_12_31_FC06_Missions_Implementation.md)** - Documentation technique complète de l'implémentation
 3. **[📊 BACKLOG.md](./BACKLOG.md)** - Roadmap mise à jour avec FC-06 mergé
 4. **[🧪 Script E2E Missions](../bin/e2e/e2e_missions.sh)** - 6 tests E2E (tous passent)
@@ -176,7 +176,7 @@ docker compose exec web bundle exec brakeman -q
 ### 🔧 **Pour le Développement**
 1. **[Analyse Technique](./technical/audits/2025_12_17_ANALYSE_TECHNIQUE_FORESY.md)** - Architecture et analyse technique complète
 2. **[✅ Migration Rails 8.1.1 Complétée](./technical/changes/[DONE]_2025_12_26_Rails_8_1_1_Migration_Complete.md)** - Migration Rails 7.1.5.1 → 8.1.1 + Ruby 3.4.8 (26/12/2025)
-3. **[🧪 Organisation des Tests](./technical/2025_12_17_tests_organization.md)** - Guide complet de l'organisation des tests RSpec (Acceptance, Integration, Unit, API)
+3. **[🧪 Organisation des Tests](./technical/guides/2025_12_17_tests_organization.md)** - Guide complet de l'organisation des tests RSpec (Acceptance, Integration, Unit, API)
 4. **[Corrections 19 Décembre 2025](./technical/corrections/[DONE]_2025_12_19_CI_Configuration_Fix_Resolution.md)** - Résolution problèmes CI historiques
 
 ### 🏗️ **Plan de Remédiation Architecture (22/07/2026)**
@@ -310,16 +310,16 @@ Nouveaux templates de configuration OAuth ajoutés en décembre 2025.
 
 | Fichier | Description | Environnement |
 |---------|-------------|---------------|
-| [.env.example](./.env.example) | Template configuration développement | **Développement** |
-| [.env.test.example](./.env.test.example) | Template configuration tests | **Tests** |
-| [.env.production.example](./.env.production.example) | Template configuration production | **Production** |
+| [.env.example](../.env.example) | Template configuration développement | **Développement** |
+| [.env.test.example](../.env.test.example) | Template configuration tests | **Tests** |
+| [.env.production.example](../.env.production.example) | Template configuration production | **Production** |
 
 ### 🐳 **Docker Operations** (`docs/technical/`)
 Documentation complète pour la maintenance et les opérations Docker du projet Foresy.
 
 | Fichier | Description | Dernière Mise à Jour |
 |---------|-------------|---------------------|
-| [2025_12_23_docker_operations_maintenance.md](./technical/2025_12_23_docker_operations_maintenance.md) | **GUIDE COMPLET** - Commandes Docker, health checks, troubleshooting, bonnes pratiques | **23/12/2025** - Post-restart web service |
+| [2025_12_23_docker_operations_maintenance.md](./technical/deployment/2025_12_23_docker_operations_maintenance.md) | **GUIDE COMPLET** - Commandes Docker, health checks, troubleshooting, bonnes pratiques | **23/12/2025** - Post-restart web service |
 
 **Services Docker Compose :**
 - **web** : Rails API (port 3000) avec endpoints de santé

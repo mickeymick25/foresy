@@ -163,6 +163,15 @@ Base de vérification `[DONE]` changes/ : statut de complétion porté par chaqu
 
 ## 5. Journal de suivi
 
+### 2026-09-20 (bis) — Validation navigation documentaire (revue CTO PR #37) — liens vérifiés cible par cible
+
+- **Vérificateur exhaustif (`tmp/check_doc_links.rb`) :** 621 cibles distinctes (liens markdown + refs backticks `docs/…`) vérifiées — existence du chemin résolu **ET casse exacte composant par composant** (macOS insensible à la casse, CI Linux sensible — le piège `[Done]`/`[DONE]` impose ce contrôle).
+- **Liens cassés par le rename : 1 détecté → 0 restant** — 3 self-links `./README.md` vers les README renommés (fc06 self, fc07 PR-13, fc07 enhancements) corrigés ; + 1 double préfixe `[DONE]_[DONE]_` dans README (famille passe-2 E2, échappé à la gate G1 qui ne contrôlait que les dates doublées) corrigé.
+- **README + docs/index.md : 100 % des liens pointent désormais vers des fichiers existants** — corrigés : 3 templates `.env*.example` (`../` — fichiers à la racine, erreur pré-existante), `tests_organization` → `guides/`, `docker_operations_maintenance` → `deployment/` (répertoires réels, pré-existant), lien FC-06 (extension `.md` manquante, pré-existant), `fc07_technical_implementation.md` (cible inexistante → README fc07).
+- **2 refs du tracker wave2 corrigées (notres) :** citations de sources RAG écrites sans préfixe `docs/` (ambiguïté) → préfixées.
+- **Résidu quantifié — pré-existant et indépendant du rename (~115 cibles) :** liens à profondeur relative erronée dans fc06/fc07 (`../../app/…`, `../../FeatureContract/…` sans `.md`, `../../swagger/…`, `../../spec/…`, `../corrections/…`) — cassés par la réorganisation du 2026-01-04/05 (fichiers déplacés de la racine `docs/technical/` vers les sous-répertoires sans correction des liens ; les chemins visés n'ont jamais existé, l'E2 n'a changé que des noms de fichiers à l'intérieur de chemins déjà faux) + 2 wildcards de prose (`*.md` dans du texte) + 3 danglings documentés (D12 → `chore/p6-coverage-plan` non mergée ; `docs/adr/` inexistant). **Recommandation : chore séparé de réparation des profondeurs — hors périmètre PR #37.**
+- **Gates inchangées :** suite 977/0 (`foresy_test`) · SimpleCov 77,18 % (2815/3647) · grep anciens noms = 0 · doubles préfixes (dates ET `[DONE]`) = 0.
+
 ### 2026-09-20 — C1+C2+C3 GO — exécution E1→E3 complète, gates verts, E4 en cours
 
 - **GO CTO consigné :** C1 `YYYY_MM_DD_` (migration unique et complète, références corrigées dans le même cycle) · C2 `[DONE]_` partout + normalisation `[Done]_remediation/` · C3 suppression locale des 3 branches mergées. `chore/p6-coverage-plan` : non tranché — absorption dans P1 conditionnée à l'audit P1.

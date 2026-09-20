@@ -201,7 +201,7 @@ end
 ## 🔗 Références
 
 - [PR #13 - FC-07 CRA Management](https://github.com/mickeymick25/foresy/pull/13)
-- [FC-07 README](./README.md)
+- [FC-07 README](../[DONE]_2026_01_05_README.md)
 - [Feature Contract 07](../../FeatureContract/07_Feature%20Contract%20—%20CRA)
 - [ListService existant](../../../app/services/api/v1/cras/list_service.rb)
 

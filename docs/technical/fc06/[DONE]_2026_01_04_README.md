@@ -36,7 +36,7 @@ Cette documentation suit notre **architecture DDD stricte** :
 
 ## 📁 Navigation de la Documentation
 
-### 🎯 [Vue d'Ensemble](./README.md) - Vous êtes ici
+### 🎯 [Vue d'Ensemble](./[DONE]_2026_01_04_README.md) - Vous êtes ici
 Documentation principale et navigation vers toutes les sections.
 
 ### 📚 [Méthodologie](./methodology/)
