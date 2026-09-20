@@ -146,7 +146,7 @@ curl http://localhost:3000/health
 
 - [OmniAuth Wiki - Session Management](https://github.com/omniauth/omniauth/wiki)
 - [Rails API - Session Configuration](https://api.rubyonrails.org/classes/ActionDispatch/Session/CookieStore.html)
-- Documentation interne : `docs/technical/analysis/[DONE]_2025_12_19_csrf_security_analysis_same_site_none.md`
+- Documentation interne : `docs/technical/analysis/[Obsolete]_2025_12_19_csrf_security_analysis_same_site_none.md`
 
 ---
 

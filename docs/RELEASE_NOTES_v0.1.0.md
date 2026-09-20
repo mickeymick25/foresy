@@ -85,7 +85,7 @@ Sur 4 modèles (Company, Cra, CraEntry, Mission). Utiliser `.active` expliciteme
 | Document | Description |
 |---|---|
 | [`2026_08_18_error_contract.md`](technical/guides/2026_08_18_error_contract.md) | Format d'erreur, tous les codes, exemples, migration clients |
-| [`2026_08_18_migration_strategy.md`](technical/guides/2026_08_18_migration_strategy.md) | Squash DB, commandes, réversibilité |
+| [`[DONE]_2026_08_18_migration_strategy.md`](technical/guides/[DONE]_2026_08_18_migration_strategy.md) | Squash DB, commandes, réversibilité |
 | [`2026_08_18_git_ledger_operations.md`](technical/guides/2026_08_18_git_ledger_operations.md) | Permissions, sécurité, checklist staging |
 | [`[DONE]_remediation/`](technical/[DONE]_remediation/) | Suivi complet 25/25 tâches (P0-P6) |
 

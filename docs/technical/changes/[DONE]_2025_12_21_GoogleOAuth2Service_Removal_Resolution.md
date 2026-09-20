@@ -22,7 +22,7 @@ comportement (only in test/development).
 ```
 
 ### **Référence Documentation Existante**
-- **Analyse technique** : `docs/technical/analysis/[DONE]_2025_12_19_google_oauth_service_mock_solution.md` (19/12/2025)
+- **Analyse technique** : `docs/technical/analysis/[Obsolete]_2025_12_19_google_oauth_service_mock_solution.md` (19/12/2025)
 - **Recommandation** : SUPPRIMER GoogleOAuth2Service (doublon inutile)
 - **Découverte** : Le projet utilise OmniAuth, pas GoogleOAuth2Service
 
@@ -173,7 +173,7 @@ ls app/services/
 ## 📋 Documentation de Référence
 
 ### **Documents Liés**
-- **Analyse technique** : `docs/technical/analysis/[DONE]_2025_12_19_google_oauth_service_mock_solution.md`
+- **Analyse technique** : `docs/technical/analysis/[Obsolete]_2025_12_19_google_oauth_service_mock_solution.md`
 - **Architecture OAuth** : `docs/technical/changes/[DONE]_2025_12_19_OAuth_Architecture_Fix.md`
 - **Autoload cleanup** : `docs/technical/changes/[DONE]_2025_12_20_Autoload_Cleanup.md`
 

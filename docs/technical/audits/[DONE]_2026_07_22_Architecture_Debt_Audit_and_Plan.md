@@ -837,7 +837,7 @@ Chaque phase a un sous-document dédié dans `docs/technical/[DONE]_remediation/
 
 - [Analyse technique Foresy](./2025_12_17_ANALYSE_TECHNIQUE_FORESY.md)
 - [Guidelines de maintenance documentaire](../../MAINTENANCE_GUIDELINES.md)
-- [Backlog produit](../../BACKLOG.md)
+- [Backlog produit](../../[Obsolete]_2025_12_26_BACKLOG.md)
 - [Briefing projet](../../BRIEFING.md)
 - [Vision produit](../../VISION.md)
 

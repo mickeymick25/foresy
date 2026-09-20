@@ -540,7 +540,7 @@ Foresy/
 ├── entrypoint.sh               # Container entrypoint script
 ├── docs/
 │   ├── BRIEFING.md             # This file - AI project understanding
-│   ├── BACKLOG.md              # Product backlog and roadmap
+│   ├── [Obsolete]_2025_12_26_BACKLOG.md              # Product backlog and roadmap
 │   ├── VISION.md               # Product vision and architecture principles
 │   ├── index.md                # Central documentation navigation
 │   ├── FeatureContract/        # Feature contracts (source of truth)

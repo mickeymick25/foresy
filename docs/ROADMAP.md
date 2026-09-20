@@ -7,7 +7,7 @@ produit, de la v0.1.0 (fondations métier) à la v1.0.0 (MVP
 production).
 
 Source canonique unique de la roadmap produit Foresy depuis le
-2026-09-10 ; BACKLOG.md ne conserve qu'un pointeur.
+2026-09-10 ; [Obsolete]_2025_12_26_BACKLOG.md ne conserve qu'un pointeur.
 
 ```
 v0.1.0 (Fondations métier)

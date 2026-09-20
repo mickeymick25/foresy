@@ -395,7 +395,7 @@ Line: 254
 4. **`spec/acceptance/oauth_feature_contract_spec.rb`** - Correction pattern de stubbing et chargement des services
 
 ### **Fichiers de Documentation Créés**
-5. **`docs/technical/changes/[DONE]_2025_12_18_GoogleOauthService_Fix_Resolution.md`** - Ce document
+5. **`docs/technical/changes/[Obsolete]_2025_12_18_GoogleOauthService_Fix_Resolution.md`** - Ce document
 
 ### **Configuration Validée**
 6. **`.env`** - Présence confirmée (fichier privé avec variables d'environnement)

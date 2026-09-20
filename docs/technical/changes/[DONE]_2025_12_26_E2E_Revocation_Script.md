@@ -197,7 +197,7 @@ Le script a révélé que les refresh tokens sont **USER-bound** et non **SESSIO
 
 - Feature Contract: `docs/FeatureContract/04_Feature Contract  — E2E Revocation`
 - Guide E2E: `docs/technical/testing/[DONE]_2025_12_24_e2e_staging_tests_guide.md`
-- Backlog: `docs/BACKLOG.md`
+- Backlog: `docs/[Obsolete]_2025_12_26_BACKLOG.md`
 - BRIEFING: `docs/BRIEFING.md`
 
 ---
