@@ -33,6 +33,8 @@ sources canoniques ci-dessous. L'ancien backlog (2025-12-26) est archivé :
 | 11 | Drift doc — `ROADMAP.md` ne marque pas FC-08 ✅ (README v0.1.1 : terminé, PR #24) | 🟢 sync doc | relevé session 20/09 |
 | 12 | Performance — < 100 ms sur les endpoints authentifiés | 🟢 | BRIEFING Future Improvements |
 | 13 | Monitoring avancé Prometheus/Grafana ; Datadog Synthetics | 🟢 | BRIEFING Future Improvements · archive BACKLOG |
+| 14 | **Hardening CI — branch protection** : `main` protégée mais `required_status_checks` vide + `enforcement_level: off` (API GitHub vérifiée 20/09) — configurer les 6 checks requis pour rendre la règle « CI verte = merge » contraignante | 🟠 gouvernance | API `branches/main` · analyse E2E CTO 20/09 |
+| 15 | **Hardening CI — validation de l'arbre mergé** : l'E2E est `skipped` hors PR (`ci.yml` L316) → l'arbre réellement mergé n'est jamais testé E2E en combinaison (précédent D-8). Options CTO : (1) `merge_group`/merge queue — préféré, (2) smoke post-merge léger sur push main (health + auth + non-destructif + alerte), (3) E2E complet sur main (cher, arbitrage explicite requis) | 🟠 hardening | analyse E2E CTO 20/09 · `ci.yml` L316/L483 |
 
 ## Métriques de qualité (état au 2026-09-20 — post PR #37, PR obsolete en cours)
 

@@ -24,7 +24,7 @@
 
 | Cible | État | Taux |
 |---|---|---|
-| `app/services/o_auth_code_exchange_service.rb` (204 lignes brutes) | **Zéro référence dans toute la suite** (grep exhaustif `spec/` : aucun match `OAuthCodeExchangeService`/`ExchangeError`) — à confirmer par mesure SimpleCov fraîche | attendu **0,00 %** |
+| `app/services/o_auth_code_exchange_service.rb` (204 lignes brutes · **180 lignes utiles SimpleCov**) | **Zéro référence dans toute la suite** (grep exhaustif `spec/` : aucun match `OAuthCodeExchangeService`/`ExchangeError`) — confirmé par mesure : **0 % avant W2-D2** (fichier non chargé par la suite — corpus conteneur lazy 3647 lignes ne l'incluait pas) | 0,00 % → **69,44 %** (W2-D2) |
 | Flow contrôleur code-exchange (`OauthController#callback` via payload `{code, redirect_uri}`) | Specs existants stubbent **au niveau `OAuthValidationService`** (jamais le service réel) — le flow code-exchange de bout en bout n'est pas exercé | à mesurer |
 
 **État global transmis (PR #36) :** 77,18 % lignes mesurés · 977 exemples, 0 échec · verrou CI 72,0 tenu.
@@ -81,7 +81,7 @@ POST /api/v1/auth/:provider/callback   body: {code, redirect_uri, state?}
 
 RAG (`foresy__knowledge`) + lectures locales + greps exhaustifs + git — see §3. Aucun code modifié.
 
-### W2-D2 — Caractérisation unitaire du service (stub Net::HTTP)
+### W2-D2 — Caractérisation unitaire du service (stub Net::HTTP) — ✅ FAIT (20/09)
 
 **Périmètre :** les 9 chemins du §3.2 — Google succès (2 requêtes enchaînées), GitHub succès (2 à 3 requêtes enchaînées), fallback email GitHub, unsupported provider, token blank (Google/GitHub), HTTP non-success, JSON invalide. Assertions : contenu de l'AuthHash (provider/uid/info), message d'`ExchangeError`, log d'erreur.
 
@@ -103,6 +103,17 @@ RAG (`foresy__knowledge`) + lectures locales + greps exhaustifs + git — see §
 2. **Décision de verrou 72,0 → 72,5** — post-gates (§6).
 
 ## 5. Journal de suivi
+
+### 2026-09-20 (2) — W2-D2 clôturée — 10 specs de caractérisation, service 0 % → 69,44 %, gates verts
+
+- **Specs ajoutées (10, `spec/services/o_auth_code_exchange_service_spec.rb` — nouveau fichier, suite 977 → 987) :** les 9 chemins du §3.2 + configuration réseau. **Stub Net::HTTP uniquement** — vraies instances `Net::HTTPOK`/`Net::HTTPServerError` (le contrat `is_a?(Net::HTTPSuccess)` de `parse_json_response` impose des classes réelles) avec stub du **lecteur** `body` ; double vérifié `Net::HTTP` pour `perform_https_request`
+- **Cycle RED technique (transparent — pas une divergence produit) :** premier run = 9 échecs `IOError: attempt to read body out of block` — `body=` posé hors du bloc de lecture Net::HTTP lève `IOError` au *read* ; corrigé en 1 itération (stub du lecteur)
+- **Caractérisations établies (comportement existant, sans modification du code) :** 9 chemins conformes au §3.2 + **asymétries documentées** : uid Google **Integer** (non stringifié) vs GitHub **to_s** ; `nickname` absent côté Google ; **Google token via `Net::HTTP.post_form`** (ne passe PAS par `perform_https_request` — point de stub distinct, pas de timeout custom sur ce chemin) vs GitHub token + tous les GET via `perform_https_request` (use_ssl=true, open_timeout=10, read_timeout=10 — caractérisés)
+- **Gates :** suite **987/0** (6 min 49) ✓ · RuboCop **0** (9 offenses autocorrectées sur le nouveau fichier) ✓ · Brakeman **0 warning** ✓ · **SimpleCov réel : 77,67 % lignes (2895/3727) · 48,30 % branches (769/1592)** — corpus 3647 → 3727 (+80 : fichier désormais chargé par la suite) · service : **0,00 % → 69,44 % lignes (125/180) · 44,83 % branches (13/29)**
+- **Verrou : 72,0 tenu** (77,67 % mesuré) — remontée 72,5 conditionnée aux gates W2-D2 **+ W2-D3** (règle §7)
+- **Commit :** `test(p6): characterize OAuth code exchange (Google/GitHub)` — branche `feat/p6-wave2` (base `bf2a8512`)
+- **Suivant :** validation CTO W2-D2 → **W2-D3** (intégration end-to-end `POST /auth/:provider/callback`, stub Net::HTTP minimal, utilisateurs réellement créés)
+- **Notes session :** réindexation hub RAG partielle (script >15 min pour le corpus — à relancer en fond, BACKLOG #9) · branch protection `required_status_checks` vide (API 20/09) → BACKLOG #14 · hardening arbre mergé → BACKLOG #15
 
 ### 2026-09-20 — Pré-travail d'hygiène documentaire exécuté — gates verts — W2-D2 débloqué
 
