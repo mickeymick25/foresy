@@ -7,7 +7,9 @@ produit, de la v0.1.0 (fondations métier) à la v1.0.0 (MVP
 production).
 
 Source canonique unique de la roadmap produit Foresy depuis le
-2026-09-10 ; BACKLOG.md ne conserve qu'un pointeur.
+2026-09-10 (décision 2.2, qualification du corpus). Le 2026-09-20, le
+BACKLOG reprend un rôle de backlog transverse (décision CTO) :
+voir docs/BACKLOG.md.
 
 ```
 v0.1.0 (Fondations métier)

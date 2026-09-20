@@ -41,7 +41,7 @@ Historique / état au 2026-08-18
 
 ### A2 — Documenter la stratégie de migration DB
 
-- **Résultat :** `docs/technical/guides/2026_08_18_migration_strategy.md` créé (squash rationale, commandes, réversibilité)
+- **Résultat :** `docs/technical/guides/[DONE]_2026_08_18_migration_strategy.md` créé (squash rationale, commandes, réversibilité)
 - **Statut :** ✅ Terminé
 
 ### A3 — Créer le guide du contrat d'erreur
@@ -76,7 +76,7 @@ Historique / état au 2026-08-18
 
 ### 2026-08-18 — A2 (migration strategy)
 
-- **Action :** Créer `docs/technical/guides/2026_08_18_migration_strategy.md`
+- **Action :** Créer `docs/technical/guides/[DONE]_2026_08_18_migration_strategy.md`
 - **Résultat :** Guide complet (squash rationale, commandes, réversibilité)
 - **Commit :** `36e4991f`
 

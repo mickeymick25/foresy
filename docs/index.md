@@ -41,9 +41,9 @@ Foresy/
         │   └── 2025_12_24_token_revocation_strategy.md     # 🔒 Stratégie de revocation des tokens
         ├── analysis/            # Analyses techniques approfondies (Déc 2025)
         │   ├── [DONE]_2025_12_19_pgcrypto_alternatives_analysis.md
-        │   ├── [DONE]_2025_12_19_google_oauth_service_mock_solution.md
+        │   ├── [Obsolete]_2025_12_19_google_oauth_service_mock_solution.md
         │   ├── [DONE]_2025_12_19_omniauth_oauth_configuration_solution.md
-        │   └── [DONE]_2025_12_19_csrf_security_analysis_same_site_none.md
+        │   └── [Obsolete]_2025_12_19_csrf_security_analysis_same_site_none.md
         ├── changes/             # Journal chronologique des modifications
         │   ├── [DONE]_2025_12_31_FC06_Missions_Implementation.md  # ✅ FC-06 Missions
         │   ├── [DONE]_2025_12_26_Rails_8_1_1_Migration_Complete.md
@@ -155,7 +155,7 @@ docker compose exec web bundle exec brakeman -q
 ### 🎯 **Feature Contract 06 — Missions (31/12/2025)** ✅ PR #12 MERGED (1 Jan 2026)
 1. **[📋 Feature Contract 06](./FeatureContract/06_Feature%20Contract%20—%20Missions.md)** - Contrat source de vérité
 2. **[📝 Changelog FC-06](./technical/changes/[DONE]_2025_12_31_FC06_Missions_Implementation.md)** - Documentation technique complète de l'implémentation
-3. **[📊 BACKLOG.md](./BACKLOG.md)** - Roadmap mise à jour avec FC-06 mergé
+3. **[📊 BACKLOG.md](./BACKLOG.md)** - Backlog transverse (chantiers ouverts, priorités)
 4. **[🧪 Script E2E Missions](../bin/e2e/e2e_missions.sh)** - 6 tests E2E (tous passent)
 
 ### 🧪 **Tests E2E Infrastructure**
@@ -192,9 +192,9 @@ docker compose exec web bundle exec brakeman -q
 
 ### 🔍 **Analyses Techniques Récentes (Décembre 2025)**
 1. **[🔧 pgcrypto UUID Alternatives](./technical/analysis/[DONE]_2025_12_19_pgcrypto_alternatives_analysis.md)** - **CRITIQUE** - Migration UUID sans pgcrypto
-2. **[🚫 GoogleOAuth2Service Mock Removal](./technical/analysis/[DONE]_2025_12_19_google_oauth_service_mock_solution.md)** - **CRITIQUE** - Suppression service mock mal placé
+2. **[🚫 GoogleOAuth2Service Mock Removal](./technical/analysis/[Obsolete]_2025_12_19_google_oauth_service_mock_solution.md)** - **CRITIQUE** - Suppression service mock mal placé
 3. **[🔐 OmniAuth OAuth Configuration](./technical/analysis/[DONE]_2025_12_19_omniauth_oauth_configuration_solution.md)** - **CRITIQUE** - Configuration robuste secrets OAuth
-4. **[🛡️ CSRF Security Analysis](./technical/analysis/[DONE]_2025_12_19_csrf_security_analysis_same_site_none.md)** - **CRITIQUE** - Analyse risque CSRF et sécurisation
+4. **[🛡️ CSRF Security Analysis](./technical/analysis/[Obsolete]_2025_12_19_csrf_security_analysis_same_site_none.md)** - **CRITIQUE** - Analyse risque CSRF et sécurisation
 
 ### 📊 **Pour les Modifications Récentes**
 1. **[🔴 FC-07 CRA 03/01/2026](./technical/corrections/[DONE]_2026_01_03_FC07_Concerns_Namespace_Fix.md)** - **✅ TERMINÉ** - FC-07 CRA 100% terminé (TDD Platinum, 449 tests)
@@ -221,20 +221,20 @@ docker compose exec web bundle exec brakeman -q
 14. **[🔧 Zeitwerk OAuth 19/12/2025](./technical/changes/[DONE]_2025_12_19_Zeitwerk_OAuth_Services_Rename.md)** - **CRITIQUE** - Renommage services OAuth pour Zeitwerk
 15. **[🔒 Sécurité & Secrets 19/12/2025](./technical/changes/[DONE]_2025_12_19_Security_CI_Complete_Fix.md)** - **CRITIQUE** - Sécurisation secrets CI/CD
 16. **[Correction CI 18/12/2025](./technical/changes/[DONE]_2025_12_18_CI_Fix_Resolution.md)** - Intervention majeure CI
-17. **[Correction GoogleOauthService 18/12/2025](./technical/changes/[DONE]_2025_12_18_GoogleOauthService_Fix_Resolution.md)** - Résolution erreur Zeitwerk
+17. **[Correction GoogleOauthService 18/12/2025](./technical/changes/[Obsolete]_2025_12_18_GoogleOauthService_Fix_Resolution.md)** - Résolution erreur Zeitwerk
 18. **[🔒 Feature Contract 05 - Rate Limiting 28/12/2025](./FeatureContract/05_Feature Contract — Rate Limiting)** - ✅ **COMPLÉTÉ** - Rate limiting opérationnel avec before_action filters + RateLimitService Redis (28/12/2025)
 
 ### 🔍 **Analyses Techniques Problèmes PR (Décembre 2025)**
 1. **[🔧 pgcrypto UUID Alternatives](./technical/analysis/[DONE]_2025_12_19_pgcrypto_alternatives_analysis.md)** - ✅ **RÉSOLU** - Compatibilité environnements managés (21/12/2025)
-2. **[🚫 GoogleOAuth2Service Mock Removal](./technical/analysis/[DONE]_2025_12_19_google_oauth_service_mock_solution.md)** - ✅ **RÉSOLU** - Service mock supprimé (21/12/2025)
+2. **[🚫 GoogleOAuth2Service Mock Removal](./technical/analysis/[Obsolete]_2025_12_19_google_oauth_service_mock_solution.md)** - ✅ **RÉSOLU** - Service mock supprimé (21/12/2025)
 3. **[🔐 OmniAuth OAuth Configuration](./technical/analysis/[DONE]_2025_12_19_omniauth_oauth_configuration_solution.md)** - Configuration secrets fragile
-4. **[🛡️ CSRF Security Analysis](./technical/analysis/[DONE]_2025_12_19_csrf_security_analysis_same_site_none.md)** - Risque CSRF avec same_site: :none
+4. **[🛡️ CSRF Security Analysis](./technical/analysis/[Obsolete]_2025_12_19_csrf_security_analysis_same_site_none.md)** - Risque CSRF avec same_site: :none
 5. **[📊 Standardisation APM Datadog](./technical/changes/[DONE]_2025_12_22_Datadog_APM_Standardization_Resolution.md)** - ✅ **RÉSOLU** - Standardisation API Datadog multi-versions (22/12/2025)
 
 ### 🔧 **Pour les Corrections Critiques**
 1. **[🏗️ Corrections Architecture OAuth 19/12/2025](./technical/changes/[DONE]_2025_12_19_OAuth_Architecture_Fix.md)** - Fuite secrets + Dépendance pg_isready + Incohérences nommage OAuth
 2. **[🔒 Sécurité Secrets 19/12/2025](./technical/changes/[DONE]_2025_12_19_Security_CI_Complete_Fix.md)** - Secrets exposés → GitHub Secrets
-3. **[GoogleOauthService 18/12/2025](./technical/changes/[DONE]_2025_12_18_GoogleOauthService_Fix_Resolution.md)** - Erreur `uninitialized constant GoogleOauthService`
+3. **[GoogleOauthService 18/12/2025](./technical/changes/[Obsolete]_2025_12_18_GoogleOauthService_Fix_Resolution.md)** - Erreur `uninitialized constant GoogleOauthService`
 4. **[✅ GoogleOAuth2Service Resolution 21/12/2025](./technical/changes/[DONE]_2025_12_21_GoogleOAuth2Service_Removal_Resolution.md)** - ✅ **RÉSOLU** - Point 2 PR fermé (suppression service mock)
 5. **[CI GitHub 18/12/2025](./technical/changes/[DONE]_2025_12_18_CI_Fix_Resolution.md)** - Pipeline CI cassée
 
@@ -276,7 +276,7 @@ Documentation chronologique de toutes les modifications significatives du projet
 | [🔒 [DONE]_2025_12_19_Security_CI_Complete_Fix.md](./technical/changes/[DONE]_2025_12_19_Security_CI_Complete_Fix.md) | 19/12/2025 | Sécurisation secrets + Configuration GitHub Secrets | **CRITIQUE** - Sécurité renforcée |
 | [[DONE]_2025_12_18_OAuthTokenService_Comment_Fix.md](./technical/changes/[DONE]_2025_12_18_OAuthTokenService_Comment_Fix.md) | 18/12/2025 | Correction commentaires OAuthTokenService | **MINEUR** - Qualité code |
 | [[DONE]_2025_12_18_CI_Fix_Resolution.md](./technical/changes/[DONE]_2025_12_18_CI_Fix_Resolution.md) | 18/12/2025 | Résolution problèmes CI GitHub | **CRITIQUE** - CI fonctionnelle |
-| [[DONE]_2025_12_18_GoogleOauthService_Fix_Resolution.md](./technical/changes/[DONE]_2025_12_18_GoogleOauthService_Fix_Resolution.md) | 18/12/2025 | Résolution erreur Zeitwerk GoogleOauthService | **CRITIQUE** - 87 tests, 0 échec |
+| [[Obsolete]_2025_12_18_GoogleOauthService_Fix_Resolution.md](./technical/changes/[Obsolete]_2025_12_18_GoogleOauthService_Fix_Resolution.md) | 18/12/2025 | Résolution erreur Zeitwerk GoogleOauthService | **CRITIQUE** - 87 tests, 0 échec |
 
 ### 🔍 **Analyses Techniques** (`docs/technical/analysis/`)
 Analyses approfondies des problèmes techniques identifiés et solutions proposées.
@@ -284,9 +284,9 @@ Analyses approfondies des problèmes techniques identifiés et solutions propos�
 | Fichier | Date | Problème | Impact | Solution |
 |---------|------|----------|--------|----------|
 | [[DONE]_2025_12_19_pgcrypto_alternatives_analysis.md](./technical/analysis/[DONE]_2025_12_19_pgcrypto_alternatives_analysis.md) | 19/12/2025 | pgcrypto échoue en production | **CRITIQUE** | UUID Ruby |
-| [[DONE]_2025_12_19_google_oauth_service_mock_solution.md](./technical/analysis/[DONE]_2025_12_19_google_oauth_service_mock_solution.md) | 19/12/2025 | Service mock en production | **CRITIQUE** | Suppression |
+| [[Obsolete]_2025_12_19_google_oauth_service_mock_solution.md](./technical/analysis/[Obsolete]_2025_12_19_google_oauth_service_mock_solution.md) | 19/12/2025 | Service mock en production | **CRITIQUE** | Suppression |
 | [[DONE]_2025_12_19_omniauth_oauth_configuration_solution.md](./technical/analysis/[DONE]_2025_12_19_omniauth_oauth_configuration_solution.md) | 19/12/2025 | Configuration secrets fragile | **CRITIQUE** | Templates + robustesse |
-| [[DONE]_2025_12_19_csrf_security_analysis_same_site_none.md](./technical/analysis/[DONE]_2025_12_19_csrf_security_analysis_same_site_none.md) | 19/12/2025 | Risque CSRF cookies | **CRITIQUE** | Session store désactivé |
+| [[Obsolete]_2025_12_19_csrf_security_analysis_same_site_none.md](./technical/analysis/[Obsolete]_2025_12_19_csrf_security_analysis_same_site_none.md) | 19/12/2025 | Risque CSRF cookies | **CRITIQUE** | Session store désactivé |
 
 ### 📊 **Rapports d'Audit** (`docs/technical/audits/`)
 Analyses techniques et historiques des modifications.
@@ -389,7 +389,7 @@ README.md reste à la racine pour compatibilité GitHub
 Ajout du document de résolution GoogleOauthService :
 ```
 # Nouveau document de correction
-docs/technical/changes/[DONE]_2025_12_18_GoogleOauthService_Fix_Resolution.md
+docs/technical/changes/[Obsolete]_2025_12_18_GoogleOauthService_Fix_Resolution.md
 ```
 
 ---
@@ -398,11 +398,11 @@ docs/technical/changes/[DONE]_2025_12_18_GoogleOauthService_Fix_Resolution.md
 
 ### 👨‍💻 **Pour les Développeurs**
 1. **Commencer par** : [README.md racine](../README.md)
-2. **Pour l'état actuel** : [Corrections GoogleOauthService 18/12/2025](./technical/changes/[DONE]_2025_12_18_GoogleOauthService_Fix_Resolution.md)
+2. **Pour l'état actuel** : [Corrections GoogleOauthService 18/12/2025](./technical/changes/[Obsolete]_2025_12_18_GoogleOauthService_Fix_Resolution.md)
 3. **Pour l'architecture** : [Analyse Technique](./technical/audits/2025_12_17_ANALYSE_TECHNIQUE_FORESY.md)
 
 ### 🔧 **Pour les Corrections**
-1. **Problème actuel** : [GoogleOauthService 18/12/2025](./technical/changes/[DONE]_2025_12_18_GoogleOauthService_Fix_Resolution.md) - **RÉSOLU**
+1. **Problème actuel** : [GoogleOauthService 18/12/2025](./technical/changes/[Obsolete]_2025_12_18_GoogleOauthService_Fix_Resolution.md) - **RÉSOLU**
 2. **Journal chronologique** : [Correction CI 18/12/2025](./technical/changes/[DONE]_2025_12_18_CI_Fix_Resolution.md)
 3. **Problèmes précédents** : [Corrections 19 Décembre 2025](./technical/corrections/[DONE]_2025_12_19_CI_Configuration_Fix_Resolution.md)
 4. **Continuer le travail** : Ajouter un nouveau fichier daté dans `technical/changes/`
