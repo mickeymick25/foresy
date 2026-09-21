@@ -89,7 +89,7 @@ RAG (`foresy__knowledge`) + lectures locales + greps exhaustifs + git — see §
 
 **Commit :** `test(p6): characterize OAuth code exchange (Google/GitHub)`
 
-### W2-D3 — Caractérisation intégrée du flow contrôleur (end-to-end, stub Net::HTTP minimal)
+### W2-D3 — Caractérisation intégrée du flow contrôleur (end-to-end, stub Net::HTTP minimal) — ✅ FAIT (20/09)
 
 **Périmètre :** specs requête `POST /auth/:provider/callback` avec payload code-exchange réel : 200 Google + 200 GitHub (utilisateur réellement créé/lié en base, JWT réel), 401 oauth_failed (ExchangeError avalé → nil), 422 missing code / missing redirect_uri, 400 provider invalide, 422 missing fields du hash échangé. **Stub Net::HTTP uniquement** — aucun stub de `OAuthValidationService`/`OAuthUserService`/`OAuthTokenService` ; `RateLimitService.check_rate_limit` stubbé selon le pattern existant des specs auth.
 
@@ -103,6 +103,17 @@ RAG (`foresy__knowledge`) + lectures locales + greps exhaustifs + git — see §
 2. **Décision de verrou 72,0 → 72,5** — post-gates (§6).
 
 ## 5. Journal de suivi
+
+### 2026-09-20 (3) — W2-D3 clôturée — 7 specs requête vertes d'emblée (caractérisation pure), flow réel de bout en bout
+
+- **Specs ajoutées (7, `spec/requests/api/v1/authentication/oauth_code_exchange_spec.rb` — nouveau fichier, suite 987 → 994) :** les 5 catégories du périmètre CTO — **200 Google** (utilisateur réellement créé : `User.find_by(provider:, uid:)` présent, email/name/active vérifiés en base ; **JWT réellement généré et décodé** : `JsonWebToken.decode(token)` → `{user_id, provider, exp}` — payload OAuthTokenService, expiration 15 min) · **200 GitHub avec fallback `/user/emails`** (3 requêtes réseau enchaînées ; email = primary && verified ; `name` absent → login via `extract_user_name`) · **401 UNAUTHORIZED** (`ExchangeError` avalé par `extract_oauth_data` → `:oauth_failed` — aucun utilisateur créé) · **422 INVALID_PAYLOAD ×3** (code absent · redirect_uri absent · email échangé absent — chaîne RÉELLE `validate_oauth_data`, là où les specs RSwag existantes stubbaient) · **400 BAD_REQUEST** (provider non supporté)
+- **Stub Net::HTTP uniquement** + `RateLimitService.check_rate_limit` (pattern existant des specs auth) — **aucun stub** de `OAuthValidationService`/`OAuthUserService`/`OAuthTokenService`
+- **Vert d'emblée — caractérisation pure, aucun cycle RED** (vs W2-D2 : l'incident IOError était de la mécanique de stub)
+- **Divergence doc↔réel documentée (mineure) :** `format_success_response` inclut **`name`** dans le payload user — absent du schéma RSwag du spec oauth existant (caractérisé tel quel, aucune modification du code ni du schéma dans cette vague)
+- **Gates :** suite **994/0** (2 min 18) ✓ · RuboCop **0** (7 offenses autocorrectées sur le nouveau fichier) ✓ · Brakeman **0 warning** ✓ · **SimpleCov réel : 77,83 % lignes (2901/3727) · 48,42 % branches (771/1592)**
+- **Verrou : dossier de remontée 72,0 → 72,5 prêt** — condition §7 remplie (gates W2-D2 + W2-D3 conformes, service et flow effectivement exercés) · **décision CTO attendue** (le `.simplecov` reste à 72,0 tant que non arbitré)
+- **Commit :** `test(p6): characterize OAuth code-exchange flow end-to-end` — branche `feat/p6-wave2` (W2-D2 `429d6288` + housekeeping `093866d4`)
+- **Suivant :** validation CTO W2-D3 + arbitrage verrou → clôture de vague : mise à jour campagne (`coverage_campaign_p6.md`) + ouverture PR au format maison + CI 6/6 + amendement mémoire fc08::011 (règle : un seul amendement post-Wave 2)
 
 ### 2026-09-20 (2) — W2-D2 clôturée — 10 specs de caractérisation, service 0 % → 69,44 %, gates verts
 
