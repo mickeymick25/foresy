@@ -104,6 +104,12 @@ RAG (`foresy__knowledge`) + lectures locales + greps exhaustifs + git — see §
 
 ## 5. Journal de suivi
 
+### 2026-09-20 (5) — Revue CTO PR #36→#39 — 4× APPROVE — follow-up RSwag `name` enregistré (BACKLOG #15)
+
+- **Revue CTO des 4 PR (depuis les diffs + historique GitHub) :** #36 APPROVE (latents arbitragés, fondations vivantes `Common::RateLimitable` restaurées avant commit — diff final vérifié) · #37 APPROVE (link-rot historique explicitement isolé, non « réparé » artificiellement — décision validée) · #38 APPROVE (bascules [Obsolete] rattachées à des preuves, pas à l'ancienneté) · **#39 APPROVE — aucun changement bloquant, 1 dette à conserver**
+- **Dette enregistrée (BACKLOG #15) :** divergence `format_success_response.name` ↔ schéma RSwag `oauth_spec.rb` — traitée comme **correction de contrat** (arbitrage : name au contrat → RSwag corrigé, ou réponse production modifiée), **jamais mêlée à la caractérisation Wave 2** ; ne pas laisser les deux contrats diverger durablement
+- **Verdict CTO : #39 mergeable** — suite à merge : sync main, memory-indexer (amendement fc08::011), clôture documentaire finale de Wave 2
+
 ### 2026-09-20 (4) — WAVE 2 CLÔTURÉE (validation CTO) — verrou restauré 72,5, clôture en cours
 
 - **W2-D3 validée + GO clôture** : verrou **72,0 → 72,5** (GO CTO — justification factuelle : 994/0 · 77,83 % lignes, marge +5,33 pts · 48,42 % branches · service 69,44 % · flow callback exercé de bout en bout · 17 specs OAuth · RuboCop/Brakeman 0 · aucune modification production)
