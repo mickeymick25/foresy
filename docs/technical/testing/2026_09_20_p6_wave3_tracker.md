@@ -54,10 +54,26 @@
 **Commit :** `test(p6): characterize CraServices::List filters and pagination`
 
 ### W3-D2 — Git ledger (prévu, non démarré)
-### W3-D3 — services/lib (prévu, non démarré)
+### W3-D3 — services/lib + façades — ✅ reconnaissance FAIT (20/09) — dossier d'arbitrage CTO (code mort) + specs de chemins vivants en attente de GO
 ### W3-D4 — modèles (prévu, non démarré)
 
-## 5. Journal de suivi
+### 2026-09-20 (2) — W3-D3 reconnaissance — carte complète app/ (76 fichiers) + classement vivant/mort
+
+- **Méthode :** suite complète rejouée pour régénérer le resultset (le corpus ciblé ne reflétait que 23 fichiers) → carte authoritative `app/` (76 fichiers) via outil temporaire racine (supprimé après) · grep d'appelants pour chaque méthode suspecte
+- **Périmètre W3-D3 (services + lib) — hors contrôleurs/concerns (dette D3-3) et modèles (W3-D4)**
+- **Classification VIVANT (specs de caractérisation en attente de GO) :**
+  - `RateLimit::RedisBackend` 58,82 % — **incrément/count/clear ZSET sliding window (FC-05)** : Redis réel du conteneur (stub sur la lecture `redis` privée seulement) · `RateLimit::Backend` L22/31/39 : **contrat abstrait NotImplementedError** ×3
+  - `o_auth_user_service` 61,54 % : **race condition retry** (retry_find_after_race_condition direct : trouvé / RecordNotFound) · **link par email** (find_by_email_and_link_provider + update_existing_oauth_user!) · **RecordInvalid** re-raised (email déjà pris par un autre uid du même provider) — chemins vivants réels
+  - `cra_entry_services/list.rb` 76,92 % — L27 : `missing_cra` (bad_request naturel) · L41-42 : rescue `list_failed` (défensif)
+  - `rate_limit_service.rb` 84,29 % — 11 lignes à cartographier à la lecture (L59, 122, 131-132, 164-165, 173, 241-245)
+  - `lib/cra_errors.rb` 70 % — **18 lignes = initialisateurs/default_message de classes d'erreur du domaine** (CraLockedError L48, CraSubmittedError L59, InvalidTransitionError L70-75, InvalidPayloadError L84-85, to_h L26-36, CraNotFoundError L122, etc.) — **caractérisation du contrat de la taxonomie d'erreurs** (initialize + to_h par classe) — pas du code mort, des contrats non exercés
+- **Dossier d'arbitrage — code mort (preuve : grep d'appelants = 0 dans app/spec/bin) :**
+  1. **façades `service_available?` ×3** (cra_services L23, mission_services L27, company_services L33) — stubs anti-EmptyClass jamais appelés — suppression OU conservation documentée (au choix CTO)
+  2. **o_auth_token_service** — 5 méthodes sans appelant : `can_generate_token?` (L46-52), `extract_user_info` (L55-62), `generate_stateless_jwt_with_expiration` (L65-75), `token_expiration_time` (L78-80), `can_authenticate_oauth?` (L83-91) — suppression OU caractérisation si jugées contrat
+  3. **o_auth_user_service** — `valid_oauth_user_data?` (L106-113), `find_existing_user` (L116-118) — zéro appelant
+  4. **application_result** — helpers « for controllers » sans appelant : `value`/`value!` (L37-44), `items`/`item`/`cra`/`total_count`/`pagination`/`totals` (L48-70) + factory compat **`success_entry`/`success_entries`/`success_cra`/`success_cras`** (L151-172) + `no_content` (L97) + `unauthorized` (L124 — non utilisé par les services ; les contrôleurs passent par StandardizedError)
+- **Correction importante vs hypothèse initiale :** les builders `created`/`unprocessable_entity`/`forbidden`/`conflict`/`not_found` sont **VIVANTS** (services entry/mission/company — preuve grep) — pas du code mort ; leur non-couverture ne figure pas dans les lignes relevées sauf branches précises
+- **Aucune spec écrite, aucune suppression effectuée** — arbitrage CTO attendu avant d'écrire (pattern G1/G2 : arbitrage du mort avant l'exécution)
 
 ### 2026-09-20 (2) — W3-D2 clôturée — ledger : service 100 %, repository 95,88 %, payload 100 % — 1029/0
 
