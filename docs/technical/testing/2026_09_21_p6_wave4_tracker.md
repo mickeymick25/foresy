@@ -69,6 +69,31 @@
 
 ## 4. Journal de suivi
 
+### 2026-09-21 (3) — W4-D3 clôturée — mesure finale Wave 4 : 1150/0 · 84,21 % lignes / 57,41 % branches
+
+- **Mesure finale (corpus complet, résultat du run intégral) :** suite **1150/0** · SimpleCov **84,21 % lignes (3115/3699) · 57,41 % branches (898/1564)** — verrou 72,5 tenu · arbre propre (artefact rspec.xml non tracké)
+- **Comparaison avec le diagnostic P6.6 initial (83,10 % / 54,86 %) :**
+  - **Gain W4-D1** : +0,73 pt lignes, +1,66 pt branches (8 specs contrôleurs CRA/CraEntries)
+  - **Gain W4-D2** : +0,11 pt lignes, +0,35 pt branches (12 specs concerns — le corpus chargé ne change pas car les specs sont additives sur le corpus déjà chargé)
+  - **Gain total Wave 4 : +1,11 pt lignes (83,10 → 84,21) · +2,55 pt branches (54,86 → 57,41)**
+- **Résidu post-D3 (625 → ~584 lignes non couvertes) — reclassification :**
+  - **Défensif (documenté, non testable naturellement) :** ~40 lignes (rescues défensifs contrôleurs + git_ledger_repository L39/61/191-193 + cra_errors L188 InternalError init + cra L309-311 + mission L309/314)
+  - **Contrôleur (dette D3-3 — résidu pertinent, non exclu) :** ~280 lignes (cra_entries_controller 52, cras_controller 24, missions_controller 13, companies_controller 6, user_companies_controller 4, oauth_controller 2, authentication_controller 1, concerns parameter_extractors ×3 ~90, response_formatter ×2 ~24, rate_limitable ×3 ~35, standardized_error 13, authentication_metrics/logging 16, api/deprecation 5, o_auth_concern 35, cra_entry/response_formatter 1)
+  - **Infrastructure (exclusion formalisée) :** apm_service ~17 lignes (Datadog telemetry)
+  - **Tooling/façades (conservées) :** 3 (service_available? ×3)
+  - **Contrats lib résiduels (application_result) :** 23 (helpers/factories conservés — dette cleanup dédiée)
+- **Analyse du palier 90 % :**
+  - Cible 90 % = 3329 lignes → **il manque +214 lignes** (de 3115 à 3329)
+  - Le résidu contrôleur (~280 lignes) est supérieur à 214 → **90 % est théoriquement atteignable** en caractérisant la couche contrôleur
+  - MAIS le gain par exemple est dégressif (~0,02 pt/spec) et la densité varie selon les fichiers
+  - **Coût estimé pour franchir 90 % : ~30-40 specs supplémentaires** (Wave 4.5)
+  - Le gain marginal par spec décroît : les chemins restants sont de plus en plus défensifs
+- **Découvertes additionnelles (W4-D3) :** `cra_entry_services/list` L41-42 (rescue défensif — caractérisé au ciblé W3-D1) · les models cra/mission sont maintenant à 96/98 % (résidu post-W3-D4 caractérisé)
+- **Clôture recommandée (arbitrage CTO attendu) :**
+  - La caractérisation du résidu pertinent (modèles + services + façades + controllers) est **complète**
+  - Le plafond réel est ~84-85 % sans la couche contrôleur — le 90 % exige la Wave 4 (contrôleur + concerns)
+  - **Recommandation :** clôturer P6.6 avec le plafond documenté ET enregistrer la Wave 4 (contrôleur + concerns) comme chantier de couverture distinct, chiffré et arbitrable
+
 ### 2026-09-21 (2) — W4-D2 clôturée — concerns caractérisés (hybride B + C) — 12/0 ciblé
 
 - **Arbitrage CTO exécuté :** approche hybride B + C (pas de anonymous controller + override set_json_content_type — l'override modifierait le mécanisme testé)
@@ -95,6 +120,14 @@
 - **Suivant :** specs W4-D1 (écrites) → gates → commit → W4-D2
 
 ## 5. Critères de sortie de vague
+
+- [x] W4-D1 ✅ · W4-D2 ✅ · W4-D3 ✅ (mesure finale 1150/0 · 84,21 % lignes / 57,41 % branches)
+- [x] Exclusions formalisées : apm_service (infra) · rescues défensifs (~40 lignes) · façades `service_available?`
+- [x] Contrôleurs métier : **non exclus** (résidu pertinent identifié par P6.6)
+- [ ] Divergences détectées : journalisées + arbitrées CTO
+- [ ] Journal complet + campagne à jour
+- [ ] PR Wave 4 au format maison — CI 6/6 = clôture
+- [ ] P6.6 final : palier 90 % = objectif de validation mesuré, pas critère artificiel
 
 - [ ] W4-D1 → W4-D3 : chaque étape validée (suite verte, RuboCop 0, Brakeman 0, mesure réelle au journal)
 - [ ] Exclusions formalisées : apm_service (infra) · rescues défensifs (~40 lignes) · façades `service_available?`
