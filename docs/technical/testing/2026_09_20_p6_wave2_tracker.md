@@ -113,7 +113,7 @@ RAG (`foresy__knowledge`) + lectures locales + greps exhaustifs + git — see §
 - **Verrou : 72,0 tenu** (77,67 % mesuré) — remontée 72,5 conditionnée aux gates W2-D2 **+ W2-D3** (règle §7)
 - **Commit :** `test(p6): characterize OAuth code exchange (Google/GitHub)` — branche `feat/p6-wave2` (base `bf2a8512`)
 - **Suivant :** validation CTO W2-D2 → **W2-D3** (intégration end-to-end `POST /auth/:provider/callback`, stub Net::HTTP minimal, utilisateurs réellement créés)
-- **Notes session :** réindexation hub RAG partielle (script >15 min pour le corpus — à relancer en fond, BACKLOG #9) · branch protection `required_status_checks` vide (API 20/09) → BACKLOG #14 · hardening arbre mergé → BACKLOG #15
+- **Notes session :** **réindexation hub RAG réussie** le 20/09 (1483,4 s — 1216 chunks écrits, diff 77 inchangés/82 nouveaux/1 modifié · `foresy__knowledge` à **2085 chunks** · vérification : le hub sert le nouveau `BACKLOG.md` + les chemins renommés) — **BACKLOG #9 retiré (livré)** · branch protection `required_status_checks` vide (API 20/09) → BACKLOG #13 · hardening arbre mergé → BACKLOG #14
 
 ### 2026-09-20 — Pré-travail d'hygiène documentaire exécuté — gates verts — W2-D2 débloqué
 
