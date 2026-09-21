@@ -47,14 +47,20 @@ RSpec.describe Company, type: :model do
       expect(company.display_name).to eq("#{company.name} (12345678900011)")
     end
 
-    # BUG PRODUCTION DÉMONTRÉ (W3-D4 — RED) : la gem countries n est pas installée →
-    # ISO3166 non résolu → country_name/full_address lèvent NameError (= 500 si appelés).
-    # Correction proposée : retomber sur le code brut sans résolution ISO3166 — arbitrage CTO.
-    it 'country_name / full_address lèvent NameError (ISO3166 absent — bug production, RED)' do
+    # W3-D4 — CORRIGÉ (arbitrage CTO) : country_name dépendait de la gem countries
+    # jamais déclarée → NameError (= 500). Correction minimale : le code stocké
+    # est retourné (le fallback existait déjà) ; la résolution ISO3166 exigerait
+    # une dépendance explicitement déclarée (dette documentée au tracker).
+    it 'country_name retourne le code stocké sans dépendance absente (GREEN fonctionnel)' do
       company.update!(country: 'FR')
 
-      expect { company.country_name }.to raise_error(NameError, /ISO3166/)
-      expect { company.full_address }.to raise_error(NameError, /ISO3166/)
+      expect(company.country_name).to eq('FR')
+    end
+
+    it 'full_address assemble les parties présentes' do
+      company.update!(address_line_1: '1 rue de Test', city: 'Paris', postal_code: '75001')
+
+      expect(company.full_address).to include('1 rue de Test', 'Paris', '75001')
     end
   end
 

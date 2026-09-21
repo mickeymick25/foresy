@@ -94,6 +94,14 @@ Cible : modèles sous 90 % du corpus complet (cra 78,74 %, mission 82,35 %, miss
 
 ## 4. Journal de suivi
 
+### 2026-09-20 (7) — W3-D4 correction exécutée — blocker ISO3166 levé (REQUEST CHANGES PR #40 traité)
+
+- **Revue CTO PR #40** : REQUEST CHANGES — 1 blocker (ISO3166), 1 warning documenté (validate_uniqueness), le reste 🟢 ; traçabilité Git 7 commits ✅, W3-D1→D3 ✅, W3-D4 caractérisation ✅
+- **Blocker traité — Option A2 (correction minimale sans dépendance) :** `Company#country_name` dépendait de la gem `countries` **jamais déclarée** (Gemfile/Gemfile.lock : absent, historique complet ; introduite implicitement dans le commit de migration FC-06 `a460a860`) → `NameError` = 500 potentiel · **preuves :** zéro appelant production de `country_name`/`full_address` · zéro mention dans le contrat FC-08 · la gem absente du conteneur (`gem list` vide) → **correction minimale : `country_name` retourne le code stocké** (le fallback brut existait déjà dans le code) — la résolution ISO3166 exigerait de déclarer la dépendance explicitement (dette documentée au journal) · le spec RED (NameError) remplacé par un GREEN **fonctionnel**
+- **Gates post-correction :** suite **1130/0** ✓ · RuboCop **0** ✓ · Brakeman **0** ✓ · **SimpleCov : 83,10 % lignes (3074/3699) · 54,86 % branches (858/1564)** — corpus −2 lignes (ISO3166 retiré) · verrou 72,5 tenu
+- **BACKLOG #16 ajouté (WARNING CTO) :** `Cra#validate_uniqueness` inerte à la création (pivot créateur absent à la validation) — point d'architecture traité séparément
+- **Suivant :** push → réévaluation CTO PR #40 (CI du commit final 6/6) → merge → sync + réindexation hub → clôture formelle Wave 3
+
 ### 2026-09-20 (6) — WAVE 3 clôture administrative (validation CTO) — PR feat/p6-wave3 prête
 
 - **W3-D4 validée GREEN** (1129/0 · 83,07 % lignes / 54,78 % branches · RuboCop 0 · Brakeman 0) + **contrôle complémentaire git_ledger_service_spec.rb** : 17/0 · Syntax OK · **diff vs commit `31184c10` vide — zéro dérive accidentelle** ; occurrences `sc.send`/`sc.const_defined?` justifiées (remove_const privé, ordre aléatoire, restauration d'overlays, filesystem conteneur) — aucune simplification demandée
