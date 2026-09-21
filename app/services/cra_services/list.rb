@@ -74,7 +74,7 @@ class CraServices
     # === Filter Validation ===
 
     def validate_filters
-      return ApplicationResult.success if filters.empty?
+      return ApplicationResult.success(data: nil) if filters.empty?
 
       # Validate status filter
       if filters[:status].present? && !valid_status?(filters[:status])
@@ -116,7 +116,7 @@ class CraServices
         )
       end
 
-      ApplicationResult.success
+      ApplicationResult.success(data: nil)
     end
 
     # === Fetch CRAs ===

@@ -59,6 +59,16 @@
 
 ## 5. Journal de suivi
 
+### 2026-09-20 (3) — W3-D1 clôturée — bug 500 corrigé (2 lignes), list 24,62 → 96,92 %, 1013/0
+
+- **Arbitrages CTO exécutés** : (1) 🟢 correction minimale **2 lignes** — L77/L119 : `ApplicationResult.success(data: nil)` (le `data:` de la validation n'est jamais consommé) ; (2) 🔴 pas de refactor de List, pas de changement de contrat API, code per_page 20 **conservé** ; (3) 🟢 doc Mini-FC-01 : `per_page` défaut **25 → 20** (aligné implémentation, seule correction du contrat) ; (4) 🟢 `:query_failed` caractérisé — **déjà couvert** par l'exemple résilience du spec (pas d'ajout nécessaire)
+- **D1.2/D1.3 :** ciblé **19/0** ( GREEN complet — le RED du 20/09 (2) résolu) — le rescue interne `:query_failed` passe désormais (stub `Cra.accessible_to` levant StandardError, seul stub non-réseau)
+- **Gates :** suite **1013/0** (994 + 19) ✓ · RuboCop **0** (1 offense autocorrectée) ✓ · Brakeman **0** ✓ · **SimpleCov : 79,09 % lignes (2948/3727) · 50,50 % branches (804/1592)** — verrou 72,5 tenu · `cra_services/list.rb` **24,62 % → 96,92 % (63/65)** (résidu : rescue externe quasi-inojoignable, documenté défensif)
+- **Bug production fermé :** `GET /api/v1/cras` opérationnel (sans filtres ET avec filtres — year/month/status/currency/description ILIKE AND) · pagination (défaut 20, clamp 1..100, page min 1) · soft-delete jamais retourné · sécurité `accessible_to` (créateur oui, autre non) — le tout désormais caractérisé
+- **Divergence per_page 25↔20 : arbitrée** — doc alignée sur le code (arbitrage CTO : aucune preuve que 25 est une intention produit encore valide ; un changement 20→25 serait une correction distincte avec RED explicite)
+- **Commits :** `test(p6): W3-D1 caractérisation` (`895c1e3a` — RED + tracker) · `fix(p6): ... corrigé` (cette livraison) — branche `feat/p6-wave3`
+- **Suivant :** réévaluation CTO D1 → **W3-D2 git ledger** → W3-D3 services/lib → W3-D4 modèles → réévaluation globale → P6.6
+
 ### 2026-09-20 (2) — W3-D1 : RED DÉMONTRÉ — bug production `GET /api/v1/cras` = 500 — arbitrage CTO requis
 
 - **Cycle RED démontré (13/17 specs en échec au premier run — exactement le chemin fetch)** : toute invocation de `CraServices::List` avec filtres valides ou vides retourne `internal_error(:internal_error, "An unexpected error occurred while listing CRAs")` au lieu du listing

@@ -28,7 +28,7 @@ GET /api/v1/cras
 | `month` | Integer (1-12) | Non | Filtrer par mois |
 | `status` | String | Non | Filtrer par status (draft/submitted/locked) |
 | `page` | Integer | Non | Pagination (défaut: 1) |
-| `per_page` | Integer | Non | Items par page (défaut: 25, max: 100) |
+| `per_page` | Integer | Non | Items par page (défaut: 20, max: 100) — aligné sur l'implémentation (`per_page&.to_i \|\| 20`, arbitrage CTO 20/09) |
 
 ### Paramètres Explicitement Refusés
 
