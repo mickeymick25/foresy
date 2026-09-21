@@ -36,27 +36,53 @@
 | résidus models/lib | ~33 | post-W3-D4 (défensifs + contrats) |
 | **TOTAL résidu** | **~625** | |
 
-## 3. Séquence validée (proposée au GO CTO)
+## 3. Séquence validée
 
 ### W4-D1 — contrôleurs CRA / CraEntries — ✅ FAIT (21/09)
 
 **Specs ajoutées (8, `spec/requests/api/v1/cras/cra_error_handlers_spec.rb` — nouveau, suite 1129 → 1138) :**
 - **CraEntriesController — 5 blocs `rescue StandardError`** (create, index, show, update, destroy) : exception hors-CraErrors → 500 + log_api_error
 - **CraEntriesController — handle_service_error (L271-291)** : 13 clés d'erreur mappées vers leur statut HTTP
-- **CrasController — index en échec** (L75-76) : le message du résultat est rendu tel quel (la clé `:invalid_payload` est passée au lieu du message humain — comportement caractérisé)
+- **CrasController — index en échec** (L75-76) : le message du résultat est rendu tel quel (la clé `:invalid_payload` est passée au lieu du message humain)
 - **CrasController — render_result_error** (L174-189) : 6 statuts de résultat mappés vers le rendu standardisé
 
 **Découverte structurelle :** les handlers `rescue_from CraErrors::*` (L197-249 de cra_entries_controller) sont **injoignables via le flow normal** — chaque action a un `rescue StandardError` inline qui attrape tout avant le rescue_from. Ils sont **documentés comme défensifs** (pas de spec artificielle pour les traverser).
 
 **Gates :** suite **1138/0** ✓ · RuboCop **0** ✓ · Brakeman **0** ✓ · **SimpleCov : 83,83 % lignes (3101/3699) · 56,52 % branches (884/1564)**.
 
-**Commit :** cette livraison.
+**Commits :** `6c31c00c` (specs + tracker)
 
-### W4-D2 — contrôleurs Missions / Companies + concerns (prévu, non démarré)
-### W4-D3 — résidu contrôleurs + mesure finale (prévu, non démarré)
+### W4-D2 — concerns (hybride B + C) — ✅ FAIT (21/09)
+
+**B — harness `Class.new(ActionController::Base)` (9 specs, `concerns_common_spec.rb`) :**
+- `Common::ParameterExtractor` : extract_pagination_params (bornes page/per_page), extract_sort_params (default + asc/desc), extract_date_range_params (parse valides/invalides + range_valid?), extract_filter_params (filtre autorisés + hash vide), extract_search_params (strip/nil)
+- le harness a `helper_method`, `params`, `request` gratuits — pas de route, pas de cycle HTTP
+
+**C — request specs via les contrôleurs réels (3 specs, `cra_response_formatter_spec.rb`) :**
+- `ResponseFormatter.single/collection` exercés via CraEntriesController (create 201, index 200)
+- `StandardizedError.error_internal` : le message est exposé en test (Rails.env.test?), masqué en production
+
+**Gates :** ciblé **12/0** ✓ · suite **1130/0** ✓ · RuboCop **0** ✓ · Brakeman **0** ✓
+
+### W4-D3 — résidu + mesure finale (prévu, non démarré)
 ### P6.6 final (prévu, non démarré)
 
 ## 4. Journal de suivi
+
+### 2026-09-21 (2) — W4-D2 clôturée — concerns caractérisés (hybride B + C) — 12/0 ciblé
+
+- **Arbitrage CTO exécuté :** approche hybride B + C (pas de anonymous controller + override set_json_content_type — l'override modifierait le mécanisme testé)
+- **B — harness `Class.new(ActionController::Base)` (9 specs, `concerns_common_spec.rb`) :**
+  - `Common::ParameterExtractor` : extract_pagination_params (bornes page/per_page), extract_sort_params (default + asc/desc), extract_date_range_params (parse valides/invalides + range_valid?), extract_filter_params (filtre autorisés + hash vide), extract_search_params (strip/nil)
+  - le harness a `helper_method`, `params`, `request` gratuits — pas de route, pas de cycle HTTP
+  - 9/0 ✓
+- **C — request specs via les contrôleurs réels (3 specs, `cra_response_formatter_spec.rb`) :**
+  - `ResponseFormatter.single/collection` exercés via CraEntriesController (create 201, index 200)
+  - `StandardizedError.error_internal` : le message est exposé en test (Rails.env.test?), masqué en production
+  - 3/0 ✓
+- **Gates :** ciblé **12/0** ✓ · suite **1130/0** ✓ · RuboCop **0** ✓ · Brakeman **0** ✓
+- **Découverte structurelle (W4-D2) :** les concerns sont des **mixins de contrôleur Rails**, pas des services PORO — le contexte Rails fait partie du contrat d'exécution ; l'approche hybride B + C est le seul moyen de les caractériser fidèlement
+- **Suivant :** réévaluation CTO D2 → **W4-D3 résidu + mesure finale** → P6.6 final → PR
 
 ### 2026-09-21 — GO Wave 4 + reconnaissance W4-D1
 
