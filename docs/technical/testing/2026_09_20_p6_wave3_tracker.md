@@ -88,11 +88,22 @@
 
 **Commit :** cette livraison.
 
-### W3-D4 — modèles (prévu, non démarré)
+### W3-D4 — modèles — ✅ FAIT (20/09) — 64 specs, invariants métier caractérisés
 
 Cible : modèles sous 90 % du corpus complet (cra 78,74 %, mission 82,35 %, mission_company 82,76 %, user_company 81,82 %, company 81,54 %, cra_entry 87,27 %, pivots 88-90 %) — carte complète au journal (2) de cette vague.
 
 ## 4. Journal de suivi
+
+### 2026-09-20 (5) — W3-D4 clôturée — modèles : 64 specs, gap métier résorbé — 1129/0 · 83,07 % / 54,78 %
+
+- **Specs ajoutées (64, suite 1065 → 1129) — 4 fichiers nouveaux :**
+  - `cra_contracts_spec.rb` (24) : **discard/undiscard** (draft ok, submitted/locked refusés) · modifiable? (draft/submitted ok, locked non) · display_name (« 2/2026 (Draft) ») · **modifiable_by?** (créateur oui, sans pivot non, nil non, locked non) · **can_transition_to? machine à états** (draft→submitted, submitted→locked, locked terminal) · transition_to! (valide/invalide) · submit! (garde + happy, totaux recalculés) · **lock! : garde + fake commit + ATOMICITÉ GitLedgerError** (GIT_LEDGER_REAL=true + LEDGER_PATH fichier → raise + **CRA reste unlocked** — rollback complet FC-07 PLATINUM) · currency hors ISO 4217 · doublon validate_uniqueness à la re-validation · enum hors contrat
+  - `mission_contracts_spec.rb` (17) : discard/undiscard · active?/completed?/current? · time_based?/fixed_price? · display_name · duration_in_days (calcul inclusif / nil sans end_date) · **total_amount par type (daily_rate vs fixed_price)** · currency_symbol (EUR/USD/GBP/brut) · **exclusivité financière par type ×4** · enum hors contrat (ArgumentError setter) · notifications post-won
+  - `company_contracts_spec.rb` (7) : with_role · utilisateurs/missions par rôle · active?/display_name · full_address/country_name · normalisations callbacks
+  - `pivot_contracts_spec.rb` (nouveau, 12) : UserCra/UserMission (rôles, cra_creator/mission_creator, user_created_cras/missions) · CraMission display_link + **garde lien dupliqué** · CraEntryCra (lien entry↔CRA) · CraEntryMission (display_link/cra/entry_date + garde dupliqué) · **MissionCompany exclusivité independent/client** (rejets ×2 + tolérance non-exclusif)
+- **Gates :** suite **1129/0** ✓ · RuboCop **0** (7 autocorrectées) ✓ · Brakeman **0** ✓ · **SimpleCov : 83,07 % lignes (3073/3699) · 54,78 % branches (858/1566)** — verrou 72,5 tenu
+- **Découvertes de contrat (journal) :** validate_uniqueness **inerte à la création** (le pivot créateur n'existe pas à la validation — créé post-insert par la factory ; le garde ne s'exerce qu'à la re-validation/update) — comportement observé, documenté pour arbitrage CTO · set_default_status/currency fonctionnels · exclusivité mission_company câblée
+- **Suivant :** réévaluation CTO D4 → réévaluation globale Wave 3 → mise à jour campagne → **PR au format maison** → CI 6/6 → clôture
 
 ### 2026-09-20 (4) — W3-D3 clôturée — suppressions OAuth ciblées + 36 specs chemins vivants — 1065/0
 
