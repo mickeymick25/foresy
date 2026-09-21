@@ -69,6 +69,12 @@
 
 ## 4. Journal de suivi
 
+### 2026-09-21 (4) — P6.6 CLOSED — arbitrage CTO : pas de Wave 4.5 maintenant
+
+- **Arbitrage CTO** : P6.6 **CLOSED** — 84,21 % lignes / 57,41 % branches · **90 % NON ATTEINT et NON REQUIS** comme condition de clôture · le question est maintenant "90 % apporte-t-il suffisamment de valeur pour justifier 30-40 specs ?" — **la réponse est non, sans mesure incrémentale démontrant la valeur**
+- **Résidu contrôleur (~280 lignes)** : non homogène (contrôleurs + concerns + authentication + OAuth + transversaux) — ne pas déduire que 280 résiduelles = 214 facilement récupérables = 90 % garanti · l'estimation "30-40 specs pour 90 %" reste une **estimation, pas un objectif contractuel**
+- **Décision : P6.6 CLOSED · Wave 4.5 non lancée · la dette contrôleurs/concerns est enregistrée séparément (~280 lignes, ~30-40 specs estimées) · le prochain chantier Foresy sera tranché sur la base de la valeur produit/risque, et non mécaniquement sur SimpleCov**
+
 ### 2026-09-21 (3) — W4-D3 clôturée — mesure finale Wave 4 : 1150/0 · 84,21 % lignes / 57,41 % branches
 
 - **Mesure finale (corpus complet, résultat du run intégral) :** suite **1150/0** · SimpleCov **84,21 % lignes (3115/3699) · 57,41 % branches (898/1564)** — verrou 72,5 tenu · arbre propre (artefact rspec.xml non tracké)
