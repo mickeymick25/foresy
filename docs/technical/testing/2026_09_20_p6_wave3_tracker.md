@@ -94,6 +94,13 @@ Cible : modèles sous 90 % du corpus complet (cra 78,74 %, mission 82,35 %, miss
 
 ## 4. Journal de suivi
 
+### 2026-09-20 (6) — WAVE 3 clôture administrative (validation CTO) — PR feat/p6-wave3 prête
+
+- **W3-D4 validée GREEN** (1129/0 · 83,07 % lignes / 54,78 % branches · RuboCop 0 · Brakeman 0) + **contrôle complémentaire git_ledger_service_spec.rb** : 17/0 · Syntax OK · **diff vs commit `31184c10` vide — zéro dérive accidentelle** ; occurrences `sc.send`/`sc.const_defined?` justifiées (remove_const privé, ordre aléatoire, restauration d'overlays, filesystem conteneur) — aucune simplification demandée
+- **Bilan Wave 3 (validation CTO)** : W3-D1 list 24,62 → 96,92 % (bug 500 corrigé) · W3-D2 ledger service 100 % / repo 95,88 % / payload 100 % · W3-D3 chemins vivants + nettoyage OAuth (7 méthodes mortes supprimées, façades + application_result conservés documentés) · W3-D4 modèles caractérisés — **hausse 79,44 → 83,07 % obtenue par caractérisation de contrats vivants + suppression de code mort démontré + documentation des chemins défensifs, pas par chasse au pourcentage**
+- **Résidus arbitrés :** cra_errors init `InternalError` (défensif tant que rien de distinct n'est identifié — micro-complément possible post-réévaluation si appelant réel) · o_auth_user rescue RecordNotUnique (garde défensif, 95,45 % accepté) · **clôture administrative** : campagne P6 mise à jour · PR au format maison · CI 6/6 · merge · sync · réindexation hub · clôture formelle
+- **Pas de nouveau chantier technique avant la PR** — seuil de clôture atteint
+
 ### 2026-09-20 (5) — W3-D4 clôturée — modèles : 64 specs, gap métier résorbé — 1129/0 · 83,07 % / 54,78 %
 
 - **Specs ajoutées (64, suite 1065 → 1129) — 4 fichiers nouveaux :**
