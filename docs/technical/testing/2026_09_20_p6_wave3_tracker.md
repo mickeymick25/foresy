@@ -94,6 +94,16 @@ Cible : modèles sous 90 % du corpus complet (cra 78,74 %, mission 82,35 %, miss
 
 ## 4. Journal de suivi
 
+### 2026-09-20 (8) — WAVE 3 CLÔTURÉE FORMELLEMENT (merge PR #40, `53e48589`) — bilan final
+
+- **Merge PR #40 exécuté** (titre + Gates alignés sur le bilan final : 1130/0 · 83,10 % lignes / 54,86 % branches) — `main` fast-forward `50c52649 → 53e48589` · branche locale `feat/p6-wave3` supprimée · verrou **72,5** confirmé sur main
+- **Bilan final Wave 3 :** suite **1130/0** · SimpleCov **83,10 % lignes (3074/3699) · 54,86 % branches (858/1564)** · RuboCop 0 · Brakeman 0 · CI PR 6/6 (run 35611220178 sur `0e9062ef`) · **136 specs de caractérisation ajoutées** (19 list + 16 ledger + 36 services/lib + 64 modèles + 1 cra_entry list) · **2 bugs production corrigés** (GET /cras 500 ; ISO3166 NameError) · 7 méthodes OAuth mortes supprimées (corpus −28 lignes) · arbre final propre (artefact rspec.xml non tracké)
+- **Traçabilité 8 commits** (endpoint commits de la PR — résolution définitive du 7↔8) : `895c1e3a` (RED+tracker) · `162c1f78` (fix 500) · `31184c10` (ledger) · `63699d11` (reconnaissance) · `91b1582d` (W3-D3) · `26aac82b` (W3-D4) · `52f19295` (clôture admin) · `0e9062ef` (fix ISO3166)
+- **Arbitrages exécutés conformes :** corrections 2 lignes (GET /cras) + 2 lignes (ISO3166) · per_page doc 25→20 · `service_available?` ×3 et `application_result` conservés + documentés (dette cleanup dédiée) · 3 rescues défensifs non spécifiés
+- **Dettes actives après Wave 3 :** D3-3 (reporté) · P1 · BACKLOG #13/#14 (hardening CI) · #15 (RSwag `name`) · **#16 (validate_uniqueness — WARNING architecture)** · link-rot (~114 liens, chore séparé)
+- **P6.6 : différé** — arbitrage post-Wave 3 sur mesure représentative (palier décisionnel 90 %, branch coverage, qualification des exclusions — décision CTO attendue)
+- **Réindexation hub** : passée en post-merge — fait foi pour la disponibilité des connaissances Wave 3
+
 ### 2026-09-20 (7) — W3-D4 correction exécutée — blocker ISO3166 levé (REQUEST CHANGES PR #40 traité)
 
 - **Revue CTO PR #40** : REQUEST CHANGES — 1 blocker (ISO3166), 1 warning documenté (validate_uniqueness), le reste 🟢 ; traçabilité Git 7 commits ✅, W3-D1→D3 ✅, W3-D4 caractérisation ✅
