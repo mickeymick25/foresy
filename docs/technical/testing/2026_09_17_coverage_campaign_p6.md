@@ -66,11 +66,28 @@ Wave 2 ✅ CLÔTURÉE (20/09, validation CTO)
      Bilan mesuré : **77,83 % lignes (2901/3727) / 48,42 % branches (771/1592)**,
      **994 exemples, 0 failure** — 17 specs OAuth caractérisées
      **Verrou restauré : 72,5** (GO CTO 20/09 — marge +5,33 pts ; trajectoire 95 % inchangée)
-Wave 3
- ├─ services/lib
- ├─ List / filtres
- ├─ git ledger
- └─ modèles
+Wave 3 ✅ CLÔTURÉE (20/09, validation CTO)
+ ├─ W3-D1 : `CraServices::List` + filtres — **RED démontré : bug production
+ │  `GET /api/v1/cras` = 500** (`ApplicationResult.success` sans `data:` — L77/L119)
+ │  corrigé (2 lignes) — list **24,62 → 96,92 % (63/65)** · divergence Mini-FC-01
+ │  per_page 25↔20 arbitrée (doc alignée sur le code) · 19 specs
+ ├─ W3-D2 : Git Ledger — **16 specs** (délégations, double lock idempotent,
+ │  gardes validate_cra!, fail-closed history_rewritten?, payload canonique) :
+ │  service 77,78 → **100 %**, repository 76,29 → **95,88 %**, payload → **100 %**
+ ├─ W3-D3 : services/lib + façades — **36 specs chemins vivants** (RedisBackend
+ │  ZSET réel, Backend contrat abstrait, race/link/RecordInvalid OAuth,
+ │  taxonomie CraErrors, missing_cra) + **nettoyage OAuth ciblé**
+ │  (7 méthodes mortes supprimées — zéro appelant ; façades et
+ │  ApplicationResult conservés + documentés)
+ └─ W3-D4 : modèles — **64 specs** (cra lifecycle/transitions/atomicité lock
+ │  GitLedger, mission exclusivité financière par type, company normalisations,
+ │  pivots rôles/gardes d'unicité)
+     Suivi d'implémentation : `docs/technical/testing/2026_09_20_p6_wave3_tracker.md`
+     Bilan mesuré : **83,07 % lignes (3073/3699) / 54,78 % branches (858/1566)**,
+     **1129 exemples, 0 failure** — corpus −28 lignes (code mort OAuth supprimé)
+     **Verrou 72,5 INCHANGÉ pendant la vague (marge +10,57 pts à la clôture)**
+     Découvertes : 2 bugs production corrigés (GET /cras 500 ; specs disparues
+     Mini-FC-01 révélées par la caractérisation) ; contract drift per_page aligné
 Wave 4
  └─ ~40 fichiers résiduels
 P6.6

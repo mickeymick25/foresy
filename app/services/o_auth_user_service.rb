@@ -102,21 +102,6 @@ class OAuthUserService
     user.save!
   end
 
-  # Validate if user can be created from OAuth data
-  def self.valid_oauth_user_data?(oauth_data)
-    return false if oauth_data.blank?
-    return false if oauth_data[:provider].blank?
-    return false if oauth_data[:uid].blank?
-    return false if oauth_data[:email].blank?
-
-    true
-  end
-
-  # Find existing user by provider and uid
-  def self.find_existing_user(provider, uid)
-    User.find_by(provider: provider, uid: uid)
-  end
-
   def self.extract_user_name(oauth_data)
     oauth_data[:name] || oauth_data[:nickname] || 'No Name'
   end
