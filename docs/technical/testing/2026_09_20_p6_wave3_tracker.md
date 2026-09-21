@@ -59,6 +59,15 @@
 
 ## 5. Journal de suivi
 
+### 2026-09-20 (2) — W3-D2 clôturée — ledger : service 100 %, repository 95,88 %, payload 100 % — 1029/0
+
+- **Specs ajoutées (16, suite 1013 → 1029) :** `git_ledger_service_spec.rb` — 12 exemples W3-D2 (gardes validate_cra! REAL ×2 → GitLedgerError chaîné · **double lock idempotent** — handle_existing_commit : même hash, delta de commits 0, warn loggé · get_existing_commit_info ×2 (repo absent → nil, repo vide → nil) · **échec git init → GitLedgerError** (LEDGER_PATH sur un chemin-fichier) · délégations ×5 (repository_info fetch_info complet / info {exists: false} / valid? git rev-parse / ensure_ledger_repository! / cleanup! force:) · **history_rewritten? fail-closed sur exception** — Open3 levant → GitLedgerError) ; `git_ledger_payload_spec.rb` — **nouveau fichier, 4 exemples** (payload canonique contractuel, entries mappées + ordre (date, id), totals serveur, soft-delete exclu)
+- **Bilan couverture ledger (corpus ciblé, extraction container) :** `git_ledger_service.rb` 77,78 % → **100,00 % (45/45)** · `git_ledger_repository.rb` 76,29 % → **95,88 % (93/97)** · `git_ledger_payload.rb` 90,91 % → **100,00 % (11/11)** — résidu repository = branches défensives documentées (rescue valid? L39, rescue info L61, log_stderr L191-193 — non naturelles sans stub Open3 artificiel)
+- **Incidents de mécanique (transparents, 3 cycles d itération) :** (a) `CraEntry` n'a pas d'attribut `active` — le soft delete est `deleted_at` (scope `.active`) → `entry.destroy` ; (b) mes deux entries partageaient la même date → `DuplicateEntryError` (invariant cra+mission+date) → dates distinctes ; (c) modifier-if après saut de ligne = SyntaxError + `remove_const` privé → `send(:remove_const, ...)` gardé (pattern D-12) + gardes `const_defined?` pour l'ordre aléatoire ; (d) `/app/cra-ledger` existe comme répertoire dans le conteneur → `info` caractérisé sur overlay chemin absent
+- **Gates :** suite **1029/0** ✓ · RuboCop **0** (6 autocorrectées) ✓ · Brakeman **0** ✓ · **SimpleCov : 79,44 % lignes (2961/3727) · 50,94 % branches (811/1592)** — verrou 72,5 tenu
+- **Note :** le ledger est invisible au resultset hôte (volume coverage/ non sync en temps réel) — l'extraction se fait depuis le resultset conteneur (outil racine `cov_ledger_tmp.rb`, à supprimer)
+- **Suivant :** réévaluation CTO D2 → **W3-D3 services/lib** → W3-D4 modèles → réévaluation globale → P6.6
+
 ### 2026-09-20 (3) — W3-D1 clôturée — bug 500 corrigé (2 lignes), list 24,62 → 96,92 %, 1013/0
 
 - **Arbitrages CTO exécutés** : (1) 🟢 correction minimale **2 lignes** — L77/L119 : `ApplicationResult.success(data: nil)` (le `data:` de la validation n'est jamais consommé) ; (2) 🔴 pas de refactor de List, pas de changement de contrat API, code per_page 20 **conservé** ; (3) 🟢 doc Mini-FC-01 : `per_page` défaut **25 → 20** (aligné implémentation, seule correction du contrat) ; (4) 🟢 `:query_failed` caractérisé — **déjà couvert** par l'exemple résilience du spec (pas d'ajout nécessaire)
