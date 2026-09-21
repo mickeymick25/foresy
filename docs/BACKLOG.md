@@ -28,11 +28,13 @@ sources canoniques ci-dessous. L'ancien backlog (2025-12-26) est archivé :
 | 6 | Arbitrage **`handle_user_error`** (observation stricte pendant W2-D2/D3 ; cycle RED si divergence démontrée) | 🔴 conditionnel | tracker Wave 2 §4/W2-D4 |
 | 7 | **E2E OAuth** avec credentials de test (nécessite credentials de test) | 🟠 important | archive BACKLOG 2025-12-26 §Tests E2E |
 | 8 | **Alerting production** minimal / monitoring proactif | 🟠 | archive BACKLOG 2025-12-26 §Tests E2E |
-| 9 | **Réindexation du hub RAG** — les renames PR #37 + PR obsolete ont déplacé tous les chemins indexés | 🔴 post-merge | `chroma/index-project.sh <racine>` (AGENTS.md) |
-| 10 | Chore **link-rot** — réparation des ~114 liens pré-existants (réorganisation 2026-01) | 🟢 recommandé | tracker hygiène §5 (E3-bis) |
-| 11 | Drift doc — `ROADMAP.md` ne marque pas FC-08 ✅ (README v0.1.1 : terminé, PR #24) | 🟢 sync doc | relevé session 20/09 |
-| 12 | Performance — < 100 ms sur les endpoints authentifiés | 🟢 | BRIEFING Future Improvements |
-| 13 | Monitoring avancé Prometheus/Grafana ; Datadog Synthetics | 🟢 | BRIEFING Future Improvements · archive BACKLOG |
+| 9 | Chore **link-rot** — réparation des ~114 liens pré-existants (réorganisation 2026-01) | 🟢 recommandé | tracker hygiène §5 (E3-bis) |
+| 10 | Drift doc — `ROADMAP.md` ne marque pas FC-08 ✅ (README v0.1.1 : terminé, PR #24) | 🟢 sync doc | relevé session 20/09 |
+| 11 | Performance — < 100 ms sur les endpoints authentifiés | 🟢 | BRIEFING Future Improvements |
+| 12 | Monitoring avancé Prometheus/Grafana ; Datadog Synthetics | 🟢 | BRIEFING Future Improvements · archive BACKLOG |
+| 13 | **Hardening CI — branch protection** : `main` protégée mais `required_status_checks` vide + `enforcement_level: off` (API GitHub vérifiée 20/09) — configurer les 6 checks requis pour rendre la règle « CI verte = merge » contraignante | 🟠 gouvernance | API `branches/main` · analyse E2E CTO 20/09 |
+| 14 | **Hardening CI — validation de l'arbre mergé** : l'E2E est `skipped` hors PR (`ci.yml` L316) → l'arbre réellement mergé n'est jamais testé E2E en combinaison (précédent D-8). Options CTO : (1) `merge_group`/merge queue — préféré, (2) smoke post-merge léger sur push main (health + auth + non-destructif + alerte), (3) E2E complet sur main (cher, arbitrage explicite requis) | 🟠 hardening | analyse E2E CTO 20/09 · `ci.yml` L316/L483 |
+| 15 | **OAuth callback — divergence contrat ↔ schéma RSwag** : `format_success_response` inclut `name` dans le payload user (découvert par W2-D3, caractérisé sans correction produit) — le schéma RSwag `oauth_spec.rb` ne le déclare pas. **Arbitrage ultérieur** : soit `name` fait partie du contrat → RSwag corrigé, soit la réponse production est modifiée — ne pas laisser les deux contrats diverger durablement | 🟠 correction de contrat | revue CTO 20/09 (PR #39) · tracker Wave 2 (3) |
 
 ## Métriques de qualité (état au 2026-09-20 — post PR #37, PR obsolete en cours)
 

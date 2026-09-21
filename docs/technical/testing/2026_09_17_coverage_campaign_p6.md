@@ -30,7 +30,7 @@ Si la couverture révèle un bug existant, il devient un vrai cycle RED → corr
 | **Mesure baseline ×2** | **73,21 % lignes / 45,07 % branches** — identiques ×2 (seeds différents) → déterminisme confirmé. Écart vs baseline du 16/09 (72,78 %) : code évolué depuis (D-5, D-12) |
 | Verrou | `minimum_coverage` dans `.simplecov` — **armé uniquement sur les runs de la suite complète** (P6.1-bis, cf. journal) : un subset (gate DDD, acceptance E2E, fichier ciblé) mesure la couverture et régénère les rapports, sans échec au seuil. **Seuil transitoire 72,0** (décision CTO 18/09 — cf. ligne « Recalibration » ci-dessous) |
 | Vérification | Suite avec verrou : **962/0** ✅ |
-| **Recalibration (18/09, incident CI 17→18/09 — cf. journal P6.1-bis)** | Corpus d'enforcement CI (eager load, `ENV['CI']`) ≠ corpus conteneur (lazy) : 67,27 % vs 73,21 % → cleanup legacy exécuté (9 fichiers morts, plan 07/01) → corpus CI post-cleanup **72,34 %**. **Baseline documenté de référence : 72,34 % corpus CI** · seuil **72,0 transitoire** (marge +0,34 pt) · retour à **72,5 rattaché à la couverture de `OAuthCodeExchangeService` en Wave 2** · aucune exclusion SimpleCov pour ce fichier · 72,0 ≠ baseline qualitatif · **trajectoire 95 % inchangée** |
+| **Recalibration (18/09, incident CI 17→18/09 — cf. journal P6.1-bis)** | Corpus d'enforcement CI (eager load, `ENV['CI']`) ≠ corpus conteneur (lazy) : 67,27 % vs 73,21 % → cleanup legacy exécuté (9 fichiers morts, plan 07/01) → corpus CI post-cleanup **72,34 %**. **Baseline documenté de référence : 72,34 % corpus CI** · seuil **72,0 transitoire** (marge +0,34 pt) · retour à **72,5 rattaché à la couverture de `OAuthCodeExchangeService` en Wave 2** · aucune exclusion SimpleCov pour ce fichier · 72,0 ≠ baseline qualitatif · **trajectoire 95 % inchangée · seuil restauré à 72,5 le 20/09 (Wave 2 livrée — GO CTO)** |
 
 ## 4. Séquence des vagues
 
@@ -50,12 +50,22 @@ Wave 1 ✅ CLÔTURÉE (19/09, validation CTO)
      PR : `docs/technical/changes/[DONE]_2026_09_19_P6_Wave1_PR_Description.md`
      Bilan mesuré : 76,49 % lignes / 47,60 % branches, 977 exemples, 0 test artificiel
      Verrou 72,0 INCHANGÉ (retour 72,5 = Wave 2, arbitrage CTO 19/09)
-Wave 2
- ├─ **démarrage : caractérisation `OAuthCodeExchangeService`** (flow code-exchange
- │  de production non testé, découvert par l'incident corpus CI — retour du verrou à 72,5)
- ├─ extraction
- ├─ rate limiting
- └─ OAuth (suite)
+Wave 2 ✅ CLÔTURÉE (20/09, validation CTO)
+ ├─ W2-D1 : reconnaissance + cartographie du flow code-exchange (9 chemins,
+ │  service 0 % confirmé par grep exhaustif — dette tracée fc08::010)
+ ├─ W2-D2 : caractérisation unitaire `OAuthCodeExchangeService` — 10 specs,
+ │  stub Net::HTTP uniquement ; service **0 % → 69,44 % lignes (125/180) / 13/29 branches** ;
+ │  asymétries documentées (uid Google Integer vs GitHub to_s ; Google token via
+ │  post_form vs perform_https_request — timeouts 10 s caractérisés)
+ ├─ W2-D3 : flow callback end-to-end — 7 specs requête vertes d'emblée (caractérisation
+ │  pure) : utilisateurs réellement créés, JWT réellement générés/décodés
+ │  ({user_id, provider, exp}), 400/401/422×3 — chaîne validate_oauth_data réelle
+ ├─ Divergence doc↔réel documentée (caractérisation, sans correction produit dans
+ │  cette vague) : `format_success_response` inclut `name` — absent du schéma RSwag
+ └─ Suivi d'implémentation : `docs/technical/testing/2026_09_20_p6_wave2_tracker.md`
+     Bilan mesuré : **77,83 % lignes (2901/3727) / 48,42 % branches (771/1592)**,
+     **994 exemples, 0 failure** — 17 specs OAuth caractérisées
+     **Verrou restauré : 72,5** (GO CTO 20/09 — marge +5,33 pts ; trajectoire 95 % inchangée)
 Wave 3
  ├─ services/lib
  ├─ List / filtres

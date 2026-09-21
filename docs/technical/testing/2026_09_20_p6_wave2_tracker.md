@@ -24,7 +24,7 @@
 
 | Cible | État | Taux |
 |---|---|---|
-| `app/services/o_auth_code_exchange_service.rb` (204 lignes brutes) | **Zéro référence dans toute la suite** (grep exhaustif `spec/` : aucun match `OAuthCodeExchangeService`/`ExchangeError`) — à confirmer par mesure SimpleCov fraîche | attendu **0,00 %** |
+| `app/services/o_auth_code_exchange_service.rb` (204 lignes brutes · **180 lignes utiles SimpleCov**) | **Zéro référence dans toute la suite** (grep exhaustif `spec/` : aucun match `OAuthCodeExchangeService`/`ExchangeError`) — confirmé par mesure : **0 % avant W2-D2** (fichier non chargé par la suite — corpus conteneur lazy 3647 lignes ne l'incluait pas) | 0,00 % → **69,44 %** (W2-D2) |
 | Flow contrôleur code-exchange (`OauthController#callback` via payload `{code, redirect_uri}`) | Specs existants stubbent **au niveau `OAuthValidationService`** (jamais le service réel) — le flow code-exchange de bout en bout n'est pas exercé | à mesurer |
 
 **État global transmis (PR #36) :** 77,18 % lignes mesurés · 977 exemples, 0 échec · verrou CI 72,0 tenu.
@@ -81,7 +81,7 @@ POST /api/v1/auth/:provider/callback   body: {code, redirect_uri, state?}
 
 RAG (`foresy__knowledge`) + lectures locales + greps exhaustifs + git — see §3. Aucun code modifié.
 
-### W2-D2 — Caractérisation unitaire du service (stub Net::HTTP)
+### W2-D2 — Caractérisation unitaire du service (stub Net::HTTP) — ✅ FAIT (20/09)
 
 **Périmètre :** les 9 chemins du §3.2 — Google succès (2 requêtes enchaînées), GitHub succès (2 à 3 requêtes enchaînées), fallback email GitHub, unsupported provider, token blank (Google/GitHub), HTTP non-success, JSON invalide. Assertions : contenu de l'AuthHash (provider/uid/info), message d'`ExchangeError`, log d'erreur.
 
@@ -89,7 +89,7 @@ RAG (`foresy__knowledge`) + lectures locales + greps exhaustifs + git — see §
 
 **Commit :** `test(p6): characterize OAuth code exchange (Google/GitHub)`
 
-### W2-D3 — Caractérisation intégrée du flow contrôleur (end-to-end, stub Net::HTTP minimal)
+### W2-D3 — Caractérisation intégrée du flow contrôleur (end-to-end, stub Net::HTTP minimal) — ✅ FAIT (20/09)
 
 **Périmètre :** specs requête `POST /auth/:provider/callback` avec payload code-exchange réel : 200 Google + 200 GitHub (utilisateur réellement créé/lié en base, JWT réel), 401 oauth_failed (ExchangeError avalé → nil), 422 missing code / missing redirect_uri, 400 provider invalide, 422 missing fields du hash échangé. **Stub Net::HTTP uniquement** — aucun stub de `OAuthValidationService`/`OAuthUserService`/`OAuthTokenService` ; `RateLimitService.check_rate_limit` stubbé selon le pattern existant des specs auth.
 
@@ -103,6 +103,41 @@ RAG (`foresy__knowledge`) + lectures locales + greps exhaustifs + git — see §
 2. **Décision de verrou 72,0 → 72,5** — post-gates (§6).
 
 ## 5. Journal de suivi
+
+### 2026-09-20 (5) — Revue CTO PR #36→#39 — 4× APPROVE — follow-up RSwag `name` enregistré (BACKLOG #15)
+
+- **Revue CTO des 4 PR (depuis les diffs + historique GitHub) :** #36 APPROVE (latents arbitragés, fondations vivantes `Common::RateLimitable` restaurées avant commit — diff final vérifié) · #37 APPROVE (link-rot historique explicitement isolé, non « réparé » artificiellement — décision validée) · #38 APPROVE (bascules [Obsolete] rattachées à des preuves, pas à l'ancienneté) · **#39 APPROVE — aucun changement bloquant, 1 dette à conserver**
+- **Dette enregistrée (BACKLOG #15) :** divergence `format_success_response.name` ↔ schéma RSwag `oauth_spec.rb` — traitée comme **correction de contrat** (arbitrage : name au contrat → RSwag corrigé, ou réponse production modifiée), **jamais mêlée à la caractérisation Wave 2** ; ne pas laisser les deux contrats diverger durablement
+- **Verdict CTO : #39 mergeable** — suite à merge : sync main, memory-indexer (amendement fc08::011), clôture documentaire finale de Wave 2
+
+### 2026-09-20 (4) — WAVE 2 CLÔTURÉE (validation CTO) — verrou restauré 72,5, clôture en cours
+
+- **W2-D3 validée + GO clôture** : verrou **72,0 → 72,5** (GO CTO — justification factuelle : 994/0 · 77,83 % lignes, marge +5,33 pts · 48,42 % branches · service 69,44 % · flow callback exercé de bout en bout · 17 specs OAuth · RuboCop/Brakeman 0 · aucune modification production)
+- **Exécuté dans le commit de clôture :** `.simplecov` → `minimum_coverage line: 72.5` (commentaire décisionnel 20/09 ajouté) · `coverage_campaign_p6.md` §4 Wave 2 ✅ CLÔTURÉE (bilan mesuré 77,83 / 48,42 · 994/0 · verrou restauré) + §3 recalibration marquée « restauré » · **amendement unique fc08::011** (réévaluation Wave 1 PR #36 + hygiène PR #37/#38 + Wave 2 + verrou 72,5 + dettes actives + Wave 3) — proposition soumise à validation humaine (workflow mémoire), memory-indexer post-merge · divergence `format_success_response`/schéma RSwag documentée au tracker (journal du 20/09 (3)) et à la campagne — **sans correction produit**
+- **Hors périmètre confirmé (indépendants) :** BACKLOG #13 (branch protection) · #14 (validation arbre mergé) · réindexation hub (livrée le 20/09) · D3-3 · P1
+- **Suivant :** vérification corpus documentaire (liens/casse) → commit → push → **PR feat/p6-wave2 au format maison** → CI 6/6 attendue → merge → sync main + clôture documentaire finale
+
+### 2026-09-20 (3) — W2-D3 clôturée — 7 specs requête vertes d'emblée (caractérisation pure), flow réel de bout en bout
+
+- **Specs ajoutées (7, `spec/requests/api/v1/authentication/oauth_code_exchange_spec.rb` — nouveau fichier, suite 987 → 994) :** les 5 catégories du périmètre CTO — **200 Google** (utilisateur réellement créé : `User.find_by(provider:, uid:)` présent, email/name/active vérifiés en base ; **JWT réellement généré et décodé** : `JsonWebToken.decode(token)` → `{user_id, provider, exp}` — payload OAuthTokenService, expiration 15 min) · **200 GitHub avec fallback `/user/emails`** (3 requêtes réseau enchaînées ; email = primary && verified ; `name` absent → login via `extract_user_name`) · **401 UNAUTHORIZED** (`ExchangeError` avalé par `extract_oauth_data` → `:oauth_failed` — aucun utilisateur créé) · **422 INVALID_PAYLOAD ×3** (code absent · redirect_uri absent · email échangé absent — chaîne RÉELLE `validate_oauth_data`, là où les specs RSwag existantes stubbaient) · **400 BAD_REQUEST** (provider non supporté)
+- **Stub Net::HTTP uniquement** + `RateLimitService.check_rate_limit` (pattern existant des specs auth) — **aucun stub** de `OAuthValidationService`/`OAuthUserService`/`OAuthTokenService`
+- **Vert d'emblée — caractérisation pure, aucun cycle RED** (vs W2-D2 : l'incident IOError était de la mécanique de stub)
+- **Divergence doc↔réel documentée (mineure) :** `format_success_response` inclut **`name`** dans le payload user — absent du schéma RSwag du spec oauth existant (caractérisé tel quel, aucune modification du code ni du schéma dans cette vague)
+- **Gates :** suite **994/0** (2 min 18) ✓ · RuboCop **0** (7 offenses autocorrectées sur le nouveau fichier) ✓ · Brakeman **0 warning** ✓ · **SimpleCov réel : 77,83 % lignes (2901/3727) · 48,42 % branches (771/1592)**
+- **Verrou : dossier de remontée 72,0 → 72,5 prêt** — condition §7 remplie (gates W2-D2 + W2-D3 conformes, service et flow effectivement exercés) · **décision CTO attendue** (le `.simplecov` reste à 72,0 tant que non arbitré)
+- **Commit :** `test(p6): characterize OAuth code-exchange flow end-to-end` — branche `feat/p6-wave2` (W2-D2 `429d6288` + housekeeping `093866d4`)
+- **Suivant :** validation CTO W2-D3 + arbitrage verrou → clôture de vague : mise à jour campagne (`coverage_campaign_p6.md`) + ouverture PR au format maison + CI 6/6 + amendement mémoire fc08::011 (règle : un seul amendement post-Wave 2)
+
+### 2026-09-20 (2) — W2-D2 clôturée — 10 specs de caractérisation, service 0 % → 69,44 %, gates verts
+
+- **Specs ajoutées (10, `spec/services/o_auth_code_exchange_service_spec.rb` — nouveau fichier, suite 977 → 987) :** les 9 chemins du §3.2 + configuration réseau. **Stub Net::HTTP uniquement** — vraies instances `Net::HTTPOK`/`Net::HTTPServerError` (le contrat `is_a?(Net::HTTPSuccess)` de `parse_json_response` impose des classes réelles) avec stub du **lecteur** `body` ; double vérifié `Net::HTTP` pour `perform_https_request`
+- **Cycle RED technique (transparent — pas une divergence produit) :** premier run = 9 échecs `IOError: attempt to read body out of block` — `body=` posé hors du bloc de lecture Net::HTTP lève `IOError` au *read* ; corrigé en 1 itération (stub du lecteur)
+- **Caractérisations établies (comportement existant, sans modification du code) :** 9 chemins conformes au §3.2 + **asymétries documentées** : uid Google **Integer** (non stringifié) vs GitHub **to_s** ; `nickname` absent côté Google ; **Google token via `Net::HTTP.post_form`** (ne passe PAS par `perform_https_request` — point de stub distinct, pas de timeout custom sur ce chemin) vs GitHub token + tous les GET via `perform_https_request` (use_ssl=true, open_timeout=10, read_timeout=10 — caractérisés)
+- **Gates :** suite **987/0** (6 min 49) ✓ · RuboCop **0** (9 offenses autocorrectées sur le nouveau fichier) ✓ · Brakeman **0 warning** ✓ · **SimpleCov réel : 77,67 % lignes (2895/3727) · 48,30 % branches (769/1592)** — corpus 3647 → 3727 (+80 : fichier désormais chargé par la suite) · service : **0,00 % → 69,44 % lignes (125/180) · 44,83 % branches (13/29)**
+- **Verrou : 72,0 tenu** (77,67 % mesuré) — remontée 72,5 conditionnée aux gates W2-D2 **+ W2-D3** (règle §7)
+- **Commit :** `test(p6): characterize OAuth code exchange (Google/GitHub)` — branche `feat/p6-wave2` (base `bf2a8512`)
+- **Suivant :** validation CTO W2-D2 → **W2-D3** (intégration end-to-end `POST /auth/:provider/callback`, stub Net::HTTP minimal, utilisateurs réellement créés)
+- **Notes session :** **réindexation hub RAG réussie** le 20/09 (1483,4 s — 1216 chunks écrits, diff 77 inchangés/82 nouveaux/1 modifié · `foresy__knowledge` à **2085 chunks** · vérification : le hub sert le nouveau `BACKLOG.md` + les chemins renommés) — **BACKLOG #9 retiré (livré)** · branch protection `required_status_checks` vide (API 20/09) → BACKLOG #13 · hardening arbre mergé → BACKLOG #14
 
 ### 2026-09-20 — Pré-travail d'hygiène documentaire exécuté — gates verts — W2-D2 débloqué
 
