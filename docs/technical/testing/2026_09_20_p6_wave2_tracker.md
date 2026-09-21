@@ -104,6 +104,13 @@ RAG (`foresy__knowledge`) + lectures locales + greps exhaustifs + git — see §
 
 ## 5. Journal de suivi
 
+### 2026-09-20 (4) — WAVE 2 CLÔTURÉE (validation CTO) — verrou restauré 72,5, clôture en cours
+
+- **W2-D3 validée + GO clôture** : verrou **72,0 → 72,5** (GO CTO — justification factuelle : 994/0 · 77,83 % lignes, marge +5,33 pts · 48,42 % branches · service 69,44 % · flow callback exercé de bout en bout · 17 specs OAuth · RuboCop/Brakeman 0 · aucune modification production)
+- **Exécuté dans le commit de clôture :** `.simplecov` → `minimum_coverage line: 72.5` (commentaire décisionnel 20/09 ajouté) · `coverage_campaign_p6.md` §4 Wave 2 ✅ CLÔTURÉE (bilan mesuré 77,83 / 48,42 · 994/0 · verrou restauré) + §3 recalibration marquée « restauré » · **amendement unique fc08::011** (réévaluation Wave 1 PR #36 + hygiène PR #37/#38 + Wave 2 + verrou 72,5 + dettes actives + Wave 3) — proposition soumise à validation humaine (workflow mémoire), memory-indexer post-merge · divergence `format_success_response`/schéma RSwag documentée au tracker (journal du 20/09 (3)) et à la campagne — **sans correction produit**
+- **Hors périmètre confirmé (indépendants) :** BACKLOG #13 (branch protection) · #14 (validation arbre mergé) · réindexation hub (livrée le 20/09) · D3-3 · P1
+- **Suivant :** vérification corpus documentaire (liens/casse) → commit → push → **PR feat/p6-wave2 au format maison** → CI 6/6 attendue → merge → sync main + clôture documentaire finale
+
 ### 2026-09-20 (3) — W2-D3 clôturée — 7 specs requête vertes d'emblée (caractérisation pure), flow réel de bout en bout
 
 - **Specs ajoutées (7, `spec/requests/api/v1/authentication/oauth_code_exchange_spec.rb` — nouveau fichier, suite 987 → 994) :** les 5 catégories du périmètre CTO — **200 Google** (utilisateur réellement créé : `User.find_by(provider:, uid:)` présent, email/name/active vérifiés en base ; **JWT réellement généré et décodé** : `JsonWebToken.decode(token)` → `{user_id, provider, exp}` — payload OAuthTokenService, expiration 15 min) · **200 GitHub avec fallback `/user/emails`** (3 requêtes réseau enchaînées ; email = primary && verified ; `name` absent → login via `extract_user_name`) · **401 UNAUTHORIZED** (`ExchangeError` avalé par `extract_oauth_data` → `:oauth_failed` — aucun utilisateur créé) · **422 INVALID_PAYLOAD ×3** (code absent · redirect_uri absent · email échangé absent — chaîne RÉELLE `validate_oauth_data`, là où les specs RSwag existantes stubbaient) · **400 BAD_REQUEST** (provider non supporté)

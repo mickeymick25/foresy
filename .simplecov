@@ -57,6 +57,13 @@ end
 #   rattaché à la couverture de ce fichier en Wave 2 (premier travail de Wave 2).
 #   Aucune exclusion SimpleCov pour lui — le gap doit rester visible.
 #   L'objectif 95 % reste inchangé. Branch coverage : P6.6.
+# - 20/09 (Wave 2 livrée) : OAuthCodeExchangeService caractérisé — W2-D2 : 10 specs stub
+#   Net::HTTP uniquement, service 0 % → 69,44 % lignes / 13/29 branches (asymétries uid
+#   Integer/to_s et transports post_form vs perform_https_request documentées) · W2-D3 :
+#   7 specs requête end-to-end (users réels + JWT réels {user_id, provider, exp}) —
+#   994/0 · 77,83 % lignes / 48,42 % branches. Divergence mineure documentée :
+#   format_success_response inclut 'name' (absent du schéma RSwag) — caractérisée,
+#   sans correction produit. Verrou restauré 72,5 (GO CTO — marge +5,33 pts).
 # P6.1-bis — garde --pattern (incident #4, job CI « Contracts ») : le RakeTask
 # de rswag (`rake rswag:specs:swaggerize`) invoque rspec avec `--pattern <globs>`
 # SANS argument de fichier — files_or_directories vaut alors [default_path] et
@@ -84,5 +91,5 @@ at_exit do
                RSpec.configuration.inclusion_filter.empty? &&
                RSpec.configuration.pattern == fresh_defaults.pattern &&
                RSpec.configuration.exclude_pattern == fresh_defaults.exclude_pattern
-  SimpleCov.minimum_coverage line: 72.0 if full_suite
+  SimpleCov.minimum_coverage line: 72.5 if full_suite
 end
