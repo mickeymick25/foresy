@@ -48,6 +48,20 @@ jobs:
       - name: 📥 Checkout code
         uses: actions/checkout@v5
 
+      - name: 📊 EXP-1 evidence — SHA/ref/checkout (temporaire, BACKLOG #12)
+        run: |
+          echo "=== EXP-1 evidence (BACKLOG #12) ==="
+          echo "PR head sha : ${{ github.event.pull_request.head.sha }}"
+          echo "PR base sha : ${{ github.event.pull_request.base.sha }}"
+          echo "GITHUB_SHA  : ${GITHUB_SHA}"
+          echo "GITHUB_REF  : ${GITHUB_REF}"
+          echo "HEAD checkouté : $(git rev-parse HEAD)"
+          if [ -f docs/technical/probe_marker.md ]; then
+            echo "probe_marker.md : PRESENT"
+          else
+            echo "probe_marker.md : ABSENT"
+          fi
+
       - name: 🧩 Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
