@@ -20,13 +20,21 @@
 **Le seul écart de la règle initiale (exemption admin) est désormais levé** : la protection de
 branche est techniquement imposée, administrateurs inclus.
 
-### Certification GREEN — PR de contrôle
+### Certification GREEN — PR de contrôle (#43)
 
-- **Statut : en cours** — micro-PR docs (`chore/backlog11-control-pr`) créée pour démontrer
-  le comportement attendu : `mergeable_state: blocked` pendant les checks, puis `clean` après 6/6
-  sur le dernier SHA de la PR.
-- Preuve primaire déjà enregistrée : les 6 entrées dans `required_status_checks.checks`
-  (sorties API ci-dessus).
+**Statut : ✅ CERTIFIÉ / GREEN**
+
+| Point du protocole | Preuve |
+|---|---|
+| Preuve primaire — protection | 6 entrées dans `required_status_checks.checks` · `enforce_admins: true` (sorties API) |
+| PR de contrôle bloquée | `mergeable_state: blocked` pendant les checks (mesuré à t+45 s) |
+| Conclusions des six checks | `total: 6` — tous `completed/success` sur le SHA de tête `91d5db7e` |
+| Convergence | `mergeable_state: clean` après recalcul GitHub (mesuré après le cycle CI) |
+
+**La gouvernance est verrouillée** : un merge sans CI verte est désormais **techniquement impossible**
+(au lieu d'être simplement une pratique). Le merge de cette PR de contrôle clôt le chantier.
+
+### Journal de l'application API
 
 ---
 
