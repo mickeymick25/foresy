@@ -2,7 +2,7 @@
 
 **Date :** 19 septembre 2026
 **Branche :** `feat/p6-wave1` → `main` (base : `547c8d8a`, tête de la PR #34 — à merger d'abord)
-**Plan de campagne :** `docs/technical/testing/2026_09_17_coverage_campaign_p6.md` · Suivi : `docs/technical/testing/[DONE]_2026_09_18_p6_wave1_tracker.md` (journal complet)
+**Plan de campagne :** `docs/technical/testing/[DONE]_2026_09_17_coverage_campaign_p6.md` · Suivi : `docs/technical/testing/[DONE]_2026_09_18_p6_wave1_tracker.md` (journal complet)
 **Décisions CTO :** GO Wave 1 (18/09), arbitrages D1/D3-1/D3-2/D3-3/fc08::005, clôture de vague (19/09)
 
 ---

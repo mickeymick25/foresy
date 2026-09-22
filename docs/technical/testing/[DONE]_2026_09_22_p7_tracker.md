@@ -1,6 +1,6 @@
 # P7 — System Specs API Tracker
 
-**Référence :** `docs/technical/testing/2026_09_21_p7_system_specs_assessment.md` (arbitrage CTO du 22/09/2026 — GO P7)
+**Référence :** `docs/technical/testing/[DONE]_2026_09_21_p7_system_specs_assessment.md` (arbitrage CTO du 22/09/2026 — GO P7)
 **Branche :** `feat/p7-system-specs` · **PR :** dédiée
 **Règles P7 :** aucun mock/stub des composants métier · Git Ledger réel (D-12) · échecs provoqués par l'infrastructure/configuration · assertions d'état métier observable · 10-15 = estimation non contractuelle
 

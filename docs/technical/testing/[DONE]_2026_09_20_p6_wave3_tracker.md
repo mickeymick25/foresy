@@ -2,7 +2,7 @@
 
 **Date :** 20 septembre 2026
 **Décision CTO :** GO Wave 3 (20/09) — ordre : W3-D1 `CraServices::List` + filtres → W3-D2 git ledger → W3-D3 services/lib + façades → W3-D4 modèles → réévaluation ; P6.6 différé
-**Campagne :** `docs/technical/testing/2026_09_17_coverage_campaign_p6.md` (§4)
+**Campagne :** `docs/technical/testing/[DONE]_2026_09_17_coverage_campaign_p6.md` (§4)
 **Branche :** `feat/p6-wave3` — base : `main` @ `50c52649` (merge PR #39 — Wave 2, verrou **72,5** armé)
 **Règle de campagne :** caractériser → mesurer → corriger uniquement si divergence réelle → mesurer → documenter — pas de chasse artificielle au pourcentage
 **Classification par groupe (règle CTO) :** non couvert mais valide → caractérisation · code mort → suppression après preuve · incorrect → cycle RED · ambigu → arbitrage · vivant hors périmètre → dette explicitement reportée
@@ -187,7 +187,7 @@ Cible : modèles sous 90 % du corpus complet (cra 78,74 %, mission 82,35 %, miss
 
 ## 6. Références
 
-- Campagne : `docs/technical/testing/2026_09_17_coverage_campaign_p6.md` · Trackers : `2026_09_20_p6_wave2_tracker.md` · `[DONE]_2026_09_18_p6_wave1_tracker.md`
+- Campagne : `docs/technical/testing/[DONE]_2026_09_17_coverage_campaign_p6.md` · Trackers : `[DONE]_2026_09_20_p6_wave2_tracker.md` · `[DONE]_2026_09_18_p6_wave1_tracker.md`
 - Mini-FC-01 (contrat figé, per_page aligné) : `docs/technical/fc07/enhancements/[DONE]_2026_01_06_MINI-FC-01-CRA-Filtering.md`
 - Sécurité (scope) : `spec/models/cra_access_spec.rb` (W1-D2) · Contrat : `app/lib/application_result.rb`
 - Mémoire : `fc08::011` (amendement 20/09 — continuité P6) · Registre dette : `docs/technical/2026_09_14_fc08_debt_register.md` (D-12)

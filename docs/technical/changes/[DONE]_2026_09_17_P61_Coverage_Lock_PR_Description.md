@@ -4,7 +4,7 @@
 **Décision CTO :** GO P6.1 (checkpoint post-D-12) — verrou initial + trajectoire 95 % ;
 recalibration temporaire bornée 72,0 (18/09, cf. §9) ; clôture P6.1-bis (CI verte `f1f42652`)
 **Branche :** `chore/p61-coverage-lock` → `main`
-**Plan de campagne :** `docs/technical/testing/2026_09_17_coverage_campaign_p6.md`
+**Plan de campagne :** `docs/technical/testing/[DONE]_2026_09_17_coverage_campaign_p6.md`
 
 ---
 
@@ -55,7 +55,7 @@ D-12 `LEDGER_PATH` + specs). Documenté tel quel — aucune retouche pour aligne
 | `.github/workflows/ci.yml` | `|| true` retiré (verrou bloquant) ; step diagnostic P6.1 (`if: always()`) ; YAML corrigé |
 | **9 fichiers supprimés** | `app/services/api/v1/cras/{create,update,list,lifecycle,export,destroy}_service.rb`, `app/services/api/v1/cra_entries/list_service.rb`, `app/lib/http_status_map.rb`, `app/lib/mission_errors.rb` — plan 07/01 exécuté (§9) |
 | `legacy_cleanup_plan.md` → `docs/technical/changes/[DONE]_2026_01_07_Legacy_Cleanup_Plan.md` | Régularisé dans l'arborescence documentaire (convention + indexation RAG), marqué « Phase 1 exécutée » avec relevé |
-| `docs/technical/testing/2026_09_17_coverage_campaign_p6.md` | Nouveau — décisions CTO, règle TDD P6.0, séquence des vagues, recalibration 72,0 (§3) |
+| `docs/technical/testing/[DONE]_2026_09_17_coverage_campaign_p6.md` | Nouveau — décisions CTO, règle TDD P6.0, séquence des vagues, recalibration 72,0 (§3) |
 | `docs/technical/testing/2026_09_16_line_coverage.md` | Guide : périmètre du verrou, politique de seuils, phase 2 transitoire |
 | `docs/technical/[DONE]_2026_08_31_fc08_implementation_tracker.md` | Journal P6.1 + P6.1-bis + incidents + clôture |
 | `docs/technical/changes/[DONE]_2026_09_17_P61_Coverage_Lock_PR_Description.md` | Cette description (§7-10 : les 4 incidents) |

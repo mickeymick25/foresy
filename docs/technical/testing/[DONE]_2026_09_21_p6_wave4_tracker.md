@@ -2,8 +2,8 @@
 
 **Date :** 21 septembre 2026
 **Décision CTO :** GO Wave 4 (20/09) — A + C combinés (P6.6 Assessment §9) — couche contrôleur D3-3 élargi + exclusions formalisées · 90 % = objectif de validation, pas promesse préalable
-**Campagne :** `docs/technical/testing/2026_09_17_coverage_campaign_p6.md` (§4)
-**Assessment de référence :** `docs/technical/testing/2026_09_21_p6_6_assessment.md` (§5-§9)
+**Campagne :** `docs/technical/testing/[DONE]_2026_09_17_coverage_campaign_p6.md` (§4)
+**Assessment de référence :** `docs/technical/testing/[DONE]_2026_09_21_p6_6_assessment.md` (§5-§9)
 **Branche :** `feat/p6-wave4` — base : `main` @ `09466953` (clôture formelle Wave 3, verrou 72,5)
 
 ---
@@ -145,6 +145,6 @@
 
 ## 6. Références
 
-- Assessment P6.6 : `docs/technical/testing/2026_09_21_p6_6_assessment.md` · Campagne : `2026_09_17_coverage_campaign_p6.md` · Trackers Wave 2-3
+- Assessment P6.6 : `docs/technical/testing/[DONE]_2026_09_21_p6_6_assessment.md` · Campagne : `[DONE]_2026_09_17_coverage_campaign_p6.md` · Trackers Wave 2-3
 - Contrat d'erreur : `docs/technical/guides/error_contract.md` · Contrat : `app/lib/application_result.rb`
 - Mémoire : `fc08::011` (amendement 20/09) · Registre dette : `fc08_debt_register.md` (D-12)

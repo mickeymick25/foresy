@@ -2,7 +2,7 @@
 
 **Date :** 20 septembre 2026
 **Décision CTO :** GO Wave 2 (20/09) — `OAuthCodeExchangeService` : caractérisation RED/GREEN du flow code-exchange
-**Campagne :** `docs/technical/testing/2026_09_17_coverage_campaign_p6.md` (§4 — Wave 2 : OAuth)
+**Campagne :** `docs/technical/testing/[DONE]_2026_09_17_coverage_campaign_p6.md` (§4 — Wave 2 : OAuth)
 **Branche :** `feat/p6-wave2` (à créer) — base : `main` @ `025b90b2` (réévaluation Wave 1, PR #36, CI 6/6)
 **Règle de campagne :** traverser les chemins de code-exchange non exercés — **pas monter un pourcentage**
 
@@ -113,7 +113,7 @@ RAG (`foresy__knowledge`) + lectures locales + greps exhaustifs + git — see §
 ### 2026-09-20 (4) — WAVE 2 CLÔTURÉE (validation CTO) — verrou restauré 72,5, clôture en cours
 
 - **W2-D3 validée + GO clôture** : verrou **72,0 → 72,5** (GO CTO — justification factuelle : 994/0 · 77,83 % lignes, marge +5,33 pts · 48,42 % branches · service 69,44 % · flow callback exercé de bout en bout · 17 specs OAuth · RuboCop/Brakeman 0 · aucune modification production)
-- **Exécuté dans le commit de clôture :** `.simplecov` → `minimum_coverage line: 72.5` (commentaire décisionnel 20/09 ajouté) · `coverage_campaign_p6.md` §4 Wave 2 ✅ CLÔTURÉE (bilan mesuré 77,83 / 48,42 · 994/0 · verrou restauré) + §3 recalibration marquée « restauré » · **amendement unique fc08::011** (réévaluation Wave 1 PR #36 + hygiène PR #37/#38 + Wave 2 + verrou 72,5 + dettes actives + Wave 3) — proposition soumise à validation humaine (workflow mémoire), memory-indexer post-merge · divergence `format_success_response`/schéma RSwag documentée au tracker (journal du 20/09 (3)) et à la campagne — **sans correction produit**
+- **Exécuté dans le commit de clôture :** `.simplecov` → `minimum_coverage line: 72.5` (commentaire décisionnel 20/09 ajouté) · `[DONE]_2026_09_17_coverage_campaign_p6.md` §4 Wave 2 ✅ CLÔTURÉE (bilan mesuré 77,83 / 48,42 · 994/0 · verrou restauré) + §3 recalibration marquée « restauré » · **amendement unique fc08::011** (réévaluation Wave 1 PR #36 + hygiène PR #37/#38 + Wave 2 + verrou 72,5 + dettes actives + Wave 3) — proposition soumise à validation humaine (workflow mémoire), memory-indexer post-merge · divergence `format_success_response`/schéma RSwag documentée au tracker (journal du 20/09 (3)) et à la campagne — **sans correction produit**
 - **Hors périmètre confirmé (indépendants) :** BACKLOG #13 (branch protection) · #14 (validation arbre mergé) · réindexation hub (livrée le 20/09) · D3-3 · P1
 - **Suivant :** vérification corpus documentaire (liens/casse) → commit → push → **PR feat/p6-wave2 au format maison** → CI 6/6 attendue → merge → sync main + clôture documentaire finale
 
@@ -126,7 +126,7 @@ RAG (`foresy__knowledge`) + lectures locales + greps exhaustifs + git — see §
 - **Gates :** suite **994/0** (2 min 18) ✓ · RuboCop **0** (7 offenses autocorrectées sur le nouveau fichier) ✓ · Brakeman **0 warning** ✓ · **SimpleCov réel : 77,83 % lignes (2901/3727) · 48,42 % branches (771/1592)**
 - **Verrou : dossier de remontée 72,0 → 72,5 prêt** — condition §7 remplie (gates W2-D2 + W2-D3 conformes, service et flow effectivement exercés) · **décision CTO attendue** (le `.simplecov` reste à 72,0 tant que non arbitré)
 - **Commit :** `test(p6): characterize OAuth code-exchange flow end-to-end` — branche `feat/p6-wave2` (W2-D2 `429d6288` + housekeeping `093866d4`)
-- **Suivant :** validation CTO W2-D3 + arbitrage verrou → clôture de vague : mise à jour campagne (`coverage_campaign_p6.md`) + ouverture PR au format maison + CI 6/6 + amendement mémoire fc08::011 (règle : un seul amendement post-Wave 2)
+- **Suivant :** validation CTO W2-D3 + arbitrage verrou → clôture de vague : mise à jour campagne (`[DONE]_2026_09_17_coverage_campaign_p6.md`) + ouverture PR au format maison + CI 6/6 + amendement mémoire fc08::011 (règle : un seul amendement post-Wave 2)
 
 ### 2026-09-20 (2) — W2-D2 clôturée — 10 specs de caractérisation, service 0 % → 69,44 %, gates verts
 
@@ -143,7 +143,7 @@ RAG (`foresy__knowledge`) + lectures locales + greps exhaustifs + git — see §
 
 - **Pré-travail terminé (C1+C2+C3 + E1→E3, détails au tracker d'hygiène §5) :** 148 docs de `docs/technical/` migrés vers `YYYY_MM_DD_` + `[DONE]_` vérifiés ; 109 fichiers de références croisées corrigées (665 remplacements, commentaires code inclus — **aucune modification fonctionnelle**) ; 3 branches mergées supprimées localement ; `chore/p6-coverage-plan` en attente d'audit P1 (tranche CTO 20/09).
 - **Gates :** suite **977/0** sur `foresy_test` + SimpleCov **77,18 % lignes (2815/3647) inchangé** · branches 47,87 % · grep anciens noms = 0 (2 refs pré-existantes dangling consignées, hors périmètre). Premier run = 22 échecs = **piège D-10** (DATABASE_URL → dev polluée) — procédure du guide d'isolement appliquée, fausse alerte confirmée.
-- **Ce tracker renommé :** `p6_wave2_tracker.md` → `2026_09_20_p6_wave2_tracker.md` (convention C1).
+- **Ce tracker renommé :** `[DONE]_2026_09_20_p6_wave2_tracker.md` → `[DONE]_2026_09_20_p6_wave2_tracker.md` (convention C1).
 - **W2-D2 : GO confirmé — implémentation des specs de caractérisation (§4) peut démarrer.**
 
 ### 2026-09-20 — GO W2-D2 acquis — gated par le pré-travail d'hygiène documentaire
@@ -169,7 +169,7 @@ RAG (`foresy__knowledge`) + lectures locales + greps exhaustifs + git — see §
 - [ ] Compte de specs : chaque ajout justifié et documenté au journal (périmètre = caractérisation OAuth)
 - [ ] Divergences détectées : journalisées + arbitrées CTO (aucune correction préventive)
 - [ ] `handle_user_error` : décision CTO consignée (documenté ou corrigé en cycle RED → GREEN)
-- [ ] Journal complet + docs de campagne à jour (`2026_09_17_coverage_campaign_p6.md`)
+- [ ] Journal complet + docs de campagne à jour (`[DONE]_2026_09_17_coverage_campaign_p6.md`)
 - [ ] PR Wave 2 ouverte au format maison — CI 6/6 = clôture de la vague
 - [ ] Décision de verrou explicitée (§7)
 
@@ -181,7 +181,7 @@ RAG (`foresy__knowledge`) + lectures locales + greps exhaustifs + git — see §
 
 ## 8. Références
 
-- Plan de campagne : `docs/technical/testing/2026_09_17_coverage_campaign_p6.md`
+- Plan de campagne : `docs/technical/testing/[DONE]_2026_09_17_coverage_campaign_p6.md`
 - Tracker Wave 1 (méthode + réévaluation) : `docs/technical/testing/[DONE]_2026_09_18_p6_wave1_tracker.md`
 - Contrat d'erreur : `docs/technical/guides/2026_08_18_error_contract.md`
 - Flow OAuth : `docs/technical/guides/2025_12_24_oauth_flow_documentation.md`

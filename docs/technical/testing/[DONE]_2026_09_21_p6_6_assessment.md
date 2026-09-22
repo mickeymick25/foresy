@@ -109,6 +109,6 @@ docker compose exec -T web sh -c "DATABASE_URL=postgres://postgres:password@db:5
 
 ## Références
 
-- Campagne : `docs/technical/testing/2026_09_17_coverage_campaign_p6.md` (§1 décisions P6.6 — palier 90 % évalué sur mesure, branch coverage, zone morte) · Trackers Wave 1-3
+- Campagne : `docs/technical/testing/[DONE]_2026_09_17_coverage_campaign_p6.md` (§1 décisions P6.6 — palier 90 % évalué sur mesure, branch coverage, zone morte) · Trackers Wave 1-3
 - Dette D3-3 : registre `fc08_debt_register.md` + tracker Wave 1 §6 G4 · Contrat d'erreur : `docs/technical/guides/error_contract.md`
 - Mémoire : `fc08::011` (amendement 20/09) · Outil : `cov_p66_tmp.rb` (racine, supprimé après usage — méthode documentée au journal)

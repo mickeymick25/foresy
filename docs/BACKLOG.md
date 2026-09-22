@@ -13,10 +13,11 @@ sources canoniques ci-dessous. L'ancien backlog (2025-12-26) est archivé :
 |---|---|
 | Roadmap produit (versions, Feature Contracts) | `docs/ROADMAP.md` (décision 2.2, 2026-09-10) |
 | Dette technique (D-1…D-12) | `docs/technical/2026_09_14_fc08_debt_register.md` |
-| Campagne couverture P6 (verrou, trajectoire) | `docs/technical/testing/2026_09_17_coverage_campaign_p6.md` |
+| Campagne couverture P6 (verrou, trajectoire) | `docs/technical/testing/[DONE]_2026_09_17_coverage_campaign_p6.md` |
+| Contrat système P7 (system specs, CLOSED) | `docs/technical/testing/[DONE]_2026_09_22_p7_tracker.md` |
 | Historique des états | hub RAG local (`foresy__knowledge` / `foresy__memories`) — index, pas backlog |
 
-## Chantiers ouverts (état au 2026-09-21)
+## Chantiers ouverts (état au 2026-09-22)
 
 | # | Chantier | Priorité | Suivi / source |
 |---|---|---|---|
@@ -36,11 +37,12 @@ sources canoniques ci-dessous. L'ancien backlog (2025-12-26) est archivé :
 | 14 | **`Cra#validate_uniqueness` inerte à la création** : à la création, le pivot `user_cras` (rôle créateur) n'existe pas encore (créé post-insert par la factory/le flux) → `creator_user_id` nil → le garde Ruby ne s'exerce pas ; il ne protège qu'à la re-validation/update. Comportement démontré et documenté (W3-D4). **Point d'architecture** : le nom du garde laisse croire qu'il protège la création ; traiter séparément (contrainte DB ou recalage de l'ordre pivot/validation) | 🟡 WARNING / dette architecture | revue CTO PR #40 · tracker Wave 3 |
 | 15 | **Wave 4.5** — ~280 lignes contrôleur/concerns (~30-40 specs estimées) — dette de couverture quantifiée (P6.6 Assessment §5), distincte, non bloquante | 🟢 distinct | assessment P6.6 §5-§7 · arbitrage CTO 21/09 |
 
-## Métriques de qualité (état au 2026-09-21 — post PR #41, Waves 3-4 mergées)
+## Métriques de qualité (état au 2026-09-22 — post PR #42, P7 mergée)
 
-- **Suite RSpec : 1150 exemples, 0 échec** (mesuré 21/09, `foresy_test`)
-- **SimpleCov : 84,21 % lignes (3115/3699) · 57,41 % branches (898/1564)** — verrou CI 72,5 armé
-- **RuboCop 0 offense · Brakeman 0 warning** (CI 6/6 sur PR #41, run 35641746317)
+- **Suite RSpec : 1154 exemples, 0 échec** (mesuré 22/09, `foresy_test`)
+- **SimpleCov : 84,37 % lignes (3121/3699) · 57,74 % branches (902/1562)** — verrou CI 72,5 armé
+- **RuboCop 0 offense · Brakeman 0 warning** (CI 6/6 sur PR #42)
+- **Contrat système** : 4 system specs (P7 CLOSED — bug de composition mission_id corrigé, 3 propriétés caractérisées)
 
 ## Règle anti-drift
 

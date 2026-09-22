@@ -120,6 +120,6 @@ L'enquête révèle **3 requalifications** de `2026_09_20_documentation_hygiene_
 ## 7. Références
 
 - Tracker d'hygiène (conventions C1/C2, mécanique d'exécution) : `docs/technical/2026_09_20_documentation_hygiene_tracker.md`
-- Tracker Wave 2 (W2-D2, branche dédiée séparée) : `docs/technical/testing/2026_09_20_p6_wave2_tracker.md`
+- Tracker Wave 2 (W2-D2, branche dédiée séparée) : `docs/technical/testing/[DONE]_2026_09_20_p6_wave2_tracker.md`
 - Décisions citées : `changes/[DONE]_2025_12_21_GoogleOAuth2Service_Removal_Resolution.md` · `changes/[DONE]_2025_12_22-…Datadog` (timeline BRIEFING 22/12 stateless) · registre `fc08_debt_register.md` (D-12) · `docs/ROADMAP.md` (décision 2.2)
 - Scripts de vérification : `tmp/check_doc_links.rb` (liens), mécanique renames : `tmp/rename_technical_docs.rb`

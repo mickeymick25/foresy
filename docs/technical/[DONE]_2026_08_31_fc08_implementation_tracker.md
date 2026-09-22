@@ -252,7 +252,7 @@
 
 ### 2026-09-17 — [P6.1] Verrou de couverture — FAIT
 
-- **Branche :** `chore/p61-coverage-lock` (PR en cours) — plan de campagne : `docs/technical/testing/2026_09_17_coverage_campaign_p6.md`
+- **Branche :** `chore/p61-coverage-lock` (PR en cours) — plan de campagne : `docs/technical/testing/[DONE]_2026_09_17_coverage_campaign_p6.md`
 - **Nettoyage :** `foresy_test` polluée (SIREN en dur + session `authrepro`) → TRUNCATE → 962/0 ; incident tracé dans le guide d'isolement et le plan P6 §5
 - **Mesures baseline ×2 :** 73,21 % lignes / 45,07 % branches — **identiques ×2** (seeds différents) → déterminisme confirmé ; écart vs 16/09 (72,78 %) = code évolué (D-5, D-12)
 - **Verrou :** `minimum_coverage line: 72.5` dans `.simplecov` — suite avec verrou : 962/0

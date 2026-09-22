@@ -11,7 +11,7 @@
 
 | # | Convention | Proposition | Point d'arbitrage |
 |---|---|---|---|
-| C1 | Préfixe date | `YYYY_MM_DD_<nom>.md` (format demandé par le CTO, ex. `2026_09_20_p6_wave2_tracker.md`) — appliqué à **tous** les docs, y compris normalisation des 86 déjà datés en `YYYY-MM-DD-` (précédent documenté BRIEFING/index.md : format `YYYY-MM-DD-`) | Séparateur `_` (instruction du 20/09) vs `-` (standard maison existant) — recommandation : **uniformiser en `YYYY_MM_DD_`**, un seul passage mécanique, références corrigées dans le même cycle |
+| C1 | Préfixe date | `YYYY_MM_DD_<nom>.md` (format demandé par le CTO, ex. `[DONE]_2026_09_20_p6_wave2_tracker.md`) — appliqué à **tous** les docs, y compris normalisation des 86 déjà datés en `YYYY-MM-DD-` (précédent documenté BRIEFING/index.md : format `YYYY-MM-DD-`) | Séparateur `_` (instruction du 20/09) vs `-` (standard maison existant) — recommandation : **uniformiser en `YYYY_MM_DD_`**, un seul passage mécanique, références corrigées dans le même cycle |
 | C2 | Marqueur clôturé | `[DONE]_` en tête : `[DONE]_YYYY_MM_DD_<nom>.md` — uniquement si implémentation **réellement vérifiée** (base de preuve au §3) | Précédent existant : répertoire `[DONE]_remediation/` (casse `[Done]`) — recommandation : normaliser en `[DONE]_` partout (répertoire inclus) |
 | C3 | Docs vivants | Guides et registres actifs : préfixe date **sans** `[DONE]` | — |
 | C4 | Sources de date | (a) date du nom existant · (b) `git log --follow --diff-filter=A` (62 docs, scripts `tmp/`) · (c) date de création connue (docs du jour) | Les dates sont conservées même si le contenu a été mis à jour après (date = création) |
@@ -30,7 +30,7 @@ Note : les suppressions de branches distantes nécessitent une authentification 
 
 ## 3. Cartographie des renames — `docs/technical/` (148 documents)
 
-**Inventaire source :** find_path complet (3 pages) + dates : nom de fichier (86 docs déjà datés) / `git --follow --diff-filter=A` (62 docs) / date de session (p6_wave2_tracker, non commité). Script reproductible : `tmp/doc_creation_dates.rb` (+ variante remediation).
+**Inventaire source :** find_path complet (3 pages) + dates : nom de fichier (86 docs déjà datés) / `git --follow --diff-filter=A` (62 docs) / date de session ([DONE]_2026_09_20_p6_wave2_tracker, non commité). Script reproductible : `tmp/doc_creation_dates.rb` (+ variante remediation).
 
 **Exécution 20/09 (C1+C2+C3 GO) : E1 + E2 appliqués à l'ensemble — 148 docs migrés + 1 déjà conforme ; les statuts TODO ci-dessous sont historiques (état de planification), le journal §5 fait foi.**
 
@@ -123,12 +123,12 @@ Base de vérification `[DONE]` changes/ : statut de complétion porté par chaqu
 | Document | Date | [DONE] | Suivi |
 |---|---|---|---|
 | 2025-12-19-pgcrypto_migration_test_strategy | 2025-12-19 | ✅ (pgcrypto éliminé) | ⏳ TODO |
-| coverage_campaign_p6 | 2026-09-17 (git) | ❌ **ACTIF** (Wave 2 en cours, D3-3 reporté) | ⏳ TODO |
+| [DONE]_2026_09_17_coverage_campaign_p6 | 2026-09-17 (git) | ❌ **ACTIF** (Wave 2 en cours, D3-3 reporté) | ⏳ TODO |
 | e2e_staging_tests_guide | 2025-12-24 (git) | ✅ (infra E2E livrée — bin/e2e, 23 tests verts prod, BRIEFING Sprint 3) | ⏳ TODO |
 | fc08_coverage_report | 2026-09-14 (git) | ✅ (rapport livré avec PR #24) | ⏳ TODO |
 | line_coverage | 2026-09-16 (git) | ❌ (guide méthodologie vivant) | ⏳ TODO |
 | p6_wave1_tracker | 2026-09-18 (git) | ✅ **(Wave 1 clôturée — PR #35 + PR #36, CI 6/6, validation CTO 19/09)** | ⏳ TODO |
-| p6_wave2_tracker | 2026-09-20 (session) | ❌ **ACTIF** (W2-D2 GO le 20/09) | ⏳ TODO |
+| [DONE]_2026_09_20_p6_wave2_tracker | 2026-09-20 (session) | ❌ **ACTIF** (W2-D2 GO le 20/09) | ⏳ TODO |
 | test_database_isolation | 2026-09-15 (git) | ❌ (statut à vérifier à l'exécution) | ⏳ TODO |
 
 ### 3.7 `fc06/` (16) — règle par défaut : `[DONE]` (FC-06 terminé, PR #12 mergée 01/01/2026)
@@ -189,7 +189,7 @@ Base de vérification `[DONE]` changes/ : statut de complétion porté par chaqu
 ### 2026-09-20 — Création du tracker (pré-travail demandé avant implémentation W2-D2)
 
 - **Audit branches effectué (git) :** 5 locales + miroirs — 3 mergées (feat/p6-wave1, chore/p61-coverage-lock, chore/p6-w1-reevaluation-cleanup) = candidats clôture ; 1 ouverte non mergée (chore/p6-coverage-plan — analyse coverage + script `coverage_gap_analysis.rb` absent de main) = arbitrage CTO ; main synchronisée.
-- **Inventaire complet :** 148 documents sous `docs/technical/` (13 répertoires) — 86 déjà datés (format `YYYY-MM-DD-`), 62 non datés (dates récupérées par `git log --follow --diff-filter=A`), 1 créé en session (p6_wave2_tracker).
+- **Inventaire complet :** 148 documents sous `docs/technical/` (13 répertoires) — 86 déjà datés (format `YYYY-MM-DD-`), 62 non datés (dates récupérées par `git log --follow --diff-filter=A`), 1 créé en session ([DONE]_2026_09_20_p6_wave2_tracker).
 - **Découverte d'un précédent :** répertoire `[DONE]_remediation/` — la convention `[Done]_` existe déjà (casse différente de l'instruction `[DONE]` du 20/09) → normalisation proposée (C2).
 - **Divergence conventionnelle relevée :** standard maison documenté (`YYYY-MM-DD-…`, BRIEFING §Documentation Maintenance + docs/index.md) vs format demandé (`YYYY_MM_DD`) — arbitrage C1 requis avant le rename de masse (86 fichiers déjà au format hyphène).
 - **Classification [DONE] :** base de preuve par défaut = statut de complétion porté par le document + jalons suites vertes documentés + état actuel vérifié : **suite 977/0 sur main (20/09), CI 6/6 sur PR #36**. Les docs au statut incertain sont marqués « à vérifier à l'exécution » (pas de [DONE] inféré sans preuve).
@@ -197,7 +197,7 @@ Base de vérification `[DONE]` changes/ : statut de complétion porté par chaqu
 
 ## 6. Références
 
-- Tracker Wave 2 (gated par ce pré-travail) : `docs/technical/testing/2026_09_20_p6_wave2_tracker.md`
+- Tracker Wave 2 (gated par ce pré-travail) : `docs/technical/testing/[DONE]_2026_09_20_p6_wave2_tracker.md`
 - Tracker Wave 1 (précédent de méthode) : `docs/technical/testing/[DONE]_2026_09_18_p6_wave1_tracker.md`
 - Standard de nommage historique : `docs/BRIEFING.md` (§ Documentation Maintenance) · `docs/index.md` (§ Standards de Documentation)
 - Scripts de dates : `tmp/doc_creation_dates.rb`, `tmp/doc_creation_dates_remediation.rb` (reproductibles)

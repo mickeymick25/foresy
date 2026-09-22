@@ -2,7 +2,7 @@
 
 **Date :** 18 septembre 2026
 **Décision CTO :** GO Wave 1 (W1-D1 → W1-D4), séquence validée le 18/09
-**Campagne :** `docs/technical/testing/2026_09_17_coverage_campaign_p6.md` (§4 — Wave 1 : sécurité et erreurs critiques)
+**Campagne :** `docs/technical/testing/[DONE]_2026_09_17_coverage_campaign_p6.md` (§4 — Wave 1 : sécurité et erreurs critiques)
 **Branche :** `feat/p6-wave1` — base : `chore/p61-coverage-lock` @ `547c8d8a` (P6.1 LOCKED / TEMPORARY BASELINE, PR #34)
 **Règle de campagne :** traverser les chemins d'échec et de sécurité non exercés — **pas monter un pourcentage**
 
@@ -198,7 +198,7 @@
 - [ ] W1-D1 → W1-D4 : chaque étape validée (suite verte, RuboCop 0, Brakeman 0, mesure réelle au journal)
 - [ ] Compte de specs : 962 inchangé, ou toute évolution justifiée au journal
 - [ ] fc08::005 : traitée selon la règle conditionnelle
-- [ ] Journal complet + docs de campagne à jour (`2026_09_17_coverage_campaign_p6.md`)
+- [ ] Journal complet + docs de campagne à jour (`[DONE]_2026_09_17_coverage_campaign_p6.md`)
 - [ ] PR Wave 1 ouverte au format maison après merge PR #34 — CI 6/6 = clôture de la vague
 
 ## 6. Réévaluation finale Wave 1 (lancée le 19/09 — dossier d'arbitrage)
@@ -258,7 +258,7 @@ Lecture intégrale : **deux** méthodes (`expect_error_response` + `expect_error
 
 ## 7. Références
 
-- Plan de campagne : `docs/technical/testing/2026_09_17_coverage_campaign_p6.md`
+- Plan de campagne : `docs/technical/testing/[DONE]_2026_09_17_coverage_campaign_p6.md`
 - Contrat d'erreur : `docs/technical/guides/2026_08_18_error_contract.md`
 - Guide couverture : `docs/technical/testing/2026_09_16_line_coverage.md`
 - Mémoire : `fc08::010` (P6.1-bis clos, dette OAuth → Wave 2)
