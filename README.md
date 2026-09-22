@@ -22,7 +22,7 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 - **Feature Contract 08 (Companies & User-Company)** : ✅ TERMINÉ — CRUD, onboarding atomique, SIREN obligatoire, soft delete (PR #24)
 - **Architecture** : ✅ DDD/RDD finalisée — relations via tables pivot, plus de FK directes
 - **Dette D-1→D-11** : ✅ **100 % fermée** (vague corrective PR #25-#29) — A6 close, D-11 résolue, D-12 (E2E shell CI) tracée au registre
-- **Couverture** : 📊 baseline SimpleCov **72.78 % lignes / 44.82 % branches** (suite 957 verts, rapport HTML + Cobertura XML)
+- **Couverture** : 📊 SimpleCov **84.21 % lignes / 57.41 % branches** (3115/3699 · 898/1564) — suite 1150 verts, verrou 72,5 armé dans le processus RSpec réel, rapport HTML + Cobertura XML
 - **Sécurité** : ✅ JWT stateless, OAuth Google/GitHub, 0 vulnérabilité bundle audit
 - **Contrat d'erreur** : ✅ Format unifié `{ code, message, details }` sur tous les endpoints
 
@@ -35,6 +35,7 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 | v0.1.0-fc07 | 7 Jan 2026 | 449 | FC-07 CRA complet + Mini-FC (TDD Platinum) |
 | **v0.1.0** | **18 Août 2026** | **863** | **Remédiation Architecture (25 tâches) + DDD finalisé + Supabase** |
 | **v0.1.1** | **16-17 Sept 2026** | **957** | **FC-08 Companies + vague dette D-1→D-11 + SimpleCov + durcissement CI (PR #24-#29)** |
+| **v0.1.2** | **19-21 Sept 2026** | **1150** | **Campagne P6 : Waves 1-4 + hygiène documentaire + P6.6 CLOSED — 2 bugs prod corrigés, 144 specs (PR #35-#41)** |
 
 ### 🏆 Certifications & Standards
 - **TDD PLATINUM** : Domaine CRA auto-défensif, cycle RED → GREEN → REFACTOR par tâche
@@ -99,9 +100,9 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 
 ### Documentation & Qualité
 - **Swagger/OpenAPI** : 402 specs RSwag, audit 35/35 routes documentées
-- **Tests complets** : 957 exemples RSpec (0 failures, 0 pending)
-- **Couverture** : 📊 baseline SimpleCov **72.78 % lignes / 44.82 % branches** (rapport HTML + Cobertura XML)
-- **Code quality** : RuboCop 237 files, 0 offenses
+- **Tests complets** : 1150 exemples RSpec (0 failures, 0 pending)
+- **Couverture** : 📊 SimpleCov **84.21 % lignes / 57.41 % branches** (rapport HTML + Cobertura XML)
+- **Code quality** : RuboCop 243 files, 0 offenses
 - **Security audit** : Brakeman 0 warnings (mode strict), Bundle audit 0 vulnérabilités
 - **Collection Postman** : 28 endpoints avec scripts de test automatisés
 
@@ -149,14 +150,14 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 ## 🧪 Tests & Qualité
 
 ### Statistiques Actuelles (Septembre 2026)
-- **Tests RSpec** : ✅ **957 examples, 0 failures, 0 pending**
+- **Tests RSpec** : ✅ **1150 examples, 0 failures, 0 pending**
 - **Tests Rswag** : ✅ **402 examples** — audit 35/35 routes
 - **RuboCop** : ✅ **237 files, 0 offenses**
 - **Brakeman** : ✅ **0 Security Warnings** (mode strict — tout warning non ignoré échoue)
 - **Bundle audit** : ✅ **0 vulnerabilities** (Rails 8.1.3.1, puma 8.0.2)
 - **Smoke tests E2E** : ✅ **15/15 passed**
 - **GitLedger integration** : ✅ **23 tests** (intégration 13 + sécurité injection 10, env isolé)
-- **Couverture (SimpleCov)** : 📊 **baseline 72.78 % lignes / 44.82 % branches** (Models 84.8 %, Services 80.5 %, Controllers 61.2 %) — rapport HTML + Cobertura XML
+- **Couverture (SimpleCov)** : 📊 **84.21 % lignes (3115/3699) / 57.41 % branches (898/1564)** — rapport HTML + Cobertura XML
 - **CI/CD** : ✅ **6/6 jobs verts, 0 annotation** — E2E bloquant dans la Quality Gate, Brakeman strict, gate DDD explicite
 
 ### 📈 Évolution des Métriques de Tests
@@ -168,6 +169,7 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 | v0.1.0-fc07 | 7 Jan 2026 | 449 | FC-07 CRA + Mini-FC |
 | **v0.1.0** | **18 Août 2026** | **863** | **Remédiation Architecture (25 tâches)** |
 | **v0.1.1** | **16-17 Sept 2026** | **957** | **FC-08 Companies + vague dette D-1→D-11 + SimpleCov baseline** |
+| **v0.1.2** | **19-21 Sept 2026** | **1150** | **Campagne P6 : Waves 1-4 + hygiène documentaire + P6.6 CLOSED — 2 bugs prod corrigés, 144 specs (PR #35-#41)** |
 
 ## 🚀 Déploiement & Configuration
 
@@ -259,6 +261,15 @@ JWT_SECRET=your_jwt_secret_key
 
 ## 📝 Changelog
 
+### v0.1.2 (19-21 Septembre 2026) — Campagne P6 : Waves 1-4 + Hygiène documentaire + P6.6 CLOSED 🏆
+- 📊 **136+8 specs** ajoutées : CraServices::List (24,62→96,92 %), Git Ledger (100 %), services/lib, contrôleurs, concerns, modèles/pivots
+- 🐛 **2 bugs production corrigés** : GET /api/v1/cras = 500 (ApplicationResult sans data:), Company#country_name NameError (ISO3166 jamais déclaré)
+- 🧹 **Nettoyage OAuth** : 7 méthodes mortes supprimées (zéro appelant — corpus −28 lignes)
+- 📋 **Hygiène documentaire** : 148 docs migrés vers YYYY_MM_DD_ + [DONE]_/[Obsolete]_ · BACKLOG transverse relancé · ROADMAP aligné · hub RAG réindexé
+- 📏 **P6.6 CLOSED** : 84,21 % lignes (3115/3699) · 57,41 % branches (898/1564) · verrou 72,5 armé dans le processus réel
+- 📋 **Dettes tracées** : BACKLOG #13 (branch protection) · #14 (arbre mergé) · #15 (RSwag 'name') · #16 (validate_uniqueness) · D3-3 (reporté) · P1 (recommandé) · link-rot
+- CI PR : 6/6 verts (runs 35611220178 et 35646923309)
+
 ### v0.1.1 (16-17 Septembre 2026) — FC-08 Companies + Fermeture de la dette technique 🏆
 - 🏢 **FC-08 v3.2.3** : Companies & User-Company Relationships — CRUD, onboarding atomique
   (Company + UserCompany en une transaction, INV-16/17), SIREN obligatoire/unique, soft delete,
@@ -327,4 +338,4 @@ Ce projet est sous license MIT. Voir le fichier `LICENSE` pour plus de détails.
 
 ---
 
-**Foresy API** — API Rails moderne, sécurisée et validée par les gates Platinium actuelles (957 tests verts, CI 6/6 bloquante incl. E2E). Architecture DDD/RDD, baseline couverture mesurée (72,78 % lignes / 44,82 % branches), dettes résiduelles explicitement tracées (D-12, P6).
+**Foresy API** — API Rails moderne, sécurisée et validée par les gates Platinium actuelles (1150 tests verts, CI 6/6 bloquante incl. E2E). Architecture DDD/RDD, couverture mesurée (84,21 % lignes / 57,41 % branches, verrou 72,5 armé), dettes résiduelles explicitement tracées (D-12, P6, BACKLOG #13-#16).
