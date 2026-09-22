@@ -1,7 +1,7 @@
 # P7 — System Specs API Assessment
 
-**Date :** 21 septembre 2026
-**Décision CTO :** analyse uniquement (pas d'implémentation — arbitrage CTO attendu)
+**Date :** 21 septembre 2026 · arbitrage CTO : 22 septembre 2026 (GO P7 — voir §10)
+**Statut :** document de référence P7 — corrections CTO appliquées (numérotation UC, règle de stub, estimation non contractuelle)
 **Diagnostic de référence :** pyramide Foresy — couches Unit/Services/Request/RSwag 🟢, System/E2E API 🟡
 **Question structurante :** « Quelles sont les 5-10 choses que Foresy doit absolument savoir faire de bout en bout ? »
 
@@ -9,7 +9,7 @@
 
 ## 1. Ce que la suite actuelle teste réellement
 
-### Niveau 1 — Unit / Model (🟢 100 %)
+### Niveau 1 — Unit / Model (🟢 contrats métier largement couverts)
 
 | Ce qui est testé | Comment | Preuves |
 |---|---|---|
@@ -22,7 +22,9 @@
 
 **Ce que ça garantit :** « Si je donne cet état au modèle, la règle locale fonctionne »
 
-### Niveau 2 — Domain / Services (🟢 ~96-100 %)
+**Précision (arbitrage CTO)** : les qualificatifs des titres ci-dessous ne signifient pas 100 % de couverture SimpleCov ; ils signifient que les principaux invariants identifiés à chaque niveau sont caractérisés. Les chiffres SimpleCov précis restent dans les tableaux et dans l'assessment P6.6 (84,21 % lignes / 57,41 % branches).
+
+### Niveau 2 — Domain / Services (🟢 contrats métier largement caractérisés)
 
 | Ce qui est testé | Comment | Preuves |
 |---|---|---|
@@ -43,7 +45,7 @@
 | JSON Web Token | encode/decode | json_web_token 97,14 % |
 | APM (Datadog) | **non couvert** — candidat exclusion | apm_service 82,65 % (défensif) |
 
-### Niveau 3 — Request / API (🟢 ~84-96 %)
+### Niveau 3 — Request / API (🟢 contrats HTTP caractérisés)
 
 | Ce qui est testé | Comment | Preuves |
 |---|---|---|
@@ -87,7 +89,7 @@
 
 **Ce que les request specs ne testent pas non plus** : les request specs (type: :request) passent par le controller, mais utilisent `foresy_test` — la composition est réelle. MAIS les request specs existants testent un endpoint à la fois (POST /cras, POST /entries, GET /cras/:id) — pas la composition complète.
 
-## 2. Les 8 use cases critiques de Foresy
+## 2. Les 10 use cases critiques de Foresy
 
 Je liste les scénarios métier complets que Foresy doit absolument savoir faire. Pour chacun : ce qui est couvert à chaque niveau et ce qui manque.
 
@@ -137,7 +139,7 @@ POST /companies → Company + UserCompany créés (atomique) → user lié
 | Request spec | ✅ | specs existantes + E2E companies |
 | **System (DB state)** | 🟡 | l'E2E companies vérifie HTTP mais pas l'état DB (company + user_company en base ?) |
 
-### UC-2 : CRA lifecycle complet (le use case le plus critique)
+### UC-4 : CRA lifecycle complet (le use case le plus critique)
 
 ```
 Authenticate → POST /cras → CRA créé
@@ -164,7 +166,7 @@ Authenticate → POST /cras → CRA créé
 3. **Associations pivots** — les user_cras/cra_missions/cra_entry_missions sont-ils correctement créés par le flow ?
 4. **Transaction rollback** — si le Ledger échoue au lock, l'entry créé et le CRA submitted sont-ils vraiment rollbackés ?
 
-### UC-4 : CRA avec entries multi-missions
+### UC-5 : CRA avec entries multi-missions
 
 ```
 CRA → Entry A (Mission A, 0.5j) → Entry B (Mission B, 0.5j)
@@ -176,7 +178,7 @@ L'E2E `e2e_cra_lifecycle.sh` couvre **exactement ce scénario** (13 steps). C'es
 
 Mais : **il ne vérifie pas les effets secondaires en DB** (pivot cra_entry_cras, cra_entry_missions, user_cras).
 
-### UC-5 : Token revocation + re-authentification
+### UC-6 : Token revocation + re-authentification
 
 ```
 Login → JWT → Revoke → Token invalide → Login → nouveau JWT
@@ -189,7 +191,7 @@ Login → JWT → Revoke → Token invalide → Login → nouveau JWT
 
 Ce use case est bien couvert.
 
-### UC-5 : Rate limiting (429)
+### UC-7 : Rate limiting (429)
 
 ```
 Login ×6 → 429
@@ -203,7 +205,7 @@ Login ×6 → 429
 
 Ce use case est bien couvert.
 
-### UC-6 : Export CSV
+### UC-8 : Export CSV
 
 ```
 CRA locked → GET /export → CSV
@@ -215,7 +217,7 @@ CRA locked → GET /export → CSV
 | Request spec | ✅ |
 | **Vérification du contenu CSV** | 🟡 — le contenu est-il conforme au payload Git Ledger ? |
 
-### UC-7 : Git Ledger — atomicité complète
+### UC-9 : Git Ledger — atomicité complète
 
 ```
 Lock CRA → Git commit → succès (CRA locked + commit existant)
@@ -228,7 +230,7 @@ lock → Git échec → ROLLBACK (CRA reste submitted + pas de commit)
 | Model spec (Cra#lock! atomicité) | ✅ W3-D4 |
 | **System (vraie DB + vrai ledger + rollback complet)** | 🟡 — le spec W3-D4 test l'atomicité au niveau model, mais pas le flow complet HTTP → Controller → Service → Model → Ledger → DB |
 
-### UC-8 : OAuth complet avec vraie infrastructure
+### UC-10 : OAuth complet avec vraie infrastructure
 
 ```
 Net::HTTP réel vers Google/GitHub → token → userinfo → user créé → JWT
@@ -244,7 +246,7 @@ Ce chemin est testé avec stub Net::HTTP dans les request specs (W2-D3). L'E2E s
 |---|---|---|---|
 | 1 | **Vérification DB state après chaque step du lifecycle CRA** (cra existe ? entries existent ? pivots corrects ?) | 🔴 haute | ~5-8 specs system |
 | 2 | **Vérification Git Ledger content** (pas seulement delta de commits — le payload JSON) | 🟠 moyenne | ~3-5 specs |
-| 3. | **Vérification rollback complet** (DB + Ledger après échec) | 🟠 moyenne | ~3-4 specs |
+| 3 | **Vérification rollback complet** (DB + Ledger après échec) | 🟠 moyenne | ~3-4 specs |
 | 4 | **Multi-composants composition** (controller → service → model → DB → Ledger dans un seul test) | 🔴 haute | ~5-8 specs |
 | 5 | **Multi-utilisateur** (user A crée, user B ne voit pas ; user B lié à une mission voit) | 🟠 moyenne | ~3-5 specs |
 | 6 | **OAuth flow avec vraie infrastructure** | 🟢 basse (credentials absents — différé) | différé |
@@ -260,20 +262,22 @@ Ce chemin est testé avec stub Net::HTTP dans les request specs (W2-D3). L'E2E s
 |---|---|
 | Framework | RSpec `type: :request` (même engine que les request specs existants) |
 | Isolation | `foresy_test` (D-10) — base propre |
-| Réseau | **Aucun stub** — les vrais composants tournent (CraServices, GitLedger, models) |
+| Dépendances métier | **Aucun mock/stub des composants métier** — CraServices, GitLedger, models réels |
 | Redis | Réel (RedisBackend, comme W4-D2) — ou MemoryBackend selon la config test |
 | Git Ledger | **Réel** (GIT_LEDGER_REAL=true, overlay tmpdir — pattern D-12 éprouvé) |
-| Net::HTTP | **Aucun stub** — les services appellent réellement Google/GitHub dans le flow OAuth (mais pas nécessaire pour les UC-1 à UC-5) |
+| Injection d'échec | Déterministe, au niveau infrastructure/configuration (ex. `LEDGER_PATH` non inscriptible) — jamais `allow(Service).to receive(...).and_raise` |
+| Net::HTTP | Stub maintenu pour OAuth (UC-2) — le OAuth infrastructurel réel est hors P7 (arbitrage CTO) |
 | Vérifications | HTTP + DB state + Git Ledger state + domain state (associations pivots) |
 
 ### Structure proposée
 
 ```
 spec/system/
-├── cra_lifecycle_system_spec.rb       # UC-3 + UC-4 (le plus critique)
-├── oauth_login_system_spec.rb         # UC-1 (partiel — stub Net::HTTP pour Google/GitHub)
-├── company_onboarding_system_spec.rb  # UC-3
-└── rate_limiting_system_spec.rb       # UC-5 (partiel — si pertinent)
+├── cra_lifecycle_system_spec.rb       # UC-4 + UC-5 (phare — P0)
+├── cra_ledger_rollback_system_spec.rb # UC-9 — rollback (P0)
+├── company_onboarding_system_spec.rb  # UC-3 (P0)
+├── oauth_login_system_spec.rb         # UC-2 (P2 — stub Net::HTTP maintenu)
+└── rate_limiting_system_spec.rb       # UC-7 (P1 — si pertinent)
 ```
 
 ### Le principe
@@ -284,6 +288,26 @@ Pas 100 specs. Pas un Playwright. Pas un nouveau framework.
 
 Juste quelques specs qui traversent le système de bout en bout et vérifient que l'état final (DB + Ledger + domain) est cohérent avec l'entrée.
 
+**Critère de justification (arbitrage CTO)** — une system spec est justifiée uniquement lorsqu'elle vérifie une propriété de composition **non garantie** par les tests unitaires/services/request existants. Le chiffre 10-15 est une estimation, pas un quota.
+
+**State, pas implémentation** — on vérifie les invariants métier observables, pas les attributs internes :
+
+```ruby
+# ❌ Teste l'implémentation
+expect(cra.attributes).to eq({ ... 25 colonnes ... })
+
+# ✅ Vérifie les invariants métier observables
+expect(cra).to be_locked
+expect(cra.entries.count).to eq(2)
+expect(cra.total_days).to eq(1.0)
+expect(cra.mission_ids).to contain_exactly(mission_a.id, mission_b.id)
+expect(ledger_payload).to match_contract(...)
+```
+
+**Complémentarité avec l'E2E shell (rôles distincts, les deux conservés)** :
+- Shell E2E : « un environnement réel peut-il effectuer ce parcours HTTP ? »
+- System spec : « ce parcours produit-il exactement l'état métier attendu ? »
+
 ## 5. Ce que je ne ferais pas
 
 | Anti-pattern | Pourquoi |
@@ -292,7 +316,8 @@ Juste quelques specs qui traversent le système de bout en bout et vérifient qu
 | Playwright / navigateur | Inutile pour une API — pas de frontend à tester |
 | Duplicer les request specs existants | Les request specs testent déjà les endpoints individuellement |
 | Tester chaque service individuellement en system | C'est le rôle des specs unitaires/services (déjà 83,10 %) |
-| Mocker Git Ledger dans les system specs | Le D-12 a déjà prouvé que le vrai ledger est exercé — il faut le garder réel |
+| Mocker un service métier (`allow(GitLedgerService).to receive(:lock!).and_raise`) | Le D-12 a prouvé que le vrai ledger est exercé — les échecs se provoquent par infrastructure/configuration déterministe (ex. `LEDGER_PATH` non inscriptible), pas en mockant le composant métier |
+| Lancer OAuth réel (Google/GitHub) dans P7 | Credentials, réseau, quotas, rotation de secrets — le contrat applicatif est déjà couvert par les stubs ; le vrai OAuth infrastructurel est un contract/infrastructure test dédié, si la valeur le justifie |
 
 ## 6. Le contrat système (le 3e contrat)
 
@@ -323,9 +348,9 @@ Et c'est précisément le type de bug que les 2 bugs production corrigés (GET /
 
 | Paramètre | Estimation |
 |---|---|
-| Specs system | **10-15 specs** (pas 100) |
-| Sous-étapes | 2 (D5-1 : use cases CRUD + lifecycle, D5-2 : side effects + transactions) |
-| Vague | **P7 — System Specs API** (ou intégré dans Wave 4 comme D5) |
+| Specs system | **10-15 specs — estimation non contractuelle** (arbitrage CTO : pas un quota) |
+| Sous-étapes | 2 proposées (P7-D1 : use cases P0, P7-D2 : side effects + rollback) — ajustables à la mesure |
+| Vague | **P7 — branche dédiée `feat/p7-system-specs`, PR dédiée** (arbitrage CTO : P6 fermé, pas d'intégration Wave 4) |
 | Verrou | 72,5 inchangé (les system specs n'augmentent pas le corpus mesuré — elles testent l'intégration) |
 | Effort | ≈ équivalent à W3-D2 (16 specs, une session) |
 
@@ -343,14 +368,52 @@ C'est une question de **RDD** (Relation-Driven Design) : tester les **relations*
 
 Le hub RAG peut aider à identifier ces scénarios : les invariants INV-01 à INV-22 du registre FC-08 définissent déjà les invariants métier qui doivent être maintenus de bout en bout.
 
-## 10. Décision proposée (arbitrage CTO)
+## 10. Décision CTO (arbitrage du 22 septembre 2026)
 
-| Option | Contenu | Recommandation |
+La proposition ci-dessus (options A-D) est conservée pour l'historique de décision. **Décision rendue : GO P7 — System Specs API, avec trois corrections méthodologiques.**
+
+| Option | Arbitrage CTO |
+|---|---|
+| **A — P7 System Specs API** | ✅ **GO** — le gap de composition est réel et différent du gap de couverture traité en P6 |
+| **B — Wave 4.5 (couche contrôleur)** | ❌ NON — dette quantifiée distincte, non bloquante, non lancée |
+| **C — P6.6 tel quel** | ✅ CLOSED — aucune réouverture |
+| **A + B combinés (palier 90 %)** | ❌ NON — 90 % n'est pas un objectif ; la couverture reste un instrument de mesure |
+
+### Corrections méthodologiques CTO (appliquées à ce document)
+
+1. **Numérotation UC corrigée** — le document initial contenait des doublons (UC-2 ×2, UC-5 ×2). Renumérotation séquentielle UC-1 → UC-10 appliquée. Correspondance avec les références de l'arbitrage CTO (qui suivaient l'ancienne numérotation) : Git Ledger = UC-9, export = UC-8, rate limiting = UC-7, revocation = UC-6.
+2. **Règle de stub affinée** — « aucun stub » n'est pas absolu : aucun mock/stub des composants métier et services internes ; les défaillances (rollback Ledger) sont provoquées de façon déterministe au niveau infrastructure/configuration (ex. `LEDGER_PATH` non inscriptible), jamais via `allow(GitLedgerService).to receive(:lock!).and_raise`.
+3. **10-15 = estimation, pas quota** — le livrable P7 est un contrat système démontré, pas un nombre de specs. Chaque system spec doit démontrer une propriété de composition non garantie par les couches inférieures.
+
+### Priorité P7
+
+| Priorité | Use case | Pourquoi |
 |---|---|---|
-| **A — P7 System Specs API** | 10-15 specs system couvrant les 5-8 use cases critiques avec vérification DB + Ledger + domain | ✅ recommandée — le gap est réel et la méthode est éprouvée |
-| **B — Wave 4.5 (couche contrôleur)** | ~280 lignes contrôleur/concerns (~30-40 specs) — la dette déjà quantifiée | possible mais moins prioritaire que le System layer |
-| **C — P6.6 tel quel** | Clôturé à 84,21 % sans la couche System | possible mais le gap de composition reste non couvert |
-| **A + B combinés** | System specs (10-15) + contrôleur résiduel (~30 specs) → 90 % atteignable | si le CTO veut franchir le palier |
+| 🔴 P0 | UC-4 — CRA lifecycle complet | composition maximale + Ledger + transactions |
+| 🔴 P0 | UC-9 — Git Ledger / rollback | frontière critique et atomicité |
+| 🔴 P0 | UC-3 — Company onboarding | atomicité + association UserCompany |
+| 🟠 P1 | UC-5 — multi-missions / pivots | intégrité relationnelle |
+| 🟠 P1 | UC-1 + UC-6 — auth / revocation | état DB et sécurité |
+| 🟠 P1 | UC-7 — rate limiting | Redis + comportement temporel |
+| 🟡 P2 | UC-2 — OAuth (stub Net::HTTP) | contrat applicatif seulement |
+| 🟡 P2 | UC-8 — export | moins critique pour démontrer la composition |
+| ⚪ Différé | UC-10 — OAuth infrastructure réelle | hors P7 — credentials absents ; candidat contract/infrastructure test dédié si la valeur le justifie |
+
+### Scénario phare
+
+CRA lifecycle + Git Ledger + rollback (UC-4 + UC-9) : il concentre le plus grand nombre de frontières critiques et constitue le premier livrable de référence de P7.
+
+### Critère de réussite
+
+Pas : « nous avons ajouté 15 specs ».
+
+Mais : « les use cases critiques disposent d'un contrat système démontrant que leur état métier final est cohérent après traversée réelle de l'API et des composants ».
+
+### Exécution
+
+- Branche dédiée `feat/p7-system-specs` depuis `main` — PR dédiée (P6 fermé, pas d'intégration Wave 4).
+- Méthode : RED → test système minimal → GREEN → caractérisation → mesure.
+- Playwright : NON nécessaire.
 
 ## Références
 
