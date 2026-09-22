@@ -90,15 +90,22 @@ docker compose exec -T web sh -c "DATABASE_URL=postgres://postgres:password@db:5
 | Gain couverture attendu | ≈ 85-88 % lignes — **90 % dépend des parameter_extractors** (123 lignes d'extraction, les plus denses) |
 | Verrou | 72,5 inchangé pendant la vague ; relèvement 90 contractuel seulement si mesuré atteint — sinon palier maintenu à ~85 |
 
-## 9. Décision proposée (arbitrage CTO)
+## 9. Décision (arbitrage CTO 21/09 — P6.6 CLOSED)
 
-| Option | Contenu | Recommandation |
-|---|---|---|
-| **A — Wave 4 ciblée (couche contrôleur)** | Caractériser D3-3 + concerns (~45-60 specs), atteindre ≈ 88-90 %, puis P6.6 final | ✅ **recommandée** — le palier 90 % n'est atteignable que par cette couche ; la dette D3-3 est déjà enregistrée, la caractérisation est naturelle (handlers stables) |
-| **B — P6.6 suffisant à 83,10 %** | Verrou porté à ~83 (marge +0,60) ; exclusions formalisées (apm_service) ; D3-3 reste dette vivante | possible mais le palier 90 % de la campagne serait abandonné sans mesure du reste |
-| **C — Exclusions formalisées** | `apm_service` (infra) + rescues défensifs documentés exclus du corpus qualifié | complémentaire à A ou B (réduit le dénominateur ≈ 3682 lignes utiles qualifiées) |
+| Élément | Décision |
+|---|---|
+| Palier 90 % | **NON ATTEINT, NON REQUIS comme condition de clôture de P6.6** — le question n'est plus "peut-on atteindre 90 % ?" mais "90 % apporte-t-il suffisamment de valeur pour justifier 30-40 specs supplémentaires ?" |
+| Corpus | 76 fichiers · 3699 lignes · zéro fichier aveugle |
+| **Lines : 84,21 %** | 3115/3699 |
+| **Branches : 57,41 %** | 898/1564 |
+| Verrou : 72,5 % | armé dans le processus RSpec réel |
+| Résidu pertinent | ~280 lignes contrôleur/concerns (dette de couverture quantifiée, distincte, non bloquante) |
+| Infrastructure exclue | ~17 lignes apm_service (Datadog) |
+| Défensif | ~40 lignes |
+| Tooling/façades | 3 lignes |
+| application_result | 23 lignes, cleanup séparé |
 
-**Recommandation détaillée** : **A + C combinés** — Wave 4 ciblée sur la couche contrôleur (métier, pas défensif) + formalisation de l'exclusion `apm_service` + rescues défensifs documentés. Le palier 90 % devient contractuel après la Wave 4 **si** la mesure confirme l'atteinte ; sinon maintien à 72,5 avec justification quantifiée.
+**Décision : P6.6 CLOSED à 84,21 % lignes / 57,41 % branches. La Wave 4 (contrôleurs/concerns) est une dette de couverture quantifiée (~280 lignes, ~30-40 specs estimées), distincte et non bloquante. Le prochain chantier Foresy sera tranché sur la base de la valeur produit/risque, et non mécaniquement sur SimpleCov.**
 
 ## Références
 
