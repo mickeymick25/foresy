@@ -5,6 +5,29 @@
 **Rôle :** protection transversale de tous les futurs développements · indépendant de P6/P7
 **Prérequis technique :** l'application exige un accès admin du dépôt (UI GitHub ou API authentifiée) — l'agent prépare, l'humain applique, puis l'agent certifie le GREEN.
 
+## Journal de certification
+
+### 2026-09-22 — Application par API (Option B), exécutée par l'agent via le PAT admin du mainteneur
+
+| Étape | Résultat |
+|---|---|
+| Token | `tmp/.admin_pat` (chmod 600, ignoré par Git, jamais affiché) — à supprimer après certification |
+| GET protection | HTTP 200 — les **6 checks requis étaient déjà posés** (apposés via UI par le mainteneur ; app_id 15368 = GitHub Actions) |
+| PUT n°1 | **422 documenté** : le payload mélangeant `contexts: []` et `checks: [...]` viole le `oneOf` du schéma — la configuration exige **un seul** des deux mécanismes (contexts XOR checks) |
+| PUT corrigé (checks seul) | **200 — `enforce_admins: enabled: true`** · les 6 checks requis conservés :
+  `🎨 Code Quality` · `📖 API Contracts` · `🔒 Security Audit` · `🚀 Quality Gate` · `🧪 End-to-End Tests` · `🧪 Tests & Coverage` |
+
+**Le seul écart de la règle initiale (exemption admin) est désormais levé** : la protection de
+branche est techniquement imposée, administrateurs inclus.
+
+### Certification GREEN — PR de contrôle
+
+- **Statut : en cours** — micro-PR docs (`chore/backlog11-control-pr`) créée pour démontrer
+  le comportement attendu : `mergeable_state: blocked` pendant les checks, puis `clean` après 6/6
+  sur le dernier SHA de la PR.
+- Preuve primaire déjà enregistrée : les 6 entrées dans `required_status_checks.checks`
+  (sorties API ci-dessus).
+
 ---
 
 ## RED — constat à frais (API GitHub, 22/09/2026)
