@@ -45,7 +45,7 @@ module Api
       def create
         result = CraEntryServices::Create.call(
           cra: @cra,
-          attributes: cra_entry_attributes,
+          attributes: cra_entry_attributes.merge(mission_id: mission_id),
           current_user: current_user
         )
 
@@ -188,9 +188,9 @@ module Api
         attributes.compact
       end
 
-      # Extract mission_id from request
+      # Extract mission_id from request (UUID — pas de cast .to_i)
       def mission_id
-        params[:mission_id].present? ? params[:mission_id].to_i : nil
+        params[:mission_id].presence
       end
 
       # FC07 CraErrors handlers
