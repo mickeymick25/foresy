@@ -10,6 +10,8 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 ## 🚀 Vue d'Ensemble
 
 ### 🎯 État Actuel (Septembre 2026)
+- **v0.1.3** : ✅ P7 System Specs API CLOSED — contrat système (3ᵉ contrat) établi, bug de composition mission_id corrigé (PR #42)
+- **v0.1.2** : ✅ Campagne P6 Waves 1-4 + hygiène documentaire + P6.6 CLOSED (PR #35-#41)
 - **v0.1.1** : ✅ FC-08 Companies + vague dette D-1→D-11 fermée + SimpleCov (PR #24-#29)
 - **v0.1.0** : ✅ Remédiation Architecture complète (25/25 tâches TDD/DDD/Platinum)
 - **Feature Contract 01 (OAuth)** : ✅ Google & GitHub authentication
