@@ -34,6 +34,15 @@ branche est techniquement imposée, administrateurs inclus.
 **La gouvernance est verrouillée** : un merge sans CI verte est désormais **techniquement impossible**
 (au lieu d'être simplement une pratique). Le merge de cette PR de contrôle clôt le chantier.
 
+### Checklist de nettoyage des secrets (déclenchée par le merge de #43)
+
+- [ ] Supprimer `tmp/.admin_pat` (le PAT) — *condition : PR #43 mergée*
+- [ ] Supprimer les scripts opérationnels : `tmp/apply_branch_protection.sh` · `tmp/apply_enforce_admins.sh` · `tmp/open_control_pr.sh` · `tmp/poll_pr_state.sh` · `tmp/certify_check_runs.sh`
+- [ ] Réindexer le hub RAG (le tracker a été mis à jour avec le journal)
+- [ ] Facultatif : révoquer le PAT côté GitHub (Settings → Developer settings), s'il n'est plus nécessaire
+
+> L'agent exécute ce nettoyage dès le merge de #43 confirmé — ne pas laisser `tmp/.admin_pat` en place au-delà.
+
 ### Journal de l'application API
 
 ---
