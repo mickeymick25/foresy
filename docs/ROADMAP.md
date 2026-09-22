@@ -15,7 +15,7 @@ voir docs/BACKLOG.md.
 v0.1.0 (Fondations métier)
  ├─ Feature Contract #06 — Missions (Projets) ✅ TERMINÉ
  ├─ Feature Contract #07 — CRA mensuel ✅ TERMINÉ
- ├─ Feature Contract #08 — Entreprise de l'indépendant
+ ── Feature Contract #08 — Entreprise de l'indépendant ✅ TERMINÉ (PR #24)
  └─ Feature Contract #09 — Notifications & alertes
 
 v0.2.x (Extension)
