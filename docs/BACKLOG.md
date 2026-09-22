@@ -31,11 +31,16 @@ sources canoniques ci-dessous. L'ancien backlog (2025-12-26) est archivé :
 | 8 | Chore **link-rot** — réparation des ~114 liens pré-existants (réorganisation 2026-01) | 🟢 recommandé | tracker hygiène §5 (E3-bis) |
 | 9 | Performance — < 100 ms sur les endpoints authentifiés | 🟢 | BRIEFING Future Improvements |
 | 10 | Monitoring avancé Prometheus/Grafana ; Datadog Synthetics | 🟢 | BRIEFING Future Improvements · archive BACKLOG |
-| 11 | **Hardening CI — branch protection** : `main` protégée mais `required_status_checks` vide + `enforcement_level: off` (API GitHub vérifiée 20/09 et **à frais 22/09 — RED démontré**) — configurer les 6 checks requis pour rendre la règle « CI verte = merge » contraignante | 🟠 gouvernance — **GO CTO 22/09, en cours** | `docs/technical/2026_09_22_backlog13_branch_protection_tracker.md` · API `branches/main` |
-| 12 | **Hardening CI — validation de l'arbre mergé** : l'E2E est `skipped` hors PR (`ci.yml` L316) → l'arbre réellement mergé n'est jamais testé E2E en combinaison (précédent D-8). Options CTO : (1) `merge_group`/merge queue — préféré, (2) smoke post-merge léger sur push main (health + auth + non-destructif + alerte), (3) E2E complet sur main (cher, arbitrage explicite requis) | 🟠 hardening | analyse E2E CTO 20/09 · `ci.yml` L316/L483 |
+| 12 | **Hardening CI — validation de l'arbre mergé** : l'E2E est `skipped` hors PR (`ci.yml` L316) → l'arbre réellement mergé n'est jamais testé E2E en combinaison (précédent D-8). Options CTO : (1) `merge_group`/merge queue — préféré, (2) smoke post-merge léger sur push main (health + auth + non-destructif + alerte), (3) E2E complet sur main (cher, arbitrage explicite requis). **Désormais cohérent : la branch protection est verrouillée (PR #43)** — les 6 checks sont requis sur les PRs, administrateurs inclus | 🟠 hardening — **arbitrage CTO en attente (prochain chantier GO)** | analyse E2E CTO 20/09 · `ci.yml` L316/L483 · tracker #11 §Cas limite |
 | 13 | **OAuth callback — divergence contrat ↔ schéma RSwag** : `format_success_response` inclut `name` dans le payload user (découvert par W2-D3, caractérisé sans correction produit) — le schéma RSwag `oauth_spec.rb` ne le déclare pas. **Arbitrage ultérieur** : soit `name` fait partie du contrat → RSwag corrigé, soit la réponse production est modifiée — ne pas laisser les deux contrats diverger durablement | 🟠 correction de contrat | revue CTO 20/09 (PR #39) · tracker Wave 2 (3) |
 | 14 | **`Cra#validate_uniqueness` inerte à la création** : à la création, le pivot `user_cras` (rôle créateur) n'existe pas encore (créé post-insert par la factory/le flux) → `creator_user_id` nil → le garde Ruby ne s'exerce pas ; il ne protège qu'à la re-validation/update. Comportement démontré et documenté (W3-D4). **Point d'architecture** : le nom du garde laisse croire qu'il protège la création ; traiter séparément (contrainte DB ou recalage de l'ordre pivot/validation) | 🟡 WARNING / dette architecture | revue CTO PR #40 · tracker Wave 3 |
 | 15 | **Wave 4.5** — ~280 lignes contrôleur/concerns (~30-40 specs estimées) — dette de couverture quantifiée (P6.6 Assessment §5), distincte, non bloquante | 🟢 distinct | assessment P6.6 §5-§7 · arbitrage CTO 21/09 |
+
+## Chantiers livrés (référence)
+
+| # | Chantier | Clôture | Source de vérité |
+|---|---|---|---|
+| — | **Branch protection** (ex-#11 de cette table, ex-#13 de la numérotation P6) — 6 checks requis + `enforce_admins: true` sur `main` · PR de contrôle #43 (`blocked` → `clean` certifié, 6/6 SUCCESS) | 22/09/2026 | `docs/technical/[DONE]_2026_09_22_backlog13_branch_protection_tracker.md` |
 
 ## Métriques de qualité (état au 2026-09-22 — post PR #42, P7 mergée)
 
