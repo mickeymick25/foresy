@@ -1,97 +1,20 @@
-# BACKLOG #12 — Validation de l'arbre mergé — Tracker
+# BACKLOG #12 — Validation de l'arbre mergé — Tracker [DONE]
 
 **Chantier :** garantir que la CI valide l'arbre effectivement mergé, pas seulement le HEAD de chaque PR
-**Décision CTO :** GO RED d'abord (22/09) — démontrer précisément ce que le pipeline actuel laisse passer **avant** de choisir le mécanisme. Aucune implémentation (merge_group / smoke / autre) sans ce RED.
+**Décision CTO :** GO RED d'abord (22/09) — démontrer précisément ce que le pipeline actuel laisse passer **avant** de choisir le mécanisme.
 **Prérequis atteint :** branch protection verrouillée (PR #43) — les 6 checks sont requis, administrateurs inclus.
+**Statut : ✅ CLOSED / GREEN — 22/09/2026 · `strict: true` certifié comportementalement.**
+
+> **Note de lecture** — ce document est clôturé. Les sections 1 à 3 portent le résultat final
+> et les preuves ; la section 4 est l'**historique du protocole** (hypothèses, scénarios,
+> options — état d'avancement figé à la clôture). Les cases `[ ]` qu'elle contient reflètent
+> l'état du protocole pendant la campagne, **pas des tâches ouvertes**.
 
 ---
 
-## État des faits établis (pré-RED)
+## 1. Résultat final
 
-| Fait | Preuve | Conséquence |
-|---|---|---|
-| Push direct sur `main` impossible | Hook GH006 — « 6 of 6 required status checks are expected » (rejet réel du 22/09, commit docs refusé) | Le chemin « push direct sans CI » est **déjà fermé** — le gap résiduel n'est pas celui-là |
-| Les 6 checks sont requis sur les PRs | `PUT protection` 200 · PR #43 : `blocked` pendant les checks, `clean` après 6/6 sur le SHA contrôlé | Le merge d'une PR exige sa CI verte |
-| `strict: false` | Payload d'application (décision #11) | « Require branches to be up to date » est **off** — le base peut bouger entre le run CI et le merge |
-
-## Hypothèses à démontrer (ou réfuter) — RED expérimental
-
-### EXP-1 — Run #1 : évidence collectée (PR #45, probe)
-
-| Champ | Valeur | Lecture |
-|---|---|---|
-| PR head sha | `5acb3840` | le head de la probe (A) |
-| PR base sha | `cbfddb27` | main (X) |
-| `GITHUB_SHA` | **`b396a976`** | **≠ head, ≠ base — le merge commit** |
-| `GITHUB_REF` | **`refs/pull/45/merge`** | le merge ref |
-| HEAD checkouté | `b396a976` | **= GITHUB_SHA — le checkout EST le merge result** |
-| probe_marker.md | ABSENT | cohérent (X ne contient pas encore le marqueur) |
-
-**Verdict H1 : RÉSOLU — la CI `pull_request` teste le résultat de fusion** (`base + head` au
-moment du run). Le `head_sha` des check-runs (5acb3840) n'était que l'attribution d'affichage.
-
-### EXP-1 — phase 2 (run #2 après synchronisation) — CERTIFIÉ
-
-**Evidence brute (étape `EXP-1 evidence`, run 35741930487, SHA `a521ae09`) :**
-
-```text
-=== EXP-1 evidence (BACKLOG #12) ===
-PR head sha : a521ae09cba06959aabcc69419ac7f5f7dd4a60e
-PR base sha : cbfddb27fe31ff436e4ecf50e51bbbbc85a76962
-GITHUB_SHA  : 8f32b7c64d1fa394fb5b1a3d1c30ab99a4db6d37
-GITHUB_REF  : refs/pull/45/merge
-HEAD checkouté : 8f32b7c64d1fa394fb5b1a3d1c30ab99a4db6d37
-probe_marker.md : PRESENT
-```
-
-**Lecture factuelle :**
-
-| Champ | Run #1 | Run #2 (synchronize) | Lecture |
-|---|---|---|---|
-| `GITHUB_SHA` | `b396a976` | **`8f32b7c6` — nouveau merge commit** | le merge ref a été **régénéré** |
-| `HEAD checkouté` | `b396a976` | **`8f32b7c6` (= GITHUB_SHA)** | le checkout suit le merge ref régénéré |
-| `probe_marker.md` | ABSENT | **PRESENT** | l'arbre testé contient le marqueur, qui n'existait **que sur la nouvelle base** (`95bcea6e`) |
-| base déclarée dans l'event | `cbfddb27` | `cbfddb27` (stale) | **le `base.sha` de l'event est obsolète** — l'arbre testé est pourtant frais |
-
-**Verdicts :**
-1. **H1 CONFIRMÉ deux fois** — le workflow `pull_request` exécute le **merge result**, pas le head isolé ;
-2. **Le mécanisme de rafraîchissement est démontré** — un événement `synchronize` régénère le
-   merge ref avec la base courante : c'est exactement ce que `strict: true` ferait systématiquement ;
-3. **Nuance importante** : le `base.sha` de l'événement est **stale** (`cbfddb27`) alors que l'arbre
-   testé est frais (marqueur de `95bcea6e` présent) — se fier au `base.sha` de l'event serait un
-   piège ; l'evidence fiable est le `GITHUB_SHA`/checkout et le contenu du fichier.
-
-### Consequence pour #12 — le problème se reformule
-
-Ce n'est plus « la CI teste-t-elle le head ou le merge result ? » (elle teste le merge result).
-C'est : **« le merge result testé reste-t-il valide jusqu'au moment du merge, alors que
-`main` avance ? »** — avec `strict: false`, la base peut bouger entre le run et le clic merge :
-l'arbre qui atterrit sur `main` est alors une combinaison différente de celle qui a été testée.
-
-## Arbitrage CTO #12 (22/09) — correction retenue : `strict: true`
-
-| Élément | Décision | Motif |
-|---|---|---|
-| EXP-2 | ❌ **NON exécutée — valeur marginale nulle** | EXP-1 a produit toute la preuve nécessaire : run #1 (merge ref sur l'ancienne base) · synchronize → nouveau merge ref · run #2 (`8f32b7c6`, checkout = merge ref, marqueur PRESENT). Reproduire le mécanisme n'apporte aucune nouvelle propriété de décision — pour un mainteneur solo, le coût n'est pas justifié |
-| **Mécanisme** | ✅ **`strict: true`** — correction minimale | RED (`strict: false` → la base peut avancer sans revalidation) · EXP-1 (GitHub sait reconstruire le merge ref · synchronize démontre la re-validation possible) → correction (la base doit être à jour avant merge) → les checks sont réexécutés sur le merge ref actualisé |
-| merge_group | ⏸️ Différé | Capacité supplémentaire (sérialisation de merges concurrents) — non nécessaire pour le risque actuellement démontré ; réévaluer si Foresy passe à une vraie concurrence de PRs ou si le processus de merge évolue |
-| Smoke post-merge | ⏸️ Chantier distinct | Répond à « CI pré-merge ≠ état réellement publié sur main » — frontière distincte, hors périmètre #12 |
-| Commit/clôture | ⏸️ **Pas encore** — le GO porte sur la correction ; le GREEN réel de la protection modifiée d'abord |
-
-### Protocole GREEN de la correction (calqué sur le protocole #11)
-
-1. Modifier **uniquement** `strict` de `false` → `true` dans la protection de `main` —
-   UI : cocher *Require branches to be up to date before merging* · API : payload `strict: true`
-   + les 6 checks + `enforce_admins` (inchangés) — **aucun workflow modifié** ;
-2. PR de contrôle — la chaîne comportementale attendue :
-   - PR à jour → checks exécutés → `clean` → mergeable (cas nominal) ;
-   - `main` avance → la PR devient **out-of-date** → merge bloqué → *Update branch* →
-     **nouveau merge ref régénéré** → les checks se réexécutent sur l'arbre frais → `clean` →
-     mergeable. La chaîne `out-of-date → update → nouveau merge ref → re-checks → clean`
-     est la preuve comportementale de #12 ;
-3. Seulement après cette preuve : #12 GREEN.
-
-## Certification GREEN #12 (22/09) — preuve comportementale
+### Certification GREEN (22/09) — preuve comportementale
 
 La protection modifiée (`strict: true`) a été **sauvegardée explicitement** puis testée sur
 la PR de contrôle #48 :
@@ -121,37 +44,83 @@ avant la prise en compte effective de la règle — **pas** une preuve que le st
 | PR — branche à jour | `strict: true` | PR #48 : out-of-date → bloquée malgré checks verts |
 | Merge result testé | `refs/pull/N/merge` | EXP-1 : 2 preuves (`b396a976`, `8f32b7c6`) |
 
-### Journal de certification
+## 2. Arbitrage CTO (22/09) — correction retenue : `strict: true`
 
-- [x] Merge du marqueur (`chore/backlog12-marker`) → `main = X + B` (`95bcea6e`)
-- [x] Commit neutre `a521ae09` sur la probe → événement **synchronize** → merge ref régénéré
-- [x] Evidence run #2 : `GITHUB_SHA = 8f32b7c6` · `HEAD checkouté = 8f32b7c6` · `marker: PRESENT`
-- [x] Verdict : le mécanisme de rafraîchissement est démontré — le reste de #12 est la
-      **politique** (régénérer systématiquement = `strict: true`, sérialiser = `merge_group`,
-      ou observer = smoke post-merge)
-- [ ] Arbitrage CTO (après lecture factuelle du run #2) — ✅ fait : arbitrage enregistré ci-dessus
+| Élément | Décision | Motif |
+|---|---|---|
+| EXP-2 | ❌ **NON exécutée — valeur marginale nulle** | EXP-1 a produit toute la preuve nécessaire : run #1 (merge ref sur l'ancienne base) · synchronize → nouveau merge ref · run #2 (`8f32b7c6`, checkout = merge ref, marqueur PRESENT). Reproduire le mécanisme n'apporte aucune nouvelle propriété de décision — pour un mainteneur solo, le coût n'est pas justifié |
+| **Mécanisme** | ✅ **`strict: true`** — correction minimale | RED (`strict: false` → la base peut avancer sans revalidation) · EXP-1 (GitHub sait reconstruire le merge ref · synchronize démontre la re-validation possible) → correction (la base doit être à jour avant merge) → les checks sont réexécutés sur le merge ref actualisé |
+| merge_group | ⏸️ Différé | Capacité supplémentaire (sérialisation de merges concurrents) — non nécessaire pour le risque actuellement démontré ; réévaluer si Foresy passe à une vraie concurrence de PRs ou si le processus de merge évolue |
+| Smoke post-merge | ⏸️ Chantier distinct | Répond à « CI pré-merge ≠ état réellement publié sur main » — frontière distincte, hors périmètre #12 |
 
-### Run #1 — evidence brute
+Le protocole d'application exécuté (calqué sur le protocole #11) : modification **uniquement** de
+`strict` (false → true) dans la protection de `main` — aucun workflow modifié, aucun nouveau job —
+puis certification comportementale sur PR de contrôle (section 3).
+
+## 3. Preuves EXP-1 — le merge result est testé
+
+### Run #1 — ouverture de la PR probe (PR #45, jamais mergée)
+
+| Champ | Valeur | Lecture |
+|---|---|---|
+| PR head sha | `5acb3840` | le head de la probe (A) |
+| PR base sha | `cbfddb27` | main (X) |
+| `GITHUB_SHA` | **`b396a976`** | **≠ head, ≠ base — le merge commit** |
+| `GITHUB_REF` | **`refs/pull/45/merge`** | le merge ref |
+| HEAD checkouté | `b396a976` | **= GITHUB_SHA — le checkout EST le merge result** |
+| probe_marker.md | ABSENT | cohérent (X ne contient pas encore le marqueur) |
+
+### Run #2 — synchronize (commit neutre `a521ae09`) — merge ref régénéré
 
 ```text
-Run echo "=== EXP-1 evidence (BACKLOG #12) ==="
 === EXP-1 evidence (BACKLOG #12) ===
-PR head sha : 5acb38407fd66441a27804dbc61e1909cc7d0a76
+PR head sha : a521ae09cba06959aabcc69419ac7f5f7dd4a60e
 PR base sha : cbfddb27fe31ff436e4ecf50e51bbbbc85a76962
-GITHUB_SHA  : b396a97684db681d7c575295470fb4bd31f09da9
+GITHUB_SHA  : 8f32b7c64d1fa394fb5b1a3d1c30ab99a4db6d37
 GITHUB_REF  : refs/pull/45/merge
-HEAD checkouté : b396a97684db681d7c575295470fb4bd31f09da9
-probe_marker.md : ABSENT
+HEAD checkouté : 8f32b7c64d1fa394fb5b1a3d1c30ab99a4db6d37
+probe_marker.md : PRESENT
 ```
+
+### Verdicts
+
+1. **H1 CONFIRMÉ deux fois** — le workflow `pull_request` exécute le **merge result**, pas le head isolé ;
+2. **Le mécanisme de rafraîchissement est démontré** — un événement `synchronize` régénère le
+   merge ref avec la base courante : c'est exactement ce que `strict: true` ferait systématiquement ;
+3. **Nuance importante** : le `base.sha` de l'événement est **stale** (`cbfddb27`) alors que l'arbre
+   testé est frais (marqueur de `95bcea6e` présent) — se fier au `base.sha` de l'event serait un
+   piège ; l'evidence fiable est le `GITHUB_SHA`/checkout et le contenu du fichier.
+
+### Consequence — le problème #12 reformulé
+
+Ce n'est plus « la CI teste-t-elle le head ou le merge result ? » (elle teste le merge result).
+C'est : **« le merge result testé reste-t-il valide jusqu'au moment du merge, alors que
+`main` avance ? »** — avec `strict: false`, la base peut bouger entre le run et le clic merge :
+l'arbre qui atterrit sur `main` est alors une combinaison différente de celle qui a été testée.
+→ fermé par `strict: true` (certification ci-dessus).
+
+## 4. Historique du protocole (figé à la clôture)
+
+> **Note** : sections historiques — hypothèses, scénarios et options tels que formulés
+> pendant la campagne. Les cases `[ ]` reflètent l'état d'avancement du protocole à ce stade,
+> pas des tâches ouvertes. Le résultat final est en sections 1-3.
+
+### État des faits établis (pré-RED)
+
+| Fait | Preuve | Conséquence |
+|---|---|---|
+| Push direct sur `main` impossible | Hook GH006 — « 6 of 6 required status checks are expected » (rejet réel du 22/09, commit docs refusé) | Le chemin « push direct sans CI » est **déjà fermé** — le gap résiduel n'est pas celui-là |
+| Les 6 checks sont requis sur les PRs | `PUT protection` 200 · PR #43 : `blocked` pendant les checks, `clean` après 6/6 sur le SHA contrôlé | Le merge d'une PR exige sa CI verte |
+| `strict: false` | Payload d'application (décision #11) | « Require branches to be up to date » est **off** — le base peut bouger entre le run CI et le merge |
 
 ### EXP-1 (H1) — Probe de dépendance au base, décisif en un re-run
 
 1. Branche `chore/backlog12-probe` créée sur main @ `cbfddb27` :
-   un spec temporaire `spec/docs/probe_marker_spec.rb` asserte l'existence d'un fichier
-   marqueur **qui n'existe pas encore** (`docs/technical/probe_marker.md`)
+   un spec temporaire (`spec/probe/exp1_probe_spec.rb`) échoue volontairement en embarquant
+   l'évidence (`GITHUB_SHA` / `GITHUB_REF` / présence du marqueur)
    → première CI : **rouge dans les deux hypothèses** (inconclusive, attendue) ;
 2. Une micro-PR ajoute le marqueur à `main` (merge) → la base avance ;
-3. **Re-run all** de la CI de la PR probe (clic UI, ou API avec PAT) — GitHub régénère
+3. Un événement **synchronize** (commit neutre sur la probe) — GitHub régénère
    `refs/pull/N/merge` avec la base actuelle :
    - **GREEN** → le checkout teste la combinaison base+head (H1 = merge ref testé) ;
    - toujours **RED** → le checkout teste le head seul (gap plus large).
@@ -178,7 +147,7 @@ sans qu'aucun run n'ait jamais exercé leur combinaison).
 **Attention** : ce RED ne démontre un *risque* que si les deux changements sont
 combinables-dangereux — pour des fichiers docs distincts, le merge de B est trivial.
 Le RED démontre **la fenêtre**, pas un bug réel : la valeur est de quantifier ce que
-`merge_group` fermerait.
+`merge_group` fermerait. **Non exécutée** — arbitrage CTO (voir section 2).
 
 ### H3 — La protection a déjà fermé le chemin push-direct
 
@@ -186,7 +155,7 @@ Le RED démontre **la fenêtre**, pas un bug réel : la valeur est de quantifier
 n'a plus besoin de couvrir les push directs — `main` ne bouge **que** via des PRs mergées,
 dont l'arbre combiné est la seule surface restante non exercée au moment du merge.
 
-## Options d'arbitrage (à trancher APRÈS le RED — aucune recommandation prématurée)
+### Options d'arbitrage initiales (formulées avant le RED)
 
 | Option | Ce qu'elle ferme | Coût | Ce qu'elle ne ferme pas |
 |---|---|---|---|
@@ -195,23 +164,15 @@ dont l'arbre combiné est la seule surface restante non exercée au moment du me
 | `strict: true` | H2 côté PR (base à jour avant merge) | re-runs fréquents à chaque merge concurrent | reste lié au comportement de re-run |
 | Combinaison merge_group + smoke | fenêtre PR + état publié | coût CI maximal | — |
 
-## Critères de décision (règle maison)
+### Critères de décision (règle maison, formulés avant le RED)
 
 - Le RED (H1+H2) doit **quantifier la fenêtre** : quelle proportion de merges produit un arbre non testé ?
 - Correction minimale : fermer la fenêtre démontrée, pas plus.
 - Pas de double mécanisme si un seul suffit.
-
-## Statut
-
-- [x] H1 — **résolu** : le workflow `pull_request` exécute le merge ref (2 preuves : run #1 `b396a976`, run #2 `8f32b7c6`)
-- [x] EXP-2 — **non exécutée** (arbitrage CTO : valeur marginale nulle après EXP-1)
-- [x] Mécanisme retenu : **`strict: true`** (arbitrage CTO — merge_group différé, smoke distinct)
-- [x] Application de la correction (`strict` false → true sur la protection de `main`, via UI — Save explicite)
-- [x] GREEN comportemental — PR #48 : out-of-date → **bloquée malgré 6/6 verts** → preuve « This branch is out-of-date with the base branch »
-- [x] Clôture #12 (documentation + BACKLOG)
 
 ## Références
 
 - `ci.yml` L316 (E2E `if: pull_request`) · L3-7 (triggers push main + pull_request)
 - Tracker #11 : rejet GH006 (push direct fermé) · tracker §Cas limite
 - BACKLOG #12 · analyse E2E CTO 20/09
+- PR #43 (protection) · PR #45 (probe, close) · PR #46 (marqueur) · PR #47 (C1) · PR #48 (contrôle strict, close) · PR #49 (cette clôture)
