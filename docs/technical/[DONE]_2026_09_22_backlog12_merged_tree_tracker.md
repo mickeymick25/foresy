@@ -91,7 +91,37 @@ l'arbre qui atterrit sur `main` est alors une combinaison différente de celle q
      est la preuve comportementale de #12 ;
 3. Seulement après cette preuve : #12 GREEN.
 
-### EXP-1 — phase 2 (run #2 après synchronisation) — CERTIFIÉ (voir ci-dessus)
+## Certification GREEN #12 (22/09) — preuve comportementale
+
+La protection modifiée (`strict: true`) a été **sauvegardée explicitement** puis testée sur
+la PR de contrôle #48 :
+
+| Élément | État |
+|---|---|
+| Require status checks to pass before merging | ✅ ON — les 6 checks exacts (capture UI) |
+| Require branches to be up to date before merging | ✅ ON — **sauvegardé explicitement** (Save changes) |
+| PR #48 | 6/6 checks `completed/success` sur le head `d714c9f3` |
+| `main` | avancé à `4f61a3a4` — **la PR est derrière la base**, non resynchronisée |
+| Comportement GitHub | **« This branch is out-of-date with the base branch »** — merge bloqué, demande de fusion des dernières modifications de `main` |
+
+**La fenêtre de staleness démontrée en EXP-1 est fermée** : des checks verts ne suffisent plus —
+GitHub exige une branche à jour et réexécute les checks sur le merge ref actualisé avant le merge.
+
+Le `mergeable_state: clean` observé transitoirement (3 sondages API) était un état non recalculé
+avant la prise en compte effective de la règle — **pas** une preuve que le strict requirement
+était inactif. L'evidence decisive est le message UI de blocage de merge, indépendant du cache
+`mergeable_state`.
+
+### La pyramide de confiance CI après #12
+
+| Couche | Mécanisme | Preuve |
+|---|---|---|
+| Push direct sur `main` | Bloqué (GH006 — checks requis absents) | rejet réel du 22/09 |
+| PR — checks requis | 6/6 exacts, `enforce_admins: true` | PR #43 : `blocked` → `clean` |
+| PR — branche à jour | `strict: true` | PR #48 : out-of-date → bloquée malgré checks verts |
+| Merge result testé | `refs/pull/N/merge` | EXP-1 : 2 preuves (`b396a976`, `8f32b7c6`) |
+
+### Journal de certification
 
 - [x] Merge du marqueur (`chore/backlog12-marker`) → `main = X + B` (`95bcea6e`)
 - [x] Commit neutre `a521ae09` sur la probe → événement **synchronize** → merge ref régénéré
@@ -99,7 +129,7 @@ l'arbre qui atterrit sur `main` est alors une combinaison différente de celle q
 - [x] Verdict : le mécanisme de rafraîchissement est démontré — le reste de #12 est la
       **politique** (régénérer systématiquement = `strict: true`, sérialiser = `merge_group`,
       ou observer = smoke post-merge)
-- [ ] Arbitrage CTO (après lecture factuelle du run #2)
+- [ ] Arbitrage CTO (après lecture factuelle du run #2) — ✅ fait : arbitrage enregistré ci-dessus
 
 ### Run #1 — evidence brute
 
@@ -176,9 +206,9 @@ dont l'arbre combiné est la seule surface restante non exercée au moment du me
 - [x] H1 — **résolu** : le workflow `pull_request` exécute le merge ref (2 preuves : run #1 `b396a976`, run #2 `8f32b7c6`)
 - [x] EXP-2 — **non exécutée** (arbitrage CTO : valeur marginale nulle après EXP-1)
 - [x] Mécanisme retenu : **`strict: true`** (arbitrage CTO — merge_group différé, smoke distinct)
-- [ ] Application de la correction (`strict` false → true sur la protection de `main`)
-- [ ] GREEN comportemental (PR à jour mergeable · PR out-of-date bloquée → update → re-checks → clean)
-- [ ] Clôture #12 (documentation + BACKLOG)
+- [x] Application de la correction (`strict` false → true sur la protection de `main`, via UI — Save explicite)
+- [x] GREEN comportemental — PR #48 : out-of-date → **bloquée malgré 6/6 verts** → preuve « This branch is out-of-date with the base branch »
+- [x] Clôture #12 (documentation + BACKLOG)
 
 ## Références
 
