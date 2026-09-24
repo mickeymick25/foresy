@@ -3,50 +3,64 @@
 
 
 **For AI Context Understanding - Optimized for Fast Project Comprehension**  
-**Last Updated:** 29 janvier 2026 - Validation DDD/RDD CRA (491 tests GREEN)
+**Last Updated:** 24 septembre 2026 — Gouvernance CI verrouillée (#11/#12) · contrat système démontré (P7) · invariant unicité protégé (#14) · **1155 tests GREEN**
+
+> ⚠️ **Note de lecture (24/09/2026)** : les sections « État courant » ci-dessous reflètent l'état
+> de septembre 2026. Les sections `### Jan/Déc 2025-2026` de la timeline ci-après sont de
+> l'**historique daté** — ne pas les confondre avec l'état courant. Source de vérité des
+> métriques : README.md · docs/BACKLOG.md · docs/technical/testing/
 
 ---
 
 ## 🎯 PROJECT CURRENT STATE
 
 ### Basic Info
-- **Project Type**: Ruby on Rails 8.1.1 API-only application
-- **Primary Function**: User management, Mission management with JWT + OAuth (Google/GitHub)
+- **Project Type**: Ruby on Rails 8.1.3.1 API-only application
+- **Primary Function**: User management, Mission management, CRA management, Company management (Indépendant) — JWT + OAuth (Google/GitHub)
 - **Ruby Version**: 3.4.8
 - **Environment**: Docker Compose (non-optional, mandatory)
-- **Status**: ✅ FC-07 CRA **100% TERMINÉ** — TDD PLATINUM (7 Jan 2026)
-- **Current Feature**: FC-07 CRA — **COMPLET** — 449 tests GREEN, taggé `fc-07-complete`
-- **Previous Feature**: FC-06 Missions (31 Dec 2025) - **PR #12 MERGED** (1 Jan 2026) ✅
+- **Status**: ✅ **FC-06 Missions · FC-07 CRA · FC-08 Companies TERMINÉS** — campagne P6/P7 (sécurisation du socle + gouvernance CI) CLOSED
+- **Current Feature**: sélection du prochain chantier par le CTO (FC-09 Notifications & alertes prévu au ROADMAP) — décision sur valeur produit/risque, jamais sur un pourcentage
+- **Previous**: Campagne P6/P7 (sept 2026) — 3 bugs production découverts et corrigés par RED démontré (GET /cras 500 · ISO3166 · mission_id perdu · invariant unicité inerte)
+- **Gouvernance CI (sept 2026)**: push direct sur main **bloqué** (GH006 ×2) · 6 checks requis (`enforce_admins: true`) · branche à jour obligatoire (`strict: true`) · merge result testé (EXP-1, 2 preuves)
 
-### Quality Metrics (Jan 2026) — Validé le 12 février 2026
-**🏆 Migration DDD/RDD Architecture Complétée (27-28 Janvier 2026)**
-- **RSpec Tests**: ✅ **491 examples, 0 failures** (validé 12 Fév 2026)
-- **Rswag Swagger**: ✅ **134 examples, 0 failures** — `swagger.yaml` généré
-- **RuboCop**: ✅ **177 files inspected, no offenses detected**
-- **Brakeman**: ✅ **0 Security Warnings** (3 ignored)
-- **Missions Tests (FC-06)**: ✅ 30/30 passing
-- **CRA Tests (FC-07)**: ✅ **TDD PLATINUM COMPLETE**
-  - Phase 1: 6/6 lifecycle ✅
-  - Phase 2: 3/3 unicité ✅
-  - Phase 3A: 9/9 legacy alignment ✅
-  - Phase 3B: 17/17 (pagination + unlink) ✅
-  - Phase 3C: 24/24 recalcul totaux ✅
-  - **Mini-FC-01**: 16/16 filtrage (year/month/status) ✅
-  - **Mini-FC-02**: 26/26 export CSV (17 service + 9 request) ✅
-- **OAuth Tests**: ✅ 15/15 acceptance (Feature Contract compliant)
-- **Zeitwerk**: ✅ All files loading correctly
+### Quality Metrics (Sept 2026) — mesuré 22/09, `foresy_test`
+- **RSpec Tests**: ✅ **1155 examples, 0 failures** — dont la **régression permanente de l'invariant unicité créateur+mois+année** (#14)
+- **Rswag Swagger**: ✅ **402 examples** — audit 35/35 routes, `swagger.yaml` généré
+- **RuboCop**: ✅ **245 files inspected, 0 offenses**
+- **Brakeman**: ✅ **0 Security Warnings** (mode strict)
+- **Couverture (SimpleCov)**: 📊 **84,40 % lignes (3127/3705) / 57,91 % branches (908/1568)** — verrou 72,5 armé dans le processus réel
+- **Gouvernance CI (P6/P7)**: ✅ push direct bloqué (GH006 ×2) · 6 checks requis (`enforce_admins: true`) · branche à jour (`strict: true`) · merge result testé (EXP-1)
+- **CI/CD**: ✅ 6/6 jobs verts — E2E bloquant dans la Quality Gate
+- **Campagnes**: ✅ P6 (Waves 1-4 + P6.6 CLOSED) · P7 (System Specs API — contrat système, 4 specs) · #11/#12/#14 (gouvernance + invariant, 3 défauts réels corrigés)
+- **Déttes tracées** : BACKLOG #13 (RSwag `name`) · #14 (livré) · Wave 4.5 (~280 lignes, distinct) · #7 (alerting) · #8 (link-rot)
+
+### Historical Metrics (Jan 2026) — état figé, cf. timeline ci-dessous
+**Migration DDD/RDD Architecture Complétée (27-28 Janvier 2026)**
+- **RSpec Tests**: 491 examples, 0 failures (validé 12 Fév 2026)
+- **Rswag Swagger**: 134 examples, 0 failures — `swagger.yaml` généré
+- **RuboCop**: 177 files inspected, no offenses detected
+- **Brakeman**: 0 Security Warnings (3 ignored)
+- **Missions Tests (FC-06)**: 30/30 passing
+- **CRA Tests (FC-07)**: TDD PLATINUM COMPLETE
+  - Phase 1: 6/6 lifecycle · Phase 2: 3/3 unicité · Phase 3A: 9/9 legacy alignment ·
+    Phase 3B: 17/17 (pagination + unlink) · Phase 3C: 24/24 recalcul totaux
+  - **Mini-FC-01**: 16/16 filtrage (year/month/status)
+  - **Mini-FC-02**: 26/26 export CSV (17 service + 9 request)
+- **OAuth Tests**: 15/15 acceptance (Feature Contract compliant)
+- **Zeitwerk**: All files loading correctly
 - **CI/CD**: GitHub Actions CI + Render CD fully functional
 - **Production**: Deployed on Render (https://foresy-api.onrender.com)
-- **Rails Upgrade**: ✅ Successfully migrated from 7.1.5.1 to 8.1.1 (Dec 26, 2025)
-- **FC-06 Missions**: ✅ Fully implemented (Dec 31, 2025)
-- **FC-07 CRA**: ✅ **100% TERMINÉ** — 449 tests GREEN, taggé `fc-07-complete` (7 Jan 2026)
-- **🏆 Migration DDD/RDD**: ✅ Architecture pure, domaine CRA certifié Platinum DDD (29 Jan 2026)
-  - ✅ **Validation finale 29/01/2026**: 498 tests verts, 0 failures
-  - 🗑️ **Legacy API nettoyé**: 2 tests API obsolètes supprimés
-  - ✅ **Template validé**: Pattern 3-barrières pour FC-08
+- **Rails Upgrade**: Successfully migrated from 7.1.5.1 to 8.1.1 (Dec 26, 2025)
+- **FC-06 Missions**: Fully implemented (Dec 31, 2025)
+- **FC-07 CRA**: 100% TERMINÉ — 449 tests GREEN, taggé `fc-07-complete` (7 Jan 2026)
+- **🏆 Migration DDD/RDD**: Architecture pure, domaine CRA certifié Platinum DDD (29 Jan 2026)
+  - **Validation finale 29/01/2026**: 498 tests verts, 0 failures
+  - **Legacy API nettoyé**: 2 tests API obsolètes supprimés
+  - **Template validé**: Pattern 3-barrières pour FC-08
 
 ### Technical Stack
-- **Framework**: Rails 8.1.1 (API-only)
+- **Framework**: Rails 8.1.3.1 (API-only)
 - **Language**: Ruby 3.4.8
 - **Database**: PostgreSQL + Redis (cache/sessions)
 - **Authentication**: JWT stateless + OAuth 2.0
@@ -58,6 +72,13 @@
 ---
 
 ## 📅 RECENT CHANGES TIMELINE
+
+### Sept 21-22, 2026 - 🔒 **GOUVERNANCE CI + INVARIANT UNICITÉ** (#11/#12/#14) — 3 défauts réels corrigés par RED démontré
+- **Branch protection** (#11, PR #43): 6 checks requis + `enforce_admins: true` — `blocked → clean` certifié sur PR de contrôle
+- **Merge-tree validation** (#12, PR #46-#48): RED EXP-1 — la CI `pull_request` exécute le **merge ref** (2 preuves : `b396a976` puis `8f32b7c6` après synchronize) → `strict: true` (PR #48 : out-of-date **bloquée malgré 6/6 verts**)
+- **Invariant unicité créateur+mois+année** (#14, PR #51): RED — second `POST /cras` identique → **201, doublon persisté** (garde modèle inerte : pivot post-insert) → garde service-level `check_duplicate_entry` (pattern CraEntryServices) → **409 + un seul CRA persisté**
+- **Nettoyage** : 7 méthodes OAuth mortes supprimées (#13 de P7) · PAT admin retiré du disque · 15 branches distantes mergées supprimées
+- **PRs**: #43-#52 · Trackers `[DONE]_` : #11 · #12 · #14
 
 ### Jan 29, 2026 - 🏆 **VALIDATION FINALE DDD CRA** (498 tests GREEN) — Platinum Certified
 - **Purpose**: Final validation of DDD/RDD migration and CRA domain certification
