@@ -17,7 +17,7 @@ sources canoniques ci-dessous. L'ancien backlog (2025-12-26) est archivé :
 | Contrat système P7 (system specs, CLOSED) | `docs/technical/testing/[DONE]_2026_09_22_p7_tracker.md` |
 | Historique des états | hub RAG local (`foresy__knowledge` / `foresy__memories`) — index, pas backlog |
 
-## Chantiers ouverts (état au 2026-09-22)
+## Chantiers ouverts (état au 2026-09-24)
 
 | # | Chantier | Priorité | Suivi / source |
 |---|---|---|---|
@@ -31,9 +31,11 @@ sources canoniques ci-dessous. L'ancien backlog (2025-12-26) est archivé :
 | 8 | Chore **link-rot** — réparation des ~114 liens pré-existants (réorganisation 2026-01) | 🟢 recommandé | tracker hygiène §5 (E3-bis) |
 | 9 | Performance — < 100 ms sur les endpoints authentifiés | 🟢 | BRIEFING Future Improvements |
 | 10 | Monitoring avancé Prometheus/Grafana ; Datadog Synthetics | 🟢 | BRIEFING Future Improvements · archive BACKLOG |
-| 13 | **OAuth callback — divergence contrat ↔ schéma RSwag** : `format_success_response` inclut `name` dans le payload user (découvert par W2-D3, caractérisé sans correction produit) — le schéma RSwag `oauth_spec.rb` ne le déclare pas. **Arbitrage ultérieur** : soit `name` fait partie du contrat → RSwag corrigé, soit la réponse production est modifiée — ne pas laisser les deux contrats diverger durablement | 🟠 correction de contrat | revue CTO 20/09 (PR #39) · tracker Wave 2 (3) |
-| 13 | **OAuth callback — divergence contrat ↔ schéma RSwag** : `format_success_response` inclut `name` dans le payload user (découvert par W2-D3, caractérisé sans correction produit) — le schéma RSwag `oauth_spec.rb` ne le déclare pas. **Arbitrage ultérieur** : soit `name` fait partie du contrat → RSwag corrigé, soit la réponse production est modifiée — ne pas laisser les deux contrats diverger durablement | 🟠 correction de contrat | revue CTO 20/09 (PR #39) · tracker Wave 2 (3) |
+| 13 | **OAuth callback — divergence contrat ↔ schéma RSwag** : `format_success_response` inclut `name` dans le payload user (découvert par W2-D3, caractérisé sans correction produit) — le schéma RSwag `oauth_spec.rb` ne le déclare pas. **Arbitrage ultérieur** : soit `name` fait partie du contrat → RSwag corrigé, soit la réponse production est modifiée — ne pas laisser les deux contrats diverger durablement | 🟠 correction de contrat | revue CTO 20/09 (PR #39) · tracker Wave 2 (3) · audit 2026-09-24 §3 (S-2) |
 | 15 | **Wave 4.5** — ~280 lignes contrôleur/concerns (~30-40 specs estimées) — dette de couverture quantifiée (P6.6 Assessment §5), distincte, non bloquante | 🟢 distinct | assessment P6.6 §5-§7 · arbitrage CTO 21/09 |
+| 16 | **Postman FC-08** (audit PM-1/PM-2/PM-3) — 10 endpoints manquants (Companies ×5, UserCompanies ×5), description obsolète (« 28 endpoints » vs 36 réels), variables `company_id`/`user_company_id` absentes — collection figée au 19/08, avant FC-08 | 🔴 | audit `[2026_09_24_swagger_postman_api_exposure_audit.md](technical/audits/2026_09_24_swagger_postman_api_exposure_audit.md)` §4bis/§6 (P1) |
+| 17 | **Swagger export CSV** (audit S-1) — `GET /api/v1/cras/{id}/export` public mais absent de `swagger.yaml`, exclu de l'audit CI via `EXCLUDED_ENDPOINTS` — documenter le path (200 `text/csv` + codes d'erreur FC-07) et retirer l'exclusion, **ou arbitrage CTO** de conserver l'exclusion | 🟠 | audit `technical/audits/2026_09_24_swagger_postman_api_exposure_audit.md` §3/§6 (P2) |
+| 18 | **Anti-drift Postman** (audit PM-4) + **hygiène contrat Swagger** (audit S-3 : opération négative `GET /auth/login` documentée) — mini-audit collection ↔ routes + épurage contrat ; optionnels, arbitrage CTO sur le périmètre | 🟢 | audit `technical/audits/2026_09_24_swagger_postman_api_exposure_audit.md` §6 (P4/P5) |
 
 ## Chantiers livrés (référence)
 
