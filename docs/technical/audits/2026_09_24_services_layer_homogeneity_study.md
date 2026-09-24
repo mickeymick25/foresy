@@ -198,6 +198,31 @@ Asymétrie structurelle : le code mort est sur-testé, les chemins critiques (Up
 tout changement de comportement ; pas de refactoring opportuniste ; S-2 et C-5 exigent un arbitrage
 CTO (produit/ops), le reste est de l'exécution guidée par les specs existantes.
 
+### Décisions CTO du 24/09 (message relayé par le co-CTO — arbitrage acté)
+
+1. **Pas de normalisation globale des conventions de retour infra** — la règle `.call` + ApplicationResult
+  concerne le pattern **métier** de référence ; les 14 services infra ne sont pas des Application Services
+  métier. **Aucune PR « standardisation services infra vers ApplicationResult »** (sur-normalisation rejetée).
+2. **Transformation en 2 investigations ciblées** (pas de campagne de refactoring) :
+  - **Investigation A — 🔴 Audit FC-05/Redis (priorité 1)** → BACKLOG **#20**. Objectif : caractériser
+    la sélection du backend en production et la conformité du comportement distribué au contrat FC-05.
+    Livrable : configuration production / sélection backend / multi-instance / Redis indisponible /
+    tests existants / divergence doc↔runtime. **Correction seulement à l'issue de la caractérisation.**
+  - **Investigation B — 🟠 OAuth / code mort** → BACKLOG **#21** : identifier le chemin OAuth réellement
+    utilisé en prod (concern vs services), caractériser `OAuthConcern` (transaction/anti-race), décider
+    de son sort, **ensuite seulement** ApmService (Phase 1 caractérisation fc08::010 + historique
+    décision APM → Phase 2 suppression éventuelle en mini-PR). ApmService jamais devant Redis.
+3. **ApmService** : pas de suppression immédiate — Phase 1 caractérisation avant toute suppression.
+4. **AuthenticationService** : évaluer la traversée effective des chemins critiques par les request
+  specs avant de créer des specs unitaires (preuve du comportement, pas du pourcentage — règle P6).
+5. **JWT HS256** : sujet de hardening séparé → BACKLOG **#22** (non prioritaire).
+6. **Duplications mineures** : ne pas toucher maintenant.
+7. **Principe maintenu** : pas de nouvelle campagne générale de hardening — détour technique ciblé
+  justifié uniquement par un risque de production concret.
+
+**Note de suivi** : les items métier S-1 (bugs transactionnels P0), S-2 (règle FC-07), S-3/S-4/S-5
+restent ouverts et hors de ce triage infra — à remettre au CTO avec la vue complète du BACKLOG.
+
 ---
 
 ## 10. Références
