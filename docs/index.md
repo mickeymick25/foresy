@@ -1,6 +1,11 @@
 # 📚 Documentation Centrale - Projet Foresy
 Historique / état au 2025-12-31
 
+> ⚠️ **Pour l'état courant (septembre 2026)** : voir `README.md` (état + métriques : **1155 / 0 ·
+> 84,40 % lignes / 57,91 % branches · gouvernance CI verrouillée**) et `docs/BACKLOG.md`
+> (chantiers ouverts/livrés). Ce document est un **index historique daté au 2025-12-31** —
+> sections FC-06/FC-07 et métriques ci-dessous = archive.
+
 
 **Version :** 3.1  
 **Dernière mise à jour :** 31 décembre 2025  

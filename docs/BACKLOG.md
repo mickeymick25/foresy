@@ -43,12 +43,12 @@ sources canoniques ci-dessous. L'ancien backlog (2025-12-26) est archivé :
 | — | **Validation de l'arbre mergé** (#12) — RED EXP-1 (2 preuves : la CI `pull_request` exécute le merge ref `b396a976` puis `8f32b7c6` après synchronize) · correction `strict: true` (UI) · GREEN comportemental (PR #48 : out-of-date bloquée malgré 6/6 verts) | 22/09/2026 | `docs/technical/[DONE]_2026_09_22_backlog12_merged_tree_tracker.md` |
 | — | **`Cra#validate_uniqueness` inerte à la création** (#14) — RED (second POST identique → 201, doublon persisté) · correction option A (garde service-level `check_duplicate_entry` dans `CraServices::Create`, pattern CraEntryServices) · GREEN (409 + un seul CRA persisté — régression permanente en place) | 22/09/2026 | `docs/technical/[DONE]_2026_09_22_backlog14_validate_uniqueness_tracker.md` |
 
-## Métriques de qualité (état au 2026-09-22 — post PR #42, P7 mergée)
+## Métriques de qualité (état au 2026-09-22 — post PR #52, #11/#12/#14 gouvernance + invariant clos)
 
-- **Suite RSpec : 1154 exemples, 0 échec** (mesuré 22/09, `foresy_test`)
-- **SimpleCov : 84,37 % lignes (3121/3699) · 57,74 % branches (902/1562)** — verrou CI 72,5 armé
-- **RuboCop 0 offense · Brakeman 0 warning** (CI 6/6 sur PR #42)
-- **Contrat système** : 4 system specs (P7 CLOSED — bug de composition mission_id corrigé, 3 propriétés caractérisées)
+- **Suite RSpec : 1155 exemples, 0 échec** (mesuré 22/09, `foresy_test`)
+- **SimpleCov : 84,40 % lignes (3127/3705) · 57,91 % branches (908/1568)** — verrou CI 72,5 armé
+- **RuboCop 0 offense · Brakeman 0 warning** (CI 6/6 sur les PRs #43-#52)
+- **Contrat système** : 4 system specs (P7 CLOSED) · **gouvernance CI** : push direct bloqué, 6 checks + branche à jour (`enforce_admins: true` + `strict: true`) · **invariant unicité créateur+mois+année protégé à la création** (#14, garde service-level)
 
 ## Règle anti-drift
 
