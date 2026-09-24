@@ -6,7 +6,7 @@
 
 ---
 
-## Statut : 🔴 RED DÉMONTRÉ (22/09/2026) — la violation est établie
+## Statut : ✅ CORRIGÉ / GREEN — 22/09/2026 (arbitrage CTO : option A · garde service-level)
 
 ---
 
@@ -74,9 +74,56 @@ solution de fond mais touche l'architecture DDD (pivot post-insert). Le CTO tran
 
 - [x] RED — démontré empiriquement (HTTP 201 sur le doublon — spec `uniqueness_creation_invariant_spec.rb`)
 - [x] Cause établie : garde modèle inerte (pivot post-insert) + pas de garde service + pas de contrainte DB
-- [ ] **Arbitrage CTO** : correction A (garde service-level) vs B (contrainte DB) vs C (recalage)
-- [ ] Correction minimale → GREEN (le spec RED passe)
-- [ ] Certification (suite complète + gates) + documentation
+- [x] **Arbitrage CTO : GO option A** — garde service-level (pattern `CraEntryServices::Create#check_duplicate_entry` ; `current_user` connu du service, pas de dépendance pivot)
+- [x] **Correction appliquée** : `CraServices::Create#call` → `params → permissions → check_duplicate_entry → save_cra` · `check_duplicate_entry` : scope via `current_user` + `month`/`year` + `deleted_at: nil` → `ApplicationResult.conflict(:cra_already_exists)` → 409 (le mapping `render_result_error` existant) · **garde modèle inchangé** (actif sur re-validation/update)
+- [x] **GREEN** : le spec invariant passe (second POST refusé · un seul CRA persisté) — suite complète 1155/0
+- [x] **Certification** : SimpleCov 84,40 % lignes (3127/3705) / 57,91 % branches (908/1568) · RuboCop 0 (246 fichiers) · Brakeman 0 · verrou 72,5 inchangé
+- [x] Clôture #12-style : tracker [DONE]_ + BACKLOG (à la PR de merge)
+
+## 5bis. La correction (option A) — détail
+
+**`app/services/cra_services/create.rb` — insertion dans le flow :**
+
+```ruby
+# Permission check
+permission_check = check_user_permissions
+return permission_check if permission_check.failure?
+
+# Duplicate check (BACKLOG #14 — l'invariant créateur+mois+année n'est pas protégé
+# par le garde modèle à la création : le pivot user_cras n'existe pas encore à ce stade)
+duplicate_check = check_duplicate_entry
+return duplicate_check if duplicate_check&.failure?
+
+# Build CRA
+build_result = build_cra
+```
+
+**La méthode privée (pattern `CraEntryServices::Create#check_duplicate_entry`) :**
+
+```ruby
+def check_duplicate_entry
+  existing = Cra.joins(:user_cras)
+                .where(user_cras: { user_id: current_user.id, role: 'creator' })
+                .where(month: cra_params[:month].to_i, year: cra_params[:year].to_i,
+                       deleted_at: nil)
+                .exists?
+  return nil unless existing
+
+  ApplicationResult.conflict(
+    error: :cra_already_exists,
+    message: 'A CRA already exists for this user, month, and year'
+  )
+end
+```
+
+**Notes :**
+- le garde modèle `Cra#validate_uniqueness` reste **inchangé** (arbitrage CTO) — il reste actif
+  sur la re-validation/update ; le garde service couvre désormais la création ;
+- le second POST retourne **409 CONFLICT** (`cra_already_exists`) — mapping existant
+  `render_result_error` ;
+- la spec RED devient la **régression permanente** de l'invariant (elle passe désormais) ;
+- les specs à base de factories ne passent pas par le service — zéro impact observé
+  (suite complète 1155/0).
 
 ## Références
 

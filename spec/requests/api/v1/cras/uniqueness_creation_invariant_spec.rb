@@ -46,7 +46,7 @@ RSpec.describe 'BACKLOG #14 — invariant unicité créateur+mois+année à la c
        .where(month: Date.current.month, year: Date.current.year, deleted_at: nil)
   end
 
-  it "refuse un second CRA identique (créateur + mois + année) — invariant attendu" do
+  it 'refuse un second CRA identique (créateur + mois + année) — invariant attendu' do
     post_cra
     expect(response).to have_http_status(:created)
     # le pivot créateur est créé post-insert (relation-driven)
