@@ -52,6 +52,11 @@ class CraServices
       permission_check = check_user_permissions
       return permission_check if permission_check.failure?
 
+      # Duplicate check (BACKLOG #14 — l'invariant créateur+mois+année n'est pas protégé
+      # par le garde modèle à la création : le pivot user_cras n'existe pas encore à ce stade)
+      duplicate_check = check_duplicate_entry
+      return duplicate_check if duplicate_check&.failure?
+
       # Build CRA
       build_result = build_cra
       return build_result if build_result.failure?
@@ -185,6 +190,25 @@ class CraServices
       return false unless current_user.present?
 
       current_user.user_companies.joins(:company).where(role: 'independent').exists?
+    end
+
+    # BACKLOG #14 — invariant : un seul CRA par (créateur, mois, année) à la création.
+    # Le garde modèle `Cra#validate_uniqueness` est inerte à la création (le pivot
+    # user_cras n'existe pas encore, cf. tracker #14) — le check s'appuie sur
+    # current_user (connu du service, pas de dépendance pivot).
+    # Pattern : CraEntryServices::Create#check_duplicate_entry.
+    def check_duplicate_entry
+      existing = Cra.joins(:user_cras)
+                    .where(user_cras: { user_id: current_user.id, role: 'creator' })
+                    .where(month: cra_params[:month].to_i, year: cra_params[:year].to_i,
+                           deleted_at: nil)
+                    .exists?
+      return nil unless existing
+
+      ApplicationResult.conflict(
+        error: :cra_already_exists,
+        message: 'A CRA already exists for this user, month, and year'
+      )
     end
 
     # === Build ===
