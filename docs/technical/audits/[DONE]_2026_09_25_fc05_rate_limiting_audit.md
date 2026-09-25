@@ -2,8 +2,9 @@
 
 **Date :** 25 septembre 2026
 **Auteur :** Zed Agent (Investigation A — BACKLOG **#20**, GO CTO 24/09)
-**Statut :** ✅ Investigation terminée — **causes démontrées, aucune correction exécutée**
-(la chaîne exigée : observation → cause démontrée → risque → correction *éventuelle* à arbitrer)
+**Statut :** ✅ Investigation **CLOSED** (décision CTO 25/09) — causes démontrées, corrections à
+dériver des RED contractuels (§12). La chaîne exigée est complète : observation → cause
+démontrée → risque → corrections éventuelles **tranchées** (§10bis).
 **Périmètre :** `app/services/rate_limit_service.rb`, `app/services/rate_limit/*`,
 `app/controllers/concerns/common/rate_limitable.rb`, `app/controllers/concerns/api/v1/{cras,cra_entries}/rate_limitable.rb`,
 contrôleurs, `render.yaml`, `docker-compose.yml`, `ci.yml`, specs rate-limiting.
@@ -167,7 +168,26 @@ documentent l'intention, pas l'implémentation.
    - 🟠 connexion Redis ouverte par requête pour rien (latence/ressources) ;
    - 🟢 dead code : `rate_limited_endpoint?`, `extract_endpoint`, `check_cra_rate_limit!`, `check_cra_entry_rate_limit!`, `check_entry_creation_rate_limit!`, `check_entry_bulk_operation_rate_limit!` (call-sites : aucun).
 
-## 10. Corrections **éventuelles** — à arbitrer (GO CTO requis)
+## 10bis. Décisions CTO (25/09 — post-lecture de l'audit, arbitrage acté)
+
+| Décision | État |
+|---|---|
+| **#20 Investigation** | **CLOSED — causes démontrées** (C-1/C-2/C-3, runtime prouvé) |
+| **R-0 comportement volontaire** | **NO GO** — ne pas documenter l'actuel comme volontaire (contradiction avec REDIS_URL prévue en prod, la doc, `RedisBackend` existant, les limites annoncées) |
+| **R-4 convergence des deux systèmes** | **GO comme architecture cible** (1 mécanisme, 1 contrat, 1 chaîne de test) — implémentation **NO GO immédiat** : d'abord contrat cible, puis RED |
+| **RED contractuels FC-05** | **GO** — séquence : RED 1 sélection backend (REDIS_URL présente → RedisBackend ; Redis indisponible → comportement contractuel **explicitement défini**) · RED 2 compteur (limite 1 → req 1 autorisée, req 2 refusée) · RED 3 missions (limite métier **à arbitrer avant écriture** — ne pas inventer 30/60s) · RED 4 CRA/entries (opération/clé/fenêtre/limite/sémantique à définir) puis tests |
+| **Fail-closed** | **RED spécifique requis** — décision de contrat de sécurité par classe : `CannotConnectError` → fail-closed ? `TimeoutError` → fail-closed ? erreur interne inattendue → **jamais** transformée silencieusement en 429 |
+| **R-1/R-2/R-3** | **À dériver des RED**, pas à appliquer d'avance (pas de correction par reconstruction de l'intention) |
+| **Vérifications Render** | **GO — requises avant certification** : REDIS_URL réellement injectée + nombre d'instances web |
+| **#16 Postman** | Préparation possible, exécution secondaire — ne doit pas absorber la capacité avant le défaut de sécurité démontré traité |
+| **#19 métier** | **Prochain sujet à qualifier après FC-05** — reachabilité → RED → arbitrage (ni « P0 » par assertion, ni « pas de bug » par défaut) |
+| **FC-09** | **Attendre** — défaut de production de sécurité démontré à traiter et régresser avant nouveau Feature Contract |
+
+> **Principe retenu** : « suffisamment de preuves pour corriger, pas suffisamment de spécification
+> pour coder » — TDD first + DDD/RDD prend le relais de l'investigation (contrat → invariant →
+> RED → implémentation minimale → GREEN → régression permanente).
+
+### Corrections **éventuelles** — à arbitrer (arbitrage acté : voir §10bis)
 
 | Option | Portée | Conséquences |
 |---|---|---|
