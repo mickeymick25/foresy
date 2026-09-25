@@ -109,6 +109,57 @@ Zeitwerk: All files loading correctly
 - ✅ Domain Services vs API Adapters séparés
 - ✅ ApplicationResult pattern normalisé
 
+### 🔁 RÈGLE 5 : BRANCH LIFECYCLE CLOSURE (décision CTO du 24/09/2026)
+
+#### Principe
+> **Une branche ne survit à son objectif que si une justification active et traçable existe.**
+Dès que son objectif est terminé et que sa valeur de restauration est déjà portée par Git/PR/tracker,
+elle est supprimée.
+
+Cette règle est **orthogonale au TDD/RDD** — elle appartient à la boucle de gouvernance
+(chantier → branche → PR → CI → merge → preuve → documentation → fermeture → suppression branche),
+distincte de la boucle de développement (besoin métier → invariant → RED → implémentation → GREEN).
+Les deux boucles doivent être cohérentes, mais pas confondues.
+
+#### Arbre de décision (à chaque clôture de chantier)
+```
+BRANCHE
+   │
+   ├── travail actif ? ─────────────────────────► CONSERVER
+   ├── PR ouverte ? ───────────────────────────► CONSERVER
+   ├── preuve / expérimentation encore nécessaire ? ──► CONSERVER
+   └── objectif terminé + preuve intégrée + aucune dépendance ──► SUPPRIMER
+```
+
+#### Invariant de clôture (CLOSURE CHECK — convergence des artefacts, pas d'ordre rigide)
+```
+CLOSURE CHECK
+□ PR merged / closed
+□ branche encore nécessaire ? oui/non
+□ si non → suppression locale + distante
+□ tracker → statut final ([DONE]_)
+□ BACKLOG → état cohérent
+□ documentation canonique → synchronisée si nécessaire
+□ hub RAG → réindexé si nécessaire
+□ working tree / refs locales → propres (git fetch --prune)
+```
+
+#### Justification de conservation (exception tracée)
+Si une branche reste après clôture, la justification doit être traçable —
+ex. : `chore/p6-coverage-plan` ↔ BACKLOG #2 OPEN.
+
+#### Convention de nommage minimale
+- `feat/`, `fix/`, `docs/`, `chore/` → travail destiné à être intégré
+- `probe/` → expérimentation volontairement jetable (suppression après preuve)
+- Pas de renommage rétroactif.
+
+#### Interdits
+Bot de nettoyage · script CI dédié · archivage artificiel des branches · branches long-lived.
+
+#### Réglages associés (hors dépôt)
+- **GitHub** : « Automatically delete head branches » activé (auto-delete à la fusion)
+- **Local** : `git config fetch.prune true` (les refs distantes invalides sont purgées au fetch)
+
 ---
 
 ## 🔄 PROCESSUS DE MISE À JOUR
