@@ -600,33 +600,17 @@ Foresy/
 
 ## ✅ NEXT STEPS & TODO LIST
 
-### Immediate Actions (High Priority)
-1. **Sprint 3 Completion - E2E Testing Infrastructure ✅ COMPLETED**
-   - **Task**: Finalize E2E staging tests (scripts + documentation)
-   - **Completed**: Smoke tests (15 endpoints) + E2E auth flow (8 tests) + E2E revocation (5 tests - Platinum Level) in bin/e2e/
-   - **Impact**: Full CI/CD staging test coverage, automated end-to-end validation
-   - **Security Model**: Documented (access tokens session-scoped, refresh tokens user-bound)
-   - **Status**: ✅ All tests passing locally and on production (Render)
+### Immediate Actions (High Priority) — historique (déc 2025-fév 2026, toutes complétées)
+1. ~~**Sprint 3 Completion - E2E Testing Infrastructure**~~ ✅ (déc 2025 — smoke 15 + E2E auth + revocation, `bin/e2e/`)
+2. ~~**Production Errors 500 Resolution**~~ ✅ (déc 2025 — migrations appliquées, endpoints auth fonctionnels)
+3. ~~**PR #7 Analysis**~~ ✅ mergée (fév 2026 — 10/10 points)
+4. ~~**Rails Migration**~~ ✅ complétée (déc 2025) → **Rails 8.1.3.1 aujourd'hui**
 
-2. **✅ Production Errors 500 Resolution (FINISHED)**
-   - **Task**: Fix critical HTTP 500 errors on all authentication endpoints in production
-   - **Completed**: Database migrations applied via fix/omniauth-session-middleware branch deployment
-   - **Impact**: All auth/OAuth endpoints now functional in production (401/422/400 responses)
-   - **Validation**: 23/23 E2E tests passing in production (15 smoke + 8 auth flow)
-   - **Status**: ✅ CRITICAL issue resolved, production fully operational
-
-3. **✅ PR #7 Analysis Complete (READY FOR MERGE)**
-   - **Task**: Complete analysis of 10 priority points and final validation
-   - **Completed**: 9/10 points finished, 1/10 analyzed (Redis cache - low priority)
-   - **Critical/High Priority**: 100% complete (Points 1-4)
-   **All Tests**: RSpec 498 ✅, Rswag 128 ✅, Rubocop 147 ✅ (29 Jan 2026)
-   - **Status**: ✅ PR #7 ready for merge into main branch
-
-4. ~~**Rails Migration Planning**~~ ✅ **COMPLETED Dec 26, 2025**
-   - **Task**: ~~Plan migration from Rails 7.1.5.1 to 7.2+~~ Migrated to Rails 8.1.1
-   - **Impact**: Brakeman EOL warning removed, security restored
-   - **Result**: Ruby 3.4.8 + Rails 8.1.1 + YJIT enabled
-   - **Documentation**: `docs/technical/changes/[DONE]_2025_12_26_Rails_8_1_1_Migration_Complete.md`
+### Chantiers ACTUELS (état 26/09/2026 — source canonique : `docs/BACKLOG.md`, règle anti-drift)
+- ✅ **FC-05 Rate Limiting remediation CERTIFIÉE** (PR #56 — contrat → RED mesurés (12/10/2) → GREEN → R-4 → Render vérifié · mémoire fc08::013)
+- 🟠 **#21 Investigation OAuth** (prochain gate CTO) puis **#19 qualification métier par preuve**
+- 🟠 #17 Swagger export CSV · #13 divergence `name` · #16 Postman FC-08 · 🟢 #22 JWT · #15 Wave 4.5 · #8 link-rot · #9 performance · #10 monitoring
+- FC-09 ⏸️ en attente (décision CTO — valeur produit/risque, jamais sur un pourcentage)
 
 ### Medium Priority (Maintenance)
 2. **Documentation Maintenance**
@@ -803,7 +787,7 @@ docker-compose run --rm web bash
 
 **Current Status**: Excellent technical condition, production-ready
 **Main Strength**: 100% test coverage, zero code quality issues
-**Primary Concern**: Rails version EOL (migration needed)
+**Primary Concern** : défauts de production démontrés → traités par investigation + RED contractuels (FC-05 certifié 26/09 — cf. `docs/BACKLOG.md` pour les chantiers actifs)
 **Development Model**: Docker Compose mandatory, CI/CD automated
 **Documentation**: Centralized, well-organized, AI-optimized
 
@@ -811,5 +795,5 @@ docker-compose run --rm web bash
 
 ---
 
-**Last Updated**: February 12, 2026  
-**Status**: ✅ LIVE on Render, 491 tests passing (FC-07 PLATINUM), 0 Rubocop violations, CI/CD operational, CRA Domain PLATINUM Certified, DDD/RDD Migration COMPLETED
+**Last Updated**: 26 septembre 2026
+**Status**: ✅ LIVE on Render, **1166 tests passing** (FC-05 remediation certifiée PR #56 · FC-06/07/08 PLATINUM), 0 Rubocop violations, CI/CD 6/6 opérationnel, DDD/RDD Architecture pure, gouvernance CI verrouillée (#11/#12) — **source de vérité des métriques : README.md · docs/BACKLOG.md**
