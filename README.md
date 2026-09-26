@@ -105,8 +105,8 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 
 ### Documentation & Qualité
 - **Swagger/OpenAPI** : 402 specs RSwag, audit 35/35 routes documentées
-- **Tests complets** : 1154 exemples RSpec (0 failures, 0 pending)
-- **Couverture** : 📊 SimpleCov **84.37 % lignes / 57.74 % branches** (rapport HTML + Cobertura XML)
+- **Tests complets** : 1166 exemples RSpec (0 failures, 0 pending)
+- **Couverture** : 📊 SimpleCov **85.36 % lignes / 60.23 % branches** (rapport HTML + Cobertura XML)
 - **Code quality** : RuboCop 245 files, 0 offenses
 - **Security audit** : Brakeman 0 warnings (mode strict), Bundle audit 0 vulnérabilités
 - **Collection Postman** : 28 endpoints avec scripts de test automatisés
@@ -363,4 +363,4 @@ Ce projet est sous license MIT. Voir le fichier `LICENSE` pour plus de détails.
 
 ---
 
-**Foresy API** — API Rails moderne, sécurisée et validée par les gates Platinium actuelles (1154 tests verts, CI 6/6 bloquante incl. E2E). Architecture DDD/RDD, couverture mesurée (84,37 % lignes / 57,74 % branches, verrou 72,5 armé), contrat système établi (P7), dettes résiduelles explicitement tracées (D-12, P6, BACKLOG #13-#16).
+**Foresy API** — API Rails moderne, sécurisée et validée par les gates Platinium actuelles (1166 tests verts, CI 6/6 bloquante incl. E2E). Architecture DDD/RDD, couverture mesurée (85,36 % lignes / 60,23 % branches, verrou 72,5 armé), contrat système établi (P7), FC-05 rate limiting certifié (PR #56), dettes résiduelles explicitement tracées (D-12, BACKLOG transverse).
