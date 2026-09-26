@@ -81,5 +81,12 @@ module RateLimit
     def clear(key)
       @mutex.synchronize { @store.delete(key) }
     end
+
+    # Clear the entire store (test support)
+    #
+    # @return [void]
+    def clear_all!
+      @mutex.synchronize { @store.clear }
+    end
   end
 end

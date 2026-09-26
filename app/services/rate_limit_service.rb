@@ -2,58 +2,105 @@
 
 require 'redis'
 
-# RateLimitService - Service for sliding window rate limiting
+# RateLimitService - Service de rate limiting à fenêtre glissante (contrat FC-05 v1)
 #
-# Implements IP-based rate limiting with sliding window algorithm
-# for protection against brute force attacks on authentication endpoints.
+# Contrat   : docs/technical/guides/2026_09_25_fc05_rate_limiting_contract.md (A1-A9, CTO 25/09)
+# Audit     : docs/technical/audits/[DONE]_2026_09_25_fc05_rate_limiting_audit.md (BACKLOG #20)
+# Chantier  : BACKLOG #23 — Remediation contractuelle FC-05
 #
-# == Architecture (FC-05)
+# == Contrat de sélection (6 états)
 #
-# - Uses Strategy Pattern for backend selection
-# - MemoryBackend in test (no Redis dependency)
-# - RedisBackend in production (distributed rate limiting)
-# - Fail-closed on Redis failure (429, not 500)
+#   1. REDIS_URL absente, dev/test        → MemoryBackend
+#   2. REDIS_URL absente, production      → RateLimit::RedisConfigurationError (A1)
+#   3. REDIS_URL présente + Redis joignable → RedisBackend (protection distribuée)
+#   4/5. Redis indisponible / timeout     → fallback MemoryBackend + warning structuré (A2)
+#   6. Erreur interne inattendue          → log error + propagation — JAMAIS un 429 (A3/A4)
 #
-# == Supported Endpoints
+# == Sémantique
 #
-# - POST /api/v1/auth/login (5 requests/minute)
-# - POST /api/v1/signup (3 requests/minute)
-# - POST /api/v1/auth/refresh (10 requests/minute)
-#
-# == Interface (Strategy Pattern)
-#
-# @see RateLimit::Backend
-# @see RateLimit::MemoryBackend
-# @see RateLimit::RedisBackend
+# - 429 (`[false, window]`) émis UNIQUEMENT sur dépassement de limite constaté (A4).
+# - Redis indisponible = dégradation explicite (protection locale par processus),
+#   jamais masquée en RATE_LIMIT_EXCEEDED — Redis error ≠ 429.
+# - Retour de Redis → retour au backend distribué (le fallback n'est pas mémoïsé).
 class RateLimitService
-  WINDOW_SIZE = 60 # 1 minute in seconds
+  WINDOW_SIZE = 60
 
-  # Rate limits per endpoint (requests per minute)
-  # Key format: endpoint path without /api/v1 prefix
+  # Limites par endpoint (requêtes par fenêtre) — contrat FC-05 §4
   LIMITS = {
     'auth/login' => 5,
     'auth/signup' => 3,
-    'auth/refresh' => 10
+    'auth/refresh' => 10,
+    'missions:create' => 20,
+    'missions:update' => 60,
+    'cras:create' => 10,
+    'cras:update_destroy' => 50,
+    'cras:submit_lock' => 5,
+    'cra_entries:create' => 20,
+    'cra_entries:create_burst' => 5,
+    'cra_entries:update_destroy' => 50
   }.freeze
 
-  # Get backend instance (memoized per process)
-  # Uses MemoryBackend by default for reliable boot
-  # Switches to RedisBackend when Redis is available and needed
-  #
-  # @return [RateLimit::Backend]
+  # Fenêtres par endpoint (secondes) — défaut : WINDOW_SIZE
+  WINDOWS = {
+    'missions:create' => 3600,
+    'missions:update' => 3600,
+    'cras:create' => 3600,
+    'cras:update_destroy' => 3600,
+    'cras:submit_lock' => 3600,
+    'cra_entries:create' => 3600,
+    'cra_entries:create_burst' => 600,
+    'cra_entries:update_destroy' => 3600
+  }.freeze
+
+  # Sélection du backend (contrat §2) — exécutée à chaque requête : dégradation et
+  # retour au distribué sont détectés en continu (A2). Pas de mémoïsation.
   def self.backend
-    @backend ||= RateLimit::MemoryBackend.new
+    select_backend
   end
 
-  # Initialize the rate limit service with a backend
-  #
-  # @param backend [RateLimit::Backend] optional backend (auto-selected if nil)
-  # @return [void]
-  def initialize(backend: nil)
-    @backend = backend || self.class.backend
+  def self.select_backend
+    redis_url = ENV.fetch('REDIS_URL', nil)
+
+    if redis_url.blank?
+      return RateLimit::MemoryBackend.new unless Rails.env.production?
+
+      raise RateLimit::RedisConfigurationError, 'REDIS_URL not configured for production environment'
+    end
+
+    begin
+      ::Redis.new(url: redis_url).ping
+      RateLimit::RedisBackend.new
+    rescue Redis::CannotConnectError, Redis::TimeoutError => e
+      log_backend_fallback(nil, e)
+      memory_fallback
+    end
   end
 
-  # Get Redis connection (private for test stubbing)
+  # Fallback mémoire au niveau processus : les compteurs s'accumulent pendant
+  # l'indisponibilité (protection locale par processus, contrat §2)
+  def self.memory_fallback
+    @memory_fallback ||= RateLimit::MemoryBackend.new
+  end
+
+  def self.log_backend_fallback(endpoint, error)
+    payload = {
+      tag: 'rate_limit.backend_fallback',
+      message: 'Redis unavailable - degrading to per-process MemoryBackend',
+      backend: 'MemoryBackend',
+      protection: 'local_per_process',
+      redis_error: "#{error.class}: #{error.message}",
+      endpoint: endpoint
+    }.to_json
+    Rails.logger.warn(payload)
+  end
+  private_class_method :log_backend_fallback
+
+  def self.window_for(endpoint)
+    WINDOWS.fetch(endpoint, WINDOW_SIZE)
+  end
+  private_class_method :window_for
+
+  # Get Redis connection (private for test stubbing / RedisBackend)
   #
   # @return [Redis] Redis connection
   def self.redis
@@ -63,42 +110,56 @@ class RateLimitService
   end
   private_class_method :redis
 
+  def initialize(backend: nil)
+    @backend = backend
+  end
+
+  def backend
+    @backend || self.class.backend
+  end
+
   # Check if rate limit is exceeded (class method)
   #
-  # @param endpoint [String] endpoint path (e.g., 'auth/login')
-  # @param client_ip [String] client IP address
+  # @param endpoint [String] endpoint key (e.g., 'auth/login', 'missions:create')
+  # @param key_component [String] IP (auth, A5) ou user_id (endpoints métier, A6)
   # @param _request [ActionDispatch::Request, nil] optional request object
   # @return [Array] [allowed (Boolean), retry_after (Integer)]
-  def self.check_rate_limit(endpoint, client_ip, _request = nil)
-    limit = LIMITS[endpoint]
-    return [true, 0] if limit.nil?
-
-    new.check_rate_limit(endpoint, client_ip)
+  def self.check_rate_limit(endpoint, key_component, _request = nil)
+    new.check_rate_limit(endpoint, key_component)
   end
 
   # Check if rate limit is exceeded (instance method)
   #
-  # @param endpoint [String] endpoint path
-  # @param client_ip [String] client IP address
+  # 429 émis UNIQUEMENT sur dépassement de limite constaté (A4).
+  # CannotConnectError / TimeoutError → fallback MemoryBackend par processus + warning (A2).
+  # Toute autre erreur interne → log error + propagation explicite (A3) — jamais de 429.
+  #
+  # @param endpoint [String] endpoint key
+  # @param key_component [String] composant de clé (IP ou user_id selon A5/A6)
   # @return [Array] [allowed (Boolean), retry_after (Integer)]
-  def check_rate_limit(endpoint, client_ip)
+  def check_rate_limit(endpoint, key_component)
     limit = LIMITS[endpoint]
     return [true, 0] if limit.nil?
 
-    key = rate_limit_key(endpoint, client_ip)
+    window = self.class.send(:window_for, endpoint)
+    key = rate_limit_key(endpoint, key_component)
 
-    @backend.increment(key, window: WINDOW_SIZE)
-    count = @backend.count(key, window: WINDOW_SIZE)
+    begin
+      count = count_request(key, window)
+    rescue Redis::CannotConnectError, Redis::TimeoutError => e
+      self.class.send(:log_backend_fallback, endpoint, e)
+      count = count_in_fallback(key, window)
+    end
 
     if count > limit
-      log_rate_limit_exceeded(endpoint, client_ip, count, limit)
-      [false, WINDOW_SIZE]
+      log_rate_limit_exceeded(endpoint, key_component, count, limit, window)
+      [false, window]
     else
       [true, 0]
     end
-  rescue Redis::CannotConnectError, StandardError => e
-    log_redis_unavailable(endpoint, client_ip, e.message)
-    [false, WINDOW_SIZE]
+  rescue StandardError => e
+    log_internal_error(endpoint, e)
+    raise
   end
 
   # Extract client IP from request considering reverse proxies
@@ -115,39 +176,23 @@ class RateLimitService
   end
 
   # Get current request count for monitoring/debugging
-  #
-  # @param endpoint [String] endpoint path
-  # @param client_ip [String] client IP address
-  # @return [Integer] current request count in the window
   def self.current_count(endpoint, client_ip)
     new.current_count(endpoint, client_ip)
   end
 
-  # Instance method for getting current count
-  #
-  # @param endpoint [String] endpoint path
-  # @param client_ip [String] client IP address
-  # @return [Integer] count
   def current_count(endpoint, client_ip)
     key = rate_limit_key(endpoint, client_ip)
-    @backend.count(key, window: WINDOW_SIZE)
+    backend.count(key, window: self.class.send(:window_for, endpoint))
   end
 
-  # Clear rate limit for a specific endpoint and IP (useful for testing)
-  #
-  # @param endpoint [String] endpoint path
-  # @param client_ip [String] client IP address
+  # Clear rate limit for a specific endpoint and key (useful for testing)
   def self.clear_rate_limit(endpoint, client_ip)
     new.clear_rate_limit(endpoint, client_ip)
   end
 
-  # Instance method for clearing rate limit
-  #
-  # @param endpoint [String] endpoint path
-  # @param client_ip [String] client IP address
   def clear_rate_limit(endpoint, client_ip)
     key = rate_limit_key(endpoint, client_ip)
-    @backend.clear(key)
+    backend.clear(key)
   end
 
   # Get configuration for display/monitoring
@@ -166,84 +211,71 @@ class RateLimitService
     LIMITS.key?(endpoint)
   end
 
-  # Extract endpoint from request path
-  #
-  # @param request_path [String] request path
-  # @return [String] endpoint key
-  def self.extract_endpoint(request_path)
-    request_path.sub('/api/v1/', '')
+  # Réinitialise le stockage du backend actif + fallback (support de test)
+  def self.reset_storage!
+    backend.clear_all!
+    memory_fallback.clear_all!
   end
 
-  # Build rate limit key for endpoint and IP
-  #
-  # @param endpoint [String] endpoint path
-  # @param client_ip [String] client IP address
-  # @return [String] rate limit key
-  def rate_limit_key(endpoint, client_ip)
-    "rate_limit:#{endpoint}:#{client_ip}"
+  # Build rate limit key for endpoint and key component
+  def rate_limit_key(endpoint, key_component)
+    "rate_limit:#{endpoint}:#{key_component}"
   end
 
-  # Log rate limit exceeded event
-  #
-  # @param endpoint [String] endpoint path
-  # @param client_ip [String] client IP address
-  # @param current_requests [Integer] current request count
-  # @param limit [Integer] rate limit
-  # @return [void]
-  def log_rate_limit_exceeded(endpoint, client_ip, current_requests, limit)
-    masked_ip = mask_ip(client_ip)
+  # Log rate limit exceeded event (429 — dépassement réel, A4)
+  def log_rate_limit_exceeded(endpoint, key_component, current_requests, limit, window)
+    masked_key = mask_ip(key_component)
 
     log_data = {
       tag: 'rate_limit.exceeded',
       message: 'Rate limit exceeded',
       endpoint: endpoint,
-      client_ip_masked: masked_ip,
+      client_masked: masked_key,
       current_requests: current_requests,
       limit: limit,
-      window_size_seconds: WINDOW_SIZE
+      window_size_seconds: window
     }
 
     Rails.logger.info { log_data.to_json }
     log_data.to_json
   end
 
-  # Log Redis unavailable event
-  #
-  # @param endpoint [String] endpoint path
-  # @param client_ip [String] client IP address
-  # @param error_message [String] error message
-  # @return [void]
-  def log_redis_unavailable(endpoint, client_ip, error_message)
-    masked_ip = mask_ip(client_ip)
+  private
 
-    log_data = {
-      tag: 'rate_limit.redis_unavailable',
-      message: 'Redis unavailable - failing closed',
-      endpoint: endpoint,
-      client_ip_masked: masked_ip,
-      redis_error: error_message,
-      action: 'fail_closed'
-    }
-
-    Rails.logger.warn { log_data.to_json }
-    log_data.to_json
+  def count_request(key, window)
+    backend.increment(key, window: window)
+    backend.count(key, window: window)
   end
 
-  # Mask IP address for security in logs
-  #
-  # @param ip [String] IP address
-  # @return [String] masked IP address
-  def mask_ip(ip)
-    return 'unknown' if ip == 'unknown' || ip.nil?
+  def count_in_fallback(key, window)
+    self.class.send(:memory_fallback).tap do |fallback|
+      fallback.increment(key, window: window)
+    end.count(key, window: window)
+  end
 
-    if ip.match?(/^\d+\.\d+\.\d+\.\d+$/)
-      parts = ip.split('.')
+  def log_internal_error(endpoint, error)
+    payload = {
+      tag: 'rate_limit.internal_error',
+      message: 'Rate limit check failed - NOT a rate limit exceeded',
+      endpoint: endpoint,
+      error_class: error.class.to_s,
+      error_message: error.message
+    }.to_json
+    Rails.logger.error(payload)
+  end
+
+  # Mask key component (IP ou user_id) for security in logs
+  def mask_ip(component)
+    return 'unknown' if component == 'unknown' || component.blank?
+
+    if component.match?(/^\d+\.\d+\.\d+\.\d+$/)
+      parts = component.split('.')
       "#{parts[0]}.#{parts[1]}.x.x"
-    elsif ip.include?(':')
-      parts = ip.split(':')
+    elsif component.include?(':')
+      parts = component.split(':')
       "#{parts[0]}:#{parts[1]}:...:x"
     else
-      ip.length > 4 ? "#{ip[0..3]}...x" : 'masked'
+      component.length > 4 ? "#{component[0..3]}...x" : 'masked'
     end
   end
 end

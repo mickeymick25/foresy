@@ -17,11 +17,11 @@ require 'rails_helper'
 
 RSpec.describe 'BACKLOG #14 — invariant unicité créateur+mois+année à la création', type: :request do
   before do
-    RateLimitService.backend.store.clear
+    RateLimitService.reset_storage!
   end
 
   after do
-    RateLimitService.backend.store.clear
+    RateLimitService.reset_storage!
   end
 
   let(:user) { create(:user) }
