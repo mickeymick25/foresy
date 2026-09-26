@@ -26,12 +26,12 @@ RSpec.describe 'System API — CRA lifecycle avec Git Ledger réel', type: :requ
   end
 
   before do
-    RateLimitService.backend.store.clear
+    RateLimitService.reset_storage!
   end
 
   after do
     FileUtils.rm_rf(ledger_dir)
-    RateLimitService.backend.store.clear
+    RateLimitService.reset_storage!
   end
 
   let(:ledger_dir) { Dir.mktmpdir('foresy_p7_ledger') }

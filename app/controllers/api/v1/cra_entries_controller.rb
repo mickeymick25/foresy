@@ -16,7 +16,6 @@ module Api
     # - Rate limiting on create/update operations
     # - Modular architecture with concerns and services
     class CraEntriesController < Api::V1::BaseController
-      include CraEntries::RateLimitable
       include CraEntries::ParameterExtractor
 
       before_action :authenticate_access_token!
@@ -261,6 +260,27 @@ module Api
       # W1-D3-B : relocalisé depuis Api::V1::CraEntries::ErrorHandler (concern
       # supprimé — seul handler vivant du concern, cf. cra_rate_limit_contract_spec.rb).
       # Comportement caractérisé préservé : 429 sans details (le contrat les rend optionnels).
+      # Rate limiting (contrat FC-05 — RateLimitService unifié, R-4)
+      # Clé : user_id (A6). Create : 20/h + rafale 5/10 min ; update/destroy : 50/h.
+      def check_rate_limit!
+        endpoint = action_name == 'create' ? 'cra_entries:create' : 'cra_entries:update_destroy'
+        allowed, retry_after = RateLimitService.check_rate_limit(endpoint, current_user.id.to_s)
+
+        unless allowed
+          response.headers['Retry-After'] = retry_after.to_s
+          handle_rate_limit_exceeded("Rate limit exceeded (#{endpoint})")
+          return
+        end
+        return unless action_name == 'create'
+
+        allowed_burst, retry_after_burst = RateLimitService.check_rate_limit('cra_entries:create_burst',
+                                                                             current_user.id.to_s)
+        return if allowed_burst
+
+        response.headers['Retry-After'] = retry_after_burst.to_s
+        handle_rate_limit_exceeded('Rate limit exceeded (cra_entries:create_burst)')
+      end
+
       def handle_rate_limit_exceeded(message = 'Rate limit exceeded for CRA entry operations')
         Rails.logger.warn "CRA Entry Rate limit exceeded: #{message}"
 

@@ -18,11 +18,11 @@ require 'rails_helper'
 
 RSpec.describe 'System API — CRA multi-missions (pivots)', type: :request do
   before do
-    RateLimitService.backend.store.clear
+    RateLimitService.reset_storage!
   end
 
   after do
-    RateLimitService.backend.store.clear
+    RateLimitService.reset_storage!
   end
 
   let(:user) { create(:user) }

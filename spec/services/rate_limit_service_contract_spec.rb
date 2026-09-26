@@ -56,14 +56,13 @@ RSpec.describe 'FC-05 — contrat de rate limiting (cible v1)' do
     end
 
     it 'état 6 — erreur interne inattendue → JAMAIS de 429 : erreur explicite propagée (A3/A4)' do
-      backend_stub = RateLimit::MemoryBackend.new
-      allow(RateLimit::MemoryBackend).to receive(:new).and_return(backend_stub)
+      backend_stub = RateLimit::RedisBackend.new
       allow(backend_stub).to receive(:increment).and_raise(RuntimeError, 'bug interne inattendu')
-      RateLimitService.instance_variable_set(:@backend, backend_stub)
+      service = RateLimitService.new(backend: backend_stub)
 
-      expect {
-        RateLimitService.check_rate_limit('auth/login', '1.2.3.4')
-      }.to raise_error(RuntimeError, /bug interne/)
+      expect do
+        service.check_rate_limit('auth/login', '1.2.3.4')
+      end.to raise_error(RuntimeError, /bug interne/)
       expect(logger).to have_received(:error).with(a_string_including('rate_limit'))
     end
   end
@@ -85,7 +84,7 @@ RSpec.describe 'FC-05 — contrat de rate limiting (cible v1)' do
 
       3.times { RateLimitService.check_rate_limit('auth/login', '8.8.8.8') }
 
-      expect(redis.get('rate_limit:auth/login:8.8.8.8')).to eq('3')
+      expect(redis.zcard('rate_limit:auth/login:8.8.8.8')).to eq(3)
       redis.del('rate_limit:auth/login:8.8.8.8')
     end
   end
@@ -97,11 +96,14 @@ RSpec.describe 'FC-05 — contrat de rate limiting (cible v1)' do
 
     it 'end-to-end : 20 créations autorisées par user, la 21e refusée (clé user_id, fenêtre 1 h)' do
       stub_const('RateLimitService::LIMITS', { 'missions:create' => 20 })
+      redis = Redis.new(url: ENV.fetch('REDIS_URL', 'redis://localhost:6379/0'))
+      redis.del('rate_limit:missions:create:user-42')
 
       results = 21.times.map { RateLimitService.check_rate_limit('missions:create', 'user-42') }
 
       expect(results.first(20)).to all(eq([true, 0]))
       expect(results.last).to eq([false, 3600])
+      redis.del('rate_limit:missions:create:user-42')
     end
   end
 
@@ -119,11 +121,14 @@ RSpec.describe 'FC-05 — contrat de rate limiting (cible v1)' do
 
     it 'end-to-end : rafale entries 5/10 min par user, la 6e refusée' do
       stub_const('RateLimitService::LIMITS', { 'cra_entries:create_burst' => 5 })
+      redis = Redis.new(url: ENV.fetch('REDIS_URL', 'redis://localhost:6379/0'))
+      redis.del('rate_limit:cra_entries:create_burst:user-7')
 
       results = 6.times.map { RateLimitService.check_rate_limit('cra_entries:create_burst', 'user-7') }
 
       expect(results.first(5)).to all(eq([true, 0]))
       expect(results.last).to eq([false, 600])
+      redis.del('rate_limit:cra_entries:create_burst:user-7')
     end
   end
 end

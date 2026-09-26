@@ -95,12 +95,7 @@ RSpec.describe RateLimitService, type: :service do
     it 'identifie les endpoints du contrat FC-05' do
       expect(described_class.rate_limited_endpoint?('/api/v1/auth/login')).to be(true)
       expect(described_class.rate_limited_endpoint?('/api/v1/unknown/path')).to be(false)
-    end
-  end
-
-  describe '.extract_endpoint' do
-    it 'retire le préfixe /api/v1/' do
-      expect(described_class.extract_endpoint('/api/v1/auth/login')).to eq('auth/login')
+      expect(described_class.rate_limited_endpoint?('/api/v1/missions')).to be(false) # 'missions' seul n'est pas une clé
     end
   end
 

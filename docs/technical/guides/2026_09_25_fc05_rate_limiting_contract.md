@@ -1,7 +1,7 @@
 # 📜 Contrat FC-05 — Rate Limiting (cible v1)
 
 **Date :** 25 septembre 2026
-**Statut :** 🔴 **RED READY** — arbitrages CTO actés (A1-A9) · RED 1-4 écrits (ce commit) · **GREEN en attente**
+**Statut :** ✅ **GREEN atteint (25/09)** — arbitrages A1-A9 actés · RED 1-4 mesurés (10 échecs documentés) → implémentation minimale → GREEN (12/12) · R-4 cleanup · régression **1166/0**
 **Chantier :** BACKLOG **#23** (Remediation contractuelle FC-05 — Investigation CLOSED, cf. `[DONE]_2026_09_25_fc05_rate_limiting_audit.md`)
 **Specs :** `spec/services/rate_limit_service_contract_spec.rb`
 
@@ -70,7 +70,10 @@ Au dépassement : `[false, window]` → HTTP **429** `RATE_LIMIT_EXCEEDED` + hea
 
 1. **Un seul mécanisme** : `RateLimitService` → `Backend` (Strategy). `RedisRateLimiter` et les
    méthodes mortes des concerns sont supprimés — **après** les GREEN, jamais avant.
-2. **Une seule configuration** : `LIMITS[endpoint] → { limit, window, key }` (table §3).
+2. **Une seule configuration** : `LIMITS[endpoint]` → limite (Integer, table §4) ·
+   `WINDOWS[endpoint]` → fenêtre (défaut 60 s) · clé : IP pour auth / `user_id` pour les
+   endpoints métier (A5/A6). *(Correction d'implémentation 25/09 : les RED figent LIMITS en
+   valeurs entières — la fenêtre vit dans WINDOWS, pas dans LIMITS.)*
 3. **Une sémantique d'erreur explicite** par classe d'incident (table §2 + A3/A4).
 4. **Une seule chaîne de test** : intégration via `RateLimitService.check_rate_limit` + sélection
    du backend par situation — les backends isolés restent testés en complément, jamais à la place.
@@ -85,6 +88,18 @@ Au dépassement : `[false, window]` → HTTP **429** `RATE_LIMIT_EXCEEDED` + hea
 | RED 4 — CRA/entries | Table §3 : clés `cras:*`/`cra_entries:*`, end-to-end au seuil |
 
 **Journal du RED** : cf. §7.
+
+## 8. Journal GREEN (25/09/2026)
+
+| Étape | Résultat |
+|---|---|
+| Implémentation minimale (sélecteur 6 états + `RateLimit::RedisConfigurationError` + WINDOWS par endpoint + sémantique A3/A4 + fallback par processus) | ✅ |
+| RED 1-4 | ✅ **12/12 verts** |
+| Régression (avant R-4) | ✅ 1167/0 — 3 mises à jour de specs vers le contrat A2 arbitré (anciens tests fail-closed 429) · `reset_storage!` ajouté (support de test) |
+| R-4 cleanup | ✅ `Common::RedisRateLimiter`/`RedisConnectionError` supprimés · concerns `Cras`/`CraEntries` supprimés · `Common::RateLimitable` réduit à l'extraction d'IP · contrôleurs missions/cras/entries unifiés sur `RateLimitService` (clé `user_id`) |
+| Régression finale | ✅ **1166/0** (−1 exemple : spec de la méthode morte `extract_endpoint` supprimée avec elle) · couverture 85,36 % lignes / 60,23 % branches (verrou 72,5 ✓) · RuboCop 0 (15 fichiers) · Zeitwerk ✓ |
+
+**Reste avant certification** : CI 6/6 sur la PR · vérifications Render (REDIS_URL injectée + nb d'instances).
 
 ## 7. Journal du RED (mesuré 25/09/2026, conteneur `web`, RAILS_ENV=test)
 
