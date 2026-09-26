@@ -61,7 +61,7 @@ sources canoniques ci-dessous. L'ancien backlog (2025-12-26) est archivé :
 - **RuboCop 0 offense (243 files) · Zeitwerk OK** (mesuré 26/09) · **Brakeman 0 warning** (CI 6/6 sur les PRs #54-#56)
 - **Contrat système** : 4 system specs (P7 CLOSED) · **gouvernance CI** : push direct bloqué, 6 checks + branche à jour (`enforce_admins: true` + `strict: true`) · **invariant unicité créateur+mois+année protégé à la création** (#14, garde service-level) · **FC-05** : rate limiting distribué Redis, 429 sur dépassement réel uniquement (A4), clés IP auth / user_id métier
 
-> ⚠️ **Framing (CTO 26/09)** : ces chiffres décrivent l'état de protection, pas une preuve fonctionnelle supplémentaire — la preuve de correction FC-05 est la chaîne RED mesurés → GREEN + régression complète (cf. contrat §7-§8).
+> ⚠️ **Framing (CTO 26/09)** : ces chiffres décrivent l'état de protection, pas une preuve fonctionnelle supplémentaire — la preuve de correction FC-05 est la chaîne RED mesurés → GREEN + régression complète (cf. contrat §7-§8). Idem close-out #21 : la hausse de couverture (86,22/60,80) est la conséquence mécanique de la suppression de code mort — les preuves principales sont le chemin réel identifié, 0 call-site démontré, les références supprimées, la transaction/anti-race du chemin réel vérifiées, la suite 1132/0, Zeitwerk OK et RuboCop 0.
 
 ## Règle anti-drift
 

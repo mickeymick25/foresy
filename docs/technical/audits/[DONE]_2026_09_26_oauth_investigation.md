@@ -205,6 +205,14 @@ drift documentaire à corriger. Pollution du ledger quantifiée : 21 commits ré
 runs du 26/09, close-out inclus) — **à arbitrer CTO avant tout nettoyage** (certains commits peuvent être
 des E2E légitimes, cf. D-12).
 
+**Règle de méthode retenue (CTO 26/09, revue de PR) — durable** : *Investigation → preuve → arbitrage →
+modification.* Ne plus produire les commits de correction avant l'arbitrage explicite du CTO, même lorsque
+l'issue paraît évidente. L'écart de séquence #21 est accepté parce qu'identifié, documenté et sans merge
+prématuré — **il ne fait pas précédent méthodologique**. Les périmètres découverts en route (#24 ledger,
+#25 BRIEFING) restent des tickets séparés — jamais des sous-chantiers implicites de la PR. La hausse de
+couverture issue du close-out est une conséquence mécanique de la suppression de code mort — une métrique
+de santé, pas le justificatif de la suppression (principe FC-05 conservé).
+
 ---
 
 **Document créé le :** 26 septembre 2026
