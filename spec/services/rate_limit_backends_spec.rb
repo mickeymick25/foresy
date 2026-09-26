@@ -95,7 +95,7 @@ RSpec.describe RateLimitService, type: :service do
     it 'identifie les endpoints du contrat FC-05' do
       expect(described_class.rate_limited_endpoint?('/api/v1/auth/login')).to be(true)
       expect(described_class.rate_limited_endpoint?('/api/v1/unknown/path')).to be(false)
-      expect(described_class.rate_limited_endpoint?('/api/v1/missions')).to be(false) # 'missions' seul n'est pas une clé
+      expect(described_class.rate_limited_endpoint?('/api/v1/missions')).to be(false) # clé 'missions' absente
     end
   end
 

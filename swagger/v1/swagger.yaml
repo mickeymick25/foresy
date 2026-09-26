@@ -12,7 +12,7 @@ info:
               ### Breaking Changes
               - Breaking changes nécessitent une nouvelle version majeure
               - Période de dépréciation : 12 mois (actif) + 3 mois (deprecated)
-              - Voir : [API Versioning Policy](./docs/technical/corrections/2026-02-18-RSwag_Completion_Status-Phase_1.8-API_Versioning_Policy.md)
+              - Voir : [API Versioning Policy](./docs/technical/corrections/[DONE]_2026_02_18_RSwag_Completion_Status-Phase_1.8-API_Versioning_Policy.md)
 
               ### Deprecation Headers
               Les endpoints dépréciés retournent les headers suivants :
