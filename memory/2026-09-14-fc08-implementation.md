@@ -74,3 +74,18 @@ Audit fraîcheur Swagger · exposition API · collection Postman (24/09 — `doc
 FC-05 remediation **CERTIFIÉE** (26/09, PR #56) — chaîne complète : Investigation #20 (3 causes démontrées : sélecteur inconditionnel · `increment!` orphelin · `LIMITS['missions']` absent) → contrat v1 A1-A9 (`[DONE]_2026_09_25_fc05_rate_limiting_contract.md` : sélection 6 états · `RedisConfigurationError` en prod sans REDIS_URL · fallback Memory + warning `rate_limit.backend_fallback` · 429 uniquement sur dépassement réel · clés IP auth/user_id métier · seuils contractuels — pas des valeurs historiquement garanties) → RED mesurés (12/10/2) → GREEN (12/12) → R-4 (limiter parallèle supprimé, contrôleurs unifiés, net −227 lignes) → certification (Render : REDIS_URL injectée · deploy live `3f974dc` · sondage 401×5 → 429 contrat · 0 `RedisConfigurationError` · 1 instance free).
 
 **Leçon retenue** : deux systèmes parallèles « en deux morceaux » qui ne bouclent ni l'un ni l'autre constituent une cause racine de divergence documentation ↔ runtime. La correction durable est de converger vers un seul mécanisme, avec RED contractuels avant réparation.
+
+## fc08::014
+<!-- created: 2026-09-26 -->
+<!-- validated: 2026-09-26 (CTO) -->
+**#21 OAuth CLOSED (26/09)** — Chemin OAuth réel établi : chaîne services unique, transaction + anti-race démontrés. `OAuthConcern` (111 LOC, 0 appelant) et `ApmService` (254 LOC + 34 specs) supprimés (O-1 `5a2009ea`, O-2 `789db3c2`) ; duplication = constat architectural, impact production nul.
+
+Écart de séquence régularisé : les commits de cleanup ont été produits **avant** l'arbitrage explicite. CTO 26/09 : GO sur le fond, NO GO revert ; écart tracé au §6 du document `[DONE]_`.
+
+Close-out : artefact `rspec.xml` retiré, suite **1132/0**, Zeitwerk OK, RuboCop 243/0, couverture **86,22 % lignes / 60,80 % branches** (corpus 3470).
+
+**Leçon** : le compose possède deux services distincts — `web` (development) et `test` (RAILS_ENV=test, `foresy_test`). Un run sur `web` court-circuite le guard GitLedger (`Rails.env.test?` faux), provoquant des faux échecs INV-D12-01 et des écritures réelles dans le ledger. Le ledger contient actuellement 21 commits réels depuis le 17/09, à arbitrer séparément ; aucun nettoyage n'est entrepris sans GO.
+
+La commande canonique du BRIEFING pointe actuellement le mauvais service. Il existe donc une divergence documentation ↔ environnement d'exécution, à corriger dans une passe documentaire dédiée. Ce motif rejoint, au niveau méthodologique, celui observé pendant FC-05 : une divergence entre le chemin documenté et le chemin réellement exécuté doit être démontrée avant correction.
+
+Référence : `docs/technical/audits/[DONE]_2026_09_26_oauth_investigation.md` (§6 régularisation + incident) · commits `aff7ca6a`/`5a2009ea`/`789db3c2`/`792e9ff1`/`30a244c4` · BACKLOG #21 close + #24/#25 ouverts.
