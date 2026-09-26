@@ -3,9 +3,9 @@
 
 
 **For AI Context Understanding - Optimized for Fast Project Comprehension**  
-**Last Updated:** 24 septembre 2026 — Gouvernance CI verrouillée (#11/#12) · contrat système démontré (P7) · invariant unicité protégé (#14) · **1155 tests GREEN**
+**Last Updated:** 26 septembre 2026 — **FC-05 Rate Limiting remediation CERTIFIÉE** (PR #56 : contrat → RED mesurés → GREEN → R-4) · Gouvernance CI verrouillée (#11/#12) · contrat système démontré (P7) · invariant unicité protégé (#14) · **1166 tests GREEN**
 
-> ⚠️ **Note de lecture (24/09/2026)** : les sections « État courant » ci-dessous reflètent l'état
+> ⚠️ **Note de lecture (26/09/2026)** : les sections « État courant » ci-dessous reflètent l'état
 > de septembre 2026. Les sections `### Jan/Déc 2025-2026` de la timeline ci-après sont de
 > l'**historique daté** — ne pas les confondre avec l'état courant. Source de vérité des
 > métriques : README.md · docs/BACKLOG.md · docs/technical/testing/
@@ -19,17 +19,17 @@
 - **Primary Function**: User management, Mission management, CRA management, Company management (Indépendant) — JWT + OAuth (Google/GitHub)
 - **Ruby Version**: 3.4.8
 - **Environment**: Docker Compose (non-optional, mandatory)
-- **Status**: ✅ **FC-06 Missions · FC-07 CRA · FC-08 Companies TERMINÉS** — campagne P6/P7 (sécurisation du socle + gouvernance CI) CLOSED
-- **Current Feature**: sélection du prochain chantier par le CTO (FC-09 Notifications & alertes prévu au ROADMAP) — décision sur valeur produit/risque, jamais sur un pourcentage
+- **Status**: ✅ **FC-06 Missions · FC-07 CRA · FC-08 Companies TERMINÉS** — campagne P6/P7 CLOSED · **FC-05 remediation certifiée** (26/09, PR #56 — rate limiting distribué Redis, 429 sur dépassement réel uniquement)
+- **Current Feature**: retour aux chantiers du backlog transverse — **#21 Investigation OAuth** (prochain gate) puis **#19 qualification métier par preuve** (décision CTO 26/09) · FC-09 ⏸️ en attente
 - **Previous**: Campagne P6/P7 (sept 2026) — 3 bugs production découverts et corrigés par RED démontré (GET /cras 500 · ISO3166 · mission_id perdu · invariant unicité inerte)
 - **Gouvernance CI (sept 2026)**: push direct sur main **bloqué** (GH006 ×2) · 6 checks requis (`enforce_admins: true`) · branche à jour obligatoire (`strict: true`) · merge result testé (EXP-1, 2 preuves)
 
-### Quality Metrics (Sept 2026) — mesuré 22/09, `foresy_test`
-- **RSpec Tests**: ✅ **1155 examples, 0 failures** — dont la **régression permanente de l'invariant unicité créateur+mois+année** (#14)
-- **Rswag Swagger**: ✅ **402 examples** — audit 35/35 routes, `swagger.yaml` généré
-- **RuboCop**: ✅ **245 files inspected, 0 offenses**
+### Quality Metrics (Sept 2026) — mesuré 26/09, `foresy_test` + CI PR #56
+- **RSpec Tests**: ✅ **1166 examples, 0 failures** — dont les **régressions permanentes** : invariant unicité créateur+mois+année (#14) · **contrat FC-05 (RED 1-4 devenus GREEN)**
+- **Rswag Swagger**: ✅ **429 examples** — audit 35/35 routes, `swagger.yaml` généré
+- **RuboCop**: ✅ **246 files inspected, 0 offenses**
 - **Brakeman**: ✅ **0 Security Warnings** (mode strict)
-- **Couverture (SimpleCov)**: 📊 **84,40 % lignes (3127/3705) / 57,91 % branches (908/1568)** — verrou 72,5 armé dans le processus réel
+- **Couverture (SimpleCov)**: 📊 **85,36 % lignes (3091/3621) / 60,23 % branches (918/1524)** — verrou 72,5 armé dans le processus réel
 - **Gouvernance CI (P6/P7)**: ✅ push direct bloqué (GH006 ×2) · 6 checks requis (`enforce_admins: true`) · branche à jour (`strict: true`) · merge result testé (EXP-1)
 - **CI/CD**: ✅ 6/6 jobs verts — E2E bloquant dans la Quality Gate
 - **Campagnes**: ✅ P6 (Waves 1-4 + P6.6 CLOSED) · P7 (System Specs API — contrat système, 4 specs) · #11/#12/#14 (gouvernance + invariant, 3 défauts réels corrigés)
