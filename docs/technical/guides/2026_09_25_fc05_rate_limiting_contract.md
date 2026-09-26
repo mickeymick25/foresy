@@ -89,18 +89,6 @@ Au dépassement : `[false, window]` → HTTP **429** `RATE_LIMIT_EXCEEDED` + hea
 
 **Journal du RED** : cf. §7.
 
-## 8. Journal GREEN (25/09/2026)
-
-| Étape | Résultat |
-|---|---|
-| Implémentation minimale (sélecteur 6 états + `RateLimit::RedisConfigurationError` + WINDOWS par endpoint + sémantique A3/A4 + fallback par processus) | ✅ |
-| RED 1-4 | ✅ **12/12 verts** |
-| Régression (avant R-4) | ✅ 1167/0 — 3 mises à jour de specs vers le contrat A2 arbitré (anciens tests fail-closed 429) · `reset_storage!` ajouté (support de test) |
-| R-4 cleanup | ✅ `Common::RedisRateLimiter`/`RedisConnectionError` supprimés · concerns `Cras`/`CraEntries` supprimés · `Common::RateLimitable` réduit à l'extraction d'IP · contrôleurs missions/cras/entries unifiés sur `RateLimitService` (clé `user_id`) |
-| Régression finale | ✅ **1166/0** (−1 exemple : spec de la méthode morte `extract_endpoint` supprimée avec elle) · couverture 85,36 % lignes / 60,23 % branches (verrou 72,5 ✓) · RuboCop 0 (15 fichiers) · Zeitwerk ✓ |
-
-**Reste avant certification** : CI 6/6 sur la PR · vérifications Render (REDIS_URL injectée + nb d'instances).
-
 ## 7. Journal du RED (mesuré 25/09/2026, conteneur `web`, RAILS_ENV=test)
 
 **Résultat : 12 exemples — 10 échecs (tous pour raisons documentées) · 2 verts (comportements figés).**
@@ -120,6 +108,42 @@ Au dépassement : `[false, window]` → HTTP **429** `RATE_LIMIT_EXCEEDED` + hea
 
 Exemples verts (2) — comportements actuels figés en régression : état 1 (MemoryBackend en dev/test)
 · enforcement local limite 1 via `check_rate_limit` (MemoryBackend).
+
+## 8. Journal GREEN (25/09/2026)
+
+| Étape | Résultat |
+|---|---|
+| Implémentation minimale (sélecteur 6 états + `RateLimit::RedisConfigurationError` + WINDOWS par endpoint + sémantique A3/A4 + fallback par processus) | ✅ |
+| RED 1-4 | ✅ **12/12 verts** |
+| Régression (avant R-4) | ✅ 1167/0 — 3 mises à jour de specs vers le contrat A2 arbitré (anciens tests fail-closed 429) · `reset_storage!` ajouté (support de test) |
+| R-4 cleanup | ✅ `Common::RedisRateLimiter`/`RedisConnectionError` supprimés · concerns `Cras`/`CraEntries` supprimés · `Common::RateLimitable` réduit à l'extraction d'IP · contrôleurs missions/cras/entries unifiés sur `RateLimitService` (clé `user_id`) — net **−227 lignes** |
+| Régression finale | ✅ **1166/0** (−1 exemple : spec de la méthode morte `extract_endpoint` supprimée avec elle) · couverture 85,36 % lignes / 60,23 % branches (verrou 72,5 ✓) · RuboCop 0 (15 fichiers) · Zeitwerk ✓ |
+
+## 9. Plan de réalisation & suivi des tâches
+
+| ID | Tâche | Réf. | Statut |
+|---|---|---|---|
+| T1 | Investigation #20 — 3 causes démontrées | audit `[DONE]_` | ✅ CLOSED |
+| T2 | Arbitrage contrat v1 (A1-A9) | §1 | ✅ |
+| T3 | RED 1-4 écrits (contrat exécutable) | `spec/services/rate_limit_service_contract_spec.rb` | ✅ |
+| T4 | Mesure du RED contre l'existant (12 / 10 / 2) | §7 | ✅ |
+| T5 | Implémentation minimale — sélecteur 6 états + `RedisConfigurationError` (A1) | §2, §8 | ✅ |
+| T6 | Sémantique d'erreur — fallback + warning (A2) · jamais 429 sur erreur interne (A3/A4) | §2, §8 | ✅ |
+| T7 | Fenêtres + limites contractuelles (RED 3/4) — `LIMITS` + `WINDOWS` | §4, §8 | ✅ |
+| T8 | GREEN 12/12 | §8 | ✅ |
+| T9 | Migration des anciens specs fail-closed vers A2 + `reset_storage!` | §8 | ✅ |
+| T10 | R-4 — suppression limiter parallèle + concerns + unification contrôleurs (clé `user_id`) | §8 | ✅ |
+| T11 | Régression complète | 1166/0 · 85,36 % / 60,23 % · RuboCop 0 · Zeitwerk ✓ | ✅ |
+| T12 | Hub RAG réindexé (2301 chunks) | — | ✅ |
+| T13 | PR au format maison (chaîne de preuve) + **CI 6/6** | §8 | ⬜ à faire |
+| T14 | Merge + suppression branche (auto-delete) | — | ⬜ après T13 |
+| T15 | **Vérifications Render** — REDIS_URL injectée + nombre d'instances (conditions de certification, hors dépôt) | audit §11 | ⬜ en attente humain |
+| T16 | Mise à jour des métriques (BACKLOG/README : 1166 · 85,36 % / 60,23 %) | — | ⬜ après T14 |
+| T17 | Certification finale + archivage du document (`[DONE]_`) | — | ⬜ après T15/T16 |
+| T18 | Corrections documentaires résiduelles (R-5) — README §Rate Limiting, summary RSwag « fail closed », `swagger.yaml` | audit §8 | ⬜ à arbitrer (séparé de la certification) |
+| T19 | Mémoire durable (proposition `fc08::013` — remediation FC-05) | — | ⬜ après T17 |
+
+**Résumé : T1-T12 réalisés · T13-T19 restants (T13/T14 mécaniques de PR · T15 décision humaine Render · T17-T19 certification/clôture).**
 
 ---
 
