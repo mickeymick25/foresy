@@ -40,7 +40,7 @@ sources canoniques ci-dessous. L'ancien backlog (2025-12-26) est archivé :
 | 20 | **Audit FC-05 — backend rate limiting** — **Investigation CLOSED 25/09** : 3 causes démontrées (sélecteur inconditionnel L45 · `increment!` orphelin · `LIMITS['missions']` absent) + limiter parallèle `RedisRateLimiter` sans incrément — **seuls les 3 endpoints auth limités, par processus** ; missions/CRAs/entries sans protection effective. Arbitrage CTO 25/09 : R-0 **NO GO** · R-4 **GO** architecture cible · implémentation **NO GO avant les RED** → chantier #23 · vérifications Render requises avant certification | ✅ close | audit `[DONE]_2026_09_25_fc05_rate_limiting_audit.md` (§10bis décisions CTO) · étude services §4 (C-5) · message CTO 24-25/09 |
 | 21 | **Investigation OAuth / code mort** — identifier le chemin OAuth réellement utilisé en production (`OAuthConcern` vs services `OAuth*Service`), caractériser `OAuthConcern` (~60 LOC dupliquées sans transaction ni anti-race), statuer sur son sort ; ensuite ApmService (Phase 1 : fc08::010 + historique décision APM → Phase 2 suppression mini-PR si confirmé) — **jamais avant #20** | 🟠 | étude services §4 (C-6) + §5.6 · mémoire fc08::010 · message CTO 24/09 (Investigation B) |
 | 22 | **Hardening JWT** — HS256 implicite + clé de signature = `secret_key_base` (algorithme explicite + clé dédiée) — sujet séparé, non prioritaire | 🟢 | étude services §5.7 · CTO 24/09 |
-| 23 | **FC-05 — Remediation contractuelle** — contrat v1 (A1-A9) + RED mesurés (10 documentés) → **GREEN atteint 25/09** : implémentation minimale (sélecteur 6 états · `RedisConfigurationError` · WINDOWS par endpoint · fallback Memory + warning `rate_limit.backend_fallback` · 429 uniquement sur dépassement réel) + R-4 (RedisRateLimiter et concerns supprimés, contrôleurs unifiés sur `RateLimitService`, clé `user_id`) — **régression 1166/0 · RuboCop 0 · Zeitwerk ✓** — PR + CI 6/6 + vérifications Render (REDIS_URL injectée + nb d'instances) avant certification | 🔴 | contrat `docs/technical/guides/2026_09_25_fc05_rate_limiting_contract.md` §1-§8 · audit `[DONE]_2026_09_25_fc05_rate_limiting_audit.md` |
+| 23 | **FC-05 — Remediation contractuelle** — **LIVRÉE et CERTIFIÉE (PR #56, 26/09)** : voir table « Chantiers livrés » | ✅ close | contrat `[DONE]_2026_09_25_fc05_rate_limiting_contract.md` |
 
 ## Chantiers livrés (référence)
 
@@ -49,13 +49,16 @@ sources canoniques ci-dessous. L'ancien backlog (2025-12-26) est archivé :
 | — | **Branch protection** (ex-#11 de cette table, ex-#13 de la numérotation P6) — 6 checks requis + `enforce_admins: true` sur `main` · PR de contrôle #43 (`blocked` → `clean` certifié, 6/6 SUCCESS) | 22/09/2026 | `docs/technical/[DONE]_2026_09_22_backlog13_branch_protection_tracker.md` |
 | — | **Validation de l'arbre mergé** (#12) — RED EXP-1 (2 preuves : la CI `pull_request` exécute le merge ref `b396a976` puis `8f32b7c6` après synchronize) · correction `strict: true` (UI) · GREEN comportemental (PR #48 : out-of-date bloquée malgré 6/6 verts) | 22/09/2026 | `docs/technical/[DONE]_2026_09_22_backlog12_merged_tree_tracker.md` |
 | — | **`Cra#validate_uniqueness` inerte à la création** (#14) — RED (second POST identique → 201, doublon persisté) · correction option A (garde service-level `check_duplicate_entry` dans `CraServices::Create`, pattern CraEntryServices) · GREEN (409 + un seul CRA persisté — régression permanente en place) | 22/09/2026 | `docs/technical/[DONE]_2026_09_22_backlog14_validate_uniqueness_tracker.md` |
+| — | **FC-05 Remediation contractuelle** (#23) — Investigation #20 (3 causes : sélecteur inconditionnel · `increment!` orphelin · `LIMITS['missions']` absent) → contrat v1 (A1-A9) → RED mesurés (12/10/2) → implémentation minimale → GREEN (12/12) → R-4 (limiter parallèle supprimé, contrôleurs unifiés clé `user_id`, 11 LIMITS + WINDOWS) → régression 1166/0 · Production vérifiée : REDIS_URL injectée · deploy live `3f974dc` · sondage 401×5 → 429 contrat · 0 `RedisConfigurationError` | 26/09/2026 | contrat `docs/technical/guides/[DONE]_2026_09_25_fc05_rate_limiting_contract.md` (§9 suivi T1-T19) · audit `[DONE]_2026_09_25_fc05_rate_limiting_audit.md` · PR #56 |
 
-## Métriques de qualité (état au 2026-09-22 — post PR #52, #11/#12/#14 gouvernance + invariant clos)
+## Métriques de qualité (état au 2026-09-26 — post PR #56, FC-05 remediation certifiée)
 
-- **Suite RSpec : 1155 exemples, 0 échec** (mesuré 22/09, `foresy_test`)
-- **SimpleCov : 84,40 % lignes (3127/3705) · 57,91 % branches (908/1568)** — verrou CI 72,5 armé
-- **RuboCop 0 offense · Brakeman 0 warning** (CI 6/6 sur les PRs #43-#52)
-- **Contrat système** : 4 system specs (P7 CLOSED) · **gouvernance CI** : push direct bloqué, 6 checks + branche à jour (`enforce_admins: true` + `strict: true`) · **invariant unicité créateur+mois+année protégé à la création** (#14, garde service-level)
+- **Suite RSpec : 1166 exemples, 0 échec, 0 pending** (mesuré 26/09, `foresy_test` + CI PR #56)
+- **SimpleCov : 85,36 % lignes (3091/3621) · 60,23 % branches (918/1524)** — verrou CI 72,5 armé
+- **RuboCop 0 offense (246 files) · Brakeman 0 warning** (CI 6/6 sur les PRs #54-#56)
+- **Contrat système** : 4 system specs (P7 CLOSED) · **gouvernance CI** : push direct bloqué, 6 checks + branche à jour (`enforce_admins: true` + `strict: true`) · **invariant unicité créateur+mois+année protégé à la création** (#14, garde service-level) · **FC-05** : rate limiting distribué Redis, 429 sur dépassement réel uniquement (A4), clés IP auth / user_id métier
+
+> ⚠️ **Framing (CTO 26/09)** : ces chiffres décrivent l'état de protection, pas une preuve fonctionnelle supplémentaire — la preuve de correction FC-05 est la chaîne RED mesurés → GREEN + régression complète (cf. contrat §7-§8).
 
 ## Règle anti-drift
 

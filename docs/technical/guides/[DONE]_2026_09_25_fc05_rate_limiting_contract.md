@@ -1,7 +1,7 @@
 # 📜 Contrat FC-05 — Rate Limiting (cible v1)
 
 **Date :** 25 septembre 2026
-**Statut :** ✅ **GREEN atteint (25/09)** — arbitrages A1-A9 actés · RED 1-4 mesurés (10 échecs documentés) → implémentation minimale → GREEN (12/12) · R-4 cleanup · régression **1166/0**
+**Statut :** ✅ **CERTIFIÉ (26/09)** — contrat v1 (A1-A9) · RED 1-4 mesurés (10 échecs documentés) → GREEN (12/12) · R-4 cleanup · régression **1166/0** · **production vérifiée (T15)** : REDIS_URL injectée · deploy live `3f974dc` · sondage 401×5 → 429 contrat · 0 `RedisConfigurationError` · plan free = 1 instance · métriques publiées (T16) · chaîne **#20 → #23 → RED → GREEN → certification** close
 **Chantier :** BACKLOG **#23** (Remediation contractuelle FC-05 — Investigation CLOSED, cf. `[DONE]_2026_09_25_fc05_rate_limiting_audit.md`)
 **Specs :** `spec/services/rate_limit_service_contract_spec.rb`
 
@@ -136,14 +136,14 @@ Exemples verts (2) — comportements actuels figés en régression : état 1 (Me
 | T11 | Régression complète | 1166/0 · 85,36 % / 60,23 % · RuboCop 0 · Zeitwerk ✓ | ✅ |
 | T12 | Hub RAG réindexé (2301 chunks) | — | ✅ |
 | T13 | PR #56 ouverte (chaîne de preuve) + **CI 6/6 verts** — run 36233661450 (ea2a8511) ; incident Setup database du run 373 = transitoire (même step vert au re-run, sans changement de code) | §8 | ✅ |
-| T14 | Merge + suppression branche (auto-delete) | — | ⬜ après T13 |
-| T15 | **Vérifications Render** — REDIS_URL injectée + nombre d'instances (conditions de certification, hors dépôt) | audit §11 | ⬜ en attente humain |
-| T16 | Mise à jour des métriques (BACKLOG/README : 1166 · 85,36 % / 60,23 %) | — | ⬜ après T14 |
-| T17 | Certification finale + archivage du document (`[DONE]_`) | — | ⬜ après T15/T16 |
-| T18 | Corrections documentaires résiduelles (R-5) — README §Rate Limiting, summary RSwag « fail closed », `swagger.yaml` | audit §8 | ⬜ à arbitrer (séparé de la certification) |
-| T19 | Mémoire durable (proposition `fc08::013` — remediation FC-05) | — | ⬜ après T17 |
+| T14 | Merge PR #56 — `3f974dc2` sur main (5 commits, +568/−529) · branche auto-supprimée · arbre conforme | Règle 5 | ✅ |
+| T15 | **Vérifications Render** — `REDIS_URL` présente (dashboard, humain) · **plan free = 1 instance** (contexte de risque : l'ancien défaut per-process n'a jamais eu d'effet multi-instance réel, risque éliminé par le distribué) · **Event deploy live `3f974dc` 12:18** (merge 12:17) → sondage post-déploiement attribuable : 401×5 → 429 contrat · 0 `RedisConfigurationError` — preuve **comportementale, limitée à ce scénario** (ne remplace pas les RED de #23) | audit §11 | ✅ |
+| T16 | **Métriques publiées** (BACKLOG/README) : 1166/0 · 85,36 % lignes (3091/3621) · 60,23 % branches (918/1524) · RuboCop 246 files 0 · verrou 72,5 ✓ — *framing CTO : état de protection, pas preuve fonctionnelle* | BACKLOG §Métriques | ✅ |
+| T17 | **Certification** — document archivé `[DONE]_` · BACKLOG #23 fermé (chantiers livrés) · traçabilité #20 → #23 → RED → GREEN → certification conservée | — | ✅ |
+| T18 | Corrections documentaires résiduelles (R-5) — README §Rate Limiting, summary RSwag « fail closed », `swagger.yaml` | audit §8 | ⬜ à arbitrer (après certification) |
+| T19 | Mémoire durable (proposition `fc08::013` — remediation FC-05) | — | ⬜ après T18 |
 
-**Résumé : T1-T12 réalisés · T13-T19 restants (T13/T14 mécaniques de PR · T15 décision humaine Render · T17-T19 certification/clôture).**
+**Résumé : T1-T17 réalisés — FC-05 remediation CERTIFIÉE · T18/T19 restants (hors périmètre de la certification, ordre CTO).**
 
 ---
 
