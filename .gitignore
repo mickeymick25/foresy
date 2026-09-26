@@ -53,6 +53,9 @@ yarn-debug.log*
 # Ignore coverage reports
 /coverage/
 
+# Ignore CI test artifacts (RSpec JUnit — généré par la CI, jamais tracké)
+/rspec.xml
+
 # Ignore Mac system files
 .DS_Store
 
