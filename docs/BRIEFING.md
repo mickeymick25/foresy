@@ -20,20 +20,20 @@
 - **Ruby Version**: 3.4.8
 - **Environment**: Docker Compose (non-optional, mandatory)
 - **Status**: ✅ **FC-06 Missions · FC-07 CRA · FC-08 Companies TERMINÉS** — campagne P6/P7 CLOSED · **FC-05 remediation certifiée** (26/09, PR #56 — rate limiting distribué Redis, 429 sur dépassement réel uniquement)
-- **Current Feature**: retour aux chantiers du backlog transverse — **#21 Investigation OAuth** (prochain gate) puis **#19 qualification métier par preuve** (décision CTO 26/09) · FC-09 ⏸️ en attente
+- **Current Feature**: retour aux chantiers du backlog transverse — **#21 CLOSED (26/09, merge `cc0242a2`)** · chantiers suivants : **#24 qualification ledger** / **#25 correction BRIEFING** (selon priorité), puis **#19 qualification métier par preuve** (décision CTO 26/09) · FC-09 ⏸️ en attente
 - **Previous**: Campagne P6/P7 (sept 2026) — 3 bugs production découverts et corrigés par RED démontré (GET /cras 500 · ISO3166 · mission_id perdu · invariant unicité inerte)
 - **Gouvernance CI (sept 2026)**: push direct sur main **bloqué** (GH006 ×2) · 6 checks requis (`enforce_admins: true`) · branche à jour obligatoire (`strict: true`) · merge result testé (EXP-1, 2 preuves)
 
 ### Quality Metrics (Sept 2026) — mesuré 26/09, `foresy_test` + CI PR #56
-- **RSpec Tests**: ✅ **1166 examples, 0 failures** — dont les **régressions permanentes** : invariant unicité créateur+mois+année (#14) · **contrat FC-05 (RED 1-4 devenus GREEN)**
+- **RSpec Tests**: ✅ **1132 examples, 0 failures** (26/09, post close-out #21 — −34 specs du code mort APM) — dont les **régressions permanentes** : invariant unicité créateur+mois+année (#14) · **contrat FC-05 (RED 1-4 devenus GREEN)**
 - **Rswag Swagger**: ✅ **429 examples** — audit 35/35 routes, `swagger.yaml` généré
-- **RuboCop**: ✅ **246 files inspected, 0 offenses**
+- **RuboCop**: ✅ **243 files inspected, 0 offenses**
 - **Brakeman**: ✅ **0 Security Warnings** (mode strict)
-- **Couverture (SimpleCov)**: 📊 **85,36 % lignes (3091/3621) / 60,23 % branches (918/1524)** — verrou 72,5 armé dans le processus réel
+- **Couverture (SimpleCov)**: 📊 **86,22 % lignes (2992/3470) / 60,80 % branches (872/1434)** — corpus post-cleanup #21, verrou 72,5 armé dans le processus réel
 - **Gouvernance CI (P6/P7)**: ✅ push direct bloqué (GH006 ×2) · 6 checks requis (`enforce_admins: true`) · branche à jour (`strict: true`) · merge result testé (EXP-1)
 - **CI/CD**: ✅ 6/6 jobs verts — E2E bloquant dans la Quality Gate
-- **Campagnes**: ✅ P6 (Waves 1-4 + P6.6 CLOSED) · P7 (System Specs API — contrat système, 4 specs) · #11/#12/#14 (gouvernance + invariant, 3 défauts réels corrigés)
-- **Déttes tracées** : BACKLOG #13 (RSwag `name`) · #14 (livré) · Wave 4.5 (~280 lignes, distinct) · #7 (alerting) · #8 (link-rot)
+- **Campagnes**: ✅ P6 (Waves 1-4 + P6.6 CLOSED) · P7 (System Specs API — contrat système, 4 specs) · #11/#12/#14 (gouvernance + invariant, 3 défauts réels corrigés) · **#21 CLOSED (OAuth / code mort — O-1/O-2, arbitrage régularisé, mémoire fc08::014)**
+- **Déttes tracées** : BACKLOG #13 (RSwag `name`) · #14 (livré) · Wave 4.5 (~280 lignes, distinct) · #7 (alerting) · #8 (link-rot) · **#24 (ledger réel à qualifier)** · **#25 (commande BRIEFING)**
 
 ### Historical Metrics (Jan 2026) — état figé, cf. timeline ci-dessous
 **Migration DDD/RDD Architecture Complétée (27-28 Janvier 2026)**
@@ -608,7 +608,7 @@ Foresy/
 
 ### Chantiers ACTUELS (état 26/09/2026 — source canonique : `docs/BACKLOG.md`, règle anti-drift)
 - ✅ **FC-05 Rate Limiting remediation CERTIFIÉE** (PR #56 — contrat → RED mesurés (12/10/2) → GREEN → R-4 → Render vérifié · mémoire fc08::013)
-- 🟠 **#21 Investigation OAuth** (prochain gate CTO) puis **#19 qualification métier par preuve**
+- ✅ **#21 Investigation OAuth CLOSED** (26/09, merge `cc0242a2` — O-1 `OAuthConcern` + O-2 `ApmService` supprimés, arbitrage régularisé trace §6, mémoire fc08::014) · chantiers suivants : 🟠 **#24 qualification ledger** · 🟢 **#25 correction BRIEFING** · puis **#19 qualification métier par preuve**
 - 🟠 #17 Swagger export CSV · #13 divergence `name` · #16 Postman FC-08 · 🟢 #22 JWT · #15 Wave 4.5 · #8 link-rot · #9 performance · #10 monitoring
 - FC-09 ⏸️ en attente (décision CTO — valeur produit/risque, jamais sur un pourcentage)
 

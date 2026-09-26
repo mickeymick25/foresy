@@ -24,8 +24,9 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 - **Feature Contract 07 (CRA)** : ✅ 100% TERMINÉ — TDD PLATINUM + Filtering + CSV Export
 - **Feature Contract 08 (Companies & User-Company)** : ✅ TERMINÉ — CRUD, onboarding atomique, SIREN obligatoire, soft delete (PR #24)
 - **Architecture** : ✅ DDD/RDD finalisée — relations via tables pivot, plus de FK directes
+- **#21 Investigation OAuth / code mort** : ✅ **CLOSED (26/09)** — `OAuthConcern` (111 LOC, 0 appelant) et `ApmService` (254 LOC + 34 specs) supprimés (O-1/O-2, code mort démontré) — arbitrage régularisé après commits (trace §6), merge `cc0242a2`
 - **Dette D-1→D-11** : ✅ **100 % fermée** (vague corrective PR #25-#29) — A6 close, D-11 résolue, D-12 (E2E shell CI) tracée au registre
-- **Couverture** : 📊 SimpleCov **85.36 % lignes / 60.23 % branches** (3091/3621 · 918/1524) — suite 1166 verts, verrou 72,5 armé dans le processus RSpec réel, rapport HTML + Cobertura XML
+- **Couverture** : 📊 SimpleCov **86.22 % lignes / 60.80 % branches** (2992/3470 · 872/1434) — suite 1132 verts (−34 specs du code mort APM), verrou 72,5 armé dans le processus RSpec réel, rapport HTML + Cobertura XML
 - **Sécurité** : ✅ JWT stateless, OAuth Google/GitHub, 0 vulnérabilité bundle audit
 - **Contrat d'erreur** : ✅ Format unifié `{ code, message, details }` sur tous les endpoints
 
@@ -41,6 +42,7 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 | **v0.1.2** | **19-21 Sept 2026** | **1150** | **Campagne P6 : Waves 1-4 + hygiène documentaire + P6.6 CLOSED — 2 bugs prod corrigés, 144 specs (PR #35-#41)** |
 | **v0.1.3** | **21-22 Sept 2026** | **1154** | **P7 System Specs API CLOSED — contrat système, bug de composition mission_id corrigé (PR #42)** |
 | **v0.1.4** | **26 Sept 2026** | **1166** | **FC-05 Rate Limiting remediation — contrat → RED mesurés (10) → GREEN → R-4 (limiter parallèle supprimé, backend distribué) (PR #56)** |
+| — | 26 Sept 2026 | 1132 | #21 OAuth CLOSED — O-1 `OAuthConcern` + O-2 `ApmService` supprimés (code mort démontré, −365 LOC, −34 specs) · arbitrage régularisé après commits (§6) · close-out (rspec.xml, BACKLOG, mémoire fc08::014) |
 
 ### 🏆 Certifications & Standards
 - **TDD PLATINUM** : Domaine CRA auto-défensif, cycle RED → GREEN → REFACTOR par tâche
@@ -155,14 +157,14 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 ## 🧪 Tests & Qualité
 
 ### Statistiques Actuelles (Septembre 2026)
-- **Tests RSpec** : ✅ **1166 examples, 0 failures, 0 pending**
+- **Tests RSpec** : ✅ **1132 examples, 0 failures, 0 pending** (26/09, post close-out #21 — −34 specs du code mort APM)
 - **Tests Rswag** : ✅ **429 examples** — audit 35/35 routes
-- **RuboCop** : ✅ **246 files, 0 offenses**
+- **RuboCop** : ✅ **243 files, 0 offenses**
 - **Brakeman** : ✅ **0 Security Warnings** (mode strict — tout warning non ignoré échoue)
 - **Bundle audit** : ✅ **0 vulnerabilities** (Rails 8.1.3.1, puma 8.0.2)
 - **Smoke tests E2E** : ✅ **15/15 passed**
 - **GitLedger integration** : ✅ **23 tests** (intégration 13 + sécurité injection 10, env isolé)
-- **Couverture (SimpleCov)** : 📊 **85.36 % lignes (3091/3621) / 60.23 % branches (918/1524)** — rapport HTML + Cobertura XML
+- **Couverture (SimpleCov)** : 📊 **86.22 % lignes (2992/3470) / 60.80 % branches (872/1434)** — rapport HTML + Cobertura XML
 - **CI/CD** : ✅ **6/6 jobs verts, 0 annotation** — E2E bloquant dans la Quality Gate, Brakeman strict, gate DDD explicite
 
 ### 📈 Évolution des Métriques de Tests
