@@ -2,8 +2,9 @@
 
 **Date :** 26 septembre 2026
 **Auteur :** Zed Agent (Investigation B — BACKLOG **#21**, GO CTO 26/09, cadrage renforcé)
-**Statut :** ✅ Investigation terminée — **aucune modification de code** — chaîne falsifiable produite
+**Statut :** ✅ Investigation terminée — **aucune modification de code pendant l'investigation** — chaîne falsifiable produite
 (chemin réel → appelants → faits démontrés → écarts éventuels → causes → impact → arbitrage CTO)
+**Arbitrage CTO (26/09, rendu après les commits de cleanup — régularisation de séquence) :** O-1 **GO** · O-2 **GO** · revert **NO GO** · merge **différé** (close-out + CI verte) — trace complète en §6
 **Périmètre :** `app/concerns/o_auth_concern.rb` · `app/controllers/api/v1/oauth_controller.rb` ·
 `app/services/o_auth_{code_exchange,token,user,validation}_service.rb` · routes · appelants ·
 `app/services/apm_service.rb` (uniquement après l'établissement du chemin OAuth)
@@ -169,6 +170,43 @@ des codes morts est une décision de nettoyage arbitrée, pas un correctif.
 
 ---
 
+## 6. Arbitrage CTO & régularisation de séquence — close-out (26/09)
+
+**Arbitrage rendu après les commits** : les cleanups `5a2009ea` (O-1) et `789db3c2` (O-2) ont été
+produits **avant** l'arbitrage explicite du CTO. Le CTO acte :
+
+- **GO sur le fond O-1 + O-2** — 0 appelant ×2 démontré, impact production nul, preuves §1-§2 (re-vérifiées
+  à froid : grep à la révision pré-cleanup + lectures directes) ;
+- **revert NO GO** — branche non mergée, changements qualifiés, un revert ne créerait que du bruit Git
+  sans bénéfice technique ;
+- **écart de séquence reconnu et non réécrit** — l'arbitrage formel O-1/O-2 intervient **après** les
+  commits de cleanup ; la présente section en constitue la trace de gouvernance.
+- **Pas de contrat/RED OAuth justifié** : l'impact de la duplication est démontré nul (chemin risqué mort) —
+  les seuls RED utilisés sont des RED de non-régression des cleanups (61 examples OAuth verts ; suite 1132/0,
+  artefacts de session des runs des commits, non re-exécutés à la régularisation).
+
+**Anomalie d'hygiène corrigée au close-out** : O-2 a accidentellement tracké `rspec.xml` (artefact JUnit
+de CI, +968 lignes, première apparition dans l'historique git via ce commit) — retiré (convention :
+artefact non tracké, cf. trackers P6 Waves) + règle `.gitignore` ajoutée.
+
+**Close-out (26/09)** : retrait `rspec.xml` + règle `.gitignore` · git grep final · suite complète **1132/0**
+(6 min 05 s, seed 47400) · Zeitwerk OK · RuboCop **243 files / 0 offense** · SimpleCov **86,22 % lignes
+(2992/3470) / 60,80 % branches (872/1434)** — corpus post-cleanup, verrou 72,5 tenu · BACKLOG resynchronisé
+(1166 → 1132) · préfixe `[DONE]_` appliqué · PR vers `main` (merge différé à CI verte — gouvernance :
+6 checks requis + branche à jour).
+
+**Incident d'invocation tracé (26/09)** : le premier run « suite complète » du close-out a été lancé sur le
+service `web` du compose (`RAILS_ENV: development`, base `foresy_development`) au lieu du service `test`
+(`RAILS_ENV: test`, base `foresy_test`). Conséquence : `Rails.env.test?` faux → guard GitLedger court-circuité
+vers le chemin réel malgré les stubs ENV → **3 faux échecs INV-D12-01** + **commits réels de données de test
+écrits dans le ledger** (`cra-ledger`). Relance sur le service `test` → **1132/0** (seed 47400). La commande
+canonique du BRIEFING (`docker-compose run --rm web bundle exec rspec`) pointe le service de développement —
+drift documentaire à corriger. Pollution du ledger quantifiée : 21 commits réels depuis le 17/09 (dont les
+runs du 26/09, close-out inclus) — **à arbitrer CTO avant tout nettoyage** (certains commits peuvent être
+des E2E légitimes, cf. D-12).
+
+---
+
 **Document créé le :** 26 septembre 2026
 **Propriétaire :** Équipe technique Foresy
-*Convention : préfixe `[DONE]_` à l'issue de l'arbitrage CTO (O-1/O-2) et de l'éventuel cleanup.*
+*Préfixe `[DONE]_` appliqué au close-out du 26/09 (arbitrage O-1/O-2 + cleanup + régularisation §6).*
