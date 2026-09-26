@@ -135,7 +135,7 @@ Exemples verts (2) — comportements actuels figés en régression : état 1 (Me
 | T10 | R-4 — suppression limiter parallèle + concerns + unification contrôleurs (clé `user_id`) | §8 | ✅ |
 | T11 | Régression complète | 1166/0 · 85,36 % / 60,23 % · RuboCop 0 · Zeitwerk ✓ | ✅ |
 | T12 | Hub RAG réindexé (2301 chunks) | — | ✅ |
-| T13 | PR au format maison (chaîne de preuve) + **CI 6/6** | §8 | ⬜ à faire |
+| T13 | PR #56 ouverte (chaîne de preuve) + **CI 6/6 verts** — run 36233661450 (ea2a8511) ; incident Setup database du run 373 = transitoire (même step vert au re-run, sans changement de code) | §8 | ✅ |
 | T14 | Merge + suppression branche (auto-delete) | — | ⬜ après T13 |
 | T15 | **Vérifications Render** — REDIS_URL injectée + nombre d'instances (conditions de certification, hors dépôt) | audit §11 | ⬜ en attente humain |
 | T16 | Mise à jour des métriques (BACKLOG/README : 1166 · 85,36 % / 60,23 %) | — | ⬜ après T14 |
