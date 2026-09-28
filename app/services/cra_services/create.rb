@@ -52,24 +52,29 @@ class CraServices
       permission_check = check_user_permissions
       return permission_check if permission_check.failure?
 
-      # Duplicate check (BACKLOG #14 — l'invariant créateur+mois+année n'est pas protégé
-      # par le garde modèle à la création : le pivot user_cras n'existe pas encore à ce stade)
-      duplicate_check = check_duplicate_entry
-      return duplicate_check if duplicate_check&.failure?
+      # BACKLOG #26 (R-1) — sérialisation concurrentielle de l'invariant #14
+      # (créateur, mois, année) : advisory lock transactionnel ACQUIS AVANT la garde,
+      # dans la MÊME transaction que l'insert (contrat : lock → check → insert).
+      ActiveRecord::Base.transaction do
+        take_race14_lock!
 
-      # Build CRA
-      build_result = build_cra
-      return build_result if build_result.failure?
+        duplicate_check = check_duplicate_entry
+        return duplicate_check if duplicate_check&.failure?
 
-      # Save CRA
-      save_result = save_cra(build_result.data[:cra])
-      return save_result if save_result.failure?
+        # Build CRA
+        build_result = build_cra
+        return build_result if build_result.failure?
 
-      # Success
-      ApplicationResult.success(
-        data: { cra: save_result.data[:cra] },
-        message: 'CRA created successfully'
-      )
+        # Save CRA
+        save_result = save_cra(build_result.data[:cra])
+        return save_result if save_result.failure?
+
+        # Success
+        ApplicationResult.success(
+          data: { cra: save_result.data[:cra] },
+          message: 'CRA created successfully'
+        )
+      end
     rescue StandardError => e
       Rails.logger.error "CraServices::Create error: #{e.message}" if defined?(Rails)
       ApplicationResult.internal_error(
@@ -209,6 +214,15 @@ class CraServices
         error: :cra_already_exists,
         message: 'A CRA already exists for this user, month, and year'
       )
+    end
+
+    # BACKLOG #26 (R-1) — advisory lock transactionnel de la section critique
+    # (créateur, mois, année). Clé dérivée déterministe, distincte par utilisateur
+    # et par période (bornée par validate_date_range) ; libéré à COMMIT/ROLLBACK.
+    # Contrat A3 : le lock PRÉCÈDE la garde (lock → check → insert, CTO 26/09).
+    def take_race14_lock!
+      key = (current_user.id * 1_000_000) + ((cra_params[:year].to_i - 2000) * 100) + cra_params[:month].to_i
+      ActiveRecord::Base.connection.select_value("SELECT pg_advisory_xact_lock(#{key})")
     end
 
     # === Build ===
