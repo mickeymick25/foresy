@@ -89,3 +89,12 @@ Close-out : artefact `rspec.xml` retiré, suite **1132/0**, Zeitwerk OK, RuboCop
 La commande canonique du BRIEFING pointe actuellement le mauvais service. Il existe donc une divergence documentation ↔ environnement d'exécution, à corriger dans une passe documentaire dédiée. Ce motif rejoint, au niveau méthodologique, celui observé pendant FC-05 : une divergence entre le chemin documenté et le chemin réellement exécuté doit être démontrée avant correction.
 
 Référence : `docs/technical/audits/[DONE]_2026_09_26_oauth_investigation.md` (§6 régularisation + incident) · commits `aff7ca6a`/`5a2009ea`/`789db3c2`/`792e9ff1`/`30a244c4` · BACKLOG #21 close + #24/#25 ouverts.
+
+## fc08::015
+<!-- created: 2026-09-26 -->
+<!-- validated: 2026-09-26 (CTO) -->
+**#19 P0 reachability (26/09)** — Mécanisme C-1/C-2 présent au code (rescue **dans** le bloc transaction + `return` = commit sans pivot) mais **conditions d'échec pivot toutes fermées** — gardes service (`current_user` persisté, indépendant garanti par `exists?`), UUID frais excluant les index uniques partiels « creator », FK/index/NOT NULL/enum levant des exceptions **non rescuées** → rollback sain ; aucun chemin applicatif de suppression user (seul `__test_support__` e2e, verrouillé prod). Résultat : **aucun P0 démontré** — C-1/C-2 requalifiés 🟡 dette architecturale latente, correction **NO GO** (pas de bénéfice prod démontré ; remède structurel documenté : rescues hors bloc, pattern `lifecycle.rb`/`CompanyServices::Create`). Atteignable : UX 500 (`client_company_id` inconnu → FK violation, données intègres) → BACKLOG #27 ; RuntimeError défensif → 500 (observation secondaire). Observation : garde #14 = SELECT sans contrainte DB possible (lien créateur = pivot créé après l'insert ; `Cra#validate_uniqueness` inerte à la création) → race concurrente possible → BACKLOG #26 (5 points à démontrer : garde traversée simultanément · transactions poursuivies · absence de protection concurrente modèle/schéma · deux CRAs persistés · violation du contrat #14).
+
+**Leçon** : la preuve peut aussi conclure qu'un problème supposé n'est **pas** un bug — l'analyse pivot/FK/index a inversé le framing P0 de l'étude 24/09 ; un remède structurel ne se justifie que par un bénéfice de production démontré. Les trois statuts (mécanisme dangereux non atteignable · anomalie atteignable · observation adjacente) doivent rester distincts dans tout audit.
+
+Référence : `docs/technical/audits/[DONE]_2026_09_26_19_p0_reachability_investigation.md` · commit `28b73147` · BACKLOG #19 (clause close) · #26/#27 ouverts.
