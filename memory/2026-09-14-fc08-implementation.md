@@ -98,3 +98,14 @@ Référence : `docs/technical/audits/[DONE]_2026_09_26_oauth_investigation.md` (
 **Leçon** : la preuve peut aussi conclure qu'un problème supposé n'est **pas** un bug — l'analyse pivot/FK/index a inversé le framing P0 de l'étude 24/09 ; un remède structurel ne se justifie que par un bénéfice de production démontré. Les trois statuts (mécanisme dangereux non atteignable · anomalie atteignable · observation adjacente) doivent rester distincts dans tout audit.
 
 Référence : `docs/technical/audits/[DONE]_2026_09_26_19_p0_reachability_investigation.md` · commit `28b73147` · BACKLOG #19 (clause close) · #26/#27 ouverts.
+
+## fc08::016
+<!-- created: 2026-09-26 -->
+<!-- validated: 2026-09-26 (CTO) -->
+**#26 — race #14 reproduite le 26/09 : 5/5, déterministe.** La garde SELECT ne bénéficie d'aucune contrainte DB ou sérialisation concurrente ; le lien créateur étant créé après l'insert, deux transactions peuvent franchir simultanément la garde et persister deux CRAs pour le même créateur/mois/année, puis provoquer le verrou fonctionnel 409. Leçon : un SELECT de garde applicatif ne garantit pas un invariant sous concurrence sans mécanisme de sérialisation. Démonstration par barrière déterministe. Remède retenu : advisory lock transactionnel R-1 ; R-2/R-3 écartés pour cette correction.
+
+**Distinction (CTO)** : #14 était un invariant applicatif nominal ; #26 démontre qu'il n'est **pas** un invariant concurrentiel.
+
+**Arbitrage 26/09** : qualification VALIDÉE (bug confirmé de concurrence, violation mesurée du contrat #14) · R-1 GO — le lock doit précéder la garde et vivre dans la MÊME transaction que l'insert (lock → check → insert, sinon la fenêtre TOCTOU subsiste) · R-2 NO GO (tension avec l'architecture pivot) · R-3 NO GO (mécanisme surdimensionné) · chaîne autorisée : contrat #14 renforcé → RED concurrentiel → R-1 minimal → GREEN → suite complète → certification → documentation → Hub.
+
+Référence : `docs/technical/audits/2026_09_26_26_race14_concurrency_investigation.md` · commit `0cdd946b` · BACKLOG #26.

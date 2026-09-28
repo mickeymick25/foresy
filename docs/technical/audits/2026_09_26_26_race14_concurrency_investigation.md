@@ -3,8 +3,9 @@
 **Date :** 26 septembre 2026
 **Auteur :** Zed Agent (BACKLOG **#26** — investigation séparée issue de #19, arbitrage CTO 26/09)
 **Statut :** ✅ Investigation terminée — scénario **reproduit de façon déterministe** — **5/5 points démontrés** —
-qualification **proposée : bug confirmé de concurrence** — **arbitrage CTO en attente** (aucune correction de code,
-aucun RED, aucun contrat à ce stade)
+qualification **VALIDÉE CTO 26/09 : bug confirmé de concurrence** (violation mesurée du contrat #14) —
+remède **R-1 GO** (advisory lock transactionnel, lock **avant** la garde, même transaction) · R-2/R-3 **NO GO** —
+chaîne TDD lancée : contrat #14 renforcé → RED concurrentiel → R-1 minimal → GREEN → suite complète → certification
 **Périmètre :** `CraServices::Create#check_duplicate_entry` (garde SELECT) · `Cra#validate_uniqueness` ·
 `db/schema.rb` (cras, user_cras) · expérience de concurrence orchestrée (conteneur `test`, base jetable `foresy_test`)
 **Cadrage CTO (#26)** : caractériser le scénario concurrent → déterminer s'il est reproductible → démontrer ou
@@ -26,8 +27,10 @@ réfuter la violation de l'invariant → mesurer l'impact → arbitrage → **se
 
 **Conclusion (constat)** : la race est **réelle, atteignable et reproduite** — le garde applicatif (SELECT
 pré-build) n'est couvert par **aucun mécanisme de sérialisation** ; la fenêtre TOCTOU (check-then-act) est
-ouvert entre le SELECT et l'INSERT. Qualification proposée : **bug confirmé de concurrence** (viol contractuel
-démontré), arbitrage CTO requis avant tout RED/correction.
+ouverte entre le SELECT et l'INSERT. **Qualification VALIDÉE (CTO 26/09) : bug confirmé de concurrence**
+(viol contractuel démontré). **Distinction à conserver (CTO)** : #14 était un invariant **applicatif nominal** ;
+#26 démontre qu'il n'est **pas** un invariant **concurrentiel** — conclusion plus forte que la simple présence
+d'une TOCTOU. Remède : **R-1 GO** (lock avant garde, même transaction) · R-2/R-3 **NO GO**.
 
 ---
 
