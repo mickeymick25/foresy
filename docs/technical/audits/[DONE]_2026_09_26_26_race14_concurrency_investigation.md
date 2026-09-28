@@ -142,4 +142,4 @@ prototype) → correction minimale → GREEN → régression complète.
 
 **Document créé le :** 26 septembre 2026
 **Propriétaire :** Équipe technique Foresy
-*Préfixe `[DONE]_` à appliquer à l'issue de l'arbitrage CTO (qualification + éventuel contrat/correction).*
+**Certifié 26/09** : qualification VALIDÉE · R-1 livrée (RED mesuré → GREEN ×2 · suite 1133/0 · contrat `[DONE]_2026_09_26_14_invariant_concurrent_contract.md` T1-T8 ✅) — préfixe `[DONE]_` appliqué.

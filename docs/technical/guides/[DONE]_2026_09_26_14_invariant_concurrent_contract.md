@@ -2,7 +2,7 @@
 
 **Date :** 26 septembre 2026
 **Chantier :** BACKLOG **#26** (race #14 — investigation `2026_09_26_26_race14_concurrency_investigation.md`)
-**Statut :** v1.0 — **arbitrage CTO 26/09 : qualification VALIDÉE (bug confirmé de concurrence) · R-1 GO · R-2/R-3 NO GO** · chaîne : RED concurrentiel → R-1 minimal → GREEN → certification
+**Statut :** v1.0 **CERTIFIÉ (26/09)** — qualification VALIDÉE (bug confirmé de concurrence) · R-1 GO · R-2/R-3 NO GO · chaîne **exécutée** : RED mesuré → R-1 implémentée → GREEN ×2 → suite 1133/0 → Zeitwerk/RuboCop 0
 **Discipline :** RED mesuré avant implémentation · pas de breaking change · pas d'évolution de schéma
 **Distinction (CTO)** : #14 était un invariant **applicatif nominal** ; #26 démontre qu'il n'est **pas** un invariant **concurrentiel**.
 
@@ -40,19 +40,21 @@ La même spec passe : **1 success + 1 conflict** — le second appel, bloqué su
 premier, exécute sa garde **après** le commit → voit le CRA existant → **409 contractuel** ; exactement
 1 CRA persisté. La sérialisation est **déterministe** (le lock, pas le timing).
 
-## 5. Suivi T1-T9
+## 5. Suivi T1-T9 — CERTIFIÉ 26/09
 
 | # | Étape | Statut |
 |---|---|---|
-| T1 | Contrat v1 écrit (ce document) | ⬜ |
-| T2 | Spec contractuelle + **RED concurrentiel mesuré** | ⬜ |
-| T3 | Implémentation R-1 minimale (`CraServices::Create`) | ⬜ |
-| T4 | GREEN concurrentiel | ⬜ |
-| T5 | Suite complète ≥ 1133/0 + verrou 72,5 | ⬜ |
-| T6 | Zeitwerk OK + RuboCop 0 | ⬜ |
-| T7 | BACKLOG #26 close + métriques README/BRIEFING 1133 | ⬜ |
-| T8 | Docs `[DONE]_` (contrat + audit #26) | ⬜ |
-| T9 | Merge → hub réindexé (doc + mémoire fc08::016 servis) | ⬜ |
+| T1 | Contrat v1 écrit (ce document) | ✅ |
+| T2 | Spec contractuelle + **RED concurrentiel mesuré** : `expected 1, got 2` (2 CRAs, 2 success — seed 1699) | ✅ |
+| T3 | Implémentation R-1 minimale : `take_race14_lock!` — `pg_advisory_xact_lock(user_id, year, month)` AVANT la garde, même transaction (`cra_services/create.rb`) | ✅ |
+| T4 | GREEN concurrentiel **×2** (seeds 16729 / 28994) : 1 success + 1 conflict `:cra_already_exists`, exactement 1 CRA | ✅ |
+| T5 | Suite complète **1133/0** (seed 11258, 8 min 40 s) — couverture **86,24 % lignes (2997/3475) / 60,88 % branches (873/1434)**, verrou 72,5 tenu | ✅ |
+| T6 | Zeitwerk OK · RuboCop **0 offense (244 files)** | ✅ |
+| T7 | BACKLOG #26 close + métriques README/BRIEFING 1133 | ✅ |
+| T8 | Docs `[DONE]_` (contrat + audit #26) | ✅ |
+| T9 | Merge → hub réindexé (doc + mémoire fc08::016 servis) | ⬜ post-merge |
+
+**Notes** : warnings `unknown OID 2278` (pg_advisory_xact_lock traité comme String par AR) — bénins, sans impact ; autocorrect RuboCop limité à une newline finale (mécanique, sémantique inchangée — GREEN mesuré sur le contenu identique).
 
 ---
 
