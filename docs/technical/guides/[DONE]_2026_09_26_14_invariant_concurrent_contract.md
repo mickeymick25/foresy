@@ -55,6 +55,7 @@ premier, exécute sa garde **après** le commit → voit le CRA existant → **4
 | T9 | Merge → hub réindexé (doc + mémoire fc08::016 servis) | ⬜ post-merge |
 
 **Notes** : warnings `unknown OID 2278` (pg_advisory_xact_lock traité comme String par AR) — bénins, sans impact ; autocorrect RuboCop limité à une newline finale (mécanique, sémantique inchangée — GREEN mesuré sur le contenu identique).
+**Durcissement Brakeman (26/09, post-CI rouge)** : `take_race14_lock!` via `sanitize_sql_array` (aucune interpolation brute — Brakeman SQL Injection High levée puis levée à 0 warning) — **re-mesuré** : spec GREEN (seed 10164) · Brakeman **0 warning** · RuboCop 0 · suite complète **1133/0** (seed 34758) · couverture **86,25 % lignes (2998/3476) / 60,88 %** — mécanisme et contrat inchangés.
 
 ---
 

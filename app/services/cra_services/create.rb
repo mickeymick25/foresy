@@ -220,9 +220,11 @@ class CraServices
     # (créateur, mois, année). Clé dérivée déterministe, distincte par utilisateur
     # et par période (bornée par validate_date_range) ; libéré à COMMIT/ROLLBACK.
     # Contrat A3 : le lock PRÉCÈDE la garde (lock → check → insert, CTO 26/09).
+    # SQL via sanitize_sql_array (aucune interpolation brute — Brakeman strict, A9).
     def take_race14_lock!
       key = (current_user.id * 1_000_000) + ((cra_params[:year].to_i - 2000) * 100) + cra_params[:month].to_i
-      ActiveRecord::Base.connection.select_value("SELECT pg_advisory_xact_lock(#{key})")
+      sql = ApplicationRecord.sanitize_sql_array(['SELECT pg_advisory_xact_lock(?)', key])
+      ActiveRecord::Base.connection.select_value(sql)
     end
 
     # === Build ===
