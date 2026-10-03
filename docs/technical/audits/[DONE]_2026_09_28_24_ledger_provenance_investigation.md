@@ -2,10 +2,10 @@
 
 **Date :** 28 septembre 2026 (horodatage git-clock hôte — cf. écart de datation tracé au tracker #26 §4)
 **Auteur :** Zed Agent (BACKLOG **#24** — « Qualification ledger réel », création 26/09, GO CTO)
-**Statut :** ✅ Investigation terminée — **réconciliation intégrale produite : 23 SHA → 23 lignes → 23
-caractérisations (§3) — validation CTO requise avant statut « démontrée » — puis arbitrage de traitement**
-(lecture seule, aucune modification — verrou : aucun nettoyage/rebase/filter-branch/réécriture avant
-arbitrage) · **suivi d'avancement des sujets : §6** (traité / non traité / non bloquant)
+**Statut :** ✅ **Investigation + traitement traité et certifié (2026-10-03)** — réconciliation VALIDÉE CTO
+(23 SHA → 23 lignes, §3 · S-9 comptage écart expliqué) → arbitrage O-B GO → **purge exécutée via le
+mécanisme supporté** (`cleanup!` dev-only → re-init : 23 → 1 commit) → vérifications complètes §5.1 →
+**#24 CLOSED** · suivi d'avancement : §6
 **Périmètre :** dépôt local `cra-ledger/` (LEDGER_PATH du développement) · `git_ledger_repository.rb` ·
 `git_ledger_service.rb` · écrivains `GIT_LEDGER_REAL` (scripts, specs, CI) · corrélations temporelles avec
 les sessions du dépôt principal.
@@ -103,6 +103,19 @@ assertion du hash fake ⇒ les 3 échecs observés ; les autres (lignes 11, 15-2
 | **O-B — Purge locale via le mécanisme supporté** (dev only) : `GitLedgerRepository.cleanup!` en environnement développement → `rm_rf` + re-init au prochain usage | ledger local propre (initial commit seulement) ; mécanisme natif du service (L50-55) | perte de l'historique local (données de test — **valeur légale nulle établie**) ; n'affecte ni Render ni CI |
 | **O-C — Prévention structurelle** (chantier séparé, contrat/RED) : interdi­re matériellement le mode réel des specs contre le LEDGER_PATH par défaut (ex. garde spec-level : `GIT_LEDGER_REAL=true` ⇒ `GIT_LEDGER_PATH` **doit** être overlay) + **#25** (commande BRIEFING correcte) | élimine la cause racine des 26/09 | chantier distinct, arbitrage séparé |
 
+### 5.1 Exécution O-B — journal (traitement effectif)
+
+| # | Événement | Horodatage | Source |
+|---|---|---|---|
+| J16 | Purge exécutée via le mécanisme supporté, runner dev : `GitLedgerRepository.cleanup!` → `ensure_initialized!` — avant : **23 commits** (dernier `b1eb2f0`, 26/09 18:50:54 UTC) / après : **1 commit** — `Initial commit` `141fa4e` **(Git ledger : 2026-10-03 06:03:13 +0000)** | git + session | Git (ledger) + Session |
+| J17 | Vérification hôte : `cra-ledger/` = `.git` + `.gitignore` (40 o) · `git log` = 1 commit (`141fa4e`) · `receive.denyNonFastForwards` = **true** (restauré par `configure_identity`) · **working tree propre** (plus de payloads à supprimer — état contractualisé delete-after-commit vierge) | 2026-10-03 (host clock) | Session (sorties outils) |
+| J18 | Specs du ledger (contrôles concernés) : 6 fichiers — **69 examples, 0 failure** (seed 31064), dont race14 contractuel GREEN ; warnings `unknown OID 2278` bénins | Session | Session (sorties outils) |
+| J19 | Production / CI : **à l'écart par construction** — aucune écriture vers Render (ledger distinct) · CI = ledger éphémère `RUNNER_TEMP` · repo local sans remote · **zéro réécriture Git** (l'« historique » du ledger de dev est remplacé par mécanisme natif, conformément à la décision) | Git + Session | Session (CTO arbitrage + sorties) |
+
+**Resultat** : ledger de développement purgé et réinitialisé proprement par le mécanisme supporté
+(`cleanup!` dev-only, garde production L50) — **aucune donnée de production touchée** · working tree
+conforme au comportement contractuel · contrôles verts · **zéro réécriture d'historique Git**.
+
 ---
 
 ## 6. Suivi d'avancement des sujets (traités / non traités)
@@ -111,7 +124,7 @@ assertion du hash fake ⇒ les 3 échecs observés ; les autres (lignes 11, 15-2
 |---|---|---|---|---|
 | S-1 | **Origine des 23 commits** (26/09 : 13 runs erronés · 17/09 : 3 E2E délibérés/initial · 22/09 : 7 inférés) | ✅ **VALIDÉE CTO (26/09)** — réconciliation intégrale (23 SHA → 23 lignes, §3) | Réconciliation validée — le traitement reste à exécuter | ce document · BACKLOG #24 |
 | S-2 | **Mécanisme exact du 22/09** (overlay absent dans les itérations P7-D1 ?) | 🔎 **inference, non établie** | **Non traité** — investigation complémentaire *optionnelle*, ouverte à la demande CTO seulement | — |
-| S-3 | **Traitement du journal** (O-B purge `cleanup!` retenu) | 🟠 **O-B GO** | **en cours d'exécution** (§5.1) — verrou réécriture Git respecté : mécanisme supporté uniquement | BACKLOG #24 (row) · §5.1 |
+| S-3 | **Traitement du journal** (**O-B exécuté via `cleanup!` + re-init**) | ✅ **traité** (§5.1 : 23 → 1 commit `141fa4e`, vérifications complètes, specs 69/0) | Traitement exécuté le 2026-10-03 par le mécanisme supporté — **zéro réécriture Git** | BACKLOG #24 (close) · §5.1 |
 | S-4 | **Impact** (production / CI / fonctionnel — local uniquement) | ✅ **démontré** (§4) | Constat livré — aucun traitement requis | ce document · BACKLOG #24 |
 | S-5 | **Récurrence — cause racine** (commande BRIEFING erronée · aucune interdiction matérielle du mode réel en specs) | ⬜ **Non traité** | **#25 ouvert** (passe doc dédiée) · prévention éventuelle si O-C retenu | BACKLOG #25 · mémoire fc08::014 |
 | S-6 | **Prévention structurelle** (garde spec-level : `GIT_LEDGER_REAL=true` ⇒ overlay obligatoire) | ⬜ **hors périmètre #24** (O-C séparé) | conditionné à un GO séparé — ticket #28 potentiel | — (ouvert séparément si retenu) |
@@ -119,9 +132,10 @@ assertion du hash fake ⇒ les 3 échecs observés ; les autres (lignes 11, 15-2
 | S-8 | **Écart de datation 26/09 ↔ 28/09** — **non bloquant pour #24** | 🟡 **maintenu tel quel** (décision CTO 26/09 — déjà tracé au tracker #26 §4) | Pas d'action pour l'instant | tracker #26 · ce doc (en-tête) |
 | S-9 | **Comptage « 21 » des artefacts antérieurs vs 23 final** (fc08::014/015, docs #21) | ✅ **VALIDÉ CTO (26/09)** | Écart d'antériorité expliqué (2 commits du run isolation post-comptage) — artefacts non réécrits ; aucun traitement requis | ce doc (§1/§3/§6) |
 
-Mise à jour de cette table à chaque **état substantiel** (règle anti-drift, BACKLOG) ; le préfixe
-`[DONE]_` sera appliqué à la clôture complète du chantier (traitement arbitré puis exécuté ou statu quo
-acté — pas avant).
+Mise à jour de cette table à chaque **état substantiel** (règle anti-drift, BACKLOG).
+
+**Certification (2026-10-03)** : O-B exécuté (§5.1) · S-1/S-9 validés · S-3 traité · préfixe `[DONE]_` appliqué
+· **#24 CLOSED** · récurrence restant prévenue par #25 et éventuellement #28 (hors périmètre).
 
 ---
 
