@@ -110,4 +110,11 @@ Référence : `docs/technical/audits/[DONE]_2026_09_26_19_p0_reachability_invest
 
 Référence : `docs/technical/audits/2026_09_26_26_race14_concurrency_investigation.md` · commit `0cdd946b` · BACKLOG #26.
 
-**Livraison (26/09, validation CTO)** : R-1 certifiée — **RED mesuré → GREEN ×2** (seeds 1699 · 16729/28994 — 1 success + 1 conflict 409, exactement 1 CRA) · suite **1133/0** (seed 34758 · 86,25/60,88 · verrou 72,5) · **CI 6/6** · **Brakeman 0** (durcissement `sanitize_sql_array` post-incident CI) · Zeitwerk/RuboCop 0 · invoque le mécanisme dans la même transaction que l'insert — contrat `[DONE]_2026_09_26_14_invariant_concurrent_contract.md` · audit `[DONE]_2026_09_26_26_race14_concurrency_investigation.md` · tracker `[DONE]_2026_09_26_26_race14_r1_implementation_tracker.md` · merge `4fb4063b`.
+**Livraison (26/09, validation CTO)** : R-1 certifiée — **RED mesuré → GREEN ×2** (seeds 1699 · 16729/28994 — 1 success + 1 conflict 409, exactement 1 CRA) · suite **1133/0** (seed 34758 · 86,25/60,88 · verrou 72,5) · **CI 6/6** · **Brakeman 0** (durcissement `sanitize_sql_array` post-incident CI) · Zeitwerk/RuboCop 0 · invoque le mécanisme dans la même transaction que l'insert · contrat `[DONE]_2026_09_26_14_invariant_concurrent_contract.md` · audit `[DONE]_2026_09_26_26_race14_concurrency_investigation.md` · tracker `[DONE]_2026_09_26_26_race14_r1_implementation_tracker.md` · merge `4fb4063b`.
+
+## fc08::017
+<!-- created: 2026-10-03 -->
+<!-- validated: 2026-10-03 (CTO) -->
+**#24 CLOSED (traitement O-B, 2026-10-03)** — provenance du ledger démontrée 23/23 : 13 pollution des runs erronés du 26/09 (5 par cra_id↔`got:`, 8 silencieux — mécanisme complet : `Rails.env.test?` faux ⇒ court-circuit avant stub ENV) · 2 E2E délibérés + initial le 17/09 (D-12) · 7 en mode réel sans overlay le 22/09 (session P7, inféré). Zéro donnée de production (aucun remote, CI éphémère, Render distinct). Traitement : purge via le mécanisme supporté `cleanup!` (dev-only, garde production) → 23 → 1 commit, `denyNonFastForwards` restauré, specs 69/0 — zéro réécriture Git. **Leçon** : un comptage doit être daté (21 = antériorité, 23 = final) ; et pour un registre à immutabilité proclamée, la voie de purges supportée et bornée par environnement vaut mieux qu'une réécriture d'historique. Récurrence à prévenir : **#25** (commande BRIEFING) et éventuellement **#28** (prévention mode réel hors overlay).
+
+Référence : `docs/technical/audits/[DONE]_2026_09_28_24_ledger_provenance_investigation.md` · commits `dcb42077`/`3bf936a1`/`bbe40c42` · BACKLOG #24 close.
