@@ -673,18 +673,25 @@ curl -X POST https://foresy-api.onrender.com/api/v1/auth/login \
 
 ### Essential Testing Commands
 ```bash
+# ⚠️ Service `test` OBLIGATOIRE pour toute exécution de test — cf. fc08::014 :
+# le service `web` boote en development (RAILS_ENV=development, base foresy_development)
+# et court-circuite le guard Git Ledger (`Rails.env.test?` faux — audits #21/#24).
+
 # Complete RSpec test suite
-docker-compose run --rm web bundle exec rspec
+docker-compose --profile test run --rm test bundle exec rspec
 
 # OAuth-specific tests
-docker-compose run --rm web bundle exec rspec spec/acceptance/oauth_feature_contract_spec.rb
-docker-compose run --rm web bundle exec rspec spec/integration/oauth/oauth_callback_spec.rb
+docker-compose --profile test run --rm test bundle exec rspec spec/acceptance/oauth_feature_contract_spec.rb
+docker-compose --profile test run --rm test bundle exec rspec spec/integration/oauth/oauth_callback_spec.rb
 
 # Code quality checks
-docker-compose run --rm web bundle exec rubocop
+docker-compose --profile test run --rm test bundle exec rubocop
 
 # Security audit
-docker-compose run --rm web bundle exec brakeman
+docker-compose --profile test run --rm test bundle exec brakeman
+
+# Zeitwerk check
+docker-compose --profile test run --rm test bundle exec rails zeitwerk:check
 ```
 
 ### Required Environment Variables
