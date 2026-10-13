@@ -98,15 +98,20 @@ docker-compose --profile test run --rm test bundle exec rails zeitwerk:check
 | # | Étape | Statut | Où ça vit |
 |---|---|---|---|
 | T1 | **Analyse #25 écrite** (diagnostic + preuves + plan — ce document) | ✅ fait (2026-10-03) | ce doc · BACKLOG #25 (référence) |
-| T2 | Branche `docs/fix-25-briefing-tests` + **patch BRIEFING** : 5 commandes corrigées (`--profile test … test`) + note explicative fc08::014 + commande Zeitwerk ajoutée | ⬜ à faire | branche/PR dédiée |
-| T3 | **Vérification** : chaque forme corrigée exécutée une fois (rubocop · brakeman · zeitwerk · rspec ciblé OAuth) — attestées copier-coller-runnable | ⬜ après T2 | journal §5.1 du doc |
-| T4 | **BACKLOG #25 close** (+ row « Chantiers livrés ») | ⬜ avec T2/T3 | BACKLOG |
-| T5 | Préfixe `[DONE]_` sur ce document | ⬜ après T3 | renommage du doc |
+| T2 | Branche `docs/fix-25-briefing-tests` + **patch BRIEFING** : 5 commandes corrigées (`--profile test … test`) + note explicative fc08::014 + commande Zeitwerk ajoutée | ✅ fait | branche/PR dédiée · BRIEFING §636-747 |
+| T3 | **Vérification** : chaque forme corrigée exécutée une fois — **rubocop 244/0 · zeitwerk OK · brakeman 0 warning · rspec OAuth 41/0 (seed 51711)** — attestées copier-coller-runnable | ✅ fait (2026-10-03) | journal ci-dessous |
+| T4 | **BACKLOG #25 close** (+ row « Chantiers livrés ») | ✅ fait | BACKLOG |
+| T5 | Préfixe `[DONE]_` sur ce document | ✅ fait | renommage du doc |
 | T6 | Merge PR + **réindexation hub** (le doc d'analyse + BRIEFING servis) | ⬜ post-merge | hub RAG |
 | T7 | **Mémoire fc08::018 proposée** (leçon : l'analyse précède le patch, comme pour #26 tracker) — validation CTO à la clôture | ⬜ proposition | hub (après validation) |
 
 **Rappel de gouvernance** (règle 26/09) : T2-T5 n'exécutent **pas** de code applicatif — patch documentaire
 uniquement, guidé par ce plan ; le préfixe `[DONE]_` ne viendra qu'après vérification des commandes (T3).
+
+**Journal d'exécution (2026-10-03, sources Session — sorties d'outils)** : patch appliqué (T2) →
+T3 : `rubocop` **244 files / 0 offense** · `zeitwerk:check` **All is good!** · `brakeman` **0 warning**
+(3 ignored préexistants) · `rspec` **41 examples / 0 failures** (seed 51711) — chaque forme exécutée
+exactement telle qu'écrite au BRIEFING. Aucun défaut constaté sur les formes dév légitimes (inchangées).
 
 ---
 
