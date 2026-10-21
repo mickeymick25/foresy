@@ -60,11 +60,11 @@ sources canoniques ci-dessous. L'ancien backlog (2025-12-26) est archivé :
 | — | **#25 — Commandes canoniques de test du BRIEFING** — analyse (preuves compose/probes) → patch 5 commandes (`--profile test … test`) + note fc08::014 + Zeitwerk · commandes dév/README vérifiées légitimes · verification par exécution (rubocop 244/0 · zeitwerk OK · brakeman 0 · OAuth 41/0) | 2026-10-03 | `[DONE]_2026_10_03_25_briefing_commands_analysis.md` (T1-T7) · BRIEFING §636-747 |
 | — | **#27 — Mapping erreurs UX (Q-1)** — anomalie réelle : 201 + `client_company_id` silencieusement jeté (rescue-dans-bloc, même anti-pattern C-1/C-2) → validation service AVANT écriture → `422 :invalid_client_company` · RED (got 201) → GREEN ×2 · suite 1136/0 · Q-2 : pas de RED (409 déjà servi — mapping non ajouté) · Q-3 statu quo | 2026-10-03 | `[DONE]_2026_10_03_27_ux_error_mapping_analysis.md` · specs dédiées · fc08::019 proposée |
 
-## Métriques de qualité (état au 2026-09-26 — post certification #26 R-1)
+## Métriques de qualité (état au 2026-10-03 — post série #24→#27)
 
-- **Suite RSpec : 1133 exemples, 0 échec, 0 pending** (mesuré 26/09, service `test`, `foresy_test`, seed 11258 — 1166 − 34 specs du code mort APM supprimées par O-2, +1 spec contrat #14 concurrentiel R-1)
-- **SimpleCov : 86,24 % lignes (2997/3475) · 60,88 % branches (873/1434)** — corpus post-cleanup #21 + R-1, verrou CI 72,5 armé
-- **RuboCop 0 offense (244 files) · Zeitwerk OK** (mesuré 26/09) · **Brakeman 0 warning** (CI 6/6 sur les PRs #54-#56)
+- **Suite RSpec : 1136 exemples, 0 échec, 0 pending** (mesuré 2026-10-03, service `test`, `foresy_test`, seed 26173 — 1166 − 34 specs du code mort APM, +1 spec contrat #14 concurrentiel R-1, +2 specs contrat d'erreur #27)
+- **SimpleCov : 86,30 % lignes (3007/3484) · 61,16 % branches (882/1442)** — corpus post série #24→#27, verrou CI 72,5 armé
+- **RuboCop 0 offense (246 files) · Zeitwerk OK** (mesuré 2026-10-03) · **Brakeman 0 warning** (CI 6/6 sur les PRs #54-#56)
 - **Contrat système** : 4 system specs (P7 CLOSED) · **gouvernance CI** : push direct bloqué, 6 checks + branche à jour (`enforce_admins: true` + `strict: true`) · **invariant unicité créateur+mois+année protégé à la création** (#14, garde service-level) · **FC-05** : rate limiting distribué Redis, 429 sur dépassement réel uniquement (A4), clés IP auth / user_id métier
 
 > ⚠️ **Framing (CTO 26/09)** : ces chiffres décrivent l'état de protection, pas une preuve fonctionnelle supplémentaire — la preuve de correction FC-05 est la chaîne RED mesurés → GREEN + régression complète (cf. contrat §7-§8). Idem close-out #21 : la hausse de couverture (86,22/60,80) est la conséquence mécanique de la suppression de code mort — les preuves principales sont le chemin réel identifié, 0 call-site démontré, les références supprimées, la transaction/anti-race du chemin réel vérifiées, la suite 1132/0, Zeitwerk OK et RuboCop 0.
