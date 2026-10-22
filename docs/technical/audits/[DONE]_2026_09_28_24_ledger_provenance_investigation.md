@@ -1,4 +1,4 @@
-# 🔍 Investigation #24 — Ledger `cra-ledger` : provenance des 21 commits réels, impact, options de traitement
+# 🔍 Investigation #24 — Ledger `cra-ledger` : provenance des 23 commits réels (réconciliation S-9), impact, traitement O-B
 
 **Date :** 28 septembre 2026 (horodatage git-clock hôte — cf. écart de datation tracé au tracker #26 §4)
 **Auteur :** Zed Agent (BACKLOG **#24** — « Qualification ledger réel », création 26/09, GO CTO)

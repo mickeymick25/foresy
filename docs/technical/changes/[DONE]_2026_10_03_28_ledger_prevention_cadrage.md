@@ -4,10 +4,11 @@
 **Chantier :** BACKLOG **#28** — « prévention structurelle du ledger (mode réel hors overlay) » — **cadrage lecture
 seule** (GO CTO 2026-10-03 : ouverture non automatique, aucun patch avant démonstration du défaut
 + nouvel arbitrage)
-**Statut :** ✅ Cadrage terminé — conclusions qualifiées (démontrés / inferrés / indéterminés) —
-**options O-1 / O-2 / O-0 soumises à arbitrage** · suivi : §6
-**Verrou** : la purge `cleanup!` certifiée en **#24 n'est pas touchée** dans aucune option · aucun patch,
-aucune modification de spec/contrat dans ce cadrage.
+**Statut :** ✅ **O-1bis arbitré + implémenté + certifié (2026-10-21)** — isolation stub_const ×6 +
+`ledger_path` + **garde fail-fast INV-D12-03** — RED ×2 → GREEN ×2 · suite **1137/0** · ledger réel inchangé
+(1 commit) · **#28 CLOSED** (journal d'implémentation : §6) · fc08::020
+**Verrou d'origine respecté** : la purge `cleanup!` certifiée en **#24 n'est pas touchée** — aucune
+modification de `cleanup!`/`ensure_initialized!` dans l'implémentation O-1bis.
 
 ---
 
