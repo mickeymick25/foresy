@@ -118,3 +118,17 @@ Référence : `docs/technical/audits/2026_09_26_26_race14_concurrency_investigat
 **#24 CLOSED (traitement O-B, 2026-10-03)** — provenance du ledger démontrée 23/23 : 13 pollution des runs erronés du 26/09 (5 par cra_id↔`got:`, 8 silencieux — mécanisme complet : `Rails.env.test?` faux ⇒ court-circuit avant stub ENV) · 2 E2E délibérés + initial le 17/09 (D-12) · 7 en mode réel sans overlay le 22/09 (session P7, inféré). Zéro donnée de production (aucun remote, CI éphémère, Render distinct). Traitement : purge via le mécanisme supporté `cleanup!` (dev-only, garde production) → 23 → 1 commit, `denyNonFastForwards` restauré, specs 69/0 — zéro réécriture Git. **Leçon** : un comptage doit être daté (21 = antériorité, 23 = final) ; et pour un registre à immutabilité proclamée, la voie de purges supportée et bornée par environnement vaut mieux qu'une réécriture d'historique. Récurrence à prévenir : **#25** (commande BRIEFING) et éventuellement **#28** (prévention mode réel hors overlay).
 
 Référence : `docs/technical/audits/[DONE]_2026_09_28_24_ledger_provenance_investigation.md` · commits `dcb42077`/`3bf936a1`/`bbe40c42` · BACKLOG #24 close.
+
+## fc08::018
+<!-- created: 2026-10-03 -->
+<!-- validated: 2026-10-03 (CTO) -->
+**#25 CLOSED (2026-10-03)** — la commande canonique de test du BRIEFING pointait le service `web` (dev) ; cause racine de l'incident fc08::014 corrigée à la source documentaire : 5 commandes sur le service `test` (`--profile test run --rm test`) + note explicative + Zeitwerk ajouté ; chacune exécutée et attestée (rubocop 244/0 · brakeman 0 · zeitwerk OK · OAuth 41/0). Commandes dév et README vérifiées légitimes. **Leçon** : à chaque divergence doc ↔ environnement, corriger la ligne documentaire **puis vérifier par exécution** la commande corrigée — un doc « corrigé » non exécuté reste une divergence latente. L'analyse a précédé le patch (règle 26/09), le suivi T1-T7 tracé dans le doc d'analyse.
+
+Référence : `docs/technical/changes/[DONE]_2026_10_03_25_briefing_commands_analysis.md` · commits `aeeb8c80`/`637db15b` · BACKLOG #25 close.
+
+## fc08::019
+<!-- created: 2026-10-03 -->
+<!-- validated: 2026-10-03 (CTO) -->
+**#27 CLOSED (2026-10-03)** — le RED via points d'entrée publics a réfuté l'analyse initiale : C-1 réel = 201 + client silencieusement jeté (rescue-dans-bloc jette le résultat — anti-pattern C-1/C-2) ; fix = validation avant écriture → 422 `:invalid_client_company`. **Leçon** : les RED via l'API publique testent les gardes before_action au passage — des défauts code-level peuvent être non atteignables (C-2) et une analyse sans RED public peut surqualifier.
+
+Référence : `docs/technical/changes/[DONE]_2026_10_03_27_ux_error_mapping_analysis.md` · commits `bfa039af`/`69001208`/`c87ec81e` · specs `create_client_company_error_spec` / `invalid_transition_contract_spec` · BACKLOG #27 close.
