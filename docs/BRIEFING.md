@@ -20,19 +20,19 @@
 - **Ruby Version**: 3.4.8
 - **Environment**: Docker Compose (non-optional, mandatory)
 - **Status**: ✅ **FC-06 Missions · FC-07 CRA · FC-08 Companies TERMINÉS** — campagne P6/P7 CLOSED · **FC-05 remediation certifiée** (26/09, PR #56 — rate limiting distribué Redis, 429 sur dépassement réel uniquement)
-- **Current Feature**: chantiers du backlog transverse — **#19 P0 reachability CLOSED (26/09)** · **#26 race #14 — R-1 LIVRÉE + contrat #14 renforcé certifié (26/09)** · restants : **#24 ledger** / **#25 BRIEFING** / **#27 UX** (selon priorité) · FC-09 ⏸️ en attente
+- **Current Feature**: chantiers du backlog transverse — **CLOSED (2026-10-03) : #19 · #21 · #24 · #25 · #26 · #27** · ouvert : **#28 (prévention structurelle ledger — mode réel hors overlay)** en arbitrage séparé · mémoires fc08::018/019 en attente de validation · FC-09 ⏸️ en attente
 - **Previous**: Campagne P6/P7 (sept 2026) — 3 bugs production découverts et corrigés par RED démontré (GET /cras 500 · ISO3166 · mission_id perdu · invariant unicité inerte)
 - **Gouvernance CI (sept 2026)**: push direct sur main **bloqué** (GH006 ×2) · 6 checks requis (`enforce_admins: true`) · branche à jour obligatoire (`strict: true`) · merge result testé (EXP-1, 2 preuves)
 
 ### Quality Metrics (Sept 2026) — mesuré 26/09, `foresy_test` + CI PR #56
-- **RSpec Tests**: ✅ **1133 examples, 0 failures** (26/09, post R-1 #26 — −34 specs du code mort APM, +1 spec contrat #14 concurrentiel) — dont les **régressions permanentes** : invariant unicité créateur+mois+année **sous concurrence** (#14 renforcé, R-1) · **contrat FC-05 (RED 1-4 devenus GREEN)**
+- **RSpec Tests**: ✅ **1136 examples, 0 failures** (2026-10-03, post série #24→#27 — −34 specs du code mort APM, +1 spec contrat #14 concurrentiel R-1, +2 specs contrat d'erreur #27) — dont les **régressions permanentes** : invariant unicité créateur+mois+année **sous concurrence** (#14 renforcé, R-1) · **contrat FC-05 (RED 1-4 devenus GREEN)**
 - **Rswag Swagger**: ✅ **429 examples** — audit 35/35 routes, `swagger.yaml` généré
-- **RuboCop**: ✅ **244 files inspected, 0 offenses**
+- **RuboCop**: ✅ **246 files inspected, 0 offenses**
 - **Brakeman**: ✅ **0 Security Warnings** (mode strict)
-- **Couverture (SimpleCov)**: 📊 **86,24 % lignes (2997/3475) / 60,88 % branches (873/1434)** — corpus post-cleanup #21 + R-1, verrou 72,5 armé dans le processus réel
+- **Couverture (SimpleCov)**: 📊 **86,30 % lignes (3007/3484) / 61,16 % branches (882/1442)** — corpus post série #24→#27, verrou 72,5 armé dans le processus réel
 - **Gouvernance CI (P6/P7)**: ✅ push direct bloqué (GH006 ×2) · 6 checks requis (`enforce_admins: true`) · branche à jour (`strict: true`) · merge result testé (EXP-1)
 - **CI/CD**: ✅ 6/6 jobs verts — E2E bloquant dans la Quality Gate
-- **Campagnes**: ✅ P6 (Waves 1-4 + P6.6 CLOSED) · P7 (System Specs API — contrat système, 4 specs) · #11/#12/#14 (gouvernance + invariant, 3 défauts réels corrigés) · **#21 CLOSED (OAuth / code mort — O-1/O-2, arbitrage régularisé, mémoire fc08::014)** · **#26 R-1 LIVRÉE (race #14 — contrat #14 renforcé, RED → GREEN ×2, mémoire fc08::016)**
+- **Campagnes**: ✅ P6 (Waves 1-4 + P6.6 CLOSED) · P7 (System Specs API — contrat système, 4 specs) · #11/#12/#14 (gouvernance + invariant, 3 défauts réels corrigés) · **#21 CLOSED (OAuth / code mort — O-1/O-2, arbitrage régularisé, mémoire fc08::014)** · **#26 R-1 LIVRÉE (race #14 — contrat #14 renforcé, RED → GREEN ×2, mémoire fc08::016)** · **#24 CLOSED (ledger — provenance 23/23, purge O-B via `cleanup!` : 23 → 1 commit, mémoire fc08::017)** · **#25 CLOSED (commandes BRIEFING sur le service `test` — vérifiées par exécution)** · **#27 CLOSED (Q-1 : 422 client inconnu — RED got 201, 201 + client jeté au silence ; Q-2 pas de RED / 409 déjà servi)**
 - **Dettes tracées** : BACKLOG #13 (RSwag `name`) · #14 (livré — **renforcé sous concurrence par R-1**, fc08::016) · Wave 4.5 (~280 lignes, distinct) · #7 (alerting) · #8 (link-rot) · **#24 (ledger réel à qualifier)** · **#25 (commande BRIEFING)** · **#27 (mapping UX à qualifier)**
 
 ### Historical Metrics (Jan 2026) — état figé, cf. timeline ci-dessous
@@ -608,7 +608,7 @@ Foresy/
 
 ### Chantiers ACTUELS (état 26/09/2026 — source canonique : `docs/BACKLOG.md`, règle anti-drift)
 - ✅ **FC-05 Rate Limiting remediation CERTIFIÉE** (PR #56 — contrat → RED mesurés (12/10/2) → GREEN → R-4 → Render vérifié · mémoire fc08::013)
-- ✅ **#19 P0 reachability CLOSED** (26/09 — aucun P0 démontré, C-1/C-2 dette latente, audit `[DONE]_` + mémoire fc08::015) · ✅ **#26 race #14 — R-1 LIVRÉE + contrat certifié** (RED → GREEN ×2, suite 1133/0, mémoire fc08::016) · restants : 🟠 **#24 qualification ledger** · 🟢 **#25 correction BRIEFING** · 🟠 **#27 mapping UX**
+- ✅ **#19 / #21 / #24 / #25 / #26 / #27 CLOSED** (2026-10-03) : #19 P0 reachability (aucun P0, fc08::015) · #21 OAuth code mort (O-1/O-2, fc08::014) · #24 ledger (provenance 23/23 + purge O-B 23 → 1 commit, fc08::017) · #25 commandes test sur le service `test` (vérifiées par exécution) · #26 race #14 — R-1 (RED → GREEN ×2, 1133/0) · #27 Q-1 → `422 :invalid_client_company` (RED got 201 — 201 + client jeté au silence ; 1136/0) · **restant ouvert : #28 (prévention structurelle)** en arbitrage séparé
 - 🟠 #17 Swagger export CSV · #13 divergence `name` · #16 Postman FC-08 · 🟢 #22 JWT · #15 Wave 4.5 · #8 link-rot · #9 performance · #10 monitoring
 - FC-09 ⏸️ en attente (décision CTO — valeur produit/risque, jamais sur un pourcentage)
 
