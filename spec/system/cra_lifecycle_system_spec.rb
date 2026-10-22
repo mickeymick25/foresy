@@ -38,18 +38,13 @@ RSpec.describe 'System API — CRA lifecycle avec Git Ledger réel', type: :requ
   let(:password) { 'TestPassword123!' }
   let(:email) { "system_p7_#{SecureRandom.hex(6)}@foresy.local" }
 
-  # Overlay LEDGER_PATH (tmpdir) — pattern D-12 éprouvé (W3-D2 / W3-D4).
-  # Le nettoyage s'effectue pendant que la constante pointe encore sur le tmpdir.
+  # Overlay LEDGER_PATH (tmpdir) — BACKLOG #28 (O-1bis) : stub_const (remplacement
+  # effectif + restauration automatique — l'const_set singleton est inerte, cf. audit #28).
   def with_ledger_path(path)
-    sc = GitLedgerRepository.singleton_class
-    sc.send(:remove_const, :LEDGER_PATH) if sc.const_defined?(:LEDGER_PATH)
-    sc.const_set(:LEDGER_PATH, path)
+    stub_const('GitLedgerRepository::LEDGER_PATH', path)
     yield
   ensure
     FileUtils.rm_rf(path) if File.directory?(path)
-    sc = GitLedgerRepository.singleton_class
-    sc.send(:remove_const, :LEDGER_PATH) if sc.const_defined?(:LEDGER_PATH)
-    sc.const_set(:LEDGER_PATH, ENV.fetch('GIT_LEDGER_PATH', '/app/cra-ledger'))
   end
 
   def ledger_commit_count

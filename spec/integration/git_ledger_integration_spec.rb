@@ -12,17 +12,12 @@ RSpec.describe GitLedgerRepository, type: :model do
   let(:tmpdir) { Dir.mktmpdir('foresy_ledger_test') }
 
   before do
-    # Isoler LEDGER_PATH dans un tmpdir
-    begin
-      GitLedgerRepository.singleton_class.send(:remove_const, :LEDGER_PATH)
-    rescue StandardError
-      nil
-    end
-    GitLedgerRepository.singleton_class.const_set(:LEDGER_PATH, tmpdir)
+    # BACKLOG #28 (O-1bis) — stub_const (l'overlay singleton_class.const_set est inerte,
+    # cf. audit #28) — le remplacement + restauration automatique à la fin de l'exemple.
+    stub_const('GitLedgerRepository::LEDGER_PATH', tmpdir)
   end
 
   after do
-    GitLedgerRepository.cleanup!(force: true)
     FileUtils.rm_rf(tmpdir)
   end
 
