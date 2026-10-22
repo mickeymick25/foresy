@@ -59,29 +59,19 @@ RSpec.describe GitLedgerService, type: :model do
       allow(ENV).to receive(:[]).with('GIT_LEDGER_REAL').and_return('true')
 
       Dir.mktmpdir('d12_ledger') do |tmpdir|
-        # Overlay sur le singleton (pattern de git_ledger_integration_spec) : la constante
-        # originale vit dans la table du module — le remove_const initial est optionnel
-        begin
-          GitLedgerRepository.singleton_class.send(:remove_const, :LEDGER_PATH)
-        rescue NameError
-          nil
-        end
-        GitLedgerRepository.singleton_class.const_set(:LEDGER_PATH, tmpdir)
+        # BACKLOG #28 (O-1bis) — migration du pattern d'overlay: singleton_class.const_set
+        # est IMPOSSIBLE pour GitLedgerRepository::LEDGER_PATH (la table d'éigenclass
+        # n'est pas consultée par le lookup Module::CONST) → stub_const (table réelle,
+        # restauration automatique à la fin de l'exemple) — l'isolation devient réellement
+        # efficace.
+        stub_const('GitLedgerRepository::LEDGER_PATH', tmpdir)
 
-        begin
-          result = described_class.commit_cra_lock!(cra)
+        result = described_class.commit_cra_lock!(cra)
 
-          expect(result[:commit_hash]).to match(/\A[0-9a-f]{40}\z/)
-          expect(result[:commit_hash]).not_to start_with('test-commit-')
-          expect(GitLedgerRepository.initialized?).to be(true)
-          expect(GitLedgerRepository.commit_exists_for_cra?(cra.id)).to be(true)
-        ensure
-          # Le répertoire (ledger inclus) est nettoyé par Dir.mktmpdir lui-même —
-          # on ne restaure que l'overlay de constante.
-          GitLedgerRepository.singleton_class.send(:remove_const, :LEDGER_PATH)
-          GitLedgerRepository.singleton_class.const_set(:LEDGER_PATH,
-                                                        ENV.fetch('GIT_LEDGER_PATH', '/app/cra-ledger'))
-        end
+        expect(result[:commit_hash]).to match(/\A[0-9a-f]{40}\z/)
+        expect(result[:commit_hash]).not_to start_with('test-commit-')
+        expect(GitLedgerRepository.initialized?).to be(true)
+        expect(GitLedgerRepository.commit_exists_for_cra?(cra.id)).to be(true)
       end
     end
   end
@@ -104,32 +94,34 @@ RSpec.describe GitLedgerService, type: :model do
 
     def with_ledger_tmpdir
       Dir.mktmpdir('w3_ledger') do |tmpdir|
-        sc = GitLedgerRepository.singleton_class
-        sc.send(:remove_const, :LEDGER_PATH) if sc.const_defined?(:LEDGER_PATH)
-        sc.const_set(:LEDGER_PATH, tmpdir)
+        # BACKLOG #28 (O-1bis) — stub_const : l'overlay singleton_class.const_set est
+        # inerte (cf. audit #28) — le remplacement est maintenant effectif et restauré
+        # automatiquement à la fin de l'exemple.
+        stub_const('GitLedgerRepository::LEDGER_PATH', tmpdir)
         yield tmpdir
-      ensure
-        sc = GitLedgerRepository.singleton_class
-        sc.send(:remove_const, :LEDGER_PATH) if sc.const_defined?(:LEDGER_PATH)
-        sc.const_set(:LEDGER_PATH, ENV.fetch('GIT_LEDGER_PATH', '/app/cra-ledger'))
       end
     end
 
-    describe 'validate_cra! — gardes REAL (ArgumentError → GitLedgerError)' do
-      it 'refuse un CRA non verrouillé' do
+    describe 'validate_cra! — gardes REAL (ArgumentError → GitLedgerError ; le fail-fast
+             INV-D12-03 (#28) précède désormais validate_cra! en tête de branche réelle)' do
+      it 'refuse un CRA non verrouillé (message INV-D12-03 — #28)' do
         unlocked = create(:cra, :with_creator, creator: user, year: 2026, month: 9, status: 'draft')
 
         expect { described_class.commit_cra_lock!(unlocked) }
           .to raise_error(described_class::GitLedgerError,
-                          'Git Ledger commit failed: CRA must be locked')
+                          'Git Ledger commit failed: Real ledger without overlay — ' \
+                          'GIT_LEDGER_REAL=true requires an override (GIT_LEDGER_PATH at boot, ' \
+                          'or const_set) (INV-D12-03)')
       end
 
-      it 'refuse un CRA non persisté' do
+      it 'refuse un CRA non persisté (message INV-D12-03 — #28)' do
         unpersisted = build(:cra, status: 'locked')
 
         expect { described_class.commit_cra_lock!(unpersisted) }
           .to raise_error(described_class::GitLedgerError,
-                          'Git Ledger commit failed: CRA must be persisted')
+                          'Git Ledger commit failed: Real ledger without overlay — ' \
+                          'GIT_LEDGER_REAL=true requires an override (GIT_LEDGER_PATH at boot, ' \
+                          'or const_set) (INV-D12-03)')
       end
     end
 
@@ -174,20 +166,13 @@ RSpec.describe GitLedgerService, type: :model do
           blocked = File.join(dir, 'blocked')
           FileUtils.touch(blocked) # chemin existant en tant que FICHIER → mkdir_p échoue
 
-          sc = GitLedgerRepository.singleton_class
-          sc.send(:remove_const, :LEDGER_PATH) if sc.const_defined?(:LEDGER_PATH)
-          sc.const_set(:LEDGER_PATH, blocked)
+          stub_const('GitLedgerRepository::LEDGER_PATH', blocked)
 
-          begin
-            expect { described_class.commit_cra_lock!(cra) }
-              .to raise_error(
-                described_class::GitLedgerError,
-                /Git Ledger commit failed: Failed to initialize Git Ledger:/
-              )
-          ensure
-            sc.send(:remove_const, :LEDGER_PATH) if sc.const_defined?(:LEDGER_PATH)
-            sc.const_set(:LEDGER_PATH, ENV.fetch('GIT_LEDGER_PATH', '/app/cra-ledger'))
-          end
+          expect { described_class.commit_cra_lock!(cra) }
+            .to raise_error(
+              described_class::GitLedgerError,
+              /Git Ledger commit failed: Failed to initialize Git Ledger:/
+            )
         end
       end
     end
@@ -208,16 +193,9 @@ RSpec.describe GitLedgerService, type: :model do
       it 'info retourne {exists: false} quand le chemin est absent' do
         Dir.mktmpdir do |dir|
           absent = File.join(dir, 'absent')
-          sc = GitLedgerRepository.singleton_class
-          sc.send(:remove_const, :LEDGER_PATH) if sc.const_defined?(:LEDGER_PATH)
-          sc.const_set(:LEDGER_PATH, absent)
+          stub_const('GitLedgerRepository::LEDGER_PATH', absent)
 
-          begin
-            expect(described_class.repository_info).to eq(exists: false)
-          ensure
-            sc.send(:remove_const, :LEDGER_PATH) if sc.const_defined?(:LEDGER_PATH)
-            sc.const_set(:LEDGER_PATH, ENV.fetch('GIT_LEDGER_PATH', '/app/cra-ledger'))
-          end
+          expect(described_class.repository_info).to eq(exists: false)
         end
       end
 

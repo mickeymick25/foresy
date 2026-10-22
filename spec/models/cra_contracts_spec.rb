@@ -157,17 +157,10 @@ RSpec.describe Cra, type: :model do
       Dir.mktmpdir do |dir|
         blocked = File.join(dir, 'blocked')
         FileUtils.touch(blocked)
-        sc = GitLedgerRepository.singleton_class
-        sc.send(:remove_const, :LEDGER_PATH) if sc.const_defined?(:LEDGER_PATH)
-        sc.const_set(:LEDGER_PATH, blocked)
+        stub_const('GitLedgerRepository::LEDGER_PATH', blocked)
 
-        begin
-          expect { cra.lock! }
-            .to raise_error(StandardError, /Git Ledger commit failed/)
-        ensure
-          sc.send(:remove_const, :LEDGER_PATH) if sc.const_defined?(:LEDGER_PATH)
-          sc.const_set(:LEDGER_PATH, ENV.fetch('GIT_LEDGER_PATH', '/app/cra-ledger'))
-        end
+        expect { cra.lock! }
+          .to raise_error(StandardError, /Git Ledger commit failed/)
       end
 
       expect(cra.reload.status).to eq('submitted') # rollback complet — CRA remains unlocked

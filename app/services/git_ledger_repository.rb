@@ -54,6 +54,15 @@ module GitLedgerRepository
       Rails.logger.info '[GitLedgerRepository] Cleaned up repository'
     end
 
+    # INV-D12-03 (#28) — chemin ACTUELLEMENT utilisé par les opérations Git de ce
+    # module. Méthode définie dans class << self : le lookup constant résout
+    # l'overlay singleton_class.const_set(:LEDGER_PATH, …) (convention D-12),
+    # contrairement à un accès externe GitLedgerRepository::LEDGER_PATH (table du
+    # module uniquement — cf. audit #28). Les gardes doivent lire par CETTE méthode.
+    def ledger_path
+      LEDGER_PATH
+    end
+
     def info
       return { exists: false } unless exists?
 

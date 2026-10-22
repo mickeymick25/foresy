@@ -23,13 +23,13 @@ l'index de progression. Le fichier est délimité par une entrée atomique : tou
 | fc08::016 | #26 race #14 — R-1 advisory lock (contrat #14 renforcé) | ✅ CERTIFIÉE (RED → GREEN ×2 — merge `4fb4063b`) | contrat `[DONE]_2026_09_26_14_invariant_concurrent_contract.md` · tracker `[DONE]_2026_09_26_26_race14_r1_implementation_tracker.md` |
 | fc08::017 | #24 ledger — qualification + purge O-B (23 → 1 commit, mécanisme supporté) | ✅ CERTIFIÉ (2026-10-03, merge `a557ad2e`) | audit `[DONE]_2026_09_28_24_ledger_provenance_investigation.md` §5.1 |
 | fc08::018/019 | #25 commandes BRIEFING (vérifiées par exécution) + #27 Q-1 (422 :invalid_client_company) | ✅ CLOSED + leçons validées (merge `1ce7c5b3`) | analyses `[DONE]_2026_10_03_25_briefing_commands_analysis.md` / `[DONE]_2026_10_03_27_ux_error_mapping_analysis.md` |
+| suivi_impl::001 | **#28 — prévention structurelle ledger** : isolation stub_const ×6 (les overlays singleton inerts) + garde INV-D12-03 fail-fast (avant tout Git-call) + W3-D2 aligné | ✅ **CERTIFIÉE (2026-10-03)** — RED ×2 → GREEN ×2 · batch ledger 72/0 · suite 1137/0 · ledger réel inchangé (1 commit) · purge #24 non touchée | cadrage `[DONE]_2026_10_03_28_ledger_prevention_cadrage.md` (§6 journal) · fc08::020 proposée |
 
-**Métriques de référence (2026-10-03)** : suite **1136/0** · couverture **86,30/61,16** · RuboCop **246 files / 0** ·
+**Métriques de référence (2026-10-03, post #28)** : suite **1137/0** · couverture **86,33/60,94** · RuboCop **247 files / 0** ·
 Brakeman 0 · verrou 72,5 · CI 6/6.
 
 **Ouvert / en attente** :
-- **#28** — prévention structurelle du ledger (mode réel hors overlay) : cadrage lecture seule en cours
-  (GO CTO — aucun patch avant démonstration ; statu quo recevable) ;
+- **fc08::020** (#28) — proposée, à valider CTO puis index ;
 - corrections cosmétiques documentaires (titres H1 d'audits datés, datation 26/09↔10/03) — tracées, action
   facultative ;
 - backlog transverse historique (#1-#10, #13, #15-#17, #22) + `chore/p6-coverage-plan` (arbitrage P1/hygiène).

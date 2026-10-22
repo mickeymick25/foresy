@@ -124,15 +124,28 @@ enforcement d'overlay) — c'est la base factuelle d'une prévention **viable** 
 
 | # | Sujet | Statut | Traité ou non ? | Où |
 |---|---|---|---|---|
-| T1 | Cadrage #28 (contrat / reachability / protections / RED / options) | ✅ fait (2026-10-03) | fait (ce doc) | BACKLOG #28 (row à créer) |
-| T2 | **Arbitrage : O-1 / O-2 / O-0** | ⬜ **en attente CTO** | non traité | arbitrage CTO |
-| T3 | RED INV-D12-03 mesuré | ⬜ après T2 (uniquement si O-1/O-2 retenu) | non traité | spec dédiée |
-| T4 | Patch O-1 (garde fail-fast) — purge #24 non touchée | ⬜ après T3 | non traité | code |
-| T5 | GREEN + suite complète + Zeitwerk OK + RuboCop 0 + Brakeman 0 | ⬜ après T4 | non traité | gates |
-| T6 | `[DONE]_` + BACKLOG close + mémoires fc08::020 proposée | ⬜ après T5 | non traité | docs/hub |
-| P-1 | Occurrence 22/09 (7 payloads) — mécanisme exact | 🔎 **inféré** — investigation complémentaire optionnelle (précédent #24/S-2) | non traité (optionnel) | audit #24 (pointé) |
-| P-2 | Teardowns d'overlay replaçant le défaut | 🟡 latent mineur (indéterminé — impact actuel nul constaté) | non traité — à inclure dans l'arbitrage O-1 si retenu (rétablissement valeur d'origine) | ce doc §3 |
-| P-3 | Statu quo O-0 | option recevable si O-1/O-2 non retenu | en attente arbitrage | §7 |
+| T1 | Cadrage #28 (contrat / reachability / protections / RED / options) | ✅ fait (2026-10-03) | fait (ce doc) | BACKLOG #28 (row formalisée) |
+| T2 | **Arbitrage : O-1bis GO conditionnel** (l'isolation d'abord, puis la garde) | ✅ fait (2026-10-03) | traité | arbitrage CTO |
+| T3 | **RED re-joué ×2** (seeds 60736/8777) : got « Git Ledger commit failed: CRA must be locked » — échec AVANT toute écriture Git, compteur du ledger inchangé | ✅ fait | traité | commit eb787c01 + sorties |
+| T4 | Isolation (O-1bis étapes 1-3) : migration stub_const ×6 sites (service-spec ×4, integration, system, cra_contracts) + suppression des teardowns eigenclass + « GitLedgerRepository.ledger_path » (l'access eigenclass-compatible) + gardes W3-D2 alignées (les messages INV) + retrait de « cleanup!(force:) » de l'after d'intégration (le ledger réel n'est plus touché) | ✅ fait | traité | specs migrées (4 fichiers) + repository/service |
+| T5 | La garde fail-fast (en tête de branche réelle, avant validate_cra!) : refus du défaut via ledger_path | ✅ fait | traité | git_ledger_service.rb |
+| T6 | **GREEN ×2 + suite 1137/0** (seed 64208 — 86,33/60,94 · verrou 72,5) + battery ledger **72/0** + RuboCop 247/0 + Brakeman 0 + Zeitwerk OK + ledger réel inchangé (1 commit) | ✅ fait | traité | gates |
+| T7 | `[DONE]_` + BACKLOG #28 close + fc08::020 proposée | ✅ fait | traité | BACKLOG/doc |
+| T8 | Merge + réindexation hub + verification Chroma de fc08::020 | ⬜ post-merge | — | hub |
+
+**Découvertes d'implémentation (journal T4)** :
+1. **L'overlay singleton_class.const_set est INERTE pour les lectures externes** `GitLedgerRepository::LEDGER_PATH`
+   (la table d'éigenclass n'est pas consultée par le lookup Module::CONST — probe : eigen tmp, module défaut) —
+   MAIS **visible depuis les méthodes du module** (class << self : run_git/info/cleanup — le probe method = tmp ;
+   le run intégration 13/0 laissé le ledger réel inchangé : les écrits sont allés au tmpdir) ;
+2. **`stub_const` (rspec-mocks) remplace la table réelle du module** — restauré automatiquement : l'isolation
+   devient effective ET visible par la méthode « ledger_path » (couplage cohérent avec les git-calls) ;
+3. Les teardowns eigenclass (« const_set(:LEDGER_PATH, défaut) ») fuyaient un const eigen persistant —
+   supprimés (la restauration = stub_const) ;
+4. La spec statique p6_1 interdit les backticks dans git_ledger_repository.rb — commentaire de « ledger_path »
+   réécrit sans backticks ;
+5. Le fichier repository : la seule addition = la méthode « ledger_path » (12 lignes) — INV-D12-02/purge/ensure
+   **non touchés** (purge #24 certifiée intacte).
 
 ---
 
