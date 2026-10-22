@@ -132,3 +132,10 @@ Référence : `docs/technical/changes/[DONE]_2026_10_03_25_briefing_commands_ana
 **#27 CLOSED (2026-10-03)** — le RED via points d'entrée publics a réfuté l'analyse initiale : C-1 réel = 201 + client silencieusement jeté (rescue-dans-bloc jette le résultat — anti-pattern C-1/C-2) ; fix = validation avant écriture → 422 `:invalid_client_company`. **Leçon** : les RED via l'API publique testent les gardes before_action au passage — des défauts code-level peuvent être non atteignables (C-2) et une analyse sans RED public peut surqualifier.
 
 Référence : `docs/technical/changes/[DONE]_2026_10_03_27_ux_error_mapping_analysis.md` · commits `bfa039af`/`69001208`/`c87ec81e` · specs `create_client_company_error_spec` / `invalid_transition_contract_spec` · BACKLOG #27 close.
+
+## fc08::020
+<!-- created: 2026-10-21 -->
+<!-- validated: 2026-10-21 (CTO, O-1bis conditionnel) -->
+**#28 CLOSED (prévention structurelle du ledger, 2026-10-21)** — O-1bis : (1) **isolation `stub_const` ×6** — les overlays `singleton_class.const_set` étaient inertes pour `Module::CONST` (probe : eigen = overlay, externe = défaut) mais visibles des méthodes eigenclass ; la fuite d'état (teardowns eigenclass) démontrée et supprimée ; (2) `GitLedgerRepository.ledger_path` — le lecteur cohérent avec ce que `run_git` voit ; (3) **garde fail-fast INV-D12-03** en tête de branche réelle : `GIT_LEDGER_REAL=true` en test ⇒ cible ≠ défaut, sinon refus avant tout Git-call. **Leçon** : lire une constante de module depuis une autre couche ignore la table d'éigenclass (l'isolation n'était qu'illusion) — l'état réel doit être lu par le chemin que les opérations verront (`ledger_path`), et toute isolation d'exemple passe par `stub_const` (restauration automatique, pas de fuite).
+
+Référence : `docs/technical/changes/[DONE]_2026_10_03_28_ledger_prevention_cadrage.md` (§6 journal) · commits `eb787c01`/`b2a86aa4` · BACKLOG #28 close.
