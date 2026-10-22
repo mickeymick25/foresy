@@ -2,8 +2,9 @@
 
 **Date :** 2026-10-03 (horodatage git-clock hôte — convention d'écart de datation tracée, tracker #26 §4)
 **Chantier :** BACKLOG **#25** — « BRIEFING — commande canonique de test erronée » (création 26/09)
-**Statut :** ✅ Analyse terminée (falsifiable, preuves code + session) — **correction proposée, en attente GO
-d'exécution** (GO de surface reçu 2026-10-03 ; ce document précède toute modification)
+**Statut :** ✅ **CORRIGÉE + CERTIFIÉE (2026-10-03)** — patch exécuté (5 commandes sur le service `test` +
+note fc08::014 + Zeitwerk) · chaque forme vérifiée par exécution (rubocop 244/0 · brakeman 0 · zeitwerk OK ·
+OAuth 41/0, seed 51711) · **#25 CLOSED** · suivi T1-T7 : §4 · fc08::018
 **Discipline :** Investigation → preuve → arbitrage → modification (règle 26/09) — ce document est l'étape
 « preuve », préalable au patch.
 

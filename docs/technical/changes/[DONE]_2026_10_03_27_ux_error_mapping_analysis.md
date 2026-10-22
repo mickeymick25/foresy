@@ -2,8 +2,10 @@
 
 **Date :** 2026-10-03 (horodatage git-clock hôte)
 **Chantier :** BACKLOG **#27** — « Mapping contrôleur — anomalies UX atteignables (à qualifier) »
-**Statut :** ✅ Analyse terminée (lecture seule, falsifiable — preuves code) — **3 décisions de mapping
-soumises à arbitrage CTO avant toute implémentation** · suivi d'avancement : §4
+**Statut :** ✅ **Arbitré + implémenté + certifié (2026-10-03)** — Q-1 GO (422 `:invalid_client_company`,
+RED public got 201 → GREEN ×2) · Q-2 **pas de RED via points d'entrée publics** (409 déjà servi par
+`validate_entry_modifiable!` — mapping non ajouté) · Q-3 statu quo · **#27 CLOSED** · analyse corrigée
+post-RED (§2/§4) · fc08::019
 **Discipline :** Investigation → preuve → arbitrage → modification — ce document est l'étape « preuve ».
 
 ---

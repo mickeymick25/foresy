@@ -29,7 +29,7 @@ l'index de progression. Le fichier est délimité par une entrée atomique : tou
 Brakeman 0 · verrou 72,5 · CI 6/6.
 
 **Ouvert / en attente** :
-- **fc08::020** (#28) — ✅ VALIDÉE + committée (l'enregistrement effectif à vérifier dans Chroma après le merge + l'index) ;
-- corrections cosmétiques documentaires (titres H1 d'audits datés, datation 26/09↔10/03) — tracées, action
-  facultative ;
+- **fc08::020** (#28) — ✅ VALIDÉE + **ENREGISTRÉE** (vérifiée Chroma 2026-10-21 : top-hit récupéré +
+  suivi_impl::001 à jour) ;
+- corrections cosmétiques documentaires (titres/en-têtes d'audits — la présente passe) ;
 - backlog transverse historique (#1-#10, #13, #15-#17, #22) + `chore/p6-coverage-plan` (arbitrage P1/hygiène).
