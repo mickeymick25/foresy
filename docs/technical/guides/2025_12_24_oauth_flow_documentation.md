@@ -342,8 +342,8 @@ Le JWT retourné par OAuth contient les claims suivants :
 
 ### Durée de validité
 
-- **Access Token** : 1 heure
-- **Refresh Token** : 7 jours (voir section suivante)
+- **Access Token** : 15 minutes
+- **Refresh Token** : 30 jours (voir section suivante)
 
 ### Utilisation du token
 
@@ -362,7 +362,7 @@ Foresy utilise son propre système de refresh token JWT, **indépendant** des to
 
 1. À l'authentification OAuth, un `token` (access) et un `refresh_token` sont générés
 2. Le `refresh_token` permet d'obtenir un nouveau `token` sans ré-authentification OAuth
-3. Si le `refresh_token` expire (7 jours), l'utilisateur doit refaire le flow OAuth
+3. Si le `refresh_token` expire (30 jours), l'utilisateur doit refaire le flow OAuth
 
 ### Endpoint de refresh
 
