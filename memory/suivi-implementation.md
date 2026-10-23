@@ -40,6 +40,15 @@ verrou 72,5 · CI 6/6 · production : **bascule #22 effective (merge "4d2985c1" 
   exact de "chore/p6-coverage-plan"** (2 commits "b5960bef"/"b0375c75" — analyse couverture 1077 lignes + gate
   déterminisme) avant de choisir le chantier — **le BACKLOG ne suffit pas à prouver l'état réel de la branche** :
   distinguer intégrés vs à absorber par lecture Git ("main..chore/p6-coverage-plan") ;
+- **cadre de reprise VALIDÉ CTO (23/10, clôture session)** : ordre d'ouverture = (1) gouvernance Git — fetch,
+  compare, vérification de "270e5474", **push si l'état observé le justifie** + vérifier le re-déploiement Render
+  (documentaire, attendu) — (2) investigation lecture seule "chore/p6-coverage-plan" vs "main" — (3) arbitrage CTO
+  sur preuves ; **carte de candidats après ouverture** : #16 (priorité CTO historique)
+  vs **#22-bis** (prolonge JWT — RED public → fix → certification) **en concurrence** pour le prochain créneau
+  (pas de départage avant les contrôles Git) · #3 (D-3-3 — design à arbitrer) · #15 (Wave 4.5 — périmètre à
+  délimiter) · #7-#10 (distinguer besoins démontrés vs non-mesurés) · **FC-09** : décision à partir de
+  "docs/ROADMAP.md" + valeur métier, jamais un pourcentage · hygiènes/options : passe cosmétique documentaire +
+  mini-audit #18 ;
 - **#22-bis** — claim standard `exp` des refresh tokens (dette C-0 tracée à #22) — **chantier indépendant** ;
 - corrections cosmétiques documentaires (titres/en-têtes d'audits — la présente passe) ;
 - backlog transverse historique (#1-#10, #15, #16) + `chore/p6-coverage-plan` (arbitrage P1/hygiène) —
