@@ -10,6 +10,7 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 ## 🚀 Vue d'Ensemble
 
 ### 🎯 État Actuel (Septembre 2026)
+- **v0.1.5** : ✅ #22 Hardening JWT — clé dédiée `JWT_SECRET` consommée + fail-fast prod (garde boot : absent OU vide) + `HS256` explicite ; contrat → RED (3) → GREEN ×2 → bascule Render (merge `4d2985c1`, PR #77) + sondes 100 % ; suite RSpec **1148 examples**
 - **v0.1.4** : ✅ FC-05 Rate Limiting — remediation contractuelle (contrat → RED mesurés → GREEN → R-4, PR #56) — 429 uniquement sur dépassement réel, backend distribué Redis
 - **v0.1.3** : ✅ P7 System Specs API CLOSED — contrat système (3ᵉ contrat) établi, bug de composition mission_id corrigé (PR #42)
 - **v0.1.2** : ✅ Campagne P6 Waves 1-4 + hygiène documentaire + P6.6 CLOSED (PR #35-#41)
@@ -27,7 +28,7 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 - **#21 Investigation OAuth / code mort** : ✅ **CLOSED (26/09)** — `OAuthConcern` (111 LOC, 0 appelant) et `ApmService` (254 LOC + 34 specs) supprimés (O-1/O-2, code mort démontré) — arbitrage régularisé après commits (trace §6), merge `cc0242a2`
 - **Dette D-1→D-11** : ✅ **100 % fermée** (vague corrective PR #25-#29) — A6 close, D-11 résolue, D-12 (E2E shell CI) tracée au registre
 - **#26 Race #14 — invariant (créateur, mois, année) sous concurrence** : ✅ **R-1 LIVRÉE + contrat #14 renforcé certifié (26/09)** — `pg_advisory_xact_lock` AVANT la garde, même transaction (RED mesuré → GREEN ×2, doublon + verrou 409 éliminés)
-- **Couverture** : 📊 SimpleCov **86.30 % lignes / 61.16 % branches** (3007/3484 · 882/1442) — suite **1136 verts** (+2 specs contrat d'erreur #27), verrou 72,5 armé dans le processus RSpec réel, rapport HTML + Cobertura XML
+- **Couverture** : 📊 SimpleCov **86.26 % lignes / 61.03 % branches** (3020/3501 · 885/1450) — suite **1148 verts** (+6 contrat JWT #22, +5 contrat export CSV #17), verrou 72,5 armé dans le processus RSpec réel, rapport HTML + Cobertura XML
 - **Sécurité** : ✅ JWT stateless, OAuth Google/GitHub, 0 vulnérabilité bundle audit
 - **Contrat d'erreur** : ✅ Format unifié `{ code, message, details }` sur tous les endpoints
 
@@ -43,6 +44,7 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 | **v0.1.2** | **19-21 Sept 2026** | **1150** | **Campagne P6 : Waves 1-4 + hygiène documentaire + P6.6 CLOSED — 2 bugs prod corrigés, 144 specs (PR #35-#41)** |
 | **v0.1.3** | **21-22 Sept 2026** | **1154** | **P7 System Specs API CLOSED — contrat système, bug de composition mission_id corrigé (PR #42)** |
 | **v0.1.4** | **26 Sept 2026** | **1166** | **FC-05 Rate Limiting remediation — contrat → RED mesurés (10) → GREEN → R-4 (limiter parallèle supprimé, backend distribué) (PR #56)** |
+| **v0.1.5** | **23 Oct 2026** | **1148** | **#22 Hardening JWT — clé dédiée `JWT_SECRET` + fail-fast prod + `HS256` explicite ; bascule Render (merge `4d2985c1`, PR #77) + sondes 100 % ; + contrat export CSV (#17)** |
 | — | 26 Sept 2026 | 1132 | #21 OAuth CLOSED — O-1 `OAuthConcern` + O-2 `ApmService` supprimés (code mort démontré, −365 LOC, −34 specs) · arbitrage régularisé après commits (§6) · close-out (rspec.xml, BACKLOG, mémoire fc08::014) |
 | — | 26 Sept 2026 | 1133 | #26 race #14 — R-1 advisory lock (contrat #14 renforcé : RED mesuré → GREEN ×2) · doublon + verrou 409 éliminés · mémoire fc08::016 |
 | — | 3 Oct 2026 | 1136 | #24 ledger purgé (O-B : 23 → 1 commit) · #25 commandes BRIEFING sur le service `test` (vérifiées par exécution) · #27 Q-1 → `422 :invalid_client_company` (RED got 201 — 201 + client jeté au silence) · mémoires fc08::017 |
@@ -50,7 +52,7 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 ### 🏆 Certifications & Standards
 - **TDD PLATINUM** : Domaine CRA auto-défensif, cycle RED → GREEN → REFACTOR par tâche
 - **DDD/RDD Architecture** : Migration complète — tables pivot, plus de FK directes, scopes explicites
-- **Code Quality** : RuboCop 246 files 0 offenses, Brakeman 0 warnings (mode strict en CI), Bundle audit 0 vulnérabilités
+- **Code Quality** : RuboCop 248 files 0 offenses, Brakeman 0 warnings (mode strict en CI), Bundle audit 0 vulnérabilités
 - **CI/CD** : 6/6 jobs verts + 0 annotation — E2E bloquant dans la Quality Gate, Brakeman strict, gate DDD explicite, assertion Cobertura, actions Node 24
 
 ## ⚡ Fonctionnalités
@@ -109,9 +111,9 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 - 📖 [Documentation complète](docs/technical/guides/2026_08_18_error_contract.md)
 
 ### Documentation & Qualité
-- **Swagger/OpenAPI** : 402 specs RSwag, audit 35/35 routes documentées
-- **Tests complets** : 1166 exemples RSpec (0 failures, 0 pending)
-- **Couverture** : 📊 SimpleCov **85.36 % lignes / 60.23 % branches** (rapport HTML + Cobertura XML)
+- **Swagger/OpenAPI** : 437 examples RSwag (mesuré), audit 36/36 routes documentées
+- **Tests complets** : 1148 exemples RSpec (0 failures, 0 pending)
+- **Couverture** : 📊 SimpleCov **86.26 % lignes (3020/3501) / 61.03 % branches (885/1450)** (rapport HTML + Cobertura XML)
 - **Code quality** : RuboCop 246 files, 0 offenses
 - **Security audit** : Brakeman 0 warnings (mode strict), Bundle audit 0 vulnérabilités
 - **Collection Postman** : 28 endpoints avec scripts de test automatisés
@@ -125,7 +127,7 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 - **Cache** : Redis pour les sessions et performances
 - **Authentification** : JWT avec tokens stateless
 - **OAuth** : OmniAuth pour Google et GitHub
-- **Documentation** : Swagger via rswag (402 specs)
+- **Documentation** : Swagger via rswag (437 examples)
 - **Module Rails** : `Foresy` (renommé depuis `App`)
 - **config.load_defaults** : 8.1
 
@@ -161,13 +163,13 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 
 ### Statistiques Actuelles (Septembre 2026)
 - **Tests RSpec** : ✅ **1136 examples, 0 failures, 0 pending** (2026-10-03, post série #24→#27 — −34 specs du code mort APM, +1 spec contrat #14 concurrentiel R-1, +2 specs contrat d'erreur #27)
-- **Tests Rswag** : ✅ **429 examples** — audit 35/35 routes
+- **Tests Rswag** : ✅ **437 examples** — audit 36/36 routes
 - **RuboCop** : ✅ **246 files, 0 offenses**
 - **Brakeman** : ✅ **0 Security Warnings** (mode strict — tout warning non ignoré échoue)
 - **Bundle audit** : ✅ **0 vulnerabilities** (Rails 8.1.3.1, puma 8.0.2)
 - **Smoke tests E2E** : ✅ **15/15 passed**
 - **GitLedger integration** : ✅ **23 tests** (intégration 13 + sécurité injection 10, env isolé)
-- **Couverture (SimpleCov)** : 📊 **86.30 % lignes (3007/3484) / 61.16 % branches (882/1442)** — rapport HTML + Cobertura XML
+- **Couverture (SimpleCov)** : 📊 **86.26 % lignes (3020/3501) / 61.03 % branches (885/1450)** — rapport HTML + Cobertura XML
 - **CI/CD** : ✅ **6/6 jobs verts, 0 annotation** — E2E bloquant dans la Quality Gate, Brakeman strict, gate DDD explicite
 
 ### 📈 Évolution des Métriques de Tests
@@ -368,4 +370,4 @@ Ce projet est sous license MIT. Voir le fichier `LICENSE` pour plus de détails.
 
 ---
 
-**Foresy API** — API Rails moderne, sécurisée et validée par les gates Platinium actuelles (1166 tests verts, CI 6/6 bloquante incl. E2E). Architecture DDD/RDD, couverture mesurée (85,36 % lignes / 60,23 % branches, verrou 72,5 armé), contrat système établi (P7), FC-05 rate limiting certifié (PR #56), dettes résiduelles explicitement tracées (D-12, BACKLOG transverse).
+**Foresy API** — API Rails moderne, sécurisée et validée par les gates Platinium actuelles (1148 tests verts, CI 6/6 bloquante incl. E2E). Architecture DDD/RDD, couverture mesurée (86,26 % lignes / 61,03 % branches, verrou 72,5 armé), contrat système établi (P7), FC-05 rate limiting certifié (PR #56), #22 JWT hardening certifié + basculé en production (PR #77), dettes résiduelles explicitement tracées (D-12, BACKLOG transverse).

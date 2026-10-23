@@ -76,8 +76,7 @@ EXCLUDED_PREFIXES = [
 # These are negative test cases or non-JSON endpoints that should
 # not be counted in the exhaustiveness audit
 EXCLUDED_ENDPOINTS = [
-  'get /api/v1/auth/login', # Negative test: GET does not exist, only POST
-  'get /api/v1/cras/{id}/export' # File download (CSV), non-standard JSON response
+  'get /api/v1/auth/login' # Negative test: GET does not exist, only POST
 ].freeze
 
 # ============================================================================
