@@ -3,11 +3,11 @@
 # Suivi d'avancement de l'implémentation
 
 <!-- created: 2026-10-03 -->
-<!-- updated: 2026-10-03 -->
+<!-- updated: 2026-10-23 -->
 
 ## suivi_impl::001
 <!-- created: 2026-10-03 -->
-<!-- updated: 2026-10-03 -->
+<!-- updated: 2026-10-23 -->
 Suivi d'avancement consolidé de l'implémentation — **fichier vivant**, mis à jour à chaque état substantiel
 (règle anti-drift). Les entrées `fc08::NNN` de la source principale restent la vérité ; cette table est
 l'index de progression. Le fichier est délimité par une entrée atomique : toute mise à jour se fait
@@ -23,13 +23,16 @@ l'index de progression. Le fichier est délimité par une entrée atomique : tou
 | fc08::016 | #26 race #14 — R-1 advisory lock (contrat #14 renforcé) | ✅ CERTIFIÉE (RED → GREEN ×2 — merge `4fb4063b`) | contrat `[DONE]_2026_09_26_14_invariant_concurrent_contract.md` · tracker `[DONE]_2026_09_26_26_race14_r1_implementation_tracker.md` |
 | fc08::017 | #24 ledger — qualification + purge O-B (23 → 1 commit, mécanisme supporté) | ✅ CERTIFIÉ (2026-10-03, merge `a557ad2e`) | audit `[DONE]_2026_09_28_24_ledger_provenance_investigation.md` §5.1 |
 | fc08::018/019 | #25 commandes BRIEFING (vérifiées par exécution) + #27 Q-1 (422 :invalid_client_company) | ✅ CLOSED + leçons validées (merge `1ce7c5b3`) | analyses `[DONE]_2026_10_03_25_briefing_commands_analysis.md` / `[DONE]_2026_10_03_27_ux_error_mapping_analysis.md` |
+| fc08::021 | **#22 hardening JWT** — clé dédiée `JWT_SECRET` consommée + fail-fast prod (boot : absent OU vide) + `HS256` explicite | ✅ **CERTIFIÉ (23/10** — contrat 6/0 ×2 · suite **1143/0** · RuboCop 248/0 · Brakeman 0 · Zeitwerk OK · audit 0 · 86,26/61,03 · verrou franchi**)** — **bascule Render PAS accomplie** : re-login général à annoncer + boot/health à vérifier à la bascule | audit `[DONE]_2026_10_23_22_jwt_hardening_investigation.md` (T1-T7) · fc08::021 |
 | suivi_impl::001 | **#28 — prévention structurelle ledger** : isolation stub_const ×6 (les overlays singleton inerts) + garde INV-D12-03 fail-fast (avant tout Git-call) + W3-D2 aligné | ✅ **CERTIFIÉE (2026-10-03)** — RED ×2 → GREEN ×2 · batch ledger 72/0 · suite 1137/0 · ledger réel inchangé (1 commit) · purge #24 non touchée | cadrage `[DONE]_2026_10_03_28_ledger_prevention_cadrage.md` (§6 journal) · fc08::020 proposée |
 
-**Métriques de référence (2026-10-03, post #28)** : suite **1137/0** · couverture **86,33/60,94** · RuboCop **247 files / 0** ·
-Brakeman 0 · verrou 72,5 · CI 6/6.
+**Métriques de référence (2026-10-23, post #22)** : suite **1143/0** · couverture **86,26 % lignes / 61,03 % branches** · RuboCop **248 files / 0** ·
+Brakeman 0 · Zeitwerk OK · bundle audit 0 vulnérabilité · verrou 72,5 · CI 6/6.
 
 **Ouvert / en attente** :
-- **fc08::020** (#28) — ✅ VALIDÉE + **ENREGISTRÉE** (vérifiée Chroma 2026-10-21 : top-hit récupéré +
-  suivi_impl::001 à jour) ;
+- **fc08::021** (#22) — ✅ VALIDÉE (CTO 23/10) + **ENREGISTRÉE** (vérifiée Chroma 2026-10-23 : top-hit récupéré +
+  suivi_impl::001 à jour) · **basculé Render en attente du déploiement et des vérifications opérationnelles**
+  (re-login général à annoncer ; boot + health check à la bascule) — certification code ≠ validation release ;
 - corrections cosmétiques documentaires (titres/en-têtes d'audits — la présente passe) ;
-- backlog transverse historique (#1-#10, #13, #15-#17, #22) + `chore/p6-coverage-plan` (arbitrage P1/hygiène).
+- backlog transverse historique (#1-#10, #13, #15-#17) + `chore/p6-coverage-plan` (arbitrage P1/hygiène) —
+  **#22 sorti de la liste (close 23/10)**.

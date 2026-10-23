@@ -72,7 +72,7 @@ RSpec.describe 'Authentication - Token Refresh', type: :request do
             user_id: user.id,
             refresh_exp: 1.hour.ago.to_i
           }
-          JWT.encode(payload, Rails.application.secret_key_base)
+          JWT.encode(payload, ENV.fetch('JWT_SECRET', nil))
         end
         let(:refresh) { { refresh_token: refresh_token } }
 
