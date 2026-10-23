@@ -26,14 +26,21 @@ l'index de progression. Le fichier est délimité par une entrée atomique : tou
 | fc08::021 | **#22 hardening JWT** — clé dédiée `JWT_SECRET` consommée + fail-fast prod (boot : absent OU vide) + `HS256` explicite | ✅ **CERTIFIÉ + BASCULÉ (23/10)** — contrat 6/0 ×2 · suite **1143/0** · RuboCop 248/0 · Brakeman 0 · Zeitwerk OK · audit 0 · 86,26/61,03 · verrou franchi · **bascule Render : merge `4d2985c1` (PR #77, CI 6/6) · `/health` 200 ×3 · sondes S-1 200 / S-2 200 / S-3 401 ×2 / S-4 200 / S-5 401** — re-login généré (tokens pré-bascule invalides), pas de rollback ; 1er S-5 500 = artifact de sonne d'agent (body malformé), re-sonde 401 — produit sain | audit `[DONE]_2026_10_23_22_jwt_hardening_investigation.md` (T1-T7) · runbook `[DONE]_2026_10_23_22_render_jwt_cutover_runbook.md` · fc08::021 |
 | suivi_impl::001 | **#28 — prévention structurelle ledger** : isolation stub_const ×6 (les overlays singleton inerts) + garde INV-D12-03 fail-fast (avant tout Git-call) + W3-D2 aligné | ✅ **CERTIFIÉE (2026-10-03)** — RED ×2 → GREEN ×2 · batch ledger 72/0 · suite 1137/0 · ledger réel inchangé (1 commit) · purge #24 non touchée | cadrage `[DONE]_2026_10_03_28_ledger_prevention_cadrage.md` (§6 journal) · fc08::020 proposée |
 
-**Métriques de référence (2026-10-23, post #22)** : suite **1143/0** · couverture **86,26 % lignes / 61,03 % branches** · RuboCop **248 files / 0** ·
-Brakeman 0 · Zeitwerk OK · bundle audit 0 vulnérabilité · verrou 72,5 · CI 6/6.
+**Métriques de référence (2026-10-23, post mini-PR "8e65a52f")** : suite **1148/0** · couverture **86,26 % lignes / 61,03 % branches**
+· RuboCop **249 files / 0** · RSwag **437 (mesuré) · audit 36/36** · Brakeman 0 · Zeitwerk OK · bundle audit 0 vulnérabilité ·
+verrou 72,5 · CI 6/6 · production : **bascule #22 effective (merge "4d2985c1" — PR #77) + mini-PR mergée ("8e65a52f")** —
+`main` = `origin/main` — hub : knowledge **2500 chunks** · mémoires **22**.
 
 **Ouvert / en attente** :
 - **fc08::021** (#22) — ✅ VALIDÉE (CTO 23/10) + **ENREGISTRÉE** (vérifiée Chroma 2026-10-23 : top-hit récupéré +
-  suivi_impl::001 à jour) · **bascule Render ACCOMPLIE** (GO PUSH CTO · merge `4d2985c1` — PR #77, CI 6/6 ·
-  sondes **S-1..S-5 100 %** · `/health` 200 ×3 · 0 `ConfigurationError` · pas de rollback ; 1er S-5 500 =
-  artifact de sonne d'agent — re-sonde 401) — dossier **CLOSED** ;
+  suivi_impl::001 à jour) · **bascule Render ACCOMPLIE** (GO PUSH CTO · merge "4d2985c1" — PR #77, CI 6/6 ·
+  sondes **S-1..S-5 100 %** · "/health" 200 ×3 · 0 "ConfigurationError" · pas de rollback ; 1er S-5 500 =
+  artifact de sonne d'agent — re-sonde 401) — dossier **CLOSED, non à rouvrir (CTO 23/10)** ;
+- **prochaine session — première action (recommandation CTO 23/10)** : examiner l'état Git et le **périmètre
+  exact de "chore/p6-coverage-plan"** (2 commits "b5960bef"/"b0375c75" — analyse couverture 1077 lignes + gate
+  déterminisme) avant de choisir le chantier — **le BACKLOG ne suffit pas à prouver l'état réel de la branche** :
+  distinguer intégrés vs à absorber par lecture Git ("main..chore/p6-coverage-plan") ;
+- **#22-bis** — claim standard `exp` des refresh tokens (dette C-0 tracée à #22) — **chantier indépendant** ;
 - corrections cosmétiques documentaires (titres/en-têtes d'audits — la présente passe) ;
-- backlog transverse historique (#1-#10, #13, #15-#17) + `chore/p6-coverage-plan` (arbitrage P1/hygiène) —
-  **#22 sorti de la liste (close + basculé 23/10)**.
+- backlog transverse historique (#1-#10, #15, #16) + `chore/p6-coverage-plan` (arbitrage P1/hygiène) —
+  **#22 sorti; #13/#17 sorti (livrés — mini-PR "8e65a52f", 23/10)**.
