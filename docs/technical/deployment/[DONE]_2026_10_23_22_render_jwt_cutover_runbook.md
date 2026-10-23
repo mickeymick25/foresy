@@ -2,8 +2,9 @@
 
 **Date de préparation :** 23 octobre 2026
 **Auteur :** Zed Agent (BACKLOG #22 — arbitrage CTO : **Option A — préparation de la bascule, SANS push**)
-**Statut :** 🕓 **PRÉPARATION TERMINÉE — push DIFFÉRÉ jusqu'à fenêtre de déploiement confirmée + autorisation
-push explicite** (le push déclenche l'auto-deploy Render = **LA BASCULE**)
+**Statut :** ✅ **EXÉCUTÉE LE 23/10 — BASCULE EFFECTIVE ET CERTIFIÉE**
+(push : GO explicite CTO · merge commit `4d2985c1` — PR #77 · `/health` 200 ×3 · sondes S-1..S-5 à 100 % ·
+0 `ConfigurationError` · journal des résultats réels : §6)
 **Référence chantier :** `docs/technical/audits/[DONE]_2026_10_23_22_jwt_hardening_investigation.md` (#22, T1-T7,
 certifié — commit `e0e60e4e`) · condition de release §6.3 · mémoire `fc08::021`
 **Registre de santé au moment de l'écriture :** fetch effectué (23/10) — `HEAD = e0e60e4e` ·
@@ -85,8 +86,28 @@ arbre propre · hub : knowledge 2489 chunks / memories 22 (fc08::021 vérifiée 
 - 2026-10-23 — Préparation : vérifications condition 2 exécutées réellement (fetch + compare : `HEAD = e0e60e4e`,
   `origin/main = ed6806b9` inchangé, rangé = 1 commit certifié, arbre propre) · annonce §2 rédigée (canaux/heure
   à fixer par le CTO) · runbook committé localement — **push différé**.
-- _[fenêtre de déploiement — à compléter]_ : annonce publiée __ ; autorisation push __ ; push __ ;
-  boot/health __ ; sondes S-1..S-5 __ ; clôture réalisée __.
+- 2026-10-23 — Arbitrage CTO « bascule sans contrainte d'utilisateurs » : **pas de communication externe**
+  (MVP, aucun utilisateur actif) ; **note de release interne conservée** (§1-§2) ; séquence : pré-push re-vérifiée
+  → GO PUSH explicite.
+- 2026-10-23 — Pré-push rejouée au moment réel (fetch + compare : `origin/main = ed6806b9` · `HEAD = f6a268cf`
+  (chaîne `e0e60e4e` + runbook) · arbre propre 0) · compte sonne jetable instrumenté (signup **201** · login
+  **200**) · **S-2pre = 200** (token ancienne-clé validé par le code actuel) · artefacts d'ancienne clé capturés
+  sous `/tmp` (jamais imprimés).
+- 2026-10-23 — **PUSH + merge** : `git push origin main` direct refusé par **branch protection** (6/6 required
+  checks — durcissement #13/#14 fonctionnel) → voie PR standard : branche `feat/22-jwt-hardening-cutover` +
+  **PR #77** → CI sur PR **6/6 verts** (Tests & Coverage 3m05 · Code Quality · Security · API Contracts · E2E ·
+  Quality Gate — horodatés 10:44-10:49 UTC) → **merge « Create a merge commit »** : `origin/main = 4d2985c1`.
+- 2026-10-23 — **Post-merge** : `/health` **200 ×3** · `/up` 200 · sondes **S-1 200 · S-2 200 · S-3 401 (×2,
+  stable) · S-4 200 · S-5 401** — **LA BASCULE EST EFFECTIVE** : la clé dédiée signe et valide, l'ancienne clé
+  est rejetée par **comportement**, le garde boot est resté silencieux (clé dédiée non-vide consommée),
+  0 `ConfigurationError`, pas de rollback — **#22 en production.**
+- 2026-10-23 — Écart de sonde tracé : le premier S-5 a renvoyé **500** reproductible ×2 — cause racine mesurée :
+  **body de sonde MALFORMÉ par l'agent** (le `"` de clôture du token manquant dans le JSON), l'exception de
+  parsing étant hors des rescues listées du contrôle d'erreur applicatif → attrapée par `rescue_from StandardError`
+  → 500 conforme au contrat. Re-sonde avec le body corrigé (structure identique, clé ancienne) → **401 ✅**.
+  **Leçon** : une sonde mal formée ressemble à une anomalie produit — la génération de payloads passe désormais
+  par `JSON.generate` (le forger path a servi de témoin différenciateur : bien formé = 401, sonde brisée = 500).
+  **Aucun BACKLOG #29** (pas d'anomalie produit à attribuer).
 
 ---
 *Règle : le push est une action opérationnelle distincte de la certification — jamais assimilé ; aucun résultat de
