@@ -75,6 +75,14 @@
 - Chiffrage 95 % : ≈ 14-18 h effectives, 4 waves, PR par wave
 - Documents : analyse (`changes/2026-09-17-P6_Coverage_Gap_Analysis.md`) + présent plan — **en attente GO CTO avant P6.1**
 
+### 2026-10-24 — [incident-CI] CI rouge sur chore/p6-coverage-plan — corrigé, mergé (PR #82)
+- **Symptôme** : CI rouge sur les deux runs de la branche (`c2dabe2b`/`080ec02b`, 24/10 18:15Z) — Brakeman **exit 7** (erreur de scan) et RuboCop **26 offenses de niveau F** (parse) sur le même fichier ; Quality Gate en échec par agrégation ; tests / E2E / contrats restés verts.
+- **Cause racine** : extrait Markdown en blocquote collé dans l'en-tête de `scripts/coverage_gap_analysis.rb` (introduit `c2dabe2b`, 24/10) — un `.rb` qui ne parse pas fait échouer RuboCop **et** Brakeman d'un seul geste. Le fichier, créé le 17/09 (`b0375c75`), n'était **pas couvert par la validation CI antérieure** : sa première validation CI = `aedd70e4`.
+- **Correctif (`aedd70e4`)** : blocquote converti en commentaires Ruby (contenu documentaire intégralement préservé) ; 6 offenses autocorrectées (`positive?`, safe-navigation, RedundantFormat, newline finale) ; tokens `format()` nommés (args hash) ; `chmod 755` (shebang + `Lint/ScriptPermission`).
+- **Preuve de comportement** : baseline reconstituée (contenu HEAD + conversion isolée du blocquote) → sortie **byte-identique** avant/après (diff vide, 61 lignes) — la conversion seule ne modifie pas l'exécution.
+- **Certification** : `ruby -c` OK · RuboCop **250 files / 0 offenses** · Brakeman **0 erreur / 0 warning** · Bundle Audit **0 vulnérabilité** · **CI 6/6 sur `aedd70e4`** (run 40121939127) · merge **PR #82** = **`97d85eec`** (24/10 19:03Z, Create a merge commit, opérateur mickeymick25) · **CI main** : run 40123521100 — 5 jobs `success` + E2E `skipped` (non applicable au push main).
+- **Leçon** : tout script Ruby versionné est automatiquement dans le périmètre RuboCop/Brakeman — exécuter le contrôle local (parsing + lint + brakeman) dès le versionnage, avant le push ; un fichier jamais passé en CI doit être introduit avec sa première CI.
+
 ## 10. EXECUTION RECORD — absorption annotée (2026-10-24, arbitrage CTO O-2)
 
 > Le plan a été **exécuté intégralement à la suite du GO** (les Waves 1-4 + P6.6 CLOSED — PRs #35-#41 : traçabilité
