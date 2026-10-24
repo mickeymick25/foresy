@@ -75,6 +75,9 @@ group :test do
   gem 'rspec_junit_formatter'
   gem 'selenium-webdriver'
   gem 'shoulda-matchers', '~> 5.0'
-  gem 'simplecov'
-  gem 'simplecov-cobertura'
+  # P6 — chargé UNIQUEMENT via spec/coverage_boot (rspec) : require: false empêche
+  # le démarrage de SimpleCov dans les tâches rails (db:drop/create/schema:load)
+  # où la couverture mesurée ferait échouer minimum_coverage (Setup database exit 2)
+  gem 'simplecov', require: false
+  gem 'simplecov-cobertura', require: false
 end

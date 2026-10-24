@@ -16,7 +16,7 @@ RSpec.describe JsonWebToken do
       token = described_class.encode(payload, expiration)
       expect(token).to be_present
 
-      decoded = JWT.decode(token, Rails.application.secret_key_base)[0]
+      decoded = JWT.decode(token, ENV.fetch('JWT_SECRET', nil))[0]
       expect(decoded['user_id']).to eq(123)
       expect(decoded['session_id']).to eq('abc123')
       expect(decoded['exp']).to be_present
@@ -54,7 +54,7 @@ RSpec.describe JsonWebToken do
       token = described_class.refresh_token(user_id)
       expect(token).to be_present
 
-      decoded = JWT.decode(token, Rails.application.secret_key_base)[0]
+      decoded = JWT.decode(token, ENV.fetch('JWT_SECRET', nil))[0]
       expect(decoded['user_id']).to eq(user_id)
       expect(decoded['refresh_exp']).to be_present
     end
@@ -74,7 +74,7 @@ RSpec.describe JsonWebToken do
 
   describe '.decode' do
     let(:valid_payload) { { user_id: 123, session_id: 'abc123' } }
-    let(:valid_token) { JWT.encode(valid_payload, Rails.application.secret_key_base) }
+    let(:valid_token) { JWT.encode(valid_payload, ENV.fetch('JWT_SECRET', nil)) }
 
     it 'decodes token successfully' do
       expect(Rails.logger).to receive(:debug).with(/JWT decoded successfully/)
@@ -100,7 +100,7 @@ RSpec.describe JsonWebToken do
     context 'with expired token' do
       it 'handles JWT::ExpiredSignature without logging token' do
         expired_payload = { user_id: 123, exp: Time.now.to_i - 3600 }
-        expired_token = JWT.encode(expired_payload, Rails.application.secret_key_base)
+        expired_token = JWT.encode(expired_payload, ENV.fetch('JWT_SECRET', nil))
 
         expect(Rails.logger).to receive(:warn).with(/JWT token expired: JWT::ExpiredSignature/)
 
@@ -224,10 +224,10 @@ RSpec.describe JsonWebToken do
       access_token = described_class.encode(user_id: 123, session_id: 'abc')
       refresh_token = described_class.refresh_token(123)
 
-      access_decoded = JWT.decode(access_token, Rails.application.secret_key_base)[0]
+      access_decoded = JWT.decode(access_token, ENV.fetch('JWT_SECRET', nil))[0]
       expect(access_decoded['exp']).to be_present
 
-      refresh_decoded = JWT.decode(refresh_token, Rails.application.secret_key_base)[0]
+      refresh_decoded = JWT.decode(refresh_token, ENV.fetch('JWT_SECRET', nil))[0]
       expect(refresh_decoded['refresh_exp']).to be_present
       expect(refresh_decoded['exp']).to be_nil
     end

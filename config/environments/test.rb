@@ -41,6 +41,9 @@ Rails.application.configure do
 
   # Store uploaded files on the local file system in a temporary directory.
   config.active_storage.service = :test
+  # API-only : ActiveStorage inutilisé (0 usage app/, 0 table) — désactive le traitement de variantes
+  # (supprime la notice « image_processing gem missing » au boot, mandat zéro-warnings #29/R-4)
+  config.active_storage.variant_processor = :disabled
 
   config.action_mailer.perform_caching = false
 

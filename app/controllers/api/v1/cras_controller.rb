@@ -20,10 +20,7 @@ module Api
     # - Uses StandardizedError concern methods
     class CrasController < Api::V1::BaseController
       include Pagy::Backend
-      include Api::V1::Cras::ErrorHandler
-      include Api::V1::Cras::RateLimitable
       include Api::V1::Cras::ParameterExtractor
-      include Api::V1::Cras::AccessValidation
       include Common::ResponseFormatter
 
       before_action :authenticate_access_token!
@@ -189,6 +186,36 @@ module Api
         else
           error_unprocessable_entity(message)
         end
+      end
+
+      # W1-D3-B : relocalisé depuis Api::V1::Cras::ErrorHandler (concern supprimé —
+      # seul handler vivant du concern, prouvé par la caractérisation
+      # spec/requests/api/v1/rate_limiting/cra_rate_limit_contract_spec.rb).
+      # Chaîne préservée : check_rate_limit! → handle_rate_limit_exceeded
+      # → error_too_many_requests → 429, code RATE_LIMIT_EXCEEDED
+      # (contrat d'émission 429 — docs/technical/guides/2026_08_18_error_contract.md).
+      # Rate limiting (contrat FC-05 — RateLimitService unifié, R-4)
+      # Clé : user_id (A6). Create : 10/h ; update : 50/h ; submit/lock : 5/h.
+      # Chaîne préservée : check_rate_limit! → handle_rate_limit_exceeded
+      # → error_too_many_requests → 429, code RATE_LIMIT_EXCEEDED
+      # (contrat d'émission 429 — docs/technical/guides/2026_08_18_error_contract.md).
+      def check_rate_limit!
+        endpoint = case action_name
+                   when 'create' then 'cras:create'
+                   when 'update' then 'cras:update_destroy'
+                   else 'cras:submit_lock'
+                   end
+        allowed, retry_after = RateLimitService.check_rate_limit(endpoint, current_user.id.to_s)
+        return if allowed
+
+        response.headers['Retry-After'] = retry_after.to_s
+        handle_rate_limit_exceeded("Rate limit exceeded (#{endpoint})")
+      end
+
+      def handle_rate_limit_exceeded(message = 'Rate limit exceeded for CRA operations')
+        Rails.logger.warn "CRA Rate limit exceeded: #{message}"
+
+        error_too_many_requests(message, { resource_type: 'CRA' })
       end
 
       def set_cra

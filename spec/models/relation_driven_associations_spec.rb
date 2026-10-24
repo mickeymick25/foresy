@@ -16,7 +16,7 @@ require 'rails_helper'
 # @see app/models/user.rb
 # @see app/models/mission.rb
 # @see app/models/cra.rb
-# @see docs/technical/corrections/2026-02-15-DDD_Relation-Driven_Correction.md
+# @see docs/technical/corrections/[DONE]_2026_02_15_DDD_Relation-Driven_Migration_Plan.md
 #
 RSpec.describe 'Relation-Driven Associations', type: :model do
   describe 'User ↔ Mission via user_missions' do

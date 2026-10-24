@@ -12,7 +12,7 @@
 #     # Use legacy code path
 #   end
 #
-# @see docs/technical/corrections/2026-02-15-DDD_Relation-Driven_Correction.md
+# @see docs/technical/corrections/[DONE]_2026_02_15_DDD_Relation-Driven_Migration_Plan.md
 
 # DDD Relation-Driven Architecture
 # Controls whether the application reads from user_missions/user_cras pivot tables

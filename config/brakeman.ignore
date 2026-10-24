@@ -5,14 +5,14 @@
       "note": "TEST SUPPORT ONLY - Ce contrôleur est utilisé exclusivement pour les scénarios E2E. Il n'est jamais exposé en production. Le champ role est volontairement mass-assignable pour simplifier la création de fixtures de test."
     },
     {
-      "fingerprint": "1c90df4cb4fb8f1ee865d8d78d971eeb13cf0a0c5de3a373667c8b85167c1ab0",
-      "note": "FALSE POSITIVE - D-5 : Open3.capture3 en tableau d'arguments (aucun shell intermédiaire, injection shell impossible). cra_id validé par SAFE_ID_PATTERN (alnum/-/_ max 64, aucun métacaractère regex ni shell) — les IDs invalides court-circuitent sans invoquer Git. Couvert par spec/integration/git_ledger_integration_spec.rb (cas malveillants)."
+      "fingerprint": "993e1d5cfd0708b15dcedf083863f31f7cdb3df7954c99f6555682fdea12d3e7",
+      "note": "FALSE POSITIVE - D-5 : Open3.capture3 en tableau d'arguments (aucun shell intermédiaire, injection shell impossible). cra_id validé par SAFE_ID_PATTERN (alnum/-/_ max 64, aucun métacaractère regex ni shell) — les IDs invalides court-circuitent sans invoquer Git. Couvert par spec/integration/git_ledger_integration_spec.rb (cas malveillants). Fingerprints régénérés le 17/09/2026 (D-12 : commentaire de 3 lignes décale L61→L69, fond identique)."
     },
     {
-      "fingerprint": "d92f052d8153ef280979a8b3c6239d7df6563ad5dda8d6ba5bd277da99f90e05",
-      "note": "FALSE POSITIVE - D-5 : même motif que 1c90df4c (find_commit_info). Open3 en tableau d'arguments + garde-fou SAFE_ID_PATTERN sur cra_id. Voir note du warning jumeau."
+      "fingerprint": "102a8820be965594bc74e65d9ae3c8867ec5ff8a6edd52946e784ba4f6d5220a",
+      "note": "FALSE POSITIVE - D-5 : même motif (find_commit_info). Open3 en tableau d'arguments + garde-fou SAFE_ID_PATTERN sur cra_id. Voir note du warning jumeau. Fingerprints régénérés le 17/09/2026 (D-12 : décalage L72→L80, fond identique)."
     }
   ],
-  "updated": "2026-09-15",
+  "updated": "2026-09-17",
   "brakeman_version": "7.1.2"
 }

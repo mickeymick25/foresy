@@ -133,12 +133,6 @@ module Common
       status.to_sym if status.to_sym.in?(%i[draft submitted locked])
     end
 
-    def validate_required_params(required_params)
-      missing_params = required_params.select { |param| params[param].blank? }
-
-      raise ActionController::ParameterMissing, missing_params.first.to_s if missing_params.any?
-    end
-
     def validate_date_range!(start_date, end_date)
       raise ArgumentError, 'Both start_date and end_date are required' unless start_date && end_date
 

@@ -27,7 +27,7 @@ RSpec.describe 'JWT Error Handling Integration', type: :request do
 
     it 'handles expired token' do
       expired_payload = { user_id: user.id, refresh_exp: Time.now.to_i - 3600 }
-      expired_token = JWT.encode(expired_payload, Rails.application.secret_key_base)
+      expired_token = JWT.encode(expired_payload, ENV.fetch('JWT_SECRET', nil))
 
       expect(Rails.logger).to receive(:warn).at_least(:once)
 
@@ -45,7 +45,7 @@ RSpec.describe 'JWT Error Handling Integration', type: :request do
         user_id: user.id,
         refresh_exp: 30.days.from_now.to_i
       }
-      valid_token = JWT.encode(valid_payload, Rails.application.secret_key_base)
+      valid_token = JWT.encode(valid_payload, ENV.fetch('JWT_SECRET', nil))
 
       expect(Rails.logger).to receive(:info).at_least(:once)
 

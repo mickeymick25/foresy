@@ -4,7 +4,7 @@
 # accessible in production, even if E2E_MODE=true is mistakenly set.
 #
 # This spec characterizes the security fix for audit point F3
-# (see docs/technical/audits/2026-07-22-Architecture_Debt_Audit_and_Plan.md).
+# (see docs/technical/audits/[DONE]_2026_07_22_Architecture_Debt_Audit_and_Plan.md).
 #
 # Defense in depth strategy:
 #   1. config/routes.rb: routes not mounted in production
@@ -95,7 +95,7 @@ RSpec.describe 'SetupController gate behavior', type: :request do
       post '/__test_support__/e2e/setup', params: { user: { email: 'x@example.com', password: 'pw' } }
       expect(response).to have_http_status(:not_found)
       expect(response).not_to have_http_status(:internal_server_error)
-      expect(response).not_to have_http_status(:unprocessable_entity)
+      expect(response).not_to have_http_status(:unprocessable_content)
       expect(response).not_to be_successful
     end
   end

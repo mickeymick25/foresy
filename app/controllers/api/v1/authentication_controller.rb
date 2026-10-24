@@ -4,8 +4,9 @@ module Api
   module V1
     # Controller for authentication API endpoints
     # Handles user login, logout, token refresh, and OAuth authentication
+    # OAuth callback : `OauthController` + `OAuth*Service` (le flow concern legacy,
+    # sans transaction ni anti-race, supprimé en 26/09 — 0 appelant, cf. audit #21)
     class AuthenticationController < Api::V1::BaseController
-      include ::OAuthConcern
       include Common::RateLimitable
 
       before_action :authenticate_access_token!, only: %i[logout revoke revoke_all]

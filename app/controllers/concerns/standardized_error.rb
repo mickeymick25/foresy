@@ -118,20 +118,6 @@ module StandardizedError
                  "Required parameter missing: #{parameter_name}", details)
   end
 
-  def error_invalid_enum(field, value, valid_values, details = nil)
-    details ||= {}
-    details[:field] = field
-    details[:provided_value] = value
-    details[:valid_values] = valid_values
-    render_error(:bad_request, ERROR_CODES[:invalid_enum],
-                 "Invalid value '#{value}' for field '#{field}'. Valid values: #{valid_values.join(', ')}",
-                 details)
-  end
-
-  def error_malformed_json(details = nil)
-    render_error(:bad_request, ERROR_CODES[:malformed_json], 'Malformed JSON payload', details)
-  end
-
   def error_internal(message = 'Internal server error', details = nil)
     # In production, don't leak internal details
     if Rails.env.production?
@@ -190,39 +176,5 @@ module StandardizedError
     end
 
     error_internal(exception&.message, details)
-  end
-
-  # ============================================================
-  # Validation Helpers
-  # ============================================================
-
-  # Validate that a required parameter is present
-  # @param params [ActionController::Parameters] params hash
-  # @param required_fields [Array<Symbol>] list of required field names
-  # @return [Array<Symbol>] list of missing fields (empty if all present)
-  def validate_required_params(params, *required_fields)
-    missing = []
-    required_fields.each do |field|
-      missing << field if params[field].blank? && params[field.to_s].blank?
-    end
-    missing
-  end
-
-  # Validate that a value is one of the allowed enum values
-  # @param value [Object] the value to validate
-  # @param allowed_values [Array] list of allowed values
-  # @param field_name [String] name of the field for error messages
-  # @return [Boolean] true if valid
-  def validate_enum(value, allowed_values, _field_name)
-    allowed_values.include?(value)
-  end
-
-  # Validate JSON parsing
-  # @param json_string [String] JSON string to parse
-  # @return [Hash, nil] parsed hash or nil if invalid
-  def validate_json(json_string)
-    JSON.parse(json_string)
-  rescue JSON::ParserError
-    nil
   end
 end

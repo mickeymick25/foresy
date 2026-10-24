@@ -12,7 +12,7 @@ require 'rails_helper'
 # INV-15 (no fictitious legal entity for simulation) has no dedicated test: no
 # simulation capability exists in the codebase (verified 14/09/2026, grep app/) —
 # the invariant is a forward-looking architectural guarantee for future Feature
-# Contracts. Documented in docs/technical/testing/fc08_coverage_report.md.
+# Contracts. Documented in docs/technical/testing/[DONE]_2026_09_14_fc08_coverage_report.md.
 #
 # @see docs/FeatureContract/08_Feature Contract — Entreprise Indépendant_[3.2.3] (invariants, lines 1606-1694)
 #

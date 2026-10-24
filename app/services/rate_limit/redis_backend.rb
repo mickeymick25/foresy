@@ -64,5 +64,15 @@ module RateLimit
     def clear(key)
       redis.del(key)
     end
+
+    # Clear all rate limit keys (test support)
+    #
+    # @return [void]
+    def clear_all!
+      keys = redis.scan_each(match: 'rate_limit:*').to_a
+      return if keys.empty?
+
+      redis.del(keys)
+    end
   end
 end

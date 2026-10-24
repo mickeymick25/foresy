@@ -48,6 +48,12 @@ class MissionServices
       validation_result = validate_mission_params
       return validation_result if validation_result.failure?
 
+      # BACKLOG #27 (Q-1) — validation du client_company_id AVANT toute écriture :
+      # id inconnu/non-UUID ⇒ 422 :invalid_client_company (sinon ForeignKeyViolation
+      # sur mission_companies → internal_error → 500, cf. audit #27).
+      client_company_check = validate_client_company_id
+      return client_company_check if client_company_check&.failure?
+
       # Permission check
       permission_check = check_user_permissions
       return permission_check if permission_check.failure?
@@ -72,6 +78,9 @@ class MissionServices
         message: 'An unexpected error occurred while creating the mission'
       )
     end
+
+    # BACKLOG #27 (Q-1) — format UUID pour la validation du client_company_id (C-1).
+    UUID_FORMAT = /\A[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\z/i
 
     private
 
@@ -246,6 +255,21 @@ class MissionServices
     end
 
     # === Permissions ===
+
+    # BACKLOG #27 (Q-1) — validation du client_company_id avant toute écriture.
+    # UUID malformé ou société inconnue ⇒ 422 :invalid_client_company
+    # (sinon ForeignKeyViolation sur mission_companies → internal_error/500).
+
+    def validate_client_company_id
+      client_id = mission_params[:client_company_id]
+      return nil unless client_id.present?
+      return nil if client_id.match?(UUID_FORMAT) && Company.find_by(id: client_id)
+
+      ApplicationResult.unprocessable_entity(
+        error: :invalid_client_company,
+        message: 'Client company not found'
+      )
+    end
 
     def check_user_permissions
       unless user_has_independent_company_access?

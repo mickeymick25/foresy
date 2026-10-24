@@ -37,6 +37,9 @@ Rails.application.configure do
 
   # Store uploaded files on the local file system (see config/storage.yml for options).
   config.active_storage.service = :local
+  # API-only : ActiveStorage inutilisé (0 usage app/, 0 table) — désactive le traitement de variantes
+  # (supprime la notice « image_processing gem missing » au boot, mandat zéro-warnings #29/R-4)
+  config.active_storage.variant_processor = :disabled
 
   # Don't care if the mailer can't send.
   config.action_mailer.raise_delivery_errors = false

@@ -137,9 +137,13 @@ class Mission < ApplicationRecord
                         .where(user_missions: { user_id: user.id })
                         .select(:id)
 
+    # W1-D2-BUG (arbitrage CTO 18/09, cycle symétrique du fix CRA) : une adhésion
+    # révoquée (user_companies.deleted_at — FC-08) ne constitue plus une voie
+    # d'accès active. Le pivot mission_companies ne porte pas de soft delete
+    # (hard delete) — pas de filtre nécessaire.
     via_companies = joins(:mission_companies)
                     .joins('INNER JOIN user_companies ON user_companies.company_id = mission_companies.company_id')
-                    .where(user_companies: { user_id: user.id, role: %w[independent client] })
+                    .where(user_companies: { user_id: user.id, role: %w[independent client], deleted_at: nil })
                     .select(:id)
 
     where(id: via_user_missions).or(where(id: via_companies)).distinct

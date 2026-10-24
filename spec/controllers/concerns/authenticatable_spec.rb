@@ -39,7 +39,7 @@ RSpec.describe Authenticatable, type: :controller do
     context 'with expired token' do
       let(:expired_token) do
         payload = valid_payload.merge(exp: 1.hour.ago.to_i)
-        JWT.encode(payload, Rails.application.secret_key_base)
+        JWT.encode(payload, ENV.fetch('JWT_SECRET', nil))
       end
 
       it 'returns :expired_token symbol' do
@@ -225,7 +225,7 @@ RSpec.describe Authenticatable, type: :controller do
 
     it 'fails authentication with expired token' do
       expired_payload = valid_payload.merge(exp: 1.hour.ago.to_i)
-      expired_token = JWT.encode(expired_payload, Rails.application.secret_key_base)
+      expired_token = JWT.encode(expired_payload, ENV.fetch('JWT_SECRET', nil))
 
       # Step 1: decode_token returns error symbol
       result = controller.decode_token(expired_token)

@@ -10,6 +10,10 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 ## 🚀 Vue d'Ensemble
 
 ### 🎯 État Actuel (Septembre 2026)
+- **v0.1.5** : ✅ #22 Hardening JWT — clé dédiée `JWT_SECRET` consommée + fail-fast prod (garde boot : absent OU vide) + `HS256` explicite ; contrat → RED (3) → GREEN ×2 → bascule Render (merge `4d2985c1`, PR #77) + sondes 100 % ; suite RSpec **1148 examples**
+- **v0.1.4** : ✅ FC-05 Rate Limiting — remediation contractuelle (contrat → RED mesurés → GREEN → R-4, PR #56) — 429 uniquement sur dépassement réel, backend distribué Redis
+- **v0.1.3** : ✅ P7 System Specs API CLOSED — contrat système (3ᵉ contrat) établi, bug de composition mission_id corrigé (PR #42)
+- **v0.1.2** : ✅ Campagne P6 Waves 1-4 + hygiène documentaire + P6.6 CLOSED (PR #35-#41)
 - **v0.1.1** : ✅ FC-08 Companies + vague dette D-1→D-11 fermée + SimpleCov (PR #24-#29)
 - **v0.1.0** : ✅ Remédiation Architecture complète (25/25 tâches TDD/DDD/Platinum)
 - **Feature Contract 01 (OAuth)** : ✅ Google & GitHub authentication
@@ -21,8 +25,10 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 - **Feature Contract 07 (CRA)** : ✅ 100% TERMINÉ — TDD PLATINUM + Filtering + CSV Export
 - **Feature Contract 08 (Companies & User-Company)** : ✅ TERMINÉ — CRUD, onboarding atomique, SIREN obligatoire, soft delete (PR #24)
 - **Architecture** : ✅ DDD/RDD finalisée — relations via tables pivot, plus de FK directes
+- **#21 Investigation OAuth / code mort** : ✅ **CLOSED (26/09)** — `OAuthConcern` (111 LOC, 0 appelant) et `ApmService` (254 LOC + 34 specs) supprimés (O-1/O-2, code mort démontré) — arbitrage régularisé après commits (trace §6), merge `cc0242a2`
 - **Dette D-1→D-11** : ✅ **100 % fermée** (vague corrective PR #25-#29) — A6 close, D-11 résolue, D-12 (E2E shell CI) tracée au registre
-- **Couverture** : 📊 baseline SimpleCov **72.78 % lignes / 44.82 % branches** (suite 957 verts, rapport HTML + Cobertura XML)
+- **#26 Race #14 — invariant (créateur, mois, année) sous concurrence** : ✅ **R-1 LIVRÉE + contrat #14 renforcé certifié (26/09)** — `pg_advisory_xact_lock` AVANT la garde, même transaction (RED mesuré → GREEN ×2, doublon + verrou 409 éliminés)
+- **Couverture** : 📊 SimpleCov **86.26 % lignes / 61.03 % branches** (3020/3501 · 885/1450) — suite **1148 verts** (+6 contrat JWT #22, +5 contrat export CSV #17), verrou 72,5 armé dans le processus RSpec réel, rapport HTML + Cobertura XML
 - **Sécurité** : ✅ JWT stateless, OAuth Google/GitHub, 0 vulnérabilité bundle audit
 - **Contrat d'erreur** : ✅ Format unifié `{ code, message, details }` sur tous les endpoints
 
@@ -35,11 +41,18 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 | v0.1.0-fc07 | 7 Jan 2026 | 449 | FC-07 CRA complet + Mini-FC (TDD Platinum) |
 | **v0.1.0** | **18 Août 2026** | **863** | **Remédiation Architecture (25 tâches) + DDD finalisé + Supabase** |
 | **v0.1.1** | **16-17 Sept 2026** | **957** | **FC-08 Companies + vague dette D-1→D-11 + SimpleCov + durcissement CI (PR #24-#29)** |
+| **v0.1.2** | **19-21 Sept 2026** | **1150** | **Campagne P6 : Waves 1-4 + hygiène documentaire + P6.6 CLOSED — 2 bugs prod corrigés, 144 specs (PR #35-#41)** |
+| **v0.1.3** | **21-22 Sept 2026** | **1154** | **P7 System Specs API CLOSED — contrat système, bug de composition mission_id corrigé (PR #42)** |
+| **v0.1.4** | **26 Sept 2026** | **1166** | **FC-05 Rate Limiting remediation — contrat → RED mesurés (10) → GREEN → R-4 (limiter parallèle supprimé, backend distribué) (PR #56)** |
+| **v0.1.5** | **23 Oct 2026** | **1148** | **#22 Hardening JWT — clé dédiée `JWT_SECRET` + fail-fast prod + `HS256` explicite ; bascule Render (merge `4d2985c1`, PR #77) + sondes 100 % ; + contrat export CSV (#17)** |
+| — | 26 Sept 2026 | 1132 | #21 OAuth CLOSED — O-1 `OAuthConcern` + O-2 `ApmService` supprimés (code mort démontré, −365 LOC, −34 specs) · arbitrage régularisé après commits (§6) · close-out (rspec.xml, BACKLOG, mémoire fc08::014) |
+| — | 26 Sept 2026 | 1133 | #26 race #14 — R-1 advisory lock (contrat #14 renforcé : RED mesuré → GREEN ×2) · doublon + verrou 409 éliminés · mémoire fc08::016 |
+| — | 3 Oct 2026 | 1136 | #24 ledger purgé (O-B : 23 → 1 commit) · #25 commandes BRIEFING sur le service `test` (vérifiées par exécution) · #27 Q-1 → `422 :invalid_client_company` (RED got 201 — 201 + client jeté au silence) · mémoires fc08::017 |
 
 ### 🏆 Certifications & Standards
 - **TDD PLATINUM** : Domaine CRA auto-défensif, cycle RED → GREEN → REFACTOR par tâche
 - **DDD/RDD Architecture** : Migration complète — tables pivot, plus de FK directes, scopes explicites
-- **Code Quality** : RuboCop 237 files 0 offenses, Brakeman 0 warnings (mode strict en CI), Bundle audit 0 vulnérabilités
+- **Code Quality** : RuboCop 248 files 0 offenses, Brakeman 0 warnings (mode strict en CI), Bundle audit 0 vulnérabilités
 - **CI/CD** : 6/6 jobs verts + 0 annotation — E2E bloquant dans la Quality Gate, Brakeman strict, gate DDD explicite, assertion Cobertura, actions Node 24
 
 ## ⚡ Fonctionnalités
@@ -95,13 +108,13 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 - **Format unifié** : `{ code, message, details }` sur tous les endpoints
 - **Codes standardisés** : BAD_REQUEST, UNAUTHORIZED, FORBIDDEN, NOT_FOUND, CONFLICT, UNPROCESSABLE_ENTITY, TOO_MANY_REQUESTS, INVALID_PAYLOAD, INTERNAL_SERVER_ERROR
 - **Masquage production** : `error_internal` masque les détails en prod, les expose en dev/test
-- 📖 [Documentation complète](docs/technical/guides/error_contract.md)
+- 📖 [Documentation complète](docs/technical/guides/2026_08_18_error_contract.md)
 
 ### Documentation & Qualité
-- **Swagger/OpenAPI** : 402 specs RSwag, audit 35/35 routes documentées
-- **Tests complets** : 957 exemples RSpec (0 failures, 0 pending)
-- **Couverture** : 📊 baseline SimpleCov **72.78 % lignes / 44.82 % branches** (rapport HTML + Cobertura XML)
-- **Code quality** : RuboCop 237 files, 0 offenses
+- **Swagger/OpenAPI** : 437 examples RSwag (mesuré), audit 36/36 routes documentées
+- **Tests complets** : 1148 exemples RSpec (0 failures, 0 pending)
+- **Couverture** : 📊 SimpleCov **86.26 % lignes (3020/3501) / 61.03 % branches (885/1450)** (rapport HTML + Cobertura XML)
+- **Code quality** : RuboCop 246 files, 0 offenses
 - **Security audit** : Brakeman 0 warnings (mode strict), Bundle audit 0 vulnérabilités
 - **Collection Postman** : 28 endpoints avec scripts de test automatisés
 
@@ -114,7 +127,7 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 - **Cache** : Redis pour les sessions et performances
 - **Authentification** : JWT avec tokens stateless
 - **OAuth** : OmniAuth pour Google et GitHub
-- **Documentation** : Swagger via rswag (402 specs)
+- **Documentation** : Swagger via rswag (437 examples)
 - **Module Rails** : `Foresy` (renommé depuis `App`)
 - **config.load_defaults** : 8.1
 
@@ -149,14 +162,14 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 ## 🧪 Tests & Qualité
 
 ### Statistiques Actuelles (Septembre 2026)
-- **Tests RSpec** : ✅ **957 examples, 0 failures, 0 pending**
-- **Tests Rswag** : ✅ **402 examples** — audit 35/35 routes
-- **RuboCop** : ✅ **237 files, 0 offenses**
+- **Tests RSpec** : ✅ **1136 examples, 0 failures, 0 pending** (2026-10-03, post série #24→#27 — −34 specs du code mort APM, +1 spec contrat #14 concurrentiel R-1, +2 specs contrat d'erreur #27)
+- **Tests Rswag** : ✅ **437 examples** — audit 36/36 routes
+- **RuboCop** : ✅ **246 files, 0 offenses**
 - **Brakeman** : ✅ **0 Security Warnings** (mode strict — tout warning non ignoré échoue)
 - **Bundle audit** : ✅ **0 vulnerabilities** (Rails 8.1.3.1, puma 8.0.2)
 - **Smoke tests E2E** : ✅ **15/15 passed**
 - **GitLedger integration** : ✅ **23 tests** (intégration 13 + sécurité injection 10, env isolé)
-- **Couverture (SimpleCov)** : 📊 **baseline 72.78 % lignes / 44.82 % branches** (Models 84.8 %, Services 80.5 %, Controllers 61.2 %) — rapport HTML + Cobertura XML
+- **Couverture (SimpleCov)** : 📊 **86.26 % lignes (3020/3501) / 61.03 % branches (885/1450)** — rapport HTML + Cobertura XML
 - **CI/CD** : ✅ **6/6 jobs verts, 0 annotation** — E2E bloquant dans la Quality Gate, Brakeman strict, gate DDD explicite
 
 ### 📈 Évolution des Métriques de Tests
@@ -168,6 +181,9 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 | v0.1.0-fc07 | 7 Jan 2026 | 449 | FC-07 CRA + Mini-FC |
 | **v0.1.0** | **18 Août 2026** | **863** | **Remédiation Architecture (25 tâches)** |
 | **v0.1.1** | **16-17 Sept 2026** | **957** | **FC-08 Companies + vague dette D-1→D-11 + SimpleCov baseline** |
+| **v0.1.2** | **19-21 Sept 2026** | **1150** | **Campagne P6 : Waves 1-4 + hygiène documentaire + P6.6 CLOSED — 2 bugs prod corrigés, 144 specs (PR #35-#41)** |
+| **v0.1.3** | **21-22 Sept 2026** | **1154** | **P7 System Specs API CLOSED — contrat système, bug de composition mission_id corrigé (PR #42)** |
+| **v0.1.4** | **26 Sept 2026** | **1166** | **FC-05 remediation : RED contractuels (10) → GREEN + R-4 (limiter parallèle supprimé, distribué Redis) (PR #56)** |
 
 ## 🚀 Déploiement & Configuration
 
@@ -222,7 +238,7 @@ docker compose exec web bundle exec rails runner scripts/test_git_ledger.rb
 
 L'API utilise **Supabase** (PostgreSQL managed) en production pour éviter l'expiration du free tier Render (90 jours).
 
-📖 [Stratégie de migration DB](docs/technical/guides/migration_strategy.md)
+📖 [Stratégie de migration DB](docs/technical/guides/[DONE]_2026_08_18_migration_strategy.md)
 
 ### Configuration OAuth
 
@@ -241,13 +257,13 @@ JWT_SECRET=your_jwt_secret_key
 
 | Document | Description |
 |----------|-------------|
-| [Contrat d'erreur](docs/technical/guides/error_contract.md) | Format unifié, tous les codes, migration clients |
-| [Stratégie migration DB](docs/technical/guides/migration_strategy.md) | Squash, commandes, réversibilité |
-| [Git Ledger](docs/technical/guides/git_ledger_operations.md) | Permissions, sécurité, checklist staging |
-| [Plan de remédiation](docs/technical/audits/2026-07-22-Architecture_Debt_Audit_and_Plan.md) | Audit 25 points + 25 tâches (100% terminé) |
+| [Contrat d'erreur](docs/technical/guides/2026_08_18_error_contract.md) | Format unifié, tous les codes, migration clients |
+| [Stratégie migration DB](docs/technical/guides/[DONE]_2026_08_18_migration_strategy.md) | Squash, commandes, réversibilité |
+| [Git Ledger](docs/technical/guides/2026_08_18_git_ledger_operations.md) | Permissions, sécurité, checklist staging |
+| [Plan de remédiation](docs/technical/audits/[DONE]_2026_07_22_Architecture_Debt_Audit_and_Plan.md) | Audit 25 points + 25 tâches (100% terminé) |
 | [Release notes v0.1.0](docs/RELEASE_NOTES_v0.1.0.md) | Breaking changes, nouveautés, déploiement |
 | [Collection Postman](docs/postman/Foresy_API.postman_collection.json) | 28 endpoints avec scripts de test |
-| [BACKLOG](docs/BACKLOG.md) | Roadmap produit et tâches restantes |
+| [BACKLOG](docs/BACKLOG.md) | Backlog transverse et tâches restantes |
 | [Index documentation](docs/index.md) | Navigation centrale |
 
 ## 📊 Monitoring & Observabilité
@@ -259,6 +275,33 @@ JWT_SECRET=your_jwt_secret_key
 
 ## 📝 Changelog
 
+### v0.1.4 (26 Septembre 2026) — FC-05 Rate Limiting : Remediation contractuelle 🏆
+- 📜 **Contrat FC-05 v1** (`docs/technical/guides/[DONE]_2026_09_25_fc05_rate_limiting_contract.md`) : arbitrages A1-A9 (CTO) — 6 états de sélection · fallback Memory + warning · 429 uniquement sur dépassement réel · seuils contractuels missions/cras/entries
+- 🔍 **Investigation #20** : 3 causes démontrées + runtime (audit `[DONE]_2026_09_25_fc05_rate_limiting_audit.md`) — sélecteur inconditionnel · increment! orphelin · LIMITS['missions'] absent
+- 🔴→🟢 **RED mesurés (12 exemples, 10 échecs documentés) → GREEN (12/12)** — la preuve fonctionnelle est la chaîne RED → GREEN, pas la couverture
+- 🔁 **R-4** : limiter parallèle `RedisRateLimiter` (compteur orphelin) supprimé, contrôleurs unifiés sur `RateLimitService` (clé user_id) — net −227 lignes
+- 🛡️ **Production vérifiée** : REDIS_URL injectée · deploy live `3f974dc` (Event 12:18) · sondage 401×5 → 429 RATE_LIMIT_EXCEEDED (payload contrat) · 0 RedisConfigurationError · plan free = 1 instance
+- 📊 **85.36 % lignes (3091/3621) / 60.23 % branches (918/1524)** — verrou 72,5 ✓ · RuboCop 0 · 1166/0
+- CI PR : 6/6 verts (runs 36233661450 et 375) · incident Setup database run 373 = transitoire (clos)
+
+### v0.1.3 (21-22 Septembre 2026) — P7 System Specs API CLOSED : Contrat Système établi 🏆
+- 🧪 **4 system specs** ajoutées (`spec/system/`) : CRA lifecycle complet avec **Git Ledger réel** (UC-4) · échec infra → rollback complet → récupération (UC-9) · garde duplicate cross-pivots 409 (UC-5) · compensation mission inexistante (UC-5)
+- 🐛 **1 bug de composition corrigé** : `POST /entries` avec `mission_id` → 201 sans pivot `CraEntryMission` (champ extrait mais perdu avant le service) + `.to_i` corrompant les UUID en 0 — défaut invisible des couches Unit/Services/Request, démontré par le premier system spec (RED → fix minimal +3/−3 → GREEN)
+- 🔁 **UC-3 (Company onboarding)** : 0 nouvelle spec — propriétés déjà garanties par les request specs avec assertions DB (scénarios 2/3/8/9/11/12) ; échec étape 2 de la transaction naturellement injoignable
+- 📊 **84.37 % lignes (3121/3699) / 57.74 % branches (902/1562)** — verrou 72,5 inchangé · RuboCop 0 · Brakeman 0
+- 📋 **Règles P7** : zéro mock/stub métier · Ledger réel (D-12) · échecs par infrastructure/configuration · State, pas implementation · arrêt sur valeur de composition (D3 non justifié)
+- 🏷️ **Hygiène** : préfixes `[DONE]_` appliqués aux docs fermés de la campagne P6/P7 (7 documents testing/)
+- CI PR : 6/6 verts (PR #42)
+
+### v0.1.2 (19-21 Septembre 2026) — Campagne P6 : Waves 1-4 + Hygiène documentaire + P6.6 CLOSED 🏆
+- 📊 **136+8 specs** ajoutées : CraServices::List (24,62→96,92 %), Git Ledger (100 %), services/lib, contrôleurs, concerns, modèles/pivots
+- 🐛 **2 bugs production corrigés** : GET /api/v1/cras = 500 (ApplicationResult sans data:), Company#country_name NameError (ISO3166 jamais déclaré)
+- 🧹 **Nettoyage OAuth** : 7 méthodes mortes supprimées (zéro appelant — corpus −28 lignes)
+- 📋 **Hygiène documentaire** : 148 docs migrés vers YYYY_MM_DD_ + [DONE]_/[Obsolete]_ · BACKLOG transverse relancé · ROADMAP aligné · hub RAG réindexé
+- 📏 **P6.6 CLOSED** : 84,21 % lignes (3115/3699) · 57,41 % branches (898/1564) · verrou 72,5 armé dans le processus réel
+- 📋 **Dettes tracées** : BACKLOG #13 (branch protection) · #14 (arbre mergé) · #15 (RSwag 'name') · #16 (validate_uniqueness) · D3-3 (reporté) · P1 (recommandé) · link-rot
+- CI PR : 6/6 verts (runs 35611220178 et 35646923309)
+
 ### v0.1.1 (16-17 Septembre 2026) — FC-08 Companies + Fermeture de la dette technique 🏆
 - 🏢 **FC-08 v3.2.3** : Companies & User-Company Relationships — CRUD, onboarding atomique
   (Company + UserCompany en une transaction, INV-16/17), SIREN obligatoire/unique, soft delete,
@@ -268,10 +311,10 @@ JWT_SECRET=your_jwt_secret_key
   auto-réparant (A6), Node 24 — checkout@v5 + upload-artifact@v7 (D-11), chiffrage SimpleCov,
   D-12 tracée (E2E shell hors CI)
 - 📊 **SimpleCov** (D-2, PR #29) : lignes + branches, baseline **72.78 % lignes / 44.82 % branches**,
-  rapport HTML + Cobertura XML, guide line_coverage.md
+  rapport HTML + Cobertura XML, guide 2026_09_16_line_coverage.md
 - 🛡️ **CI durcie** (revue co-CTO) : E2E bloquant dans la Quality Gate, Brakeman strict,
   gate DDD explicite 🏛️, assertion bloquante coverage.xml — **6/6 verts + 0 annotation**
-- ✅ **957 tests**, 0 failures — registre de dette à jour (`docs/technical/fc08_debt_register.md`)
+- ✅ **957 tests**, 0 failures — registre de dette à jour (`docs/technical/2026_09_14_fc08_debt_register.md`)
 
 ### v0.1.0 (18 Août 2026) — Remédiation Architecture + DDD Finalisé 🏆
 - 🏗️ **25/25 tâches** de remédiation architecture (P0-P6) en TDD strict
@@ -327,4 +370,4 @@ Ce projet est sous license MIT. Voir le fichier `LICENSE` pour plus de détails.
 
 ---
 
-**Foresy API** — API Rails moderne, sécurisée et validée par les gates Platinium actuelles (957 tests verts, CI 6/6 bloquante incl. E2E). Architecture DDD/RDD, baseline couverture mesurée (72,78 % lignes / 44,82 % branches), dettes résiduelles explicitement tracées (D-12, P6).
+**Foresy API** — API Rails moderne, sécurisée et validée par les gates Platinium actuelles (1148 tests verts, CI 6/6 bloquante incl. E2E). Architecture DDD/RDD, couverture mesurée (86,26 % lignes / 61,03 % branches, verrou 72,5 armé), contrat système établi (P7), FC-05 rate limiting certifié (PR #56), #22 JWT hardening certifié + basculé en production (PR #77), dettes résiduelles explicitement tracées (D-12, BACKLOG transverse).

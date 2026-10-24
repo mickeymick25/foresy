@@ -4,7 +4,7 @@
 # exception messages to the client.
 #
 # This spec characterizes the security fix for audit point C8
-# (see docs/technical/audits/2026-07-22-Architecture_Debt_Audit_and_Plan.md).
+# (see docs/technical/audits/[DONE]_2026_07_22_Architecture_Debt_Audit_and_Plan.md).
 #
 # The OauthController#callback rescued StandardError and called:
 #   error_internal("OAuth callback error: #{e.message}")

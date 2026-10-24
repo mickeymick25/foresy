@@ -46,10 +46,12 @@ RSpec.describe 'API V1 OAuth', type: :request do
                    properties: {
                      id: { type: :integer, description: 'User unique identifier' },
                      email: { type: :string, format: :email, description: 'User email address' },
+                     name: { type: :string, nullable: true,
+                             description: 'User display name, as provided by the OAuth provider (may be nil)' },
                      provider: { type: :string, description: 'OAuth provider used' },
                      provider_uid: { type: :string, description: 'User unique identifier from OAuth provider' }
                    },
-                   required: %w[id email provider provider_uid]
+                   required: %w[id email name provider provider_uid]
                  }
                },
                required: %w[token user]
@@ -97,6 +99,7 @@ RSpec.describe 'API V1 OAuth', type: :request do
                                                                                      user: {
                                                                                        id: mock_user.id,
                                                                                        email: mock_user.email,
+                                                                                       name: mock_user.name,
                                                                                        provider: mock_user.provider,
                                                                                        provider_uid: mock_user.uid
                                                                                      }
@@ -106,7 +109,7 @@ RSpec.describe 'API V1 OAuth', type: :request do
         run_test! do |response|
           data = JSON.parse(response.body)
           expect(data['token']).to be_present
-          expect(data['user']).to include('id', 'email', 'provider', 'provider_uid')
+          expect(data['user']).to include('id', 'email', 'name', 'provider', 'provider_uid')
           expect(data['user']['provider']).to eq('google_oauth2')
         end
       end
@@ -120,10 +123,12 @@ RSpec.describe 'API V1 OAuth', type: :request do
                    properties: {
                      id: { type: :integer, description: 'User unique identifier' },
                      email: { type: :string, format: :email, description: 'User email address' },
+                     name: { type: :string, nullable: true,
+                             description: 'User display name, as provided by the OAuth provider (may be nil)' },
                      provider: { type: :string, description: 'OAuth provider used' },
                      provider_uid: { type: :string, description: 'User unique identifier from OAuth provider' }
                    },
-                   required: %w[id email provider provider_uid]
+                   required: %w[id email name provider provider_uid]
                  }
                },
                required: %w[token user]
@@ -171,6 +176,7 @@ RSpec.describe 'API V1 OAuth', type: :request do
                                                                                      user: {
                                                                                        id: mock_user.id,
                                                                                        email: mock_user.email,
+                                                                                       name: mock_user.name,
                                                                                        provider: mock_user.provider,
                                                                                        provider_uid: mock_user.uid
                                                                                      }
@@ -180,7 +186,7 @@ RSpec.describe 'API V1 OAuth', type: :request do
         run_test! do |response|
           data = JSON.parse(response.body)
           expect(data['token']).to be_present
-          expect(data['user']).to include('id', 'email', 'provider', 'provider_uid')
+          expect(data['user']).to include('id', 'email', 'name', 'provider', 'provider_uid')
           expect(data['user']['provider']).to eq('github')
         end
       end

@@ -162,11 +162,16 @@ class Cra < ApplicationRecord
                     .where(user_cras: { user_id: user.id })
                     .select(:id)
 
+    # W1-D2-BUG (arbitrage CTO 18/09) : le soft-delete doit se propager à l'autorisation —
+    # une mission supprimée ou une adhésion révoquée (user_companies.deleted_at, FC-08)
+    # ne constituent plus une voie d'accès active. Les pivots cra_missions/mission_companies
+    # ne portent pas de soft delete (hard deletes) — pas de filtre nécessaire.
     via_missions_ids = joins(:cra_missions)
                        .joins('INNER JOIN missions ON missions.id = cra_missions.mission_id')
                        .joins('INNER JOIN mission_companies ON mission_companies.mission_id = missions.id')
                        .joins('INNER JOIN user_companies ON user_companies.company_id = mission_companies.company_id')
-                       .where(user_companies: { user_id: user.id, role: %w[independent client] })
+                       .where(user_companies: { user_id: user.id, role: %w[independent client], deleted_at: nil })
+                       .where(missions: { deleted_at: nil })
                        .select(:id)
 
     where(id: via_user_cras).or(where(id: via_missions_ids))

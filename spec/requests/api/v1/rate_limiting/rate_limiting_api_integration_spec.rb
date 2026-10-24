@@ -629,8 +629,7 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
         # Verify that all rate limiting logic is in RateLimitService
         expect(RateLimitService.methods).to include(:check_rate_limit)
         expect(RateLimitService.methods).to include(:extract_client_ip)
-        expect(RateLimitService.methods).to include(:rate_limited_endpoint?)
-        expect(RateLimitService.methods).to include(:extract_endpoint)
+        expect(RateLimitService.methods).to include(:backend)
 
         # Verify that configuration is centralized
         expect(RateLimitService.methods).to include(:config)
@@ -687,30 +686,26 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
         masked_ip_logs = log_messages.select { |msg| msg.to_s.include?('192.168.x.x') }
         expect(masked_ip_logs.any?).to be true
 
-        # Test Redis failure logging
+        # Test Redis failure logging — contrat A2 : dégradation explicite (fallback Memory)
         redis_error_logs = []
-        allow(Rails.logger).to receive(:warn) do |&block|
-          redis_error_logs << block.call if block
-        end
+        allow(Rails.logger).to receive(:warn) { |payload| redis_error_logs << payload }
 
-        # Force Redis error by mocking Redis failure
-        allow(RateLimitService).to receive(:redis).and_raise(StandardError.new('Connection refused'))
+        # Force Redis error by mocking Redis failure (contrat A2 : CannotConnect/Timeout → fallback)
+        allow(RateLimitService).to receive(:redis).and_raise(Redis::CannotConnectError.new('Connection refused'))
 
         # Use RedisBackend to trigger the mock (MemoryBackend bypasses the mock)
         redis_backend = RateLimit::RedisBackend.new
-        allowed, retry_after = RateLimitService.new(backend: redis_backend).check_rate_limit(endpoint, test_ip)
-        expect(allowed).to be false # Should fail closed
-        expect(retry_after).to eq(60)
+        allowed, = RateLimitService.new(backend: redis_backend).check_rate_limit(endpoint, test_ip)
+        expect(allowed).to be true # Fallback MemoryBackend — protection locale par processus (A2)
 
-        # Verify Redis failure logging
-        expect(redis_error_logs.any? { |msg| msg.to_s.include?('rate_limit.redis_unavailable') }).to be true
+        # Verify Redis failure logging (contrat : tag backend_fallback)
+        expect(redis_error_logs.any? { |msg| msg.to_s.include?('rate_limit.backend_fallback') }).to be true
       end
     end
 
-    # === REDIS FAILURE TEST (CTO REQUIREMENT) ===
-    # Explicit test for Redis::CannotConnectError as requested by CTO
-    # Validates fail-closed behavior when Redis is unavailable
-    context 'should fail closed when Redis is unavailable (Redis::CannotConnectError)' do
+    # === REDIS FAILURE (CONTRAT A2 — arbitré CTO 25/09) ===
+    # Redis down → fallback MemoryBackend + warning structuré — jamais de 429 masqué (A3/A4)
+    context 'should degrade gracefully when Redis is unavailable (Redis::CannotConnectError)' do
       before do
         # Reset singleton Redis to ensure mock works
         if RateLimitService.instance_variable_defined?(:@redis)
@@ -718,22 +713,24 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
         end
       end
 
-      it 'returns 429 when Redis connection fails' do
+      it 'falls back to MemoryBackend and logs a structured warning' do
         test_ip = '192.168.1.200'
         endpoint = 'auth/login'
 
-        # Simulate Redis::CannotConnectError (or equivalent StandardError)
-        # RateLimitService catches StandardError which includes Redis::CannotConnectError
+        # Simulate Redis::CannotConnectError via the RedisBackend dependency
         allow(RateLimitService).to receive(:redis).and_raise(
           Redis::CannotConnectError.new('Error connecting to Redis on localhost:6379 (Errno::ECONNREFUSED)')
         )
 
+        logger = double('logger', info: nil, warn: nil, error: nil)
+        allow(Rails).to receive(:logger).and_return(logger)
+
         # Use RedisBackend to trigger the mock (MemoryBackend bypasses the mock)
         redis_backend = RateLimit::RedisBackend.new
-        allowed, retry_after = RateLimitService.new(backend: redis_backend).check_rate_limit(endpoint, test_ip)
+        allowed, = RateLimitService.new(backend: redis_backend).check_rate_limit(endpoint, test_ip)
 
-        expect(allowed).to be false
-        expect(retry_after).to eq(60)
+        expect(allowed).to be true # Fallback MemoryBackend — 1ʳᵉ requête sous limite (A2)
+        expect(logger).to have_received(:warn).with(a_string_including('rate_limit.backend_fallback'))
       end
 
       it 'returns 429 HTTP response when Redis is down during request' do
@@ -761,7 +758,7 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
     # Verifies that Rails can boot without Redis running
     # Critical for production deployments where Redis might not be available at boot
     context 'boots without Redis available' do
-      it 'uses MemoryBackend when Redis is unavailable' do
+      it 'uses MemoryBackend when Redis is unavailable (fallback + warning, contrat A2)' do
         # Stub Redis.new to simulate Redis being unavailable
         allow(Redis).to receive(:new).and_raise(
           Redis::CannotConnectError.new('Connection refused')
@@ -773,7 +770,7 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
         expect(backend).to be_a(RateLimit::MemoryBackend)
       end
 
-      it 'fails closed when Redis is mocked as unavailable' do
+      it 'degrades to local protection when Redis is mocked as unavailable (contrat A2)' do
         # Stub RateLimitService.redis to simulate Redis connection failure
         allow(RateLimitService).to receive(:redis).and_raise(
           Redis::CannotConnectError.new('Connection refused')
@@ -782,14 +779,17 @@ RSpec.describe 'Rate Limiting Authentication Endpoints - FC-05', type: :request 
         # Create a RedisBackend to trigger the mock
         redis_backend = RateLimit::RedisBackend.new
 
-        # Verify that check_rate_limit fails closed
-        allowed, retry_after = RateLimitService.new(backend: redis_backend).check_rate_limit(
+        logger = double('logger', info: nil, warn: nil, error: nil)
+        allow(Rails).to receive(:logger).and_return(logger)
+
+        # Vérifie la dégradation contractuelle : protection locale par processus (A2)
+        allowed, _retry_after = RateLimitService.new(backend: redis_backend).check_rate_limit(
           'auth/login',
           '127.0.0.1'
         )
 
-        expect(allowed).to be false
-        expect(retry_after).to eq(RateLimitService::WINDOW_SIZE)
+        expect(allowed).to be true # 1ʳᵉ requête sous limite via le fallback
+        expect(logger).to have_received(:warn).with(a_string_including('rate_limit.backend_fallback'))
       end
     end
   end

@@ -164,12 +164,11 @@ module Api
         error_not_found('Mission not accessible')
       end
 
-      # Rate limiting check for create/update endpoints
+      # Rate limiting check for create/update endpoints (contrat FC-05 — A6/A7)
       def check_rate_limit!
-        endpoint = 'missions'
-        client_ip = extract_client_ip_for_rate_limiting
+        endpoint = action_name == 'create' ? 'missions:create' : 'missions:update'
 
-        allowed, retry_after = RateLimitService.check_rate_limit(endpoint, client_ip)
+        allowed, retry_after = RateLimitService.check_rate_limit(endpoint, current_user.id.to_s)
 
         unless allowed
           response.headers['Retry-After'] = retry_after.to_s

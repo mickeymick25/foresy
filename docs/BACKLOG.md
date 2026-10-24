@@ -1,328 +1,80 @@
-# 📋 Backlog - Foresy
 ÉTAT COURANT
 
-
-**Dernière mise à jour** : 18 août 2026 - Remédiation Architecture ✅ **100% TERMINÉ** (25/25 tâches)
-
-### Métriques de Qualité (Validé le 18 août 2026)
-- **RSpec** : ✅ **850 examples, 0 failures, 0 pending**
-- **Rswag** : ✅ **248 examples, 0 failures** — `swagger.yaml` généré, audit 25/25 routes
-- **RuboCop** : ✅ **223 files inspected, no offenses detected**
-- **Brakeman** : ✅ **0 Security Warnings** (2 ignored)
-- **Bundle audit** : ✅ **No vulnerabilities found** (Rails 8.1.3, puma 8.0.2, etc.)
-
----
-
-## 🎯 Légende
-
-| Priorité | Description |
-|----------|-------------|
-| 🔴 | Haute - À traiter rapidement |
-| 🟠 | Moyenne - Planifié |
-| 🟢 | Basse - Nice to have |
-| ✅ | Terminé |
-
----
-
-## 🧭 Roadmap Produit
-
-La roadmap produit vit désormais dans [ROADMAP.md](ROADMAP.md) — source canonique unique (décision 2.2, qualification du corpus, 2026-09-10).
-
----
-
-## ✅ TERMINÉ — FONDATIONS MÉTIER
-
-### Feature Contract #06 — Missions (Projets) ✅ TERMINÉ (31 Déc 2025)
-
-🧱 **Fondation métier** — C'est le pivot de tout (CRA, facturation, TVA, reporting)
-
-| Aspect | Détails |
-|--------|---------|
-| **Statut** | ✅ **MERGÉ** - PR #12 approuvée CTO (1 janvier 2026) |
-| **Scope fonctionnel** | CRUD Mission complet |
-| **Architecture** | Domain-Driven / Relation-Driven (tables dédiées) |
-| **Types** | time_based (TJM), fixed_price (forfait) |
-| **Lifecycle** | lead → pending → won → in_progress → completed |
-| **Modèles** | Mission, MissionCompany, Company, UserCompany |
-| **Tests** | 30 RSpec tests (100% passing) |
-| **Qualité** | RuboCop 0 offense, Brakeman 0 vulnérabilité |
-| **Swagger** | 119 specs générées |
-
-> ✅ **Feature pivot livrée — CRA implémenté**
-
----
-
-### Feature Contract #07 — CRA (Compte Rendu d'Activité) ✅ TERMINÉ (7 Jan 2026)
-
-🧱 **Fondation métier** — Gestion des déclarations d'activité mensuelles
-
-| Aspect | Détails |
-|--------|---------|
-| **Statut** | ✅ **100% TERMINÉ** - TDD PLATINUM (Tag: `fc-07-complete`) |
-| **Scope fonctionnel** | CRUD CRA + CRA Entries + Filtering + Export CSV |
-| **Architecture** | Domain-Driven / Service-Oriented (pas de callbacks) |
-| **Lifecycle** | draft → submitted → locked (immutable) |
-| **Modèles** | Cra, CraEntry, CraMission, CraEntryCra, CraEntryMission |
-| **Services** | CreateService, UpdateService, DestroyService, ListService, ExportService |
-| **Tests** | ✅ **449 tests GREEN** (suite complète) |
-| **Qualité** | Zeitwerk OK, RuboCop 0 offense, Brakeman 0 vulnérabilité |
-| **Documentation** | `docs/technical/fc07/` - Documentation complète |
-
-**Phases Complétées (3-6 Jan 2026) :**
-
-| Phase | Description | Tests | Status |
-|-------|-------------|-------|--------|
-| Phase 1 | CraEntry Lifecycle + CraMissionLinker | 6/6 ✅ | TDD PLATINUM |
-| Phase 2 | Unicité Métier (cra, mission, date) | 3/3 ✅ | TDD PLATINUM |
-| Phase 3A | Legacy Tests Alignment | 9/9 ✅ | TDD PLATINUM |
-| Phase 3B.1 | Pagination ListService | 9/9 ✅ | TDD PLATINUM |
-| Phase 3B.2 | Unlink Mission DestroyService | 8/8 ✅ | TDD PLATINUM |
-| Phase 3C | Recalcul Totaux (Create/Update/Destroy) | 24/24 ✅ | TDD PLATINUM |
-| **Mini-FC-01** | **Filtrage CRAs (year/month/status)** | **16/16 ✅** | **TDD PLATINUM** |
-| **Mini-FC-02** | **Export CSV avec include_entries** | **26/26 ✅** | **TDD PLATINUM** |
-
-**Décision Architecturale Clé :**
-- ❌ **Callbacks ActiveRecord** → Rejeté
-- ✅ **Services Applicatifs** → Adopté
-
-La logique de recalcul des totaux (`total_days`, `total_amount`) est orchestrée dans les services, pas dans les callbacks du modèle.
-
-**Leçons Apprises :**
-1. **Services > Callbacks** pour la logique métier complexe
-2. **RSpec lazy `let`** : toujours forcer l'évaluation avant `reload`
-3. **Montants financiers** : toujours en centimes (integer)
-4. **Ruby 3.4+** : gem `csv` à ajouter explicitement au Gemfile
-
-**Mini-FCs Terminés (7 Jan 2026) :**
-
-| Mini-FC | Fonctionnalité | Endpoint | Tests |
-|---------|----------------|----------|-------|
-| Mini-FC-01 | Filtrage CRAs | `GET /cras?year=&month=&status=` | 16 ✅ |
-| Mini-FC-02 | Export CSV | `GET /cras/:id/export?export_format=csv` | 26 ✅ |
-
-> ✅ **Feature CRA 100% TERMINÉE — 449 tests GREEN, taggé `fc-07-complete`, prêt pour production**
-
-**Commandes de validation (résultats du 7 janvier 2026) :**
-```bash
-# RSpec - Suite complète
-docker compose exec web bundle exec rspec --format progress
-# Résultat : 449 examples, 0 failures
-
-# Rswag - Génération Swagger
-docker compose exec web bundle exec rake rswag:specs:swaggerize
-# Résultat : 128 examples, 0 failures
-
-# RuboCop - Qualité code
-docker compose exec web bundle exec rubocop --format simple
-# Résultat : 147 files inspected, no offenses detected
-
-# Brakeman - Sécurité
-docker compose exec web bundle exec brakeman -q
-# Résultat : 0 Security Warnings
-```
-
----
-
-## 🟡 PROCHAINE ÉTAPE — CRÉATION DE VALEUR IMMÉDIATE
-
-### Feature Contract #08 — Entreprise de l'indépendant
-
-🏛️ **Base fiscale & légale** — Conditionne TVA, statuts fiscaux
-
-| Aspect | Détails |
-|--------|---------|
-| **Pourquoi maintenant ?** | Indispensable avant facturation, fort levier de différenciation |
-| **Scope fonctionnel** | Création d'une entreprise, SIREN/SIRET |
-| **Récupération données** | API à définir (forme juridique, régime fiscal, TVA oui/non) |
-
-> ⚠️ Pas encore de logique comptable
-
----
-
-## 🟠 PRIORITÉ MOYENNE — SÉCURISATION MÉTIER
-
-### Feature Contract #09 — Validation & verrouillage CRA
-
-🔒 **Confiance & conformité**
-
-| Aspect | Détails |
-|--------|---------|
-| **Scope** | Validation CRA par l'indépendant, CRA verrouillé en écriture |
-| **Dérogation** | Modification → double approbation (plus tard) |
-
----
-
-### Feature Contract #10 — Rôles & visions
-
-👥 **Rôles utilisateur** — Les rôles émergent naturellement des cas concrets
-
-| Rôle | Description |
-|------|-------------|
-| `independent` | Utilisateur principal |
-| `client_representative` | Lecture CRA |
-| `admin` | Plus tard |
-
----
-
-### Feature Contract #11 — Pré-facturation
-
-💰 **Préparation cash**
-
-| Aspect | Détails |
-|--------|---------|
-| **Calcul automatique** | TJM × jours travaillés, forfait proratisé |
-| **Limitations** | Pas encore d'édition de facture, export data only |
-
----
-
-## 🟢 PRIORITÉ BASSE — OPTIMISATION & SCALE
-
-| Feature | Description |
-|---------|-------------|
-| Feature #10 — Versioning CRA avancé | NoSQL ? |
-| Mini-FC-02.2 — Export PDF | Génération PDF (prawn) - si besoin confirmé |
-| Feature #12 — Historique & audit métier | Traçabilité |
-| Feature #13 — Multi-entreprises / multi-clients | Scale |
-
----
-
-## ✅ Features Techniques Terminées
-
-### 🔐 Sécurité
-
-| Tâche | Priorité | Statut | Notes |
-|-------|----------|--------|-------|
-| Brakeman (scan vulnérabilités) | ✅ | Terminé | 0 vulnérabilités |
-| Bundle audit | ✅ | Terminé | Intégré CI |
-| CSRF protection | ✅ | Terminé | State validation |
-| Rate limiting | ✅ | Terminé | Feature Contract 05 - Protection brute force implémentée (/login: 5/min, /signup: 3/min, /refresh: 10/min) |
-| Refresh-token revocation E2E | ✅ | Terminé | Endpoints `/revoke` et `/revoke_all` implémentés et testés (RSwag + intégration) |
-| Audit logs | 🟢 | Plus tard | Traçabilité actions (quand produit vit) |
-
----
-
-## 📊 Monitoring & Observabilité
-
-| Tâche | Priorité | Statut | Notes |
-|-------|----------|--------|-------|
-| APM Service (Datadog) | ✅ | Terminé | Configuré |
-| Health check endpoint | ✅ | Terminé | `/up` |
-| Dashboard monitoring E2E | 🟢 | Plus tard | Visualisation des résultats (quand produit vit) |
-| Métriques YJIT performance | 🟢 | Plus tard | Tracking post-migration (quand produit vit) |
-| Alertes production | 🟠 | À configurer | Seuils à définir |
-
----
-
-## 🧪 Tests E2E
-
-| Tâche | Priorité | Statut | Notes |
-|-------|----------|--------|-------|
-| Scripts smoke_test.sh | ✅ | Terminé | `bin/e2e/smoke_test.sh` |
-| Scripts e2e_auth_flow.sh | ✅ | Terminé | `bin/e2e/e2e_auth_flow.sh` |
-| Documentation guide E2E | ✅ | Terminé | `docs/technical/testing/e2e_staging_tests_guide.md` |
-| Script e2e_revocation.sh | ✅ | Terminé (EN PRODUCTION) | `bin/e2e/e2e_revocation.sh` - Merged into main, Platinum Level, security model documented |
-| Workflow GitHub Actions E2E | ✅ | Terminé | Job `e2e` dans `ci.yml` (acceptance tests + smoke tests). Pas de fichier `e2e.yml` séparé, fonctionnalité intégrée au pipeline |
-| Tests E2E OAuth avec credentials | 🟢 | À faire | Nécessite credentials de test |
-| OAuth E2E avec credentials | 🟠 | Important | Tests OAuth automatisés (quand credentials prêts) |
-| Alerting prod minimal | 🟠 | Important | Monitoring proactif production |
-| Datadog Synthetics | 🟢 | Plus tard | Monitoring externe (quand produit vit) |
-| Alerting sur échec E2E | 🟢 | Plus tard | Notifications Slack/Email (quand produit vit) |
-
-### 🏗️ Infrastructure
-
-| Tâche | Priorité | Statut | Notes |
-|-------|----------|--------|-------|
-| Dockerfile multi-stage | ✅ | Terminé | 5 stages (Gold Level) |
-| Docker Compose profils | ✅ | Terminé | test, tools |
-| CI/CD GitHub Actions | ✅ | Terminé | Opérationnel |
-| CD Render | ✅ | Terminé | Déploiement auto |
-| Environment staging | 🟠 | Important | Pré-prod dédié (pour Feature Contracts) |
-| Git Workflow Feature Contract | ✅ | Établi | Workflow optimal : main + feature branches temporaires |
-| Repository State | ✅ | Optimal | 1 branche (main) + branches Feature Contract temporaires |
-| Kubernetes migration | 🟢 | Plus tard | Si scaling nécessaire (quand produit vit) |
-
-### 📚 Documentation
-
-| Tâche | Priorité | Statut | Notes |
-|-------|----------|--------|-------|
-| API Swagger/Rswag | ✅ | Terminé | 248 specs, audit 25/25 routes documentées |
-| Guide migration Rails 8 | ✅ | Terminé | `docs/technical/migrations/` |
-| Plans déploiement/rollback | ✅ | Terminé | `docs/technical/deployment/` |
-| Documentation OAuth flow | ✅ | Terminé | `docs/technical/guides/` |
-| Guide contribution | 🟢 | Plus tard | CONTRIBUTING.md (quand équipe grandit) |
-| Architecture Decision Records | 🟢 | Plus tard | ADR formels (quand produit vit) |
-
----
-
-## 📅 Historique des Releases
-
-| Version | Date | Description |
-|---------|------|-------------|
-| v0.0.1 | 26 Dec 2025 | Rails 7.1.5.1 / Ruby 3.3.0 - Pre-migration baseline |
-| v0.0.2 | 26 Dec 2025 | Rails 8.1.1 / Ruby 3.4.8 baseline |
-| v0.0.3 | 29 Dec 2025 | Rate Limiting (FC-05) - Platinum Level |
-| v0.0.4 | 31 Dec 2025 | Missions (FC-06) - Merged |
-| v0.0.5 | 6 Jan 2026 | CRA (FC-07) - TDD Platinum Complete |
-| v0.0.6 | 7 Jan 2026 | CRA Export CSV (Mini-FC-02) - 449 tests GREEN |
-| v0.1.0 | 18 Août 2026 | Remédiation Architecture (25/25 tâches) - 850 tests GREEN, DDD finalisé, gems mis à jour |
-
----
-
-## 🚀 Axes d'Amélioration (State-of-the-Art)
-
-> Améliorations pour atteindre le niveau des startups en forte croissance
-
-### 📊 Observabilité Avancée
-
-| Tâche | Priorité | Statut | Impact |
-|-------|----------|--------|--------|
-| OpenTelemetry (Rails instrumentation) | 🟠 | À faire | Traces distribuées, métriques détaillées (latence, erreurs, requêtes/endpoint) |
-| Grafana + Prometheus | 🟠 | À faire | Dashboards SLO/SLA, détection rapide des incidents |
-
-### 🔐 Sécurité Avancée
-
-| Tâche | Priorité | Statut | Impact |
-|-------|----------|--------|--------|
-| Rotation des secrets JWT | 🟠 | À faire | Job `jwt_secret_rotation` (cron), invalidation via denylist |
-| Trivy (scan vulnérabilités Docker) | 🟠 | À faire | Protection contre CVE images Docker |
-| Dependency-check (bundler-audit) | ✅ | Terminé | `bundle exec bundle audit check --update` dans CI, 0 vulnérabilités (Rails 8.1.3, puma 8.0.2, etc.) |
-
-### 🔄 API Evolution
-
-| Tâche | Priorité | Statut | Impact |
-|-------|----------|--------|--------|
-| API versioning (`Accept-Version` ou path) | 🟢 | À faire | Évolution sans casser les clients existants |
-| Feature-flags (Flipper/Rollout) | 🟠 | À faire | Déploiements progressifs, rollback instantané |
-| Documentation OpenAPI exhaustive | 🟡 | Partiellement fait | 25/25 routes documentées, audit passe. Enrichissement erreurs + génération SDKs clients restant |
-
-### ⚡ Performance & Scale
-
-| Tâche | Priorité | Statut | Impact |
-|-------|----------|--------|--------|
-| Cache de lecture (Rails cache + Redis) | 🟢 | À faire | Améliore latence, réduit charge DB sur listes missions |
-| Load-testing (k6/locust) | 🟢 | À faire | Valider limites rate-limiting, scalabilité JWT |
-| Composite unique indexes | ✅ | Fait | `(mission_id, role)` — intégrité à grande échelle |
-
-### 🏗️ Architecture Event-Driven
-
-| Tâche | Priorité | Statut | Impact |
-|-------|----------|--------|--------|
-| Domain Events (RailsEventStore/Kafka) | 🟢 | À faire | `MissionCreated`, `MissionStatusChanged` — découplage services |
-| Event sourcing pour CRA | 🟢 | À faire | Audit, reporting sans toucher au core |
-
-### 🧪 Tests & CI Hardening
-
-| Tâche | Priorité | Statut | Impact |
-|-------|----------|--------|--------|
-| Intégration E2E dans CI (GitHub Actions) | 🟡 | Partiellement fait | Acceptance tests + smoke tests dans `ci.yml`. `e2e_missions.sh` et `e2e_auth_flow.sh` non encore intégrés au pipeline |
-| Deploy Preview (Render/Fly) | 🟠 | À faire | Preview-environnements par PR, validation PO accélérée |
-
----
-
-## 📝 Notes
-
-- Ce backlog est maintenu manuellement
-- Les priorités sont réévaluées à chaque sprint
-- Les features métier suivent le workflow Feature Contract
-- La v0.1.0 sera créée après FC #06 à #09
-- La v1.0.0 (MVP Production) sera définie après validation des fondations
+# 📋 Backlog transverse — Foresy
+
+**Rôle (décision CTO du 2026-09-20, évoluant la décision 2.2 du 2026-09-10)** : le BACKLOG
+reprend un rôle de **backlog transverse** — les chantiers actionnables non couverts par les
+sources canoniques ci-dessous. L'ancien backlog (2025-12-26) est archivé :
+`[Obsolete]_2025_12_26_BACKLOG.md`.
+
+## Sources canoniques (ce fichier ne les duplique pas)
+
+| Domaine | Source de vérité |
+|---|---|
+| Roadmap produit (versions, Feature Contracts) | `docs/ROADMAP.md` (décision 2.2, 2026-09-10) |
+| Dette technique (D-1…D-12) | `docs/technical/2026_09_14_fc08_debt_register.md` |
+| Campagne couverture P6 (verrou, trajectoire) | `docs/technical/testing/[DONE]_2026_09_17_coverage_campaign_p6.md` |
+| Contrat système P7 (system specs, CLOSED) | `docs/technical/testing/[DONE]_2026_09_22_p7_tracker.md` |
+| Historique des états | hub RAG local (`foresy__knowledge` / `foresy__memories`) — index, pas backlog |
+
+## Chantiers ouverts (état au 2026-10-24)
+
+| # | Chantier | Priorité | Suivi / source |
+|---|---|---|---|
+| 1 | Mini-PR **P1** — specs du mécanisme de détection du contexte RSpec/coverage | 🟠 recommandée, non bloquante | tracker hygiène §2 · campagne P6 |
+| 2 | Audit `chore/p6-coverage-plan` — **investigation de reprise exécutée (24/10)** : les 3 fichiers de la branche (analyse 125 l. + tracker 83 l. + script 76 l.) **tous ABSENTS de main** (preuve cat-file ×3) — le travail du plan P6 = **100 % absorbé** (Waves 1-4 + verrou 72,5 vivants, PRs #34-#41 ; baseline 72,78 → réel 86,26/61,03) — **arbitrage d'absorption documentaire en attente** : O-1 brute (les statuts ⬜ faux entreraient) / **O-2 annotée** (recommandée : un commit sur la branche — statuts → exécutés, le script usage → service `test`, marqueur historique) / O-3 script seul (cherry-pick, l'acte fondateur P6 perdu) | 🟠 arbitrage CTO | tracker hygiène §2 · investigation de reprise 24/10 (cat-file ×3) · fc08::011 |
+| 3 | **D3-3** — couches d'erreur vivantes des contrôleurs (~76 lignes, ~15-20 specs requête) | 🟠 reporté post-Wave 4 | tracker Wave 1 §6 G4 |
+| 4 | Verrou couverture **72,5 maintenu** — trajectoire 90 (palier décisionnel) → 95 (P6.6) — **90 % non requis, arbitrage CTO 21/09** | 🟠 contractuel | campagne P6 · tracker Wave 4 §P6.6 |
+| 5 | Arbitrage **`handle_user_error`** (observation stricte — pas de cycle RED, divergence non démontrée) | 🟢 documenté | tracker Wave 2 §4/W2-D4 |
+| 6 | **E2E OAuth** avec credentials de test (nécessite credentials de test) | 🟠 important | archive BACKLOG 2025-12-26 §Tests E2E |
+| 7 | **Alerting production** minimal / monitoring proactif | 🟠 | archive BACKLOG 2025-12-26 §Tests E2E |
+| 8 | Chore **link-rot** — réparation des ~114 liens pré-existants (réorganisation 2026-01) | 🟢 recommandé | tracker hygiène §5 (E3-bis) |
+| 9 | Performance — < 100 ms sur les endpoints authentifiés | 🟢 | BRIEFING Future Improvements |
+| 10 | Monitoring avancé Prometheus/Grafana ; Datadog Synthetics | 🟢 | BRIEFING Future Improvements · archive BACKLOG |
+| 13 | **OAuth callback — divergence contrat ↔ schéma RSwag** (le champ `name`) — **RÉSOLUE (mini-PR `8e65a52f`, 23/10)** : le champ effectif `name` entre au schéma (nullable + requis — le contrat = le produit exact) · les 2 paths Google/GitHub + les 2 `expect` + les 2 stubs alignés · le yaml régénéré (audit 36/36) | ✅ close | mini-PR `8e65a52f` (oauth_spec.rb) · oauth_token_service L32-43 · arbitrage CTO 23/10 |
+| 15 | **Wave 4.5** — ~280 lignes contrôleur/concerns (~30-40 specs estimées) — dette de couverture quantifiée (P6.6 Assessment §5), distincte, non bloquante | 🟢 distinct | assessment P6.6 §5-§7 · arbitrage CTO 21/09 |
+| 16 | **Postman FC-08** (audit PM-1/PM-2/PM-3) — 10 endpoints manquants (Companies ×5, UserCompanies ×5), description obsolète (« 28 endpoints » vs 36 réels), variables `company_id`/`user_company_id` absentes — collection figée au 19/08, avant FC-08. **Priorisation CTO 24/09 : 🔴 2** — peut être préparé en parallèle, exécution **après qualification de #20** | 🔴 | audit `[2026_09_24_swagger_postman_api_exposure_audit.md](technical/audits/2026_09_24_swagger_postman_api_exposure_audit.md)` §4bis/§6 (P1) · message CTO 24/09 |
+| 17 | **Swagger export CSV** (audit S-1) — **RÉSOLU (mini-PR `8e65a52f`, 23/10)** : `GET /api/v1/cras/{id}/export` documenté (200 `text/csv` + disposition `attachment` + `cra_2026_01.csv` + 401/403/404/409 — les codes FC-07 réels) · l'exclusion `EXCLUDED_ENDPOINTS` retirée du rake · le swagger.yaml régénéré · l'audit CI = **36 ↔ 36 Perfect match** · le contract spec adjacent (`export_contract_spec.rb`) ; le spec fonctionnel existant **préservé tel quel** | ✅ close | mini-PR `8e65a52f` · `spec/requests/api/v1/cras/export_contract_spec.rb` · swagger.yaml (diff +41 l.) |
+| 18 | **Anti-drift Postman** (audit PM-4) + **hygiène contrat Swagger** (audit S-3 : opération négative `GET /auth/login` documentée) — mini-audit collection ↔ routes + épurage contrat ; optionnels, arbitrage CTO sur le périmètre | 🟢 | audit `technical/audits/2026_09_24_swagger_postman_api_exposure_audit.md` §6 (P4/P5) |
+| 19 | **Uniformisation couche Services** (étude homogénéité 24/09) — sujets métier ouverts : P0 transactionnels supposés (C-1/C-2) — **déclassés 26/09 : aucun P0 démontré, dette architecturale latente** · règle FC-07 de liaison auto CRA↔Mission plus implémentée nulle part (CraMissionLinker 0 appelant — arbitrage produit) · mapping contrôleur incomplet (500 au lieu de 409) · vocabulaire d'erreurs fragmenté (3 vocables/invariant, fuites `e.message`) · specs absentes (Update/Destroy CRA, CompanyServices 0 spec) · **décisions CTO 24/09** (volet infra) : pas de normalisation des conventions de retour, 2 investigations ciblées (#20/#21), ApmService après caractérisation, AuthenticationService évalué au comportement, JWT séparé (#22) — triage infra effectué ; sujets métier S-1/S-2/S-3/S-4/S-5 **hors triage**, à remonter avec vue complète du BACKLOG. **Priorisation CTO 24/09 : 🔴 3** — **clause de surveillance CLOSE 26/09** : investigation reachability livrée (audit `[DONE]_2026_09_26_19_p0_reachability_investigation.md`, lecture seule, 0 modification de code) — C-1/C-2 : mécanisme présent au code (rescue dans le bloc + return = commit) mais **conditions d'échec pivot toutes fermées** (garde service, UUID frais, FK/index uniques → exceptions non rescuées → rollback sain, aucun chemin applicatif de suppression user) — **pas de correction maintenant** (NO GO, pas de bénéfice prod démontré) · anomalies UX atteignables → **#27** · race #14 → **#26** | 🟡 | audit `[DONE]_2026_09_26_19_p0_reachability_investigation.md` · étude `technical/audits/2026_09_24_services_layer_homogeneity_study.md` §9 (S-1…S-8) · mémoire fc08::012 · arbitrage CTO 26/09 |
+| 20 | **Audit FC-05 — backend rate limiting** — **Investigation CLOSED 25/09** : 3 causes démontrées (sélecteur inconditionnel L45 · `increment!` orphelin · `LIMITS['missions']` absent) + limiter parallèle `RedisRateLimiter` sans incrément — **seuls les 3 endpoints auth limités, par processus** ; missions/CRAs/entries sans protection effective. Arbitrage CTO 25/09 : R-0 **NO GO** · R-4 **GO** architecture cible · implémentation **NO GO avant les RED** → chantier #23 · vérifications Render requises avant certification | ✅ close | audit `[DONE]_2026_09_25_fc05_rate_limiting_audit.md` (§10bis décisions CTO) · étude services §4 (C-5) · message CTO 24-25/09 |
+| 21 | **Investigation OAuth / code mort** — **CLOSED 26/09** : chemin réel établi (chaîne services unique, transaction + anti-race) · `OAuthConcern` code mort (0 appelant, 111 LOC) supprimé O-1 `5a2009ea` · `ApmService` code mort (0 call-site, 254 LOC + 34 specs) supprimé O-2 `789db3c2` · duplication = constat architectural, impact prod nul (pas de contrat/RED justifié) · **arbitrage CTO 26/09 : O-1/O-2 GO · revert NO GO · séquence régularisée** (commits antérieurs à l'arbitrage — trace §6 du doc) · close-out : rspec.xml artefact retiré + `.gitignore`, suite 1132/0 (service `test`), Zeitwerk OK, RuboCop 243/0, couverture 86,22/60,80 | ✅ close | audit `[DONE]_2026_09_26_oauth_investigation.md` (§6 régularisation) · étude services §4 (C-6) + §5.6 · mémoire fc08::010 · arbitrage CTO 26/09 |
+| 22 | **Hardening JWT** — **LIVRÉ, CERTIFIÉ & BASCULÉ EN PRODUCTION (23/10, option O-1 + 2 ajustements CTO)** : investigation (C-2/C-2bis démontrés — analogie REDIS_URL) → RED publics mesurés (seed 59372 : signature toujours `secret_key_base`, aucun garde prod) → précondition Render levée (capture CTO : `JWT_SECRET` présente + re-vérifiée avant push) → correction : `ConfigurationError` (miroir FC-05 A1) · `signature_key` à l'appel (fetch explicite, blank traité explicitement) · **garde boot prod** (absente OU vide ⇒ déploiement avorté, eager-load) · `HS256` explicite encode/decode · `rescue ConfigurationError` en tête ×3 ; 15 sites de specs convertis à la clé dédiée — **certification** : contrat **6/0 ×2** (seeds 55409/41245) · suite **1143/0** (seed 64073) · RuboCop **248/0** · Brakeman **0** · Zeitwerk **OK** · bundle audit **0 vuln** · couverture **86,26 % lignes / 61,03 % branches** · verrou 72,5 franchi · **bascule** : push direct refusé par branch protection (6/6 required — #13/#14 fonctionnel) → **PR #77** + CI sur PR **6/6 verts** (10:44-10:49 UTC) → merge `4d2985c1` « Create a merge commit » → auto-deploy Render · **post-merge** : `/health` 200 ×3 · sondes **S-1 200 / S-2 200 / S-3 401 ×2 / S-4 200 / S-5 401** — re-login généré (tokens pré-bascule invalides), pas de rollback ; 1er S-5 500 = **artifact de sonne d'agent** (body JSON malformé — `"` de clôture manquant), re-sondé 401 — produit sain, **pas de #29** | ✅ close | audit `[DONE]_2026_10_23_22_jwt_hardening_investigation.md` (T1-T7) · runbook `[DONE]_2026_10_23_22_render_jwt_cutover_runbook.md` · mémoire `fc08::021` (amendée) · arbitrage CTO 23/10 |
+| 23 | **FC-05 — Remediation contractuelle** — **LIVRÉE et CERTIFIÉE (PR #56, 26/09)** : voir table « Chantiers livrés » | ✅ close | contrat `[DONE]_2026_09_25_fc05_rate_limiting_contract.md` |
+| 24 | **Qualification ledger réel (`cra-ledger`)** — **TRAITÉ (O-B) + CLOSED (2026-10-03)** : investigation (provenance 23/23 : 13 prouvé / 3 E2E+initial · 7 inféré · 0 donnée production) → réconciliation VALIDÉE (S-1/S-9) → **arbitrage O-B GO** → **purge exécutée via le mécanisme supporté** : `GitLedgerRepository.cleanup!` + re-init — **23 → 1 commit Initial (`141fa4e`)** · `denyNonFastForwards` restauré · working tree propre · specs ledger **69/0** (seed 31064) · production/CI à l'écart · **zéro réécriture Git** · prévention hors périmètre (#25 · #28 potentiel) | ✅ close | audit `[DONE]_2026_09_28_24_ledger_provenance_investigation.md` (§5.1) · mémoire fc08::014 · D-12 |
+| 25 | **BRIEFING — commande canonique de test erronée** — **CORRIGÉE (2026-10-03)** : analyse `[DONE]_2026_10_03_25_briefing_commands_analysis.md` (5 commandes en service dév · preuves compose/probes/incident fc08::014 · suivi T1-T7) → patch : 5 commandes sur `--profile test … test` + note explicative + Zeitwerk ajouté · commandes dév (L642-648, L738-747) et README (L195-201) vérifiées légitimes · **commandes corrigées exécutées attestées** (rubocop 244/0 · zeitwerk OK · brakeman 0 · specs OAuth 41/0, seed 51711) | ✅ close | analyse `[DONE]_2026_10_03_25_briefing_commands_analysis.md` (suivi T1-T7) · BRIEFING §636-747 |
+| 26 | **Race #14 — R-1 LIVRÉE et CERTIFIÉE (26/09)** : contrat #14 renforcé (A1-A9) → **RED mesuré** (`expected 1, got 2` — 2 CRAs, 2 success, seed 1699) → **R-1 `pg_advisory_xact_lock(user_id, mois, année)` acquis AVANT la garde, même transaction** → **GREEN ×2** (seeds 16729/28994 — 1 success + 1 conflict 409, exactement 1 CRA) → suite **1133/0** (86,24/60,88 · verrou 72,5) → Zeitwerk OK · RuboCop 0 (244 files) → docs `[DONE]_` | ✅ close | contrat `[DONE]_2026_09_26_14_invariant_concurrent_contract.md` (T1-T8 ✅) · audit `[DONE]_2026_09_26_26_race14_concurrency_investigation.md` · commits `e4f97acc`/`f5225ee8` · mémoire fc08::016 |
+| 27 | **Mapping contrôleur — anomalies UX** — **Q-1 IMPLÉMENTÉ · #27 CLOSED (2026-10-03)** : le réel ≠ analyse initiale — **201 + `client_company_id` silencieusement jeté** (validation belongs_to `RecordInvalid 'Company must exist'` AVANT l'INSERT · rescue RecordInvalid DANS le bloc de `save_mission` jette le résultat · `success` inconditionnel — anti-pattern C-1/C-2) ; FK présente mais jamais atteinte · **Q-1 implémenté** : validation AVANT écriture → `422 :invalid_client_company` — RED (got 201, seed 47973) → GREEN ×2 + suite **1136/0** (86,30/61,16 · seed 26173) · RuboCop 246/0 · Brakeman 0 · Zeitwerk OK · **Q-2 mapping NON ajouté** (pas de RED via points d'entrée publics : 409 déjà servi par `validate_entry_modifiable!` — spec épine le contrat) · **Q-3 statu quo** · S-4/#28 hors périmètre | ✅ close | analyse `[DONE]_2026_10_03_27_ux_error_mapping_analysis.md` (corrections post-RED §2/§4) · specs dédiées · fc08::019 proposée |
+| 28 | **Prévention structurelle du ledger — R-1bis LIVRÉE + certifiée (2026-10-03)** : cadrage (contrat actuel/attendu, reachability qualifiée — 7 protections + limites) → **O-1bis GO** : migration d'isolation stub_const ×6 (les overlays singleton étaient inertes — audit §6) + suppression des teardowns eigenclass + `GitLedgerRepository.ledger_path` (l'accès cohérent eigenclass) + **la garde INV-D12-03 fail-fast** (avant tout Git-call : `GIT_LEDGER_REAL=true` ⇒ cible ≠ défaut) → **RED ×2 → GREEN ×2** (seeds 60736/8777 → 59410/…) + batch ledger **72/0** + suite **1137/0** (86,33/60,94 · verrou 72,5) + RuboCop 247/0 + Brakeman 0 + Zeitwerk OK · ledger réel **inchangé** (1 commit) · purge #24 non touchée · W3-D2 aligné (les messages INV) | ✅ close | cadrage `[DONE]_2026_10_03_28_ledger_prevention_cadrage.md` (§6 journal) · fc08::020 proposée |
+| 29 | **Passe « zéro-warnings »** (mandat CTO 24/10) — **T2 arbitré : O-2 mécanique (SimpleCov différé — le verrou P6.1 intouchable)** — **T3 ✅ + T4 ✅ + T5 ✅ + T6 ✅ (24/10)** : R-1 : **20 matchers** renommés `:unprocessable_content` (les 7 eq/keys + 8 textes intacts) · R-3 : les runners ×6 → `ubuntu-24.04` · R-4 : `variant_processor = :disabled` ×3 — certification : suite **1148/0** (36475) · RuboCop **249/0** · couverture inchangée · warnings R-1 = 0 · **bascule CI → merge `679ea3ad`** (le re-deploy : `000 ×3` pendant le build → **`/health` 200 ×5**) · le cadrage → `[DONE]_`, le BACKLOG close, le suivi à jour | ✅ close | cadrage `[DONE]_2026_10_24_zero_warnings_cadrage.md` (T1-T6) · merge `679ea3ad` · mesures 24/10 |
+
+## Chantiers livrés (référence)
+
+| # | Chantier | Clôture | Source de vérité |
+|---|---|---|---|
+| — | **Branch protection** (ex-#11 de cette table, ex-#13 de la numérotation P6) — 6 checks requis + `enforce_admins: true` sur `main` · PR de contrôle #43 (`blocked` → `clean` certifié, 6/6 SUCCESS) | 22/09/2026 | `docs/technical/[DONE]_2026_09_22_backlog13_branch_protection_tracker.md` |
+| — | **Validation de l'arbre mergé** (#12) — RED EXP-1 (2 preuves : la CI `pull_request` exécute le merge ref `b396a976` puis `8f32b7c6` après synchronize) · correction `strict: true` (UI) · GREEN comportemental (PR #48 : out-of-date bloquée malgré 6/6 verts) | 22/09/2026 | `docs/technical/[DONE]_2026_09_22_backlog12_merged_tree_tracker.md` |
+| — | **`Cra#validate_uniqueness` inerte à la création** (#14) — RED (second POST identique → 201, doublon persisté) · correction option A (garde service-level `check_duplicate_entry` dans `CraServices::Create`, pattern CraEntryServices) · GREEN (409 + un seul CRA persisté — régression permanente en place) | 22/09/2026 | `docs/technical/[DONE]_2026_09_22_backlog14_validate_uniqueness_tracker.md` |
+| — | **FC-05 — Remediation contractuelle** (#23) — Investigation #20 (3 causes : sélecteur inconditionnel · `increment!` orphelin · `LIMITS['missions']` absent) → contrat v1 (A1-A9) → RED mesurés (12/10/2) → implémentation minimale → GREEN (12/12) → R-4 (limiter parallèle supprimé, contrôleurs unifiés clé `user_id`, 11 LIMITS + WINDOWS) → régression 1166/0 · Production vérifiée : REDIS_URL injectée · deploy live `3f974dc` · sondage 401×5 → 429 contrat · 0 `RedisConfigurationError` | 26/09/2026 | contrat `docs/technical/guides/[DONE]_2026_09_25_fc05_rate_limiting_contract.md` (§9 suivi T1-T19) · audit `[DONE]_2026_09_25_fc05_rate_limiting_audit.md` · PR #56 |
+| — | **Investigation #21 — OAuth / code mort** — chemin réel établi (chaîne services unique, transaction + anti-race) · O-1 `OAuthConcern` (111 LOC, 0 appelant) + O-2 `ApmService` (254 LOC + TestHelpers + 34 specs) supprimés · duplication = constat architectural (impact prod nul) · arbitrage CTO 26/09 **rendu après les commits** — séquence régularisée (trace §6) · close-out : suite 1132/0, Zeitwerk OK, RuboCop 243/0, artefact rspec.xml retiré | 26/09/2026 | `docs/technical/audits/[DONE]_2026_09_26_oauth_investigation.md` (§6) · commits `aff7ca6a`/`5a2009ea`/`789db3c2` |
+| — | **Race #14 — R-1 (contrat #14 renforcé)** — race reproduite 5/5 (déterministe, barrière 2 threads) → contrat A1-A9 → **RED mesuré** (2 CRAs, 2 success) → **R-1 `pg_advisory_xact_lock` avant garde, même transaction** → **GREEN ×2** (1 success + 1 409, 1 CRA) → suite 1133/0 (86,24/60,88) · Zeitwerk/RuboCop 0 · doublon + verrou 409 éliminés | 26/09/2026 | `[DONE]_2026_09_26_26_race14_concurrency_investigation.md` · `[DONE]_2026_09_26_14_invariant_concurrent_contract.md` · commits `0cdd946b`/`a68756fb`/`e4f97acc`/`f5225ee8` · mémoire fc08::016 |
+| — | **#24 — Qualification + purge du ledger de dev (O-B)** — provenance 23/23 (13 pollution prouvée par cra_id/fenêtres · E2E délibérés · mode réel sans overlay inféré) · mécanisme supporté `cleanup!` (dev-only, garde production) : **23 → 1 commit** (`141fa4e`) · specs ledger 69/0 · zéro réécriture Git | 2026-10-03 | `[DONE]_2026_09_28_24_ledger_provenance_investigation.md` (§5.1) · commits `dcb42077`/`3bf936a1` · mémoire fc08::014 |
+| — | **#25 — Commandes canoniques de test du BRIEFING** — analyse (preuves compose/probes) → patch 5 commandes (`--profile test … test`) + note fc08::014 + Zeitwerk · commandes dév/README vérifiées légitimes · verification par exécution (rubocop 244/0 · zeitwerk OK · brakeman 0 · OAuth 41/0) | 2026-10-03 | `[DONE]_2026_10_03_25_briefing_commands_analysis.md` (T1-T7) · BRIEFING §636-747 |
+| — | **#27 — Mapping erreurs UX (Q-1)** — anomalie réelle : 201 + `client_company_id` silencieusement jeté (rescue-dans-bloc, même anti-pattern C-1/C-2) → validation service AVANT écriture → `422 :invalid_client_company` · RED (got 201) → GREEN ×2 · suite 1136/0 · Q-2 : pas de RED (409 déjà servi — mapping non ajouté) · Q-3 statu quo | 2026-10-03 | `[DONE]_2026_10_03_27_ux_error_mapping_analysis.md` · specs dédiées · fc08::019 proposée |
+
+## Métriques de qualité (état au 2026-10-21 — post série #24→#28)
+
+- **Suite RSpec : 1137 exemples, 0 échec, 0 pending** (mesuré 2026-10-03, service `test`, `foresy_test`, seed 64208 post #28 — 1166 − 34 specs du code mort APM, +1 spec contrat #14 concurrentiel R-1, +2 specs contrat d'erreur #27, +1 spec INV-D12-03 #28)
+- **SimpleCov : 86,32 % lignes (3012/3489) · 60,94 % branches (880/1446)** — corpus post série #24→#28, verrou CI 72,5 armé
+- **RuboCop 0 offense (247 files) · Zeitwerk OK** (mesuré 2026-10-21) · **Brakeman 0 warning** (CI 6/6 sur les PRs #54-#56)
+- **Contrat système** : 4 system specs (P7 CLOSED) · **gouvernance CI** : push direct bloqué, 6 checks + branche à jour (`enforce_admins: true` + `strict: true`) · **invariant unicité créateur+mois+année protégé à la création** (#14, garde service-level) · **FC-05** : rate limiting distribué Redis, 429 sur dépassement réel uniquement (A4), clés IP auth / user_id métier
+
+> ⚠️ **Framing (CTO 26/09)** : ces chiffres décrivent l'état de protection, pas une preuve fonctionnelle supplémentaire — la preuve de correction FC-05 est la chaîne RED mesurés → GREEN + régression complète (cf. contrat §7-§8). Idem close-out #21 : la hausse de couverture (86,22/60,80) est la conséquence mécanique de la suppression de code mort — les preuves principales sont le chemin réel identifié, 0 call-site démontré, les références supprimées, la transaction/anti-race du chemin réel vérifiées, la suite 1132/0, Zeitwerk OK et RuboCop 0.
+
+## Règle anti-drift
+
+1. Ce fichier **pointe** les sources canoniques, il ne les recopie pas.
+2. Toute métrique est **datée** ; toute entrée cite sa source de suivi.
+3. Mise à jour à chaque **état substantiel** (règle mémoire du projet) ; les items livrés
+   quittent la table (l'historique vit dans git + le hub).
+4. Le hub RAG indexe ce fichier — le garder court et frais protège la qualité de l'index.

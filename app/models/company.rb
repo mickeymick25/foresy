@@ -102,8 +102,12 @@ class Company < ApplicationRecord
     address_parts.join(', ')
   end
 
+  # W3-D4 — Arbitrage CTO (20/09) : la résolution ISO3166 dépendait de la gem
+  # countries jamais déclarée (NameError = 500 potentiel). Zéro appelant production,
+  # zéro mention dans FC-08 → la méthode retourne le code stocké ; réintroduire
+  # ISO3166 exigerait de déclarer la dépendance explicitement (dette documentée).
   def country_name
-    ISO3166::Country[country]&.name || country
+    country
   end
 
   def display_name

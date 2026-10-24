@@ -39,6 +39,12 @@ json_field() {
     echo "$1" | jq -r "$2" 2>/dev/null || echo "null"
 }
 
+# Rate-limit isolation (CI) : toutes les requêtes login de ce script partagent une
+# IP dédiée via X-Forwarded-For — évite le 429 cumulatif avec acceptance specs +
+# smoke + e2e_cra (le rate limiter lit X-Forwarded-For en premier, cf.
+# extract_client_ip_for_rate_limiting). 4 logins < limite 5.
+AUTH_TEST_IP="10.42.42.42"
+
 # Step 1: Signup
 echo "1. Creating new user..."
 SIGNUP_RESPONSE=$(curl -s -X POST "$API_URL/api/v1/signup" \
@@ -76,6 +82,7 @@ echo ""
 echo "3. Testing login with credentials..."
 LOGIN_RESPONSE=$(curl -s -X POST "$API_URL/api/v1/auth/login" \
     -H "Content-Type: application/json" \
+    -H "X-Forwarded-For: $AUTH_TEST_IP" \
     -d "{\"email\": \"$TEST_EMAIL\", \"password\": \"$TEST_PASSWORD\"}")
 
 NEW_TOKEN=$(json_field "$LOGIN_RESPONSE" '.token')
@@ -148,10 +155,12 @@ echo ""
 echo "7. Testing login with wrong password..."
 WRONG_PWD_RESPONSE=$(curl -s -X POST "$API_URL/api/v1/auth/login" \
     -H "Content-Type: application/json" \
+    -H "X-Forwarded-For: $AUTH_TEST_IP" \
     -d "{\"email\": \"$TEST_EMAIL\", \"password\": \"wrong_password\"}")
 
 WRONG_PWD_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$API_URL/api/v1/auth/login" \
     -H "Content-Type: application/json" \
+    -H "X-Forwarded-For: $AUTH_TEST_IP" \
     -d "{\"email\": \"$TEST_EMAIL\", \"password\": \"wrong_password\"}")
 
 if [ "$WRONG_PWD_CODE" = "401" ]; then
@@ -166,6 +175,7 @@ echo ""
 echo "8. Testing login with non-existent user..."
 NONEXIST_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$API_URL/api/v1/auth/login" \
     -H "Content-Type: application/json" \
+    -H "X-Forwarded-For: $AUTH_TEST_IP" \
     -d '{"email": "nonexistent@example.com", "password": "password123"}')
 
 if [ "$NONEXIST_CODE" = "401" ]; then

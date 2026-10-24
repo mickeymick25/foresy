@@ -3,50 +3,64 @@
 
 
 **For AI Context Understanding - Optimized for Fast Project Comprehension**  
-**Last Updated:** 29 janvier 2026 - Validation DDD/RDD CRA (491 tests GREEN)
+**Last Updated:** 26 septembre 2026 — **FC-05 Rate Limiting remediation CERTIFIÉE** (PR #56 : contrat → RED mesurés → GREEN → R-4) · Gouvernance CI verrouillée (#11/#12) · contrat système démontré (P7) · invariant unicité protégé (#14) · **1166 tests GREEN**
+
+> ⚠️ **Note de lecture (26/09/2026)** : les sections « État courant » ci-dessous reflètent l'état
+> de septembre 2026. Les sections `### Jan/Déc 2025-2026` de la timeline ci-après sont de
+> l'**historique daté** — ne pas les confondre avec l'état courant. Source de vérité des
+> métriques : README.md · docs/BACKLOG.md · docs/technical/testing/
 
 ---
 
 ## 🎯 PROJECT CURRENT STATE
 
 ### Basic Info
-- **Project Type**: Ruby on Rails 8.1.1 API-only application
-- **Primary Function**: User management, Mission management with JWT + OAuth (Google/GitHub)
+- **Project Type**: Ruby on Rails 8.1.3.1 API-only application
+- **Primary Function**: User management, Mission management, CRA management, Company management (Indépendant) — JWT + OAuth (Google/GitHub)
 - **Ruby Version**: 3.4.8
 - **Environment**: Docker Compose (non-optional, mandatory)
-- **Status**: ✅ FC-07 CRA **100% TERMINÉ** — TDD PLATINUM (7 Jan 2026)
-- **Current Feature**: FC-07 CRA — **COMPLET** — 449 tests GREEN, taggé `fc-07-complete`
-- **Previous Feature**: FC-06 Missions (31 Dec 2025) - **PR #12 MERGED** (1 Jan 2026) ✅
+- **Status**: ✅ **FC-06 Missions · FC-07 CRA · FC-08 Companies TERMINÉS** — campagne P6/P7 CLOSED · **FC-05 remediation certifiée** (26/09, PR #56 — rate limiting distribué Redis, 429 sur dépassement réel uniquement)
+- **Current Feature**: série d'audits/corrections **#19→#28 CLOSED (octobre 2026)** · restes : backlog transverse (#13/#15/#16/#17/#22 + #1-#10 + `chore/p6-coverage-plan`) · **FC-09** ⏸️ (arbitrage produit — jamais sur un pourcentage)
+- **Previous**: Campagne P6/P7 (sept 2026) — 3 bugs production découverts et corrigés par RED démontré (GET /cras 500 · ISO3166 · mission_id perdu · invariant unicité inerte)
+- **Gouvernance CI (sept 2026)**: push direct sur main **bloqué** (GH006 ×2) · 6 checks requis (`enforce_admins: true`) · branche à jour obligatoire (`strict: true`) · merge result testé (EXP-1, 2 preuves)
 
-### Quality Metrics (Jan 2026) — Validé le 12 février 2026
-**🏆 Migration DDD/RDD Architecture Complétée (27-28 Janvier 2026)**
-- **RSpec Tests**: ✅ **491 examples, 0 failures** (validé 12 Fév 2026)
-- **Rswag Swagger**: ✅ **134 examples, 0 failures** — `swagger.yaml` généré
-- **RuboCop**: ✅ **177 files inspected, no offenses detected**
-- **Brakeman**: ✅ **0 Security Warnings** (3 ignored)
-- **Missions Tests (FC-06)**: ✅ 30/30 passing
-- **CRA Tests (FC-07)**: ✅ **TDD PLATINUM COMPLETE**
-  - Phase 1: 6/6 lifecycle ✅
-  - Phase 2: 3/3 unicité ✅
-  - Phase 3A: 9/9 legacy alignment ✅
-  - Phase 3B: 17/17 (pagination + unlink) ✅
-  - Phase 3C: 24/24 recalcul totaux ✅
-  - **Mini-FC-01**: 16/16 filtrage (year/month/status) ✅
-  - **Mini-FC-02**: 26/26 export CSV (17 service + 9 request) ✅
-- **OAuth Tests**: ✅ 15/15 acceptance (Feature Contract compliant)
-- **Zeitwerk**: ✅ All files loading correctly
+### Quality Metrics (Sept 2026) — mesuré 26/09, `foresy_test` + CI PR #56
+- **RSpec Tests**: ✅ **1137 examples, 0 failures** (2026-10-21, post #28 — −34 specs du code mort APM, +1 spec contrat #14 concurrentiel R-1, +2 specs contrat d'erreur #27, +1 spec INV-D12-03) — dont les **régressions permanentes** : invariant unicité créateur+mois+année **sous concurrence** (#14 renforcé, R-1 + garde INV-D12-03) · **contrat FC-05 (RED 1-4 devenus GREEN)**
+- **Rswag Swagger**: ✅ **429 examples** — audit 35/35 routes, `swagger.yaml` généré
+- **RuboCop**: ✅ **247 files inspected, 0 offenses**
+- **Brakeman**: ✅ **0 Security Warnings** (mode strict)
+- **Couverture (SimpleCov)**: 📊 **86,32 % lignes (3012/3489) / 60,94 % branches (880/1446)** — corpus post #28, verrou 72,5 armé dans le processus réel
+- **Gouvernance CI (P6/P7)**: ✅ push direct bloqué (GH006 ×2) · 6 checks requis (`enforce_admins: true`) · branche à jour (`strict: true`) · merge result testé (EXP-1)
+- **CI/CD**: ✅ 6/6 jobs verts — E2E bloquant dans la Quality Gate
+- **Campagnes**: ✅ P6 (Waves 1-4 + P6.6 CLOSED) · P7 (System Specs API — contrat système, 4 specs) · #11/#12/#14 (gouvernance + invariant, 3 défauts réels corrigés) · **#21 CLOSED (OAuth / code mort — O-1/O-2, arbitrage régularisé, mémoire fc08::014)** · **#26 R-1 LIVRÉE (race #14 — contrat #14 renforcé, RED → GREEN ×2, mémoire fc08::016)** · **#24 CLOSED (ledger — provenance 23/23, purge O-B via `cleanup!` : 23 → 1 commit, mémoire fc08::017)** · **#25 CLOSED (commandes BRIEFING sur le service `test` — vérifiées par exécution)** · **#27 CLOSED (Q-1 : 422 client inconnu — RED got 201, 201 + client jeté au silence ; Q-2 pas de RED / 409 déjà servi)** · **#28 CLOSED (prévention structurelle ledger — INV-D12-03 fail-fast + isolation stub_const, fc08::020)**
+- **Dettes tracées** : BACKLOG #13 (RSwag `name`) · #14 (livré — **renforcé sous concurrence par R-1**, fc08::016) · Wave 4.5 (~280 lignes, distinct) · #7 (alerting) · #8 (link-rot) · **#24 (ledger réel à qualifier)** · **#25 (commande BRIEFING)** · **#27 (mapping UX à qualifier)**
+
+### Historical Metrics (Jan 2026) — état figé, cf. timeline ci-dessous
+**Migration DDD/RDD Architecture Complétée (27-28 Janvier 2026)**
+- **RSpec Tests**: 491 examples, 0 failures (validé 12 Fév 2026)
+- **Rswag Swagger**: 134 examples, 0 failures — `swagger.yaml` généré
+- **RuboCop**: 177 files inspected, no offenses detected
+- **Brakeman**: 0 Security Warnings (3 ignored)
+- **Missions Tests (FC-06)**: 30/30 passing
+- **CRA Tests (FC-07)**: TDD PLATINUM COMPLETE
+  - Phase 1: 6/6 lifecycle · Phase 2: 3/3 unicité · Phase 3A: 9/9 legacy alignment ·
+    Phase 3B: 17/17 (pagination + unlink) · Phase 3C: 24/24 recalcul totaux
+  - **Mini-FC-01**: 16/16 filtrage (year/month/status)
+  - **Mini-FC-02**: 26/26 export CSV (17 service + 9 request)
+- **OAuth Tests**: 15/15 acceptance (Feature Contract compliant)
+- **Zeitwerk**: All files loading correctly
 - **CI/CD**: GitHub Actions CI + Render CD fully functional
 - **Production**: Deployed on Render (https://foresy-api.onrender.com)
-- **Rails Upgrade**: ✅ Successfully migrated from 7.1.5.1 to 8.1.1 (Dec 26, 2025)
-- **FC-06 Missions**: ✅ Fully implemented (Dec 31, 2025)
-- **FC-07 CRA**: ✅ **100% TERMINÉ** — 449 tests GREEN, taggé `fc-07-complete` (7 Jan 2026)
-- **🏆 Migration DDD/RDD**: ✅ Architecture pure, domaine CRA certifié Platinum DDD (29 Jan 2026)
-  - ✅ **Validation finale 29/01/2026**: 498 tests verts, 0 failures
-  - 🗑️ **Legacy API nettoyé**: 2 tests API obsolètes supprimés
-  - ✅ **Template validé**: Pattern 3-barrières pour FC-08
+- **Rails Upgrade**: Successfully migrated from 7.1.5.1 to 8.1.1 (Dec 26, 2025)
+- **FC-06 Missions**: Fully implemented (Dec 31, 2025)
+- **FC-07 CRA**: 100% TERMINÉ — 449 tests GREEN, taggé `fc-07-complete` (7 Jan 2026)
+- **🏆 Migration DDD/RDD**: Architecture pure, domaine CRA certifié Platinum DDD (29 Jan 2026)
+  - **Validation finale 29/01/2026**: 498 tests verts, 0 failures
+  - **Legacy API nettoyé**: 2 tests API obsolètes supprimés
+  - **Template validé**: Pattern 3-barrières pour FC-08
 
 ### Technical Stack
-- **Framework**: Rails 8.1.1 (API-only)
+- **Framework**: Rails 8.1.3.1 (API-only)
 - **Language**: Ruby 3.4.8
 - **Database**: PostgreSQL + Redis (cache/sessions)
 - **Authentication**: JWT stateless + OAuth 2.0
@@ -58,6 +72,13 @@
 ---
 
 ## 📅 RECENT CHANGES TIMELINE
+
+### Sept 21-22, 2026 - 🔒 **GOUVERNANCE CI + INVARIANT UNICITÉ** (#11/#12/#14) — 3 défauts réels corrigés par RED démontré
+- **Branch protection** (#11, PR #43): 6 checks requis + `enforce_admins: true` — `blocked → clean` certifié sur PR de contrôle
+- **Merge-tree validation** (#12, PR #46-#48): RED EXP-1 — la CI `pull_request` exécute le **merge ref** (2 preuves : `b396a976` puis `8f32b7c6` après synchronize) → `strict: true` (PR #48 : out-of-date **bloquée malgré 6/6 verts**)
+- **Invariant unicité créateur+mois+année** (#14, PR #51): RED — second `POST /cras` identique → **201, doublon persisté** (garde modèle inerte : pivot post-insert) → garde service-level `check_duplicate_entry` (pattern CraEntryServices) → **409 + un seul CRA persisté**
+- **Nettoyage** : 7 méthodes OAuth mortes supprimées (#13 de P7) · PAT admin retiré du disque · 15 branches distantes mergées supprimées
+- **PRs**: #43-#52 · Trackers `[DONE]_` : #11 · #12 · #14
 
 ### Jan 29, 2026 - 🏆 **VALIDATION FINALE DDD CRA** (498 tests GREEN) — Platinum Certified
 - **Purpose**: Final validation of DDD/RDD migration and CRA domain certification
@@ -120,7 +141,7 @@ The recalculation logic for `total_days` and `total_amount` is orchestrated in s
 
 **Documentation**: 
 - `docs/technical/fc07/` - Complete documentation
-- `docs/technical/fc07/phases/FC07-Phase3C-Completion-Report.md` - Phase 3C details
+- `docs/technical/fc07/phases/[DONE]_2026_01_05_FC07-Phase3C-Completion-Report.md` - Phase 3C details
 
 **Verification Command**:
 ```bash
@@ -187,7 +208,7 @@ docker compose exec web bundle exec rspec spec/services/cra_entries/ spec/models
 - **Security Model Documented**: Model A (logout = session-scoped, refresh = user-bound)
 - **Contract Compliance**: Strict Gherkin criteria verified
 - **Compatibility**: macOS/Linux, CI-safe
-- **Documentation**: `docs/technical/changes/2025-12-26-E2E_Revocation_Script.md`
+- **Documentation**: `docs/technical/changes/[DONE]_2025_12_26_E2E_Revocation_Script.md`
 
 ### Dec 26, 2025 - 🚀 Rails 8.1.1 Migration (MAJOR UPGRADE)
 - **Objective**: Upgrade from Rails 7.1.5.1 (EOL) to Rails 8.1.1
@@ -211,7 +232,7 @@ docker compose exec web bundle exec rspec spec/services/cra_entries/ spec/models
   - `ostruct` will be removed from default gems in Ruby 4.0 (rswag-ui)
   - `:unprocessable_entity` deprecated in Rack (use `:unprocessable_content`)
 - **Result**: Full compatibility maintained, no breaking changes
-- **Documentation**: `docs/technical/changes/2025-12-26-Rails_8_1_1_Migration_Complete.md`
+- **Documentation**: `docs/technical/changes/[DONE]_2025_12_26_Rails_8_1_1_Migration_Complete.md`
 
 ### Dec 24, 2025 - 🔒 Token Revocation Endpoints (NEW FEATURE)
 - **Objective**: Allow users to invalidate their JWT tokens proactively
@@ -224,12 +245,12 @@ docker compose exec web bundle exec rspec spec/services/cra_entries/ spec/models
   - Returns revoked_count for revoke_all
   - Isolated per user
 - **Result**: 221 tests pass, 12 new tests for revocation
-- **Documentation**: `docs/technical/guides/token_revocation_strategy.md`
+- **Documentation**: `docs/technical/guides/2025_12_24_token_revocation_strategy.md`
 
 ### Dec 24, 2025 - 📖 OAuth Flow Documentation (DOCS)
 - **Objective**: Complete documentation of OAuth flow for frontend integration
 - **Contents**: State/CSRF protection, scopes, JWT claims, React/Vue examples
-- **Documentation**: `docs/technical/guides/oauth_flow_documentation.md`
+- **Documentation**: `docs/technical/guides/2025_12_24_oauth_flow_documentation.md`
 
 ### Dec 24, 2025 - 🧪 OAuth Feature Contract Tests (TESTS)
 - **Objective**: Improve OAuth test coverage to match Feature Contract
@@ -333,7 +354,7 @@ docker compose exec web bundle exec rspec spec/services/cra_entries/ spec/models
   - Fixed rswag OAuth specs to expect integer IDs (`type: :integer`)
 - **Result**: 149 tests pass, 0 Rubocop offenses, Swagger regenerated
 - **Impact**: 100% compatibility with all managed PostgreSQL environments (RDS, CloudSQL, Heroku, Azure)
-- **Documentation**: `docs/technical/corrections/2025-12-19-pgcrypto_elimination_solution.md`
+- **Documentation**: `docs/technical/corrections/[DONE]_2025_12_19_pgcrypto_elimination_solution.md`
 
 ### Dec 19, 2025 (soir) - 🧹 Authenticatable Cleanup (MEDIUM)
 - **Objective**: Unify ambiguous methods and add unit tests
@@ -348,7 +369,7 @@ docker compose exec web bundle exec rspec spec/services/cra_entries/ spec/models
   - Created `spec/controllers/concerns/authenticatable_spec.rb` with 29 unit tests
 - **Result**: 149 tests pass, 0 Rubocop violations
 - **Impact**: Better maintainability, clear authentication flow documentation
-- **Documentation**: `docs/technical/changes/2025-12-19-Authenticatable_Cleanup.md`
+- **Documentation**: `docs/technical/changes/[DONE]_2025_12_19_Authenticatable_Cleanup.md`
 
 ### Dec 19, 2025 (soir) - 🔧 Authentication Concerns Fix (CRITICAL)
 - **Objective**: Fix 20+ test failures related to authentication concerns
@@ -364,7 +385,7 @@ docker compose exec web bundle exec rspec spec/services/cra_entries/ spec/models
   - Fixed JsonWebToken spec logging expectations
 - **Result**: 120 tests pass, 0 Rubocop violations
 - **Impact**: Full test suite restored, authentication flow working correctly
-- **Documentation**: `docs/technical/changes/2025-12-19-Authentication_Concerns_Fix.md`
+- **Documentation**: `docs/technical/changes/[DONE]_2025_12_19_Authentication_Concerns_Fix.md`
 
 ### Dec 20, 2025 - 🔧 Major Code Quality & Security Improvements (CRITICAL)
 - **Objective**: Complete codebase quality improvement and security hardening session
@@ -391,7 +412,7 @@ docker compose exec web bundle exec rspec spec/services/cra_entries/ spec/models
   - Regenerated Swagger documentation automatically
 - **Result**: 97 tests pass, Swagger auto-generated with 48 examples
 - **Impact**: Full Feature Contract compliance, auto-synchronized documentation
-- **Documentation**: `docs/technical/changes/2025-12-19-Rswag_OAuth_Specs_Feature_Contract.md`
+- **Documentation**: `docs/technical/changes/[DONE]_2025_12_19_Rswag_OAuth_Specs_Feature_Contract.md`
 
 ### Dec 19, 2025 - 🔧 Zeitwerk OAuth Services Rename (CRITICAL)
 - **Problem**: CI failing with `uninitialized constant OauthTokenService` due to Zeitwerk naming convention
@@ -403,7 +424,7 @@ docker compose exec web bundle exec rspec spec/services/cra_entries/ spec/models
   - Updated `require_relative` paths in controller and specs
 - **Result**: CI 100% functional, 87 tests pass
 - **Impact**: Zeitwerk autoloading now works correctly
-- **Documentation**: `docs/technical/changes/2025-12-19-Zeitwerk_OAuth_Services_Rename.md`
+- **Documentation**: `docs/technical/changes/[DONE]_2025_12_19_Zeitwerk_OAuth_Services_Rename.md`
 
 ### Dec 19, 2025 - 🔒 Security & Secrets Configuration (CRITICAL)
 - **Problem**: Secrets exposed in code + CI failing due to missing environment variables
@@ -416,7 +437,7 @@ docker compose exec web bundle exec rspec spec/services/cra_entries/ spec/models
   - Added `spec/examples.txt` to `.gitignore`
 - **Result**: CI 100% functional with secure secrets configuration
 - **Impact**: Security reinforced, no secrets exposed in repository
-- **Documentation**: `docs/technical/changes/2025-12-19-Security_CI_Complete_Fix.md`
+- **Documentation**: `docs/technical/changes/[DONE]_2025_12_19_Security_CI_Complete_Fix.md`
 
 ### Dec 18, 2025 - Documentation Centralization
 - **Action**: Complete documentation reorganization under `docs/`
@@ -452,7 +473,7 @@ docker compose exec web bundle exec rspec spec/services/cra_entries/ spec/models
    - **Bug critique résolu**: check_user_permissions nil → ApplicationResult
    - **Export fonctionnel**: CraServices::Export 26/26 verts
    - **Impact**: FC-07 entièrement opérationnel, domaine certifié Platinium
-   - **Doc**: `docs/technical/corrections/2026-01-27-DDD_Audit_CRA_Tests_Migration.md`
+   - **Doc**: `docs/technical/corrections/[DONE]_2026_01_27_DDD_Audit_CRA_Tests_Migration.md`
    - **Next**: FC-08 Entreprise Indépendant (Next Feature Contract)
 
 ### Known Limitations
@@ -579,33 +600,17 @@ Foresy/
 
 ## ✅ NEXT STEPS & TODO LIST
 
-### Immediate Actions (High Priority)
-1. **Sprint 3 Completion - E2E Testing Infrastructure ✅ COMPLETED**
-   - **Task**: Finalize E2E staging tests (scripts + documentation)
-   - **Completed**: Smoke tests (15 endpoints) + E2E auth flow (8 tests) + E2E revocation (5 tests - Platinum Level) in bin/e2e/
-   - **Impact**: Full CI/CD staging test coverage, automated end-to-end validation
-   - **Security Model**: Documented (access tokens session-scoped, refresh tokens user-bound)
-   - **Status**: ✅ All tests passing locally and on production (Render)
+### Immediate Actions (High Priority) — historique (déc 2025-fév 2026, toutes complétées)
+1. ~~**Sprint 3 Completion - E2E Testing Infrastructure**~~ ✅ (déc 2025 — smoke 15 + E2E auth + revocation, `bin/e2e/`)
+2. ~~**Production Errors 500 Resolution**~~ ✅ (déc 2025 — migrations appliquées, endpoints auth fonctionnels)
+3. ~~**PR #7 Analysis**~~ ✅ mergée (fév 2026 — 10/10 points)
+4. ~~**Rails Migration**~~ ✅ complétée (déc 2025) → **Rails 8.1.3.1 aujourd'hui**
 
-2. **✅ Production Errors 500 Resolution (FINISHED)**
-   - **Task**: Fix critical HTTP 500 errors on all authentication endpoints in production
-   - **Completed**: Database migrations applied via fix/omniauth-session-middleware branch deployment
-   - **Impact**: All auth/OAuth endpoints now functional in production (401/422/400 responses)
-   - **Validation**: 23/23 E2E tests passing in production (15 smoke + 8 auth flow)
-   - **Status**: ✅ CRITICAL issue resolved, production fully operational
-
-3. **✅ PR #7 Analysis Complete (READY FOR MERGE)**
-   - **Task**: Complete analysis of 10 priority points and final validation
-   - **Completed**: 9/10 points finished, 1/10 analyzed (Redis cache - low priority)
-   - **Critical/High Priority**: 100% complete (Points 1-4)
-   **All Tests**: RSpec 498 ✅, Rswag 128 ✅, Rubocop 147 ✅ (29 Jan 2026)
-   - **Status**: ✅ PR #7 ready for merge into main branch
-
-4. ~~**Rails Migration Planning**~~ ✅ **COMPLETED Dec 26, 2025**
-   - **Task**: ~~Plan migration from Rails 7.1.5.1 to 7.2+~~ Migrated to Rails 8.1.1
-   - **Impact**: Brakeman EOL warning removed, security restored
-   - **Result**: Ruby 3.4.8 + Rails 8.1.1 + YJIT enabled
-   - **Documentation**: `docs/technical/changes/2025-12-26-Rails_8_1_1_Migration_Complete.md`
+### Chantiers ACTUELS (état 26/09/2026 — source canonique : `docs/BACKLOG.md`, règle anti-drift)
+- ✅ **FC-05 Rate Limiting remediation CERTIFIÉE** (PR #56 — contrat → RED mesurés (12/10/2) → GREEN → R-4 → Render vérifié · mémoire fc08::013)
+- ✅ **#19 / #21 / #24 / #25 / #26 / #27 / #28 CLOSED** (octobre 2026) : #19 P0 reachability (aucun P0, fc08::015) · #21 OAuth code mort (O-1/O-2, fc08::014) · #24 ledger (provenance 23/23 + purge O-B 23 → 1 commit, fc08::017) · #25 commandes test sur le service `test` (vérifiées par exécution) · #26 race #14 — R-1 (RED → GREEN ×2, 1133/0) · #27 Q-1 → `422 :invalid_client_company` (RED got 201 — 201 + client jeté au silence ; 1136/0) · **#28 prévention structurelle (isolation stub_const ×6 + garde fail-fast INV-D12-03 — RED ×2 → GREEN ×2, suite 1137/0 · fc08::020)**
+- 🟠 #17 Swagger export CSV · #13 divergence `name` · #16 Postman FC-08 · 🟢 #22 JWT · #15 Wave 4.5 · #8 link-rot · #9 performance · #10 monitoring
+- FC-09 ⏸️ en attente (décision CTO — valeur produit/risque, jamais sur un pourcentage)
 
 ### Medium Priority (Maintenance)
 2. **Documentation Maintenance**
@@ -668,18 +673,25 @@ curl -X POST https://foresy-api.onrender.com/api/v1/auth/login \
 
 ### Essential Testing Commands
 ```bash
+# ⚠️ Service `test` OBLIGATOIRE pour toute exécution de test — cf. fc08::014 :
+# le service `web` boote en development (RAILS_ENV=development, base foresy_development)
+# et court-circuite le guard Git Ledger (`Rails.env.test?` faux — audits #21/#24).
+
 # Complete RSpec test suite
-docker-compose run --rm web bundle exec rspec
+docker-compose --profile test run --rm test bundle exec rspec
 
 # OAuth-specific tests
-docker-compose run --rm web bundle exec rspec spec/acceptance/oauth_feature_contract_spec.rb
-docker-compose run --rm web bundle exec rspec spec/integration/oauth/oauth_callback_spec.rb
+docker-compose --profile test run --rm test bundle exec rspec spec/acceptance/oauth_feature_contract_spec.rb
+docker-compose --profile test run --rm test bundle exec rspec spec/integration/oauth/oauth_callback_spec.rb
 
 # Code quality checks
-docker-compose run --rm web bundle exec rubocop
+docker-compose --profile test run --rm test bundle exec rubocop
 
 # Security audit
-docker-compose run --rm web bundle exec brakeman
+docker-compose --profile test run --rm test bundle exec brakeman
+
+# Zeitwerk check
+docker-compose --profile test run --rm test bundle exec rails zeitwerk:check
 ```
 
 ### Required Environment Variables
@@ -782,7 +794,7 @@ docker-compose run --rm web bash
 
 **Current Status**: Excellent technical condition, production-ready
 **Main Strength**: 100% test coverage, zero code quality issues
-**Primary Concern**: Rails version EOL (migration needed)
+**Primary Concern** : défauts de production démontrés → traités par investigation + RED contractuels (FC-05 certifié 26/09 — cf. `docs/BACKLOG.md` pour les chantiers actifs)
 **Development Model**: Docker Compose mandatory, CI/CD automated
 **Documentation**: Centralized, well-organized, AI-optimized
 
@@ -790,5 +802,5 @@ docker-compose run --rm web bash
 
 ---
 
-**Last Updated**: February 12, 2026  
-**Status**: ✅ LIVE on Render, 491 tests passing (FC-07 PLATINUM), 0 Rubocop violations, CI/CD operational, CRA Domain PLATINUM Certified, DDD/RDD Migration COMPLETED
+**Last Updated**: 26 septembre 2026
+**Status**: ✅ LIVE on Render, **1166 tests passing** (FC-05 remediation certifiée PR #56 · FC-06/07/08 PLATINUM), 0 Rubocop violations, CI/CD 6/6 opérationnel, DDD/RDD Architecture pure, gouvernance CI verrouillée (#11/#12) — **source de vérité des métriques : README.md · docs/BACKLOG.md**

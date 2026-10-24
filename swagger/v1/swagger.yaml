@@ -12,7 +12,7 @@ info:
               ### Breaking Changes
               - Breaking changes nécessitent une nouvelle version majeure
               - Période de dépréciation : 12 mois (actif) + 3 mois (deprecated)
-              - Voir : [API Versioning Policy](./docs/technical/corrections/2026-02-18-RSwag_Completion_Status-Phase_1.8-API_Versioning_Policy.md)
+              - Voir : [API Versioning Policy](./docs/technical/corrections/[DONE]_2026_02_18_RSwag_Completion_Status-Phase_1.8-API_Versioning_Policy.md)
 
               ### Deprecation Headers
               Les endpoints dépréciés retournent les headers suivants :
@@ -146,6 +146,11 @@ paths:
                         type: string
                         format: email
                         description: User email address
+                      name:
+                        type: string
+                        nullable: true
+                        description: User display name, as provided by the OAuth provider
+                          (may be nil)
                       provider:
                         type: string
                         description: OAuth provider used
@@ -155,6 +160,7 @@ paths:
                     required:
                     - id
                     - email
+                    - name
                     - provider
                     - provider_uid
                 required:
@@ -835,6 +841,41 @@ paths:
           application/json:
             schema:
               "$ref": "#/components/schemas/craUpdateRequest"
+  "/api/v1/cras/{id}/export":
+    get:
+      summary: Exports a CRA as CSV
+      tags:
+      - CRAs
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer token
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        description: CRA ID (UUID)
+        schema:
+          type: string
+      - name: include_entries
+        in: query
+        required: false
+        description: Include CRA entries in the CSV ('false' to exclude)
+        schema:
+          type: string
+      responses:
+        '200':
+          description: CSV exported successfully
+        '401':
+          description: unauthorized - invalid token
+        '403':
+          description: forbidden - user is not the CRA creator
+        '404':
+          description: CRA not found
+        '409':
+          description: conflict - CRA in draft status (not exportable)
   "/api/v1/cras/{id}/lock":
     post:
       summary: Locks a CRA to prevent modifications
