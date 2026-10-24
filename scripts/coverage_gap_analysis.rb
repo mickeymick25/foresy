@@ -3,11 +3,12 @@
 
 # P6.0 — Analyse exhaustive des manques de couverture (SimpleCov)
 
-> **⚠️ Document fondateur (P6.0) — chiffres HISTORIQUES de sa date (17/09/2026) :** baseline **72.78 % lignes /
-> 44.82 % branches**. **La campagne P6 a été exécutée à la suite** (Waves 1-4, PRs #35-#41 — P6.6 CLOSED) : le
-> **réel à ce jour = 86.26 % lignes (3020/3501) / 61.03 % branches (885/1450) · 1148 exemples** (record exécuté :
-> tracker `p6_coverage_implementation_tracker.md` §10). Ce document = l'acte de provenance de la campagne —
-> à lire avec ses chiffres de l'époque.
+# ⚠️ Document fondateur (P6.0) — chiffres HISTORIQUES de sa date (17/09/2026) :
+#   baseline 72.78 % lignes / 44.82 % branches.
+# La campagne P6 a été exécutée à la suite (Waves 1-4, PRs #35-#41 — P6.6 CLOSED) :
+#   le réel à ce jour = 86.26 % lignes (3020/3501) / 61.03 % branches (885/1450) · 1148 exemples
+#   (record exécuté : tracker `p6_coverage_implementation_tracker.md` §10).
+# Ce document = l'acte de provenance de la campagne — à lire avec ses chiffres de l'époque.
 #
 # Usage (après une suite complète, service `test`, base foresy_test — leçon fc08::018 :
 #   JAMAIS sur le service `web` ; les commandes canoniques = BRIEFING §636-747 corrigées) :
@@ -35,14 +36,14 @@ cov.each do |file, data|
   next unless file.include?('/app/')
 
   lines = data['lines'].compact
-  rel = lines.count { |n| n > 0 }
+  rel = lines.count(&:positive?)
   btot = 0
   brel = 0
   (data['branches'] || {}).each_value do |arms|
     arms.each_value do |hits|
       Array(hits).each do |h|
         btot += 1
-        brel += 1 if h && h > 0
+        brel += 1 if h&.positive?
       end
     end
   end
@@ -59,11 +60,12 @@ puts "lignes: #{cov_lines}/#{tot_lines} (#{(cov_lines * 100.0 / tot_lines).round
 puts "fichiers avec écarts: #{files.count { |f| f[:unc].positive? }} / #{files.size}"
 
 puts "\n=== TOUS les fichiers avec lignes non couvertes (tri : manque décroissant) ==="
-puts format('%-4s %-6s %-6s %-6s %-11s %-10s %s', '#', 'l%', 'unc', 'tot', 'branches', 'bunc', 'fichier')
+puts '#    l%     unc    tot    branches    bunc       fichier'
 files.select { |f| f[:unc].positive? }.sort_by { |f| -f[:unc] }.each_with_index do |f, i|
   bpct = f[:btot].zero? ? 0.0 : (f[:brel] * 100.0 / f[:btot]).round(1)
-  puts format('%-4d %-6.1f %-6d %-6d %-11s %-10d %s', i + 1, f[:rel] * 100.0 / f[:tot],
-              f[:unc], f[:tot], "#{f[:brel]}/#{f[:btot]} (#{bpct}%)", f[:btot] - f[:brel], f[:path])
+  puts format('%<rank>-4d %<pct>-6.1f %<unc>-6d %<tot>-6d %<branch>-11s %<bunc>-10d %<path>s',
+              rank: i + 1, pct: f[:rel] * 100.0 / f[:tot], unc: f[:unc], tot: f[:tot],
+              branch: "#{f[:brel]}/#{f[:btot]} (#{bpct}%)", bunc: f[:btot] - f[:brel], path: f[:path])
 end
 
 puts "\n=== SCÉNARIOS DE PROGRESSION (objectif global en % lignes) ==="
@@ -78,5 +80,6 @@ sorted = files.select { |f| f[:unc].positive? }.sort_by { |f| -f[:unc] }
     gained += f[:unc]
     used << f[:path]
   end
-  puts format('cible %d%% : +%-4d lignes à couvrir ≈ %-2d fichiers (top manques)', target, need, used.size)
+  puts format('cible %<target>d%% : +%<need>-4d lignes à couvrir ≈ %<files>-2d fichiers (top manques)',
+              target: target, need: need, files: used.size)
 end
