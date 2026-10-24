@@ -1,13 +1,19 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-# P6.0 — Analyse exhaustive des manques de couverture (outil versionné)
+# P6.0 — Analyse exhaustive des manques de couverture (SimpleCov)
+
+> **⚠️ Document fondateur (P6.0) — chiffres HISTORIQUES de sa date (17/09/2026) :** baseline **72.78 % lignes /
+> 44.82 % branches**. **La campagne P6 a été exécutée à la suite** (Waves 1-4, PRs #35-#41 — P6.6 CLOSED) : le
+> **réel à ce jour = 86.26 % lignes (3020/3501) / 61.03 % branches (885/1450) · 1148 exemples** (record exécuté :
+> tracker `p6_coverage_implementation_tracker.md` §10). Ce document = l'acte de provenance de la campagne —
+> à lire avec ses chiffres de l'époque.
 #
-# Usage (après une suite complète, conteneur, base foresy_test) :
-#   docker compose exec -T web sh -c \
-#     "DATABASE_URL=postgres://postgres:password@db:5432/foresy_test \
-#      RAILS_ENV=test bundle exec rspec"
-#   docker compose exec -T web ruby scripts/coverage_gap_analysis.rb
+# Usage (après une suite complète, service `test`, base foresy_test — leçon fc08::018 :
+#   JAMAIS sur le service `web` ; les commandes canoniques = BRIEFING §636-747 corrigées) :
+#   docker compose --profile test run --rm test        # la suite complète (base foresy_test)
+#   docker compose --profile test run --rm test \
+#     ruby scripts/coverage_gap_analysis.rb            # l'analyse des gaps du .resultset.json
 #
 # Entrée : coverage/.resultset.json (généré par SimpleCov 1.3.0 —
 #   enable_coverage :branch, filtres/groupes définis dans .simplecov)

@@ -14,13 +14,13 @@
 | Phase | Contenu | Véhicule de tests | Gate | Statut |
 |---|---|---|---|---|
 | **P6.0** | Analyse exhaustive des manques (documentée) | — | Document d'analyse revu CTO | ✅ fait 17/09 — `2026-09-17-P6_Coverage_Gap_Analysis.md` |
-| **P6.1** | **Verrou anti-régression** : `minimum_coverage line: 72.5` dans `.simplecov` — **après vérification du déterminisme** (recommandation co-CTO 17/09 : baseline mesurée ×2 sur le même commit, lignes + branches ; verrou calé sur la valeur minimale observée, pas un run unique) | Non-régression | Suite 957/0 avec verrou actif ; la CI échoue sous le seuil | ⬜ |
-| **P6.2 — Wave 1** | Sécurité & erreurs critiques : `access_validation` (77 l., 0/46 branches !), error_handlers cras/cra_entries, `standardized_error` | **Intégration** (request specs 403/404/422/409) | Suite verte (957+ nouvelles) ; re-mesure documentée ; RuboCop 0 ; CI 6/6 | ⬜ |
-| **P6.3 — Wave 2** | Extraction/formatage + rate limiting + OAuth : parameter_extractors ×3, response_formatters ×2, rate_limitables ×3, `o_auth_concern`, o_auth services | **Intégration** (429, params invalides) + **unitaire** (services OAuth) | Idem + verrou relevé à la valeur re-mesurée − 0.3 | ⬜ |
-| **P6.4 — Wave 3** | Services & lib unitaires + contrôleurs + models : `CraServices::List` (filtres), `git_ledger_service`, `application_result`, `cra_errors`, models marge | **Unitaire** + intégration ledger | Idem | ⬜ |
-| **P6.5 — Wave 4** | Marges fines (~40 fichiers ≤ 10 l.) → cible finale | Mixte | Cible atteinte (90 ou 95 % — décision P6.6) | ⬜ |
-| **P6.6** | **Décision finale du seuil** + verrou branche éventuel | Non-régression | Décision CTO documentée au registre/chiffrage | ⬜ |
-| **P6.7** | Clôture : registre/guide/README métriques finales, réindexation hub | — | Hub vérifié par requête | ⬜ |
+| **P6.1** | **Verrou anti-régression** : `minimum_coverage line: 72.5` dans `.simplecov` — **après vérification du déterminisme** (recommandation co-CTO 17/09 : baseline mesurée ×2 sur le même commit, lignes + branches ; verrou calé sur la valeur minimale observée, pas un run unique) | Non-régression | Suite 957/0 avec verrou actif ; la CI échoue sous le seuil | ✅ **EXÉCUTÉ — verrou armé 72,0 au W1 (17-19/09), restauré 72,5 au W2 (20/09, GO CTO — marge +5,33 pts) — VIVANT à ce jour (` .simplecov` L94) · branches NON verrouillées (décision P6.6) |
+| **P6.2 — Wave 1** | Sécurité & erreurs critiques : `access_validation` (77 l., 0/46 branches !), error_handlers cras/cra_entries, `standardized_error` | **Intégration** (request specs 403/404/422/409) | Suite verte (957+ nouvelles) ; re-mesure documentée ; RuboCop 0 ; CI 6/6 | ✅ **EXÉCUTÉ (PR #35, 19/09 — `2e32ddfe`, run 35447455513 6/6 verts)** — 73,21 → **76,49 lignes / 47,60 branches** · les 2 bugs d'autorisation découverts et corrigés (le soft-delete qui ne se propageait pas — RED → GREEN) |
+| **P6.3 — Wave 2** | Extraction/formatage + rate limiting + OAuth : parameter_extractors ×3, response_formatters ×2, rate_limitables ×3, `o_auth_concern`, o_auth services | **Intégration** (429, params invalides) + **unitaire** (services OAuth) | Idem + verrou relevé à la valeur re-mesurée − 0.3 | ✅ **EXÉCUTÉ (PRs #36/#37/#38, 20/09)** — 10 latents supprimés · `OAuthCodeExchangeService` caractérisé (0 → 69,44 % lignes) · 7 specs requête end-to-end · **verrou restauré 72,5** · 77,18 → **77,83 lignes / 48,42 branches** (994/0) |
+| **P6.4 — Wave 3** | Services & lib unitaires + contrôleurs + models : `CraServices::List` (filtres), `git_ledger_service`, `application_result`, `cra_errors`, models marge | **Unitaire** + intégration ledger | Idem | ✅ **EXÉCUTÉ (campagne P6, PRs #39-#41 — fc08::010-012)** — trajectoire : 77,83 → **86,22/60,80** (close-out #21, 26/09) |
+| **P6.5 — Wave 4** | Marges fines (~40 fichiers ≤ 10 l.) → cible finale | Mixte | Cible atteinte (90 ou 95 % — décision P6.6) | ✅ **EXÉCUTÉ (PRs #39-#41 — P6.6 CLOSED)** — 86,22 → **86,26 lignes / 61,03 branches** (le verrou 72,5 franchi à chaque run) — la cible 90 % **non requise** (arbitrage CTO 21/09) |
+| **P6.6** | **Décision finale du seuil** + verrou branche éventuel | Non-régression | Décision CTO documentée au registre/chiffrage | ✅ **CLOSED (21/09)** — 90 % **non requis** · le verrou branches = différé (61 % actuel — un chantier séparé le jour où l'arbitrage le retient) |
+| **P6.7** | Clôture : registre/guide/README métriques finales, réindexation hub | — | Hub vérifié par requête | ✅ **EXÉCUTÉ au fil de la campagne** — les métriques README/BRIEFING harmonisées (23-24/10 : 1148/0 · 86,26/61,03 · RuboCop 249/0 · RSwag 437 · audit 36/36) · hub réindexé à chaque état substantiel (knowledge 2512 chunks, memories 22) |
 
 ## 2. Périmètre par typologie de tests (exigence CTO)
 
@@ -74,6 +74,32 @@
 - Typologie : intégration-request = véhicule principal (~430 l., waves 1-2) ; unitaire services/lib/models ~230 l. (wave 3) ; E2E shell invisible pour SimpleCov (y compris après D-12)
 - Chiffrage 95 % : ≈ 14-18 h effectives, 4 waves, PR par wave
 - Documents : analyse (`changes/2026-09-17-P6_Coverage_Gap_Analysis.md`) + présent plan — **en attente GO CTO avant P6.1**
+
+## 10. EXECUTION RECORD — absorption annotée (2026-10-24, arbitrage CTO O-2)
+
+> Le plan a été **exécuté intégralement à la suite du GO** (les Waves 1-4 + P6.6 CLOSED — PRs #35-#41 : traçabilité
+> fc08::010-012) — **sans que le présent tracker et son analyse n'aient été mergés** (restés sur cette branche).
+> Ce record = la réconciliation, rédigée à date de l'absorption annotée (arbitrage CTO #2 : O-2).
+
+| Phase | Statut réel | Véhicule (PRs) | Trajectoire de couverture (lignes/branches) |
+|---|---|---|---|
+| P6.0 — analyse | ✅ 17/09 | ce document + l'analyse | baseline **72,78/44,82** (2879/3956 · 744/1660) — 1077 lignes de mancques |
+| P6.1 — verrou | ✅ 17-20/09 | W1 PR #35 → W2 PRs #36-#38 | armé **72,0** (transitoire, marge +0,34 sur corpus CI) puis **72,5 restauré** (GO CTO 20/09, marge +5,33) — **vivant à ce jour** (` .simplecov` L94 — l'`at_exit` de plein-suite only) |
+| P6.2 — Wave 1 | ✅ 19/09 | **PR #35** (`2e32ddfe`, run 35447455513 — 6/6 verts) | 73,21 → **76,49/47,60** · **2 bugs d'autorisation découverts et corrigés** (le soft-delete qui ne se propageait pas : RED → GREEN, arbitrage CTO — leçon : la couverture explore les branches jamais traversées) |
+| P6.3 — Wave 2 | ✅ 20/09 | **PRs #36/#37/#38** (`025b90b2`/`f764c3e2`/`bf2a8512`) | 10 latents supprimés · `OAuthCodeExchangeService` 0 → 69,44 %(le verrou restauré 72,5) · 77,18 → **77,83/48,42** (994/0) |
+| P6.4/P6.5 — Waves 3-4 | ✅ au fil de la campagne | **PRs #39-#41** (fc08::010-012 — P6.6 CLOSED 21/09) | 77,83 → **86,22/60,80** (close-out #21, 26/09) → les campagnes suivantes : 86,24/60,88 (R-1 race) · 86,30/61,16 (Q-1) → **86,26/61,03 aujourd'hui** (1148/0 : les exemples + le contrat export #17) |
+| P6.6 — décision | ✅ 21/09 | arbitrage CTO | 90 % **non requis** · le verou branches = **différé** (61 % actuel — un chantier séparé si/ou quand l'arbitrage le retient) |
+| P6.7 — clôture | ✅ au fil | les updates README/BRIEFING/hub | les métriques harmonisées (23-24/10 : **1148/0 · 86,26/61,03 · RuboCop 249/0 · RSwag 437 · audit 36/36**) · hub (knowledge **2512 chunks** · memories **22**) |
+
+**Divergences plan ↔ exécution (consignées, sans réécriture d'historique)** :
+1. les statuts ⬜ de la table §1 = conservés comme l'état de planification ET annotés ✅ in situ (les edits de la présente
+   absorption) — l'historique = la trajectoire de campagne ci-dessus ;
+2. le chiffrage initial (95 % cible ≈ 14-18 h) = **périodisé en campagne étendue** (les Waves + P6.6 CLOSED + les campagnes
+   associées #21/#26/#27/#22/#29) — le 90 % **non requis** a été tranché au lieu du 95 % (décision CTO 21/09) ;
+3. le verrou branches (44,82 → 61,03 %) = **toujours non verrouillé** — le chiffrage/fait au jour où l'arbitrage le retient
+   (un chantier séparé : le déterminisme ×2 pré/post requis — le mécanisme P6.1-bis éprouvé) ;
+4. l'outil `scripts/coverage_gap_analysis.rb` = versionné ici (P1 reproductibilité co-CTO) — usage corrigé au service
+   `test` (leçon fc08::018 : jamais `web`) — prêt pour la **Wave 4.5 (#15)** et le chantier branches.
 
 ## 8. Références
 
