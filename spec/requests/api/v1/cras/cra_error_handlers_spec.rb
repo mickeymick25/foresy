@@ -150,7 +150,7 @@ RSpec.describe 'CRA — couches d erreur et de dispatch', type: :request do
 
       get '/api/v1/cras', headers: { 'Authorization' => bearer_token }
 
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
       data = JSON.parse(response.body)
       expect(data['message']).to eq('invalid_payload')
     end

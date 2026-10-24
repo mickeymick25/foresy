@@ -95,7 +95,7 @@ RSpec.describe 'SetupController gate behavior', type: :request do
       post '/__test_support__/e2e/setup', params: { user: { email: 'x@example.com', password: 'pw' } }
       expect(response).to have_http_status(:not_found)
       expect(response).not_to have_http_status(:internal_server_error)
-      expect(response).not_to have_http_status(:unprocessable_entity)
+      expect(response).not_to have_http_status(:unprocessable_content)
       expect(response).not_to be_successful
     end
   end

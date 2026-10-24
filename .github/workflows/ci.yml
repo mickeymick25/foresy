@@ -16,7 +16,7 @@ jobs:
   # ═══════════════════════════════════════════════════════════════
   tests:
     name: 🧪 Tests & Coverage
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
 
     services:
@@ -143,7 +143,7 @@ jobs:
   # ═══════════════════════════════════════════════════════════════
   security:
     name: 🔒 Security Audit
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     needs: tests
 
@@ -179,7 +179,7 @@ jobs:
   # ═══════════════════════════════════════════════════════════════
   lint:
     name: 🎨 Code Quality
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     needs: tests
 
@@ -216,7 +216,7 @@ jobs:
   # ═══════════════════════════════════════════════════════════════
   contracts:
     name: 📖 API Contracts
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     needs: tests
 
@@ -310,7 +310,7 @@ jobs:
   # ═══════════════════════════════════════════════════════════════
   e2e:
     name: 🧪 End-to-End Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     needs: [tests, contracts]
     if: github.event_name == 'pull_request'
@@ -457,7 +457,7 @@ jobs:
   # ═══════════════════════════════════════════════════════════════
   quality-gate:
     name: 🚀 Quality Gate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     needs: [tests, security, lint, contracts, e2e]
     if: always()

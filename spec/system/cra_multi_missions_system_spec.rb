@@ -75,7 +75,7 @@ RSpec.describe 'System API — CRA multi-missions (pivots)', type: :request do
 
       post_entry(unknown_mission_id, 60_000)
 
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
       # Compensation : l'entry et son lien CRA ont été créés puis détruits
       expect(CraEntry.count).to eq(entries_before)
       expect(CraEntryCra.where(cra_id: cra.id).count).to eq(cra_links_before)
