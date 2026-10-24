@@ -1,0 +1,85 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# P6.0 — Analyse exhaustive des manques de couverture (SimpleCov)
+
+# ⚠️ Document fondateur (P6.0) — chiffres HISTORIQUES de sa date (17/09/2026) :
+#   baseline 72.78 % lignes / 44.82 % branches.
+# La campagne P6 a été exécutée à la suite (Waves 1-4, PRs #35-#41 — P6.6 CLOSED) :
+#   le réel à ce jour = 86.26 % lignes (3020/3501) / 61.03 % branches (885/1450) · 1148 exemples
+#   (record exécuté : tracker `p6_coverage_implementation_tracker.md` §10).
+# Ce document = l'acte de provenance de la campagne — à lire avec ses chiffres de l'époque.
+#
+# Usage (après une suite complète, service `test`, base foresy_test — leçon fc08::018 :
+#   JAMAIS sur le service `web` ; les commandes canoniques = BRIEFING §636-747 corrigées) :
+#   docker compose --profile test run --rm test        # la suite complète (base foresy_test)
+#   docker compose --profile test run --rm test \
+#     ruby scripts/coverage_gap_analysis.rb            # l'analyse des gaps du .resultset.json
+#
+# Entrée : coverage/.resultset.json (généré par SimpleCov 1.3.0 —
+#   enable_coverage :branch, filtres/groupes définis dans .simplecov)
+# Sortie : synthèse, tous les fichiers avec lignes non couvertes (tri : manque
+#   décroissant), scénarios de progression 80/85/90/95 %
+# Référence : docs/technical/changes/2026-09-17-P6_Coverage_Gap_Analysis.md
+#
+# Le périmètre est celui des filtres .simplecov (code applicatif app/ uniquement ;
+# spec/, config/, db/, bin/, vendor/, node_modules/, __test_support__/ exclus).
+# Les E2E shell n'y contribuent pas (process serveur ≠ process RSpec).
+
+require 'json'
+
+rs = JSON.parse(File.read('coverage/.resultset.json'))
+cov = rs.values.first['coverage']
+
+files = []
+cov.each do |file, data|
+  next unless file.include?('/app/')
+
+  lines = data['lines'].compact
+  rel = lines.count(&:positive?)
+  btot = 0
+  brel = 0
+  (data['branches'] || {}).each_value do |arms|
+    arms.each_value do |hits|
+      Array(hits).each do |h|
+        btot += 1
+        brel += 1 if h&.positive?
+      end
+    end
+  end
+  files << { path: file.sub('/app/', ''), rel: rel, tot: lines.size, unc: lines.size - rel,
+             brel: brel, btot: btot }
+end
+
+tot_lines = files.sum { |f| f[:tot] }
+cov_lines = files.sum { |f| f[:rel] }
+tot_unc = tot_lines - cov_lines
+
+puts '=== SYNTHÈSE ==='
+puts "lignes: #{cov_lines}/#{tot_lines} (#{(cov_lines * 100.0 / tot_lines).round(2)}%) — non couvertes: #{tot_unc}"
+puts "fichiers avec écarts: #{files.count { |f| f[:unc].positive? }} / #{files.size}"
+
+puts "\n=== TOUS les fichiers avec lignes non couvertes (tri : manque décroissant) ==="
+puts '#    l%     unc    tot    branches    bunc       fichier'
+files.select { |f| f[:unc].positive? }.sort_by { |f| -f[:unc] }.each_with_index do |f, i|
+  bpct = f[:btot].zero? ? 0.0 : (f[:brel] * 100.0 / f[:btot]).round(1)
+  puts format('%<rank>-4d %<pct>-6.1f %<unc>-6d %<tot>-6d %<branch>-11s %<bunc>-10d %<path>s',
+              rank: i + 1, pct: f[:rel] * 100.0 / f[:tot], unc: f[:unc], tot: f[:tot],
+              branch: "#{f[:brel]}/#{f[:btot]} (#{bpct}%)", bunc: f[:btot] - f[:brel], path: f[:path])
+end
+
+puts "\n=== SCÉNARIOS DE PROGRESSION (objectif global en % lignes) ==="
+sorted = files.select { |f| f[:unc].positive? }.sort_by { |f| -f[:unc] }
+[80, 85, 90, 95].each do |target|
+  need = (tot_lines * target / 100.0).round - cov_lines
+  gained = 0
+  used = []
+  sorted.each do |f|
+    break if gained >= need
+
+    gained += f[:unc]
+    used << f[:path]
+  end
+  puts format('cible %<target>d%% : +%<need>-4d lignes à couvrir ≈ %<files>-2d fichiers (top manques)',
+              target: target, need: need, files: used.size)
+end
