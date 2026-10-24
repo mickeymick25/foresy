@@ -26,10 +26,9 @@ l'index de progression. Le fichier est délimité par une entrée atomique : tou
 | fc08::021 | **#22 hardening JWT** — clé dédiée `JWT_SECRET` consommée + fail-fast prod (boot : absent OU vide) + `HS256` explicite | ✅ **CERTIFIÉ + BASCULÉ (23/10)** — contrat 6/0 ×2 · suite **1143/0** · RuboCop 248/0 · Brakeman 0 · Zeitwerk OK · audit 0 · 86,26/61,03 · verrou franchi · **bascule Render : merge `4d2985c1` (PR #77, CI 6/6) · `/health` 200 ×3 · sondes S-1 200 / S-2 200 / S-3 401 ×2 / S-4 200 / S-5 401** — re-login généré (tokens pré-bascule invalides), pas de rollback ; 1er S-5 500 = artifact de sonne d'agent (body malformé), re-sonde 401 — produit sain | audit `[DONE]_2026_10_23_22_jwt_hardening_investigation.md` (T1-T7) · runbook `[DONE]_2026_10_23_22_render_jwt_cutover_runbook.md` · fc08::021 |
 | suivi_impl::001 | **#28 — prévention structurelle ledger** : isolation stub_const ×6 (les overlays singleton inerts) + garde INV-D12-03 fail-fast (avant tout Git-call) + W3-D2 aligné | ✅ **CERTIFIÉE (2026-10-03)** — RED ×2 → GREEN ×2 · batch ledger 72/0 · suite 1137/0 · ledger réel inchangé (1 commit) · purge #24 non touchée | cadrage `[DONE]_2026_10_03_28_ledger_prevention_cadrage.md` (§6 journal) · fc08::020 proposée |
 
-**Métriques de référence (2026-10-23, post mini-PR "8e65a52f")** : suite **1148/0** · couverture **86,26 % lignes / 61,03 % branches**
-· RuboCop **249 files / 0** · RSwag **437 (mesuré) · audit 36/36** · Brakeman 0 · Zeitwerk OK · bundle audit 0 vulnérabilité ·
-verrou 72,5 · CI 6/6 · production : **bascule #22 effective (merge "4d2985c1" — PR #77) + mini-PR mergée ("8e65a52f")** —
-`main` = `origin/main` — hub : knowledge **2500 chunks** · mémoires **22**.
+**Métriques de référence (2026-10-24, post PR #79 `48a354ba` — crass 1.0.8 (GHSA-pq4g-8rxf-4g29) en prod)** : suite **1148/0** · couverture **86,26 % lignes / 61,03 % branches**
+· RuboCop **249 files / 0** · RSwag **437 (mesuré) · audit 36/36** · Brakeman 0 · Zeitwerk OK · bundle audit 0 vulnérabilité (DB 1269, commit `03da937a9e17`) ·
+verrou 72,5 · CI 6/6 · production : **vérifiée post-merge** (`/health` 200 · `/up` 200 — 24/10) · hub : knowledge **2500 chunks** · mémoires **22**.
 
 **Ouvert / en attente** :
 - **fc08::021** (#22) — ✅ VALIDÉE (CTO 23/10) + **ENREGISTRÉE** (vérifiée Chroma 2026-10-23 : top-hit récupéré +
@@ -49,7 +48,13 @@ verrou 72,5 · CI 6/6 · production : **bascule #22 effective (merge "4d2985c1" 
   délimiter) · #7-#10 (distinguer besoins démontrés vs non-mesurés) · **FC-09** : décision à partir de
   "docs/ROADMAP.md" + valeur métier, jamais un pourcentage · hygiènes/options : passe cosmétique documentaire +
   mini-audit #18 ;
+- **#29 — passe « zéro-warnings »** (mandat CTO 24/10) — **T1 cadrage LIVRÉ** (`docs/technical/changes/2026_10_24_zero_warnings_cadrage.md` :
+  R-1 35 usages/16 specs + 60 app/config à qualifier · R-2 .simplecov (verrou P6.1 = contrainte) · R-3 runners ×6 → ubuntu-24.04 ·
+  R-4 variant_processor · R-5 dotenv hors périmètre) — **T2 = arbitrage option (O-1 complet / O-2 mécanique / O-0) EN ATTENTE** ;
+- **#2 — absorption chore/p6-coverage-plan** : **investigation de reprise exécutée (24/10)** : 3 fichiers absents de main (cat-file ×3),
+  travail P6 = 100 % absorbé (PRs #34-#41) — **options d'absorption documentaire qualifiées (O-1 brute / O-2 annotée / O-3 script seul)** —
+  arbitrage CTO en attente ;
 - **#22-bis** — claim standard `exp` des refresh tokens (dette C-0 tracée à #22) — **chantier indépendant** ;
 - corrections cosmétiques documentaires (titres/en-têtes d'audits — la présente passe) ;
-- backlog transverse historique (#1-#10, #15, #16) + `chore/p6-coverage-plan` (arbitrage P1/hygiène) —
-  **#22 sorti; #13/#17 sorti (livrés — mini-PR "8e65a52f", 23/10)**.
+- backlog transverse historique (#1, #3, #4, #5, #6, #7-#10, #15, #16, #18) —
+  **#22 sorti ; #13/#17 sortis (livrés — mini-PR "8e65a52f", 23/10)**.
