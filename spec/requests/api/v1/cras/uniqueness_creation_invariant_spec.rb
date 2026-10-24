@@ -55,7 +55,7 @@ RSpec.describe 'BACKLOG #14 — invariant unicité créateur+mois+année à la c
     post_cra
 
     # L'invariant attendu : la création d'un doublon est refusée
-    expect(response).to have_http_status(:unprocessable_entity).or have_http_status(:conflict)
+    expect(response).to have_http_status(:unprocessable_content).or have_http_status(:conflict)
 
     # Et rien ne persiste : un seul CRA pour ce créateur sur cette période
     expect(cras_of_creator_same_period.count).to eq(1)

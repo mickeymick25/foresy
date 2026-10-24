@@ -37,7 +37,7 @@ RSpec.describe 'POST /api/v1/missions — client_company_id inconnu (contrat #27
          as: :json,
          headers: { 'Authorization' => "Bearer #{token}" }
 
-    expect(response).to have_http_status(:unprocessable_entity)
+    expect(response).to have_http_status(:unprocessable_content)
     body = JSON.parse(response.body)
     expect(body['code']).to eq('UNPROCESSABLE_ENTITY')
     expect(body['message']).to match(/client/i)

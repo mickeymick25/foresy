@@ -95,7 +95,7 @@ RSpec.describe 'CRA Entries - Update', type: :request do
         end
 
         run_test! do |response|
-          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response).to have_http_status(:unprocessable_content)
         end
       end
     end

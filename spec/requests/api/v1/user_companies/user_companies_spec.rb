@@ -102,7 +102,7 @@ RSpec.describe 'API V1 UserCompanies', type: :request do
         schema '$ref' => '#/components/schemas/ErrorStandardized'
 
         run_test! do |response|
-          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response).to have_http_status(:unprocessable_content)
           expect(UserCompany.for_user(user).for_company(company).count).to eq(1)
         end
       end
@@ -115,7 +115,7 @@ RSpec.describe 'API V1 UserCompanies', type: :request do
         schema '$ref' => '#/components/schemas/ErrorStandardized'
 
         run_test! do |response|
-          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response).to have_http_status(:unprocessable_content)
         end
       end
 
