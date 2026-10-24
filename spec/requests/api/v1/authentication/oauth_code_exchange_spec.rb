@@ -123,7 +123,7 @@ RSpec.describe 'API V1 OAuth code-exchange', type: :request do
     it 'retourne 422 INVALID_PAYLOAD quand le code est absent' do
       post_callback('google_oauth2', redirect_uri: 'https://client.app/callback')
 
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
       data = JSON.parse(response.body)
       expect(data['code']).to eq('INVALID_PAYLOAD')
       expect(data['message']).to eq('Invalid OAuth payload')
@@ -132,7 +132,7 @@ RSpec.describe 'API V1 OAuth code-exchange', type: :request do
     it 'retourne 422 INVALID_PAYLOAD quand le redirect_uri est absent' do
       post_callback('google_oauth2', code: 'auth-code')
 
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
       data = JSON.parse(response.body)
       expect(data['code']).to eq('INVALID_PAYLOAD')
       expect(data['message']).to eq('Invalid OAuth payload')
@@ -147,7 +147,7 @@ RSpec.describe 'API V1 OAuth code-exchange', type: :request do
       post_callback('google_oauth2', code: 'google-code',
                                      redirect_uri: 'https://client.app/callback')
 
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
       data = JSON.parse(response.body)
       expect(data['code']).to eq('INVALID_PAYLOAD')
       expect(data['message']).to eq('Invalid OAuth payload')
