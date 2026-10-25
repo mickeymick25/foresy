@@ -82,6 +82,7 @@
 - **Preuve de comportement** : baseline reconstituée (contenu HEAD + conversion isolée du blocquote) → sortie **byte-identique** avant/après (diff vide, 61 lignes) — la conversion seule ne modifie pas l'exécution.
 - **Certification** : `ruby -c` OK · RuboCop **250 files / 0 offenses** · Brakeman **0 erreur / 0 warning** · Bundle Audit **0 vulnérabilité** · **CI 6/6 sur `aedd70e4`** (run 40121939127) · merge **PR #82** = **`97d85eec`** (24/10 19:03Z, Create a merge commit, opérateur mickeymick25) · **CI main** : run 40123521100 — 5 jobs `success` + E2E `skipped` (non applicable au push main).
 - **Leçon** : tout script Ruby versionné est automatiquement dans le périmètre RuboCop/Brakeman — exécuter le contrôle local (parsing + lint + brakeman) dès le versionnage, avant le push ; un fichier jamais passé en CI doit être introduit avec sa première CI.
+- **Hub (24-25/10)** : réindexation post-absorption — knowledge 2512 → **2540 chunks** (nouveaux : le tracker P6 + l'analyse P6.0 ; diff nouveaux=2, modifiés=0 — zéro doublon) · memories 22 → **23** (`fc08::022` — leçon scripts versionnés ; intention initiale fc08::019 renumérotée : ID déjà occupé #27 Q-1 + catégorie indexeur manquante, PRs #84/#85) · vérifié Chroma (top-hit §7 à d=0,20).
 
 ## 10. EXECUTION RECORD — absorption annotée (2026-10-24, arbitrage CTO O-2)
 
