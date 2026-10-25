@@ -41,6 +41,7 @@ Foresy/
     │   ├── 05_...Rate_Limiting  # Rate limiting
     │   └── 06_...Missions       # ✅ Mission management (TERMINÉ)
     └── technical/               # Documentation technique centralisée
+        ├── p6_coverage_implementation_tracker.md  # 📋 Plan & suivi P6 couverture (§7 : incident-CI 24/10 archivé)
         ├── guides/              # 📖 Guides d'intégration
         │   ├── 2025_12_24_oauth_flow_documentation.md      # 🔐 Guide complet OAuth
         │   └── 2025_12_24_token_revocation_strategy.md     # 🔒 Stratégie de revocation des tokens
@@ -50,6 +51,7 @@ Foresy/
         │   ├── [DONE]_2025_12_19_omniauth_oauth_configuration_solution.md
         │   └── [Obsolete]_2025_12_19_csrf_security_analysis_same_site_none.md
         ├── changes/             # Journal chronologique des modifications
+        │   ├── 2026-09-17-P6_Coverage_Gap_Analysis.md  # 📊 Analyse P6.0 — manques de couverture (exhaustive par typologie)
         │   ├── [DONE]_2025_12_31_FC06_Missions_Implementation.md  # ✅ FC-06 Missions
         │   ├── [DONE]_2025_12_26_Rails_8_1_1_Migration_Complete.md
         │   ├── [DONE]_2025_12_19_Security_CI_Complete_Fix.md
