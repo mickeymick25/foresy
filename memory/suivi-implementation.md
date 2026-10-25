@@ -3,11 +3,11 @@
 # Suivi d'avancement de l'implémentation
 
 <!-- created: 2026-10-03 -->
-<!-- updated: 2026-10-23 -->
+<!-- updated: 2026-10-25 -->
 
 ## suivi_impl::001
 <!-- created: 2026-10-03 -->
-<!-- updated: 2026-10-23 -->
+<!-- updated: 2026-10-25 -->
 Suivi d'avancement consolidé de l'implémentation — **fichier vivant**, mis à jour à chaque état substantiel
 (règle anti-drift). Les entrées `fc08::NNN` de la source principale restent la vérité ; cette table est
 l'index de progression. Le fichier est délimité par une entrée atomique : toute mise à jour se fait
@@ -24,12 +24,13 @@ l'index de progression. Le fichier est délimité par une entrée atomique : tou
 | fc08::017 | #24 ledger — qualification + purge O-B (23 → 1 commit, mécanisme supporté) | ✅ CERTIFIÉ (2026-10-03, merge `a557ad2e`) | audit `[DONE]_2026_09_28_24_ledger_provenance_investigation.md` §5.1 |
 | fc08::018/019 | #25 commandes BRIEFING (vérifiées par exécution) + #27 Q-1 (422 :invalid_client_company) | ✅ CLOSED + leçons validées (merge `1ce7c5b3`) | analyses `[DONE]_2026_10_03_25_briefing_commands_analysis.md` / `[DONE]_2026_10_03_27_ux_error_mapping_analysis.md` |
 | fc08::021 | **#22 hardening JWT** — clé dédiée `JWT_SECRET` consommée + fail-fast prod (boot : absent OU vide) + `HS256` explicite | ✅ **CERTIFIÉ + BASCULÉ (23/10)** — contrat 6/0 ×2 · suite **1143/0** · RuboCop 248/0 · Brakeman 0 · Zeitwerk OK · audit 0 · 86,26/61,03 · verrou franchi · **bascule Render : merge `4d2985c1` (PR #77, CI 6/6) · `/health` 200 ×3 · sondes S-1 200 / S-2 200 / S-3 401 ×2 / S-4 200 / S-5 401** — re-login généré (tokens pré-bascule invalides), pas de rollback ; 1er S-5 500 = artifact de sonne d'agent (body malformé), re-sonde 401 — produit sain | audit `[DONE]_2026_10_23_22_jwt_hardening_investigation.md` (T1-T7) · runbook `[DONE]_2026_10_23_22_render_jwt_cutover_runbook.md` · fc08::021 |
+| fc08::022 | **incident-CI 24/10** — scripts Ruby versionnés = périmètre Quality Gates applicables au dépôt (Brakeman exit 7 + RuboCop 26 offenses F sur un parse error du script) | ✅ **VALIDÉE (CTO 24/10) + ENREGISTRÉE** (vérifié Chroma 25/10 : `fc08_022.md::fc08::022` top-1 à d=0,28, contenu = fichier versionné) — fix `aedd70e4` (CI 6/6, run 40121939127) · archivé tracker P6 §7 (PR #83, `4928d00`) · renumérotation fc08::019→022 (collision #27 + catégorie indexeur — PRs #84/#85, `81726806`) | tracker P6 §7 (L78+) · `memory/fc08_022.md` |
 | suivi_impl::001 | **#28 — prévention structurelle ledger** : isolation stub_const ×6 (les overlays singleton inerts) + garde INV-D12-03 fail-fast (avant tout Git-call) + W3-D2 aligné | ✅ **CERTIFIÉE (2026-10-03)** — RED ×2 → GREEN ×2 · batch ledger 72/0 · suite 1137/0 · ledger réel inchangé (1 commit) · purge #24 non touchée | cadrage `[DONE]_2026_10_03_28_ledger_prevention_cadrage.md` (§6 journal) · fc08::020 proposée |
 
 **Métriques de référence (2026-10-24, post zéro-warnings merge `679ea3ad` — crass 1.0.8 + les configs zéro-warnings en prod)** : suite **1148/0** · couverture **86,26 % lignes / 61,03 % branches**
 · RuboCop **249 files / 0** · RSwag **437 (mesuré) · audit 36/36** · Brakeman 0 · Zeitzeitwerk OK · bundle audit 0 vulnérabilité (DB 1269, commit `03da937a9e17`) ·
 verrou 72,5 (intact) · CI 6/6 · production **vérifiée post-merge** (`/health` 200 ×5 après les 000 ×3 du build — le pic d'indisponibilité free tier est documenté) ·
-hub : knowledge **2510+ chunks** · mémoires **22**.
+hub : knowledge **2544 chunks** · mémoires **23** (25/10 — les réindexations post-absorption, bullet Hub au tracker P6 §7).
 
 **Ouvert / en attente** :
 - **fc08::021** (#22) — ✅ VALIDÉE (CTO 23/10) + **ENREGISTRÉE** (vérifiée Chroma 2026-10-23 : top-hit récupéré +
@@ -50,9 +51,7 @@ hub : knowledge **2510+ chunks** · mémoires **22**.
   "docs/ROADMAP.md" + valeur métier, jamais un pourcentage · hygiènes/options : passe cosmétique documentaire +
   mini-audit #18 ;
 - **#29 — passe « zéro-warnings » (O-2) — ✅ CLOSED (24/10)** : les 20 renames + les runners ubuntu-24.04 + le variant_processor — le merge `679ea3ad`, le health 200 ×5 ; **R-2 SimpleCov différé = un chantier séparé** (le verrou P6.1 intact — le déterminisme ×2 sera exigé avant/après si l'arbitrage retient le chantier) ;
-- **#2 — absorption chore/p6-coverage-plan** : **investigation de reprise exécutée (24/10)** : 3 fichiers absents de main (cat-file ×3),
-  travail P6 = 100 % absorbé (PRs #34-#41) — **options d'absorption documentaire qualifiées (O-1 brute / O-2 annotée / O-3 script seul)** —
-  arbitrage CTO en attente ;
+- **#2 — absorption chore/p6-coverage-plan** : ✅ **CLOSED (24-25/10)** — arbitrage **O-2** rendu ; absorption mergée PR #82 (`97d85eec`) · incident-CI corrigé `aedd70e4` (CI 6/6, run 40121939127) et archivé (tracker P6 §7 — PR #83, `4928d00`) · mémoire fc08::022 (PR #85, `81726806`) · réconciliation docs (#86, `4b3781fb`) · réconcils trackers 20/09 en cours (la présente passe) — détail : BACKLOG #2 + tracker P6 §7 ;
 - **#22-bis** — claim standard `exp` des refresh tokens (dette C-0 tracée à #22) — **chantier indépendant** ;
 - corrections cosmétiques documentaires (titres/en-têtes d'audits — la présente passe) ;
 - backlog transverse historique (#1, #3, #4, #5, #6, #7-#10, #15, #16, #18) —

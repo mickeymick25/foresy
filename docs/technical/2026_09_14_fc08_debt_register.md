@@ -1,9 +1,9 @@
 # FC-08 — État de la Dette (Registre)
 
-**Date de mise à jour :** 14 septembre 2026
+**Date de mise à jour :** 25 octobre 2026 (passe de réconciliation trackers — précédente : 14 septembre 2026)
 **Contrat :** FC-08 v3.2.3
 **Autorité :** `docs/FeatureContract/08_Feature Contract — Entreprise Indépendant_[3.2.3]`
-**Statut :** 🟢 FC-08 mergée (PR #24, v0.1.1) · dette D-1→D-11 vérifiée le 16/09 · correctifs post-vérification **MERGÉS** (PR #25, GREEN FOR MERGE)
+**Statut :** 🟢 FC-08 mergée (PR #24, v0.1.1) · dette D-1→D-11 vérifiée le 16/09 · correctifs post-vérification **MERGÉS** (PR #25, GREEN FOR MERGE) · **au 25/10 : les dettes bloquantes et structurelles (D-2→D-12) sont fermées ; restent explicitement OUVERTES, faibles et non bloquantes : D-1, D-6, D-7**
 
 ---
 
@@ -44,9 +44,9 @@ Migration : `db/migrate/20260914000001_fc08_company_user_company_contract.rb` �
 |---|---|---|---|---|
 | D-1 | INV-01/02 par inspection | `Company` sans `user_id` / `User` sans `company_id` vérifiés par inspection du schéma (P1.2), pas par spec automatisée — à épingler par un test d'architecture si souhaité | 🟢 Faible | FC-08 |
 | D-2 | Couverture de lignes (SimpleCov) | **✅ Résolue le 16/09** (PR #29) : décisions actées (D-2.1 baseline sans échec, D-2.2 Cobertura oui, D-2.3 sprint maintenant) ; implémentation `simplecov` 1.3.0 + `simplecov-cobertura` 4.0.0, boot dédié (`.rspec` charge l'app au boot — `spec/coverage_boot.rb`), **baseline mesurée : 72.78 % lignes / 44.82 % branches** (Models 84.8 %, Services 80.5 %, Controllers 61.2 % — détail : `docs/technical/testing/2026_09_16_line_coverage.md`) ; seuil 95 % à statuer post-mesure (P6) | ✅ Résolue | Transverse |
-| D-3 | ~~P10.1 — Pull Request~~ | ~~Ouvrir la PR `feature/fc-08-companies` → main~~ **MERGÉE le 15/09/2026** (PR #24) — restent les conditions post-merge CTO : tag version, déploiement staging E2E, monitoring prod 24-48h | ✅ Résolue | FC-08 |
+| D-3 | ~~P10.1 — Pull Request~~ | ~~Ouvrir la PR `feature/fc-08-companies` → main~~ **MERGÉE le 15/09/2026** (PR #24) — conditions post-merge CTO **exécutées** : tag `v0.1.1` posé (git tag — preuve, cf. mémoire fc08::006) · les bascules/sondes Render en démonstration continue (octobre : S-1..S-5, fc08::021) | ✅ Résolue (conditions exécutées) | FC-08 |
 | D-4 | Scripts E2E hérités | **RÉSOLUE 15/09** (branche `chore/d4-e2e-scripts-repair`) : `e2e_cra_lifecycle.sh` réparé — pattern `run_request`/`HTTP_CODE` (codes > 255 tronqués : 422→166, 500→244, 409→153), `"month": 09` JSON invalide → `%-m`, comparaisons décimales flottantes (awk), code mort nettoyé ; `e2e_auth_flow.sh` vérifié conforme en l'état. Rejeux : PASSED ×2 ; **vérif. 16/09** : rejeux indépendants ×2 PASSED chacun ; **MERGÉE via PR #25 le 16/09** (GREEN FOR MERGE, merge commit `8d6c9918`) — commentaire L23-24 corrigé (`4caa50ec`) | ✅ Résolue (mergée) | FC-07 / auth |
-| D-5 | Brakeman préexistant | **RÉSOLUE 15/09** : durcissement `GitLedgerRepository` (garde `SAFE_ID_PATTERN` sur cra_id — refus silencieux sans invoquer Git, spec p6_1 mise à jour vers le contrat renforcé) ; `config/brakeman.ignore` régénéré (2 fingerprints ignorés avec justification, entrée obsolète supprimée) → **Brakeman 0 warning** ; ⚠️ **vérif. 16/09** : 2 offenses RuboCop introduites à L92 (`Lint/UselessConstantScoping`, `Style/RedundantFreeze`) — gate 0-offense cassée sur main, correctif `style(d5)` en attente | 🟡 Résolue (réserve RuboCop) | FC-07 |
+| D-5 | Brakeman préexistant | **RÉSOLUE 15/09** : durcissement `GitLedgerRepository` (garde `SAFE_ID_PATTERN` sur cra_id — refus silencieux sans invoquer Git, spec p6_1 mise à jour vers le contrat renforcé) ; `config/brakeman.ignore` régénéré (2 fingerprints ignorés avec justification, entrée obsolète supprimée) → **Brakeman 0 warning** ; la réserve du 16/09 (2 offenses RuboCop à L92) **levée le 16/09** (`style(d5)` `650d80c1` : `SAFE_ID_PATTERN` au niveau module, `.freeze` retiré — RuboCop 235/0, suite 957/0, §6.1) | ✅ Résolue (réserve levée 16/09) | FC-07 / auth |
 | D-6 | Cosmétique modèle | `UserCompany` : le scope d'unicité `[:user_id, :company_id, :role]` inclut `user_id` (attribut validé) en double — fonctionnellement équivalent à `[:company_id, :role]`, aucun impact | 🟢 Faible | FC-08 |
 | D-7 | Dépréciations Rack | `:unprocessable_entity` déprécié dans les matchers rspec-rails 8.0.2 — warnings cosmétiques transverses, sans rapport avec FC-08 | 🟢 Faible | Transverse |
 | D-8 | Signup 500 sur body vide — **bloque CI (job E2E)** | `POST /api/v1/signup` avec `{}` rend 500 (`{"code":"INTERNAL_SERVER_ERROR","message":"param is missing…: user"}`) au lieu de 400/422 attendu par `smoke_test.sh` (test 6). Endpoint non touché par FC-08 — dernier commit le concernant : `a460dedc` (pré-FC-08, wrap_parameters). Le job E2E (skipped sur main depuis le 19/08) ne l'avait jamais détecté | 🔴 Bloque CI | Users / StandardizedError |
@@ -54,6 +54,8 @@ Migration : `db/migrate/20260914000001_fc08_company_user_company_contract.rb` �
 | D-10 | Isolation bases test/dev (conteneur) | **RÉSOLUE 15/09** : `foresy_test` créée, procédure documentée dans `docs/technical/testing/2026_09_15_test_database_isolation.md` (piège DATABASE_URL, TRUNCATE dev). Validation : suite 956/0 après rejeu E2E ×2 — isolement prouvé | ✅ Résolue | Transverse |
 | D-11 | Dépréciation Node.js 20 dans les actions GitHub — **5 warnings CI/CD** | **RÉSOLUE le 16/09** (branche `chore/d2-d11-quality-tooling`) : `actions/checkout` v4→v5 (×5, **Node 24 natif** — annotations disparues sur les jobs sans upload) et `actions/upload-artifact` v4→**v7** (×3 — v5 ciblait encore Node 20, **constaté par l'annotation CI du 16/09** ; v7.0.1 = dernière stable) dans `ci.yml` ; gate : run CI vert **et 0 warning Node** sur la PR | ✅ Résolue (merge PR #28, `689a4b15`) | CI/CD transverse |
 | D-12 | Scripts E2E shell hors CI (constat revue CI co-CTO 16/09, P1b) | **RÉSOLUE le 17/09** (branche `chore/d12-ledger-path`, **PR #33**) : reformulation du constat (les scripts passaient déjà en CI grâce au fake commit — le vrai sujet = exercer le **vrai** Git Ledger en CI) ; `LEDGER_PATH` configurable via `ENV['GIT_LEDGER_PATH']` (fallback `/app/cra-ledger` — INV-D12-02, contrat préservé) + gate `GIT_LEDGER_REAL` (3 états — INV-D12-01 : sans `=true`, aucun test n'exécute le vrai ledger) + constantes mortes `GitLedgerService` supprimées + **job E2E CI** : scripts `e2e_cra`/`e2e_auth` + **preuve durcie** (delta de commits avant/après le scénario + dernier commit = `CRA locked — cra:<uuid> — M/YYYY`) + fallback `parse_json` numériques corrigé (bug latent) ; suite **962/0**, RuboCop 238/0, Brakeman 0 (fingerprints D-5 régénérés — décalage lignes) | ✅ Résolue (PR #33 en cours) | CI/CD / E2E |
+
+**État du registre au 25/10 :** fermées = D-2 · D-3 (conditions exécutées) · D-4 · D-5 (réserve levée) · D-8 · D-9 · D-10 · D-11 · D-12 — **ouvertes (faibles, non bloquantes, hors clôture FC-08)** = D-1 · D-6 · D-7.
 
 ## 5. Plan d'Action — CI Gate PR #24 (avant merge)
 
@@ -63,7 +65,7 @@ Migration : `db/migrate/20260914000001_fc08_company_user_company_contract.rb` �
 |---|---|---|---|---|
 | 1 | **D-9 — rubyzip** | `bundle update rubyzip` (→ ≥ 3.4.0), commit `chore(security)` | `bundle-audit check --update` → 0 vuln ; job Security Audit vert | ✅ Fait 15/09 (`17943769`) |
 | 2 | **D-8 — signup 500** | Mécanisme confirmé (rescuable.rb : dernier déclaré gagne) ; `StandardError` déclaré en premier dans `StandardizedError` ; RED spec ajouté (`users_spec.rb`) ; commit `fix(signup)` | Suite 956/0 ; smoke 15/15 ; p1_2 (500 générique) reste vert ; job E2E vert attendu | ✅ Fait 15/09 (`19b9c16c`) |
-| 3 | **D-10 — isolement** | `env -u DATABASE_URL RAILS_ENV=test bin/rails db:prepare` dans le conteneur ; documenter la procédure (dev guide) | Suite verte après rejeu E2E ×2 (plus de pollution croisée) | ⬜ À faire |
+| 3 | **D-10 — isolement** | procédure documentée (`docs/technical/testing/2026_09_15_test_database_isolation.md`) | **Preuve d'usage réel :** l'exécution E3 du tracker d'hygiène (20/09) — 22 échecs → piège D-10 identifié → procédure appliquée → 977/0 (journal hygiène §5/§5-bis) | ✅ Fait 15/09 — usage prouvé 20/09 |
 | 4 | **Gate finale** | Push → re-vérifier les 6 checks de PR #24 | **6/6 verts le 15/09** (head `aeac4a77`) → GO merge (CTO) | ✅ Fait |
 
 ## 6. Prochaines Actions
