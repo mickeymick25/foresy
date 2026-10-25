@@ -56,7 +56,7 @@ Note : les suppressions de branches distantes nécessitent une authentification 
 | 2026-01-07-Legacy_Cleanup_Plan | 2026-01-07 | ✅ (exécuté P6.1-bis PR #34 + Wave 1) | ⏳ TODO |
 | 2026-09-14-FC08_Companies_PR_Description | 2026-09-14 | ✅ (PR #24) | ⏳ TODO |
 | 2026-09-16-D1-D11_Debt_Verification_Report, 2026-09-16-D2_SimpleCov_Chiffrage, 2026-09-16-D4_PR_Description | 2026-09-16 | ✅ (PR #25-#29) | ⏳ TODO |
-| 2026-09-17-D12_LEDGER_PATH_Chiffrage | 2026-09-17 | ❌ **D-12 ouverte** (E2E shell CI — registre) | ⏳ TODO |
+| 2026-09-17-D12_LEDGER_PATH_Chiffrage | 2026-09-17 | ✅ D-12 résolue (PR #33, `a551f7e7`) — marqueur `[DONE]_` posé sur disque (O1 20/09) | ✅ requalifié 25/10 (obsolete §4/§5) |
 | 2026-09-17-P61_Coverage_Lock_PR_Description | 2026-09-17 | ✅ (PR #34) | ⏳ TODO |
 | 2026-09-19-P6_Wave1_PR_Description | 2026-09-19 | ✅ (PR #35) | ⏳ TODO |
 | README.md | 2025-12-18 (git) | ❌ (index vivant) | ⏳ TODO |
@@ -71,7 +71,7 @@ Base de vérification `[DONE]` changes/ : statut de complétion porté par chaqu
 | 2026-01-03-FC07_Concerns_Namespace_Fix, 2026-01-03-FC07_Redis_Connection_Fix, 2026-01-04-FC07_TDD_PLATINUM_CraEntry_Lifecycle, 2026-01-11-FC07_Architecture_Services_Unified_Migration | 2026-01 | ✅ | ⏳ TODO |
 | 2026-01-27-DDD_Audit_CRA_Tests_Migration, 2026-01-28-README_API_Structure_Refactoring_Completion, 2026-01-28-README_Refactoring_Plan_Historical_Reference, 2026-01-29-CTO_Feedback | 2026-01 | ✅ (migration DDD/RDD clôturée 28-29/01) | ⏳ TODO |
 | 2026-02-03-API_Missions_Stabilization_Plan, 2026-02-12-Swagger_RSwagSpecs_Completion_Plan, 2026-02-15-DDD_Relation-Driven_Migration_Plan, 2026-02-18-DDD_Relation-Driven_Final_State, 2026-02-18-RSwag_Completion_Status ×2 | 2026-02 | ✅ (Swagger 402 specs / DDD finalisé) | ⏳ TODO |
-| TECH-DEBT-dry-monads-missing | 2026-01-05 (git) | ❌ **dette ouverte** (dry-monads absent du Gemfile vérifié 20/09) | ⏳ TODO |
+| TECH-DEBT-dry-monads-missing | 2026-01-05 (git) | ✅ décision contraire actée (actée dans le document lui-même) — marqueur `[Obsolete]_` posé sur disque (O1 20/09) | ✅ requalifié 25/10 (obsolete §4/§5) |
 
 ### 3.3 Audits, analyses, déploiement, validation, migrations
 
@@ -82,9 +82,9 @@ Base de vérification `[DONE]` changes/ : statut de complétion porté par chaqu
 | audits/2026-08-18-PR23_Review_Action_Plan | 2026-08-18 | ✅ (PR #23 mergée) | ⏳ TODO |
 | audits/ANALYSE_TECHNIQUE_FORESY, audits/CHANGELOG_REFACTORISATION | 2025-12-17 (git) | ❌ (référence/historique) | ⏳ TODO |
 | analysis/concerns_analysis_report | 2026-01-05 (git) | ✅ (refactoring concerns exécuté 03/01 + Wave 1) | ⏳ TODO |
-| analysis/csrf_security_analysis_same_site_none | 2025-12-19 (git) | ✅ (sessions/cookies supprimés 22/12) | ⏳ TODO |
+| analysis/csrf_security_analysis_same_site_none | 2025-12-19 (git) | ✅ sessions/cookies supprimés 22/12 ; voie analysée remplacée par la décision 22/12 — marqueur `[Obsolete]_` posé sur disque (O1 20/09) | ✅ requalifié 25/10 (obsolete §4/§5) |
 | analysis/docker_configuration_problems_solution | 2025-12-23 (git) | ✅ (fix livré 23/12) | ⏳ TODO |
-| analysis/google_oauth_service_mock_solution | 2025-12-19 (git) | ✅ (supersédé — GoogleOAuth2Service supprimé 21/12) | ⏳ TODO |
+| analysis/google_oauth_service_mock_solution | 2025-12-19 (git) | ✅ supersédé — GoogleOAuth2Service supprimé 21/12 — marqueur `[Obsolete]_` posé sur disque (O1 20/09) | ✅ requalifié 25/10 (obsolete §4/§5) |
 | analysis/jsonwebtoken_exceptions_improvement | 2025-12-19 (git) | ✅ (JWT_Robustness_Complete 19/12) | ⏳ TODO |
 | analysis/oauth_caching_strategy | 2025-12-24 (git) | ❌ (checklist « implémentation future » — non réalisée) | ⏳ TODO |
 | analysis/omniauth_oauth_configuration_solution | 2025-12-19 (git) | ✅ (OAuth_Services_Elegant_Solution 23/12) | ⏳ TODO |
@@ -103,7 +103,7 @@ Base de vérification `[DONE]` changes/ : statut de complétion porté par chaqu
 | d1_d11_corrective_actions_tracker | 2026-09-16 (git) | ✅ (D-1→D-11 100 % fermées, rapport vérification 16/09) | ⏳ TODO |
 | d2_simplecov_implementation_tracker | 2026-09-16 (git) | ✅ (SimpleCov opérationnel — Cobertura CI + rapports, PR #24-#36) | ⏳ TODO |
 | fc08_implementation_tracker | 2026-08-31 (git) | ✅ (FC-08 terminé, PR #24) | ⏳ TODO |
-| fc08_debt_register | 2026-09-14 (git) | ❌ **ACTIF** (D-12 ouverte, D3-3 reportée) | ⏳ TODO |
+| fc08_debt_register | 2026-09-14 (git) | 🟢 ACTIF — D-12 ✅ (PR #33) · D-2 ✅ (PR #29 + campagne P6) ; restent **D-1 / D-6 / D-7 faibles (ouverts, non bloquants)** + D3-3 reportée (BACKLOG #3) | ✅ actualisé 25/10 |
 
 ### 3.5 `guides/` (8) — règle par défaut : vivant, pas de [DONE]
 
@@ -111,9 +111,9 @@ Base de vérification `[DONE]` changes/ : statut de complétion porté par chaqu
 |---|---|---|---|
 | error_contract | 2026-08-18 | ❌ (vivant — mis à jour 19/09) | ⏳ TODO |
 | git_ledger_operations | 2026-08-18 | ❌ (vivant) | ⏳ TODO |
-| github-workflows-monitor-improvements | 2026-02-02 | ❌ (statut à vérifier à l'exécution) | ⏳ TODO |
+| github-workflows-monitor-improvements | 2026-02-02 | ✅ implémentation vérifiée (script v2.0 au code) — marqueur `[DONE]_` posé sur disque (O1 20/09) | ✅ requalifié 25/10 (obsolete §4/§5) |
 | implementation_methodology | 2026-01-06 | ❌ (vivant) | ⏳ TODO |
-| migration_strategy | 2026-08-18 | ❌ (statut à vérifier à l'exécution) | ⏳ TODO |
+| migration_strategy | 2026-08-18 | ✅ implémentation vérifiée (schéma de migrations) — marqueur `[DONE]_` posé sur disque (O1 20/09) | ✅ requalifié 25/10 (obsolete §4/§5) |
 | oauth_flow_documentation | 2025-12-24 | ❌ (vivant — référence Wave 2) | ⏳ TODO |
 | tests_organization | 2025-12-17 | ❌ (vivant) | ⏳ TODO |
 | token_revocation_strategy | 2025-12-24 | ❌ (vivant) | ⏳ TODO |
@@ -159,9 +159,16 @@ Base de vérification `[DONE]` changes/ : statut de complétion porté par chaqu
 | E1 | Renames mécaniques en masse (script `tmp/rename_technical_docs.rb`, `git mv` — mapping C1/C2) — **148 migrés + 1 déjà conforme, 0 erreur résiduelle** | ✅ FAIT (20/09) |
 | E2 | Mise à jour des références croisées (script single-pass `tmp/update_doc_references.rb`) — **109 fichiers, 665 remplacements** (README, index.md, BRIEFING, registres, specs, commentaires code) + 7 doubles préfixes réparés | ✅ FAIT (20/09) |
 | E3 | Vérification : G1 doubles préfixes **= 0** · G2 ancien format daté = 2 refs pré-existantes dangling (consignées) · G3 anciens noms **= 0** · suite RSpec **977/0** (`foresy_test`, 2 min 27) · SimpleCov **77,18 % lignes (2815/3647) inchangé** · branches 47,87 % (756/1579) | ✅ FAIT (20/09) |
-| E4 | Journal de ce tracker à jour + cross-références trackers wave1/wave2 + commits sur `chore/docs-hygiene` (base `main` @ `025b90b2`) → PR | ⏳ EN COURS |
+| E4 | Journal de ce tracker à jour + cross-références trackers wave1/wave2 + commits sur `chore/docs-hygiene` (base `main` @ `025b90b2`) → PR | ✅ **CLOSED (25/10 — passe de réconciliation post-absorption)** — renames E1-E3 mergés via PR #37 (20/09 18:10Z, CI 6/6 run 35527003605 — vérifiés API + disque 25/10) · journal à jour (entrée 25/10 infra) · cross-réf wave2 = en place (tracker wave2, 4 occurrences) · cross-réf wave1 = absente, **consignée** (0 occurrence au tracker wave1 — celui-ci `[DONE]_` clôturé 19/09, la filiation est documentée à l'entrée 25/10) |
 
 ## 5. Journal de suivi
+
+### 2026-10-25 — Clôture E4 + réconciliation des verdicts (passe post-absorption)
+
+- **Clôture de fait :** les renames E1-E3 sont sur main depuis PR #37 (mergée 20/09 18:10Z — CI 6/6, run 35527003605 ; vérifications API + disque 25/10) ; le présent fichier = indexé au hub (knowledge 2544).
+- **Contradiction résolue (transparence) :** l'annonce du tracker `[Obsolete]` (O2 « corrections des 5 verdicts appliquées au tracker d'hygiène, 20/09 ») n'était **pas visible** dans le présent fichier sur main (cellules L59/L74/L85/L87/L114/L116 au format ancien) — réapplication exécutée à la présente passe, avec les chemins réels des marqueurs posés sur disque comme preuves ; l'historique du tracker obsolete = préservé tel quel.
+- **Cross-réf wave1 :** absente (0 occurrence « hygiène » au tracker wave1) — consignée, non ajoutée : le tracker wave1 est `[DONE]_` clôturé 19/09 ; la filiation E→W reste tracée par la présente entrée et le tracker wave2.
+- **Registre dette actualisé dans la même passe :** D-5 réserve levée 16/09 (`650d80c1`) ; plan §5 Action 3 faite ; conditions D-3 exécutées (tag `v0.1.1`) ; **D-1 / D-6 / D-7 explicitement OUVERTS** (faibles, non bloquants).
 
 ### 2026-09-20 (bis) — Validation navigation documentaire (revue CTO PR #37) — liens vérifiés cible par cible
 
