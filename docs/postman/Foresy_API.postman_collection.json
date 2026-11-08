@@ -219,139 +219,6 @@
           "response": []
         },
         {
-          "name": "Refresh Token",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Refresh response is valid', function () {",
-                  "    if (pm.response.code === 200) {",
-                  "        var jsonData = pm.response.json();",
-                  "        if (jsonData.token) {",
-                  "            pm.collectionVariables.set('jwt_token', jsonData.token);",
-                  "        }",
-                  "        if (jsonData.refresh_token) {",
-                  "            pm.collectionVariables.set('refresh_token', jsonData.refresh_token);",
-                  "        }",
-                  "    }",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/auth/refresh",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "refresh"
-              ]
-            },
-            "description": "Rafraîchir le JWT à partir du `refresh_token`. Invalide l'ancien refresh_token (rotation)."
-          },
-          "response": []
-        },
-        {
-          "name": "Logout",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{jwt_token}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/auth/logout",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "logout"
-              ]
-            },
-            "description": "Déconnexion — invalide la session courante (requiert Authorization)."
-          },
-          "response": []
-        },
-        {
-          "name": "Revoke Token",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{jwt_token}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/auth/revoke",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "revoke"
-              ]
-            },
-            "description": "Révoque le token courant (requiert Authorization)."
-          },
-          "response": []
-        },
-        {
-          "name": "Revoke All Tokens",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{jwt_token}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/v1/auth/revoke_all",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "revoke_all"
-              ]
-            },
-            "description": "Révoque tous les tokens de l'utilisateur courant (requiert Authorization)."
-          },
-          "response": []
-        },
-        {
           "name": "OAuth Callback",
           "event": [
             {
@@ -1539,6 +1406,161 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Authentication — rotation & révocation (clôture)",
+      "description": "Exécutés EN FIN de parcours (PM-6, arbitrage CTO 08/11) : le Logout/Revoke précédent invalidait le token utilisé par les dossiers métier (401 en cascade). Refresh effectue la rotation et réalimente jwt_token — puis Logout + révocations démontrent les contrats sur le token courant.",
+      "item": [
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Refresh response is valid', function () {",
+                  "    if (pm.response.code === 200) {",
+                  "        var jsonData = pm.response.json();",
+                  "        if (jsonData.token) {",
+                  "            pm.collectionVariables.set('jwt_token', jsonData.token);",
+                  "        }",
+                  "        if (jsonData.refresh_token) {",
+                  "            pm.collectionVariables.set('refresh_token', jsonData.refresh_token);",
+                  "        }",
+                  "    }",
+                  "});",
+                  "pm.test('Refresh — rotation propagée (jwt_token réactualisé sur 200)', function () { if (pm.response.code === 200) { pm.expect(pm.collectionVariables.get('jwt_token')).to.be.a('string').and.to.not.be.empty; } });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/refresh",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "refresh"
+              ]
+            },
+            "description": "Rafraîchir le JWT à partir du `refresh_token`. Invalide l'ancien refresh_token (rotation)."
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Déconnexion — invalide la session courante (requiert Authorization)."
+          },
+          "response": []
+        },
+        {
+          "name": "Revoke Token",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/revoke",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "revoke"
+              ]
+            },
+            "description": "Révoque le token courant (requiert Authorization)."
+          },
+          "response": []
+        },
+        {
+          "name": "Revoke All Tokens",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/revoke_all",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "revoke_all"
+              ]
+            },
+            "description": "Révoque tous les tokens de l'utilisateur courant (requiert Authorization)."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "exec": [
+          "pm.test('Garde PM-6 — 401/403/500 métier inattendu', function () {",
+          "    var authOuInfra = ['Signup','Login','Refresh Token','Logout','Revoke Token','Revoke All Tokens','OAuth Callback','OAuth Failure','Root - API Status','Health Check'];",
+          "    if (authOuInfra.indexOf(pm.info.requestName) !== -1) { return; }",
+          "    pm.expect([401,403,500]).to.not.include(pm.response.code);",
+          "});"
+        ],
+        "type": "text/javascript"
+      }
     }
   ]
 }
