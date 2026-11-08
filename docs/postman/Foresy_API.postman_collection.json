@@ -332,7 +332,9 @@
                   "            pm.collectionVariables.set('company_id', jsonData.id);",
                   "        }",
                   "    }",
-                  "});"
+                  "});",
+                  "pm.test('[Create Company (Onboarding atomique)] HTTP inattendu (401/403/500)', function () { pm.expect([401,403,500]).to.not.include(pm.response.code); });",
+                  "pm.test('[Create Company (Onboarding atomique)] code attendu 201', function () { pm.expect(pm.response.code).to.eql(201); });"
                 ],
                 "type": "text/javascript"
               }
@@ -383,7 +385,9 @@
                   "        var jsonData = pm.response.json();",
                   "        pm.test('Meta total present', function () { pm.expect(jsonData.meta).to.have.property('total'); });",
                   "    }",
-                  "});"
+                  "});",
+                  "pm.test('[List Companies] HTTP inattendu (401/403/500)', function () { pm.expect([401,403,500]).to.not.include(pm.response.code); });",
+                  "pm.test('[List Companies] code attendu 200', function () { pm.expect(pm.response.code).to.eql(200); });"
                 ],
                 "type": "text/javascript"
               }
@@ -438,7 +442,19 @@
             },
             "description": "Fiche de la company créée (§43 — propriétaire seulement)."
           },
-          "response": []
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[Get Company] HTTP inattendu (401/403/500)', function () { pm.expect([401,403,500]).to.not.include(pm.response.code); });",
+                  "pm.test('[Get Company] code attendu 200', function () { pm.expect(pm.response.code).to.eql(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "Update Company",
@@ -452,7 +468,9 @@
                   "        var jsonData = pm.response.json();",
                   "        pm.test('Name updated', function () { pm.expect(jsonData.name).to.eq('Foresy Postman Updated'); });",
                   "    }",
-                  "});"
+                  "});",
+                  "pm.test('[Update Company] HTTP inattendu (401/403/500)', function () { pm.expect([401,403,500]).to.not.include(pm.response.code); });",
+                  "pm.test('[Update Company] code attendu 200', function () { pm.expect(pm.response.code).to.eql(200); });"
                 ],
                 "type": "text/javascript"
               }
@@ -514,7 +532,9 @@
                   "            pm.collectionVariables.set('user_company_id', jsonData.id);",
                   "        }",
                   "    }",
-                  "});"
+                  "});",
+                  "pm.test('[Create UserCompany] HTTP inattendu (401/403/500)', function () { pm.expect([401,403,500]).to.not.include(pm.response.code); });",
+                  "pm.test('[Create UserCompany] code attendu 201', function () { pm.expect(pm.response.code).to.eql(201); });"
                 ],
                 "type": "text/javascript"
               }
@@ -565,7 +585,9 @@
                   "        var jsonData = pm.response.json();",
                   "        pm.test('Meta total present', function () { pm.expect(jsonData.meta).to.have.property('total'); });",
                   "    }",
-                  "});"
+                  "});",
+                  "pm.test('[List UserCompanies] HTTP inattendu (401/403/500)', function () { pm.expect([401,403,500]).to.not.include(pm.response.code); });",
+                  "pm.test('[List UserCompanies] code attendu 200', function () { pm.expect(pm.response.code).to.eql(200); });"
                 ],
                 "type": "text/javascript"
               }
@@ -607,7 +629,9 @@
                   "        var jsonData = pm.response.json();",
                   "        pm.test('Role is client', function () { pm.expect(jsonData.role).to.eq('client'); });",
                   "    }",
-                  "});"
+                  "});",
+                  "pm.test('[Get UserCompany] HTTP inattendu (401/403/500)', function () { pm.expect([401,403,500]).to.not.include(pm.response.code); });",
+                  "pm.test('[Get UserCompany] code attendu 200', function () { pm.expect(pm.response.code).to.eql(200); });"
                 ],
                 "type": "text/javascript"
               }
@@ -649,7 +673,9 @@
                   "    if (pm.response.code === 200) {",
                   "        pm.test('Role stays client', function () { pm.expect(pm.response.json().role).to.eq('client'); });",
                   "    }",
-                  "});"
+                  "});",
+                  "pm.test('[Update UserCompany] HTTP inattendu (401/403/500)', function () { pm.expect([401,403,500]).to.not.include(pm.response.code); });",
+                  "pm.test('[Update UserCompany] code attendu 200', function () { pm.expect(pm.response.code).to.eql(200); });"
                 ],
                 "type": "text/javascript"
               }
@@ -714,7 +740,19 @@
             },
             "description": "Soft delete de la relation (§37.4 — 200 `message`)."
           },
-          "response": []
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[Delete UserCompany (Soft delete)] HTTP inattendu (401/403/500)', function () { pm.expect([401,403,500]).to.not.include(pm.response.code); });",
+                  "pm.test('[Delete UserCompany (Soft delete)] code attendu 200', function () { pm.expect(pm.response.code).to.eql(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         },
         {
           "name": "Delete Company (Soft delete — clôture du scénario)",
@@ -741,7 +779,19 @@
             },
             "description": "Soft delete de la company = clôture du scénario §37.4/INV-21. ⚠️ Positionne la requête DELETE de l'endpoint Companies en FIN de scénario (e2e steps 16→17 : la relation est supprimée AVANT la company — POST un rôle sur une company soft-deleted n'est pas un contrat couvert)."
           },
-          "response": []
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('[Delete Company (Soft delete — clôture du scénario)] HTTP inattendu (401/403/500)', function () { pm.expect([401,403,500]).to.not.include(pm.response.code); });",
+                  "pm.test('[Delete Company (Soft delete — clôture du scénario)] code attendu 200', function () { pm.expect(pm.response.code).to.eql(200); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
         }
       ]
     },
