@@ -64,6 +64,16 @@
       "key": "company_siret",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "old_jwt_pre_refresh",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "old_refresh_pre_refresh",
+      "value": "",
+      "type": "string"
     }
   ],
   "item": [
@@ -1468,18 +1478,27 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Refresh response is valid', function () {",
-                  "    if (pm.response.code === 200) {",
-                  "        var jsonData = pm.response.json();",
-                  "        if (jsonData.token) {",
-                  "            pm.collectionVariables.set('jwt_token', jsonData.token);",
-                  "        }",
-                  "        if (jsonData.refresh_token) {",
-                  "            pm.collectionVariables.set('refresh_token', jsonData.refresh_token);",
-                  "        }",
-                  "    }",
-                  "});",
-                  "pm.test('Refresh — rotation propagée (jwt_token réactualisé sur 200)', function () { if (pm.response.code === 200) { pm.expect(pm.collectionVariables.get('jwt_token')).to.be.a('string').and.to.not.be.empty; } });"
+                  "pm.test('[Refresh Token] code attendu 200', function () { pm.expect(pm.response.code).to.eql(200); });",
+                  "pm.test('[Refresh Token] 401/403/500 inattendus', function () { pm.expect([401,403,500]).to.not.include(pm.response.code); });",
+                  "pm.test('[Refresh Token] rotation — nouveaux token/refresh_token présents dans la réponse', function () {",
+                  " if (pm.response.code === 200) { var jsonData = pm.response.json(); pm.expect(jsonData.token).to.be.a('string').and.to.not.be.empty; pm.expect(jsonData.refresh_token).to.be.a('string').and.to.not.be.empty; } });",
+                  "pm.test('[Refresh Token] rotation — nouveaux ≠ anciens (jwt ET refresh_token)', function () {",
+                  " if (pm.response.code === 200) { var jsonData = pm.response.json(); pm.expect(jsonData.token).to.not.eql(pm.collectionVariables.get('old_jwt_pre_refresh')); pm.expect(jsonData.refresh_token).to.not.eql(pm.collectionVariables.get('old_refresh_pre_refresh')); } });",
+                  "pm.test('[Refresh Token] extraction (conservée)', function () {",
+                  " if (pm.response.code === 200) { var jsonData = pm.response.json(); if (jsonData.token) { pm.collectionVariables.set('jwt_token', jsonData.token); } if (jsonData.refresh_token) { pm.collectionVariables.set('refresh_token', jsonData.refresh_token); } } });",
+                  "pm.test('[Refresh Token] rotation — variables réactualisées avec la valeur de la réponse', function () {",
+                  " if (pm.response.code === 200) { var jsonData = pm.response.json(); pm.expect(pm.collectionVariables.get('jwt_token')).to.eql(jsonData.token); pm.expect(pm.collectionVariables.get('refresh_token')).to.eql(jsonData.refresh_token); } });"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// PM-6 — mémorise l'ancien pair AVANT la rotation (précaution CTO 08/11)",
+                  "pm.collectionVariables.set('old_jwt_pre_refresh', pm.collectionVariables.get('jwt_token'));",
+                  "pm.collectionVariables.set('old_refresh_pre_refresh', pm.collectionVariables.get('refresh_token'));"
                 ],
                 "type": "text/javascript"
               }
@@ -1603,6 +1622,7 @@
       "listen": "test",
       "script": {
         "exec": [
+          "// Limite connue (CTO 08/11) : l'exclusion repose sur 10 noms d'auth/infra — un renommage métier vers ces noms échapperait à la garde (visible en revue de diff) ; robustesse long-terme = classification explicite des requêtes.",
           "pm.test('Garde PM-6 — 401/403/500 métier inattendu', function () {",
           "    var authOuInfra = ['Signup','Login','Refresh Token','Logout','Revoke Token','Revoke All Tokens','OAuth Callback','OAuth Failure','Root - API Status','Health Check'];",
           "    if (authOuInfra.indexOf(pm.info.requestName) !== -1) { return; }",
