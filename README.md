@@ -9,8 +9,9 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 
 ## 🚀 Vue d'Ensemble
 
-### 🎯 État Actuel (Septembre 2026)
+### 🎯 État Actuel (Octobre 2026)
 - **v0.1.5** : ✅ #22 Hardening JWT — clé dédiée `JWT_SECRET` consommée + fail-fast prod (garde boot : absent OU vide) + `HS256` explicite ; contrat → RED (3) → GREEN ×2 → bascule Render (merge `4d2985c1`, PR #77) + sondes 100 % ; suite RSpec **1148 examples**
+- **24-25 Oct 2026 (docs)** : ✅ Absorption O-2 de `chore/p6-coverage-plan` mergée (PR #82 → `97d85eec`) · incident-CI corrigé (`aedd70e4`, CI 6/6, run 40121939127) et archivé (tracker P6 §7 — PR #83 → `4928d00`) · mémoire fc08::022 (PR #85 → `81726806`) · hub 2540 chunks / 23 mémoires
 - **v0.1.4** : ✅ FC-05 Rate Limiting — remediation contractuelle (contrat → RED mesurés → GREEN → R-4, PR #56) — 429 uniquement sur dépassement réel, backend distribué Redis
 - **v0.1.3** : ✅ P7 System Specs API CLOSED — contrat système (3ᵉ contrat) établi, bug de composition mission_id corrigé (PR #42)
 - **v0.1.2** : ✅ Campagne P6 Waves 1-4 + hygiène documentaire + P6.6 CLOSED (PR #35-#41)
@@ -48,6 +49,7 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 | — | 26 Sept 2026 | 1132 | #21 OAuth CLOSED — O-1 `OAuthConcern` + O-2 `ApmService` supprimés (code mort démontré, −365 LOC, −34 specs) · arbitrage régularisé après commits (§6) · close-out (rspec.xml, BACKLOG, mémoire fc08::014) |
 | — | 26 Sept 2026 | 1133 | #26 race #14 — R-1 advisory lock (contrat #14 renforcé : RED mesuré → GREEN ×2) · doublon + verrou 409 éliminés · mémoire fc08::016 |
 | — | 3 Oct 2026 | 1136 | #24 ledger purgé (O-B : 23 → 1 commit) · #25 commandes BRIEFING sur le service `test` (vérifiées par exécution) · #27 Q-1 → `422 :invalid_client_company` (RED got 201 — 201 + client jeté au silence) · mémoires fc08::017 |
+| — | 24-25 Oct 2026 | 1148 | Absorption O-2 de `chore/p6-coverage-plan` mergée (PR #82, `97d85eec`) · incident-CI corrigé (`aedd70e4`, CI 6/6, run 40121939127) et archivé (tracker P6 §7 — PR #83, `4928d00`) · mémoire fc08::022 (PR #85, `81726806`) · hub 2540 chunks / 23 mémoires |
 
 ### 🏆 Certifications & Standards
 - **TDD PLATINUM** : Domaine CRA auto-défensif, cycle RED → GREEN → REFACTOR par tâche
@@ -114,7 +116,7 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 - **Swagger/OpenAPI** : 437 examples RSwag (mesuré), audit 36/36 routes documentées
 - **Tests complets** : 1148 exemples RSpec (0 failures, 0 pending)
 - **Couverture** : 📊 SimpleCov **86.26 % lignes (3020/3501) / 61.03 % branches (885/1450)** (rapport HTML + Cobertura XML)
-- **Code quality** : RuboCop 246 files, 0 offenses
+- **Code quality** : RuboCop 250 files, 0 offenses (24/10 — leçon fc08::022 : scripts Ruby versionnés = périmètre Quality Gates du dépôt)
 - **Security audit** : Brakeman 0 warnings (mode strict), Bundle audit 0 vulnérabilités
 - **Collection Postman** : 28 endpoints avec scripts de test automatisés
 

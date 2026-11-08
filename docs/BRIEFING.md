@@ -3,10 +3,10 @@
 
 
 **For AI Context Understanding - Optimized for Fast Project Comprehension**  
-**Last Updated:** 26 septembre 2026 — **FC-05 Rate Limiting remediation CERTIFIÉE** (PR #56 : contrat → RED mesurés → GREEN → R-4) · Gouvernance CI verrouillée (#11/#12) · contrat système démontré (P7) · invariant unicité protégé (#14) · **1166 tests GREEN**
+**Last Updated:** 25 octobre 2026 — **absorption O-2 mergée (PR #82, `97d85eec`)** · incident-CI corrigé `aedd70e4` (CI 6/6, run 40121939127) et archivé (tracker P6 §7 — PR #83, `4928d00`) · mémoire fc08::022 (PR #85, `81726806`) · **1148 tests GREEN** (harmonisé README · tracker P6.7)
 
-> ⚠️ **Note de lecture (26/09/2026)** : les sections « État courant » ci-dessous reflètent l'état
-> de septembre 2026. Les sections `### Jan/Déc 2025-2026` de la timeline ci-après sont de
+> ⚠️ **Note de lecture (25/10/2026)** : les sections « État courant » ci-dessous reflètent l'état
+> d'octobre 2026. Les sections `### Jan/Déc 2025-2026` de la timeline ci-après sont de
 > l'**historique daté** — ne pas les confondre avec l'état courant. Source de vérité des
 > métriques : README.md · docs/BACKLOG.md · docs/technical/testing/
 
@@ -20,16 +20,16 @@
 - **Ruby Version**: 3.4.8
 - **Environment**: Docker Compose (non-optional, mandatory)
 - **Status**: ✅ **FC-06 Missions · FC-07 CRA · FC-08 Companies TERMINÉS** — campagne P6/P7 CLOSED · **FC-05 remediation certifiée** (26/09, PR #56 — rate limiting distribué Redis, 429 sur dépassement réel uniquement)
-- **Current Feature**: série d'audits/corrections **#19→#28 CLOSED (octobre 2026)** · restes : backlog transverse (#13/#15/#16/#17/#22 + #1-#10 + `chore/p6-coverage-plan`) · **FC-09** ⏸️ (arbitrage produit — jamais sur un pourcentage)
+- **Current Feature**: série d'audits/corrections **#19→#28 CLOSED (octobre 2026)** · **absorption O-2 de `chore/p6-coverage-plan` CLOSED (24/10 — PR #82 `97d85eec` + incident-CI corrigé/archivé, tracker P6 §7)** · restes : backlog transverse (#1, #3-#6, #7-#10, #15, #16, #18 — #13/#17/#22 sortis, livrés 23-24/10) · **FC-09** ⏸️ (arbitrage produit — jamais sur un pourcentage)
 - **Previous**: Campagne P6/P7 (sept 2026) — 3 bugs production découverts et corrigés par RED démontré (GET /cras 500 · ISO3166 · mission_id perdu · invariant unicité inerte)
 - **Gouvernance CI (sept 2026)**: push direct sur main **bloqué** (GH006 ×2) · 6 checks requis (`enforce_admins: true`) · branche à jour obligatoire (`strict: true`) · merge result testé (EXP-1, 2 preuves)
 
 ### Quality Metrics (Sept 2026) — mesuré 26/09, `foresy_test` + CI PR #56
-- **RSpec Tests**: ✅ **1137 examples, 0 failures** (2026-10-21, post #28 — −34 specs du code mort APM, +1 spec contrat #14 concurrentiel R-1, +2 specs contrat d'erreur #27, +1 spec INV-D12-03) — dont les **régressions permanentes** : invariant unicité créateur+mois+année **sous concurrence** (#14 renforcé, R-1 + garde INV-D12-03) · **contrat FC-05 (RED 1-4 devenus GREEN)**
-- **Rswag Swagger**: ✅ **429 examples** — audit 35/35 routes, `swagger.yaml` généré
-- **RuboCop**: ✅ **247 files inspected, 0 offenses**
+- **RSpec Tests**: ✅ **1148 examples, 0 failures** (24/10, harmonisé post-absorption O-2 — README · tracker P6.7 concordants ; état au 21/10 post #28 = 1137) — dont les **régressions permanentes** : invariant unicité créateur+mois+année **sous concurrence** (#14 renforcé, R-1 + garde INV-D12-03) · **contrat FC-05 (RED 1-4 devenus GREEN)**
+- **Rswag Swagger**: ✅ **437 examples** — audit **36/36** routes, `swagger.yaml` généré (harmonisé 23-24/10)
+- **RuboCop**: ✅ **250 files inspected, 0 offenses** (24/10 — post-versionnage script P6.0, leçon fc08::022 : scripts Ruby versionnés = périmètre Quality Gates du dépôt)
 - **Brakeman**: ✅ **0 Security Warnings** (mode strict)
-- **Couverture (SimpleCov)**: 📊 **86,32 % lignes (3012/3489) / 60,94 % branches (880/1446)** — corpus post #28, verrou 72,5 armé dans le processus réel
+- **Couverture (SimpleCov)**: 📊 **86,26 % lignes (3020/3501) / 61,03 % branches (885/1450)** — harmonisé 23-24/10 (README · tracker P6.7 concordants) — verrou 72,5 armé dans le processus réel
 - **Gouvernance CI (P6/P7)**: ✅ push direct bloqué (GH006 ×2) · 6 checks requis (`enforce_admins: true`) · branche à jour (`strict: true`) · merge result testé (EXP-1)
 - **CI/CD**: ✅ 6/6 jobs verts — E2E bloquant dans la Quality Gate
 - **Campagnes**: ✅ P6 (Waves 1-4 + P6.6 CLOSED) · P7 (System Specs API — contrat système, 4 specs) · #11/#12/#14 (gouvernance + invariant, 3 défauts réels corrigés) · **#21 CLOSED (OAuth / code mort — O-1/O-2, arbitrage régularisé, mémoire fc08::014)** · **#26 R-1 LIVRÉE (race #14 — contrat #14 renforcé, RED → GREEN ×2, mémoire fc08::016)** · **#24 CLOSED (ledger — provenance 23/23, purge O-B via `cleanup!` : 23 → 1 commit, mémoire fc08::017)** · **#25 CLOSED (commandes BRIEFING sur le service `test` — vérifiées par exécution)** · **#27 CLOSED (Q-1 : 422 client inconnu — RED got 201, 201 + client jeté au silence ; Q-2 pas de RED / 409 déjà servi)** · **#28 CLOSED (prévention structurelle ledger — INV-D12-03 fail-fast + isolation stub_const, fc08::020)**

@@ -74,12 +74,17 @@ L'enquête révèle **3 requalifications** de `2026_09_20_documentation_hygiene_
 | O1 | Branche `chore/docs-obsolete` créée depuis `f764c3e2` — **8 renames exécutés** (`git mv`, mapping §5 exact) | ✅ FAIT (20/09) |
 | O2 | Références croisées — script single-pass `tmp/update_obsolete_refs.rb` : **14 fichiers, 41 remplacements** (README ×3, index.md ×20, BRIEFING, ROADMAP, RELEASE_NOTES, registres d'audit, changes) ; incident passe-2 README corrigé (3 doubles préfixes, cf. journal) + corrections des 5 verdicts au tracker d'hygiène | ✅ FAIT (20/09) |
 | O3 | Gates : doubles préfixes **= 0** (hors prose historique) · anciens noms **= 0** (hors mapping du présent tracker) · liens : 632 cibles vérifiées, les +8 MANQUANT = table de mapping du présent tracker (noms anciens volontaires) ; **résidu inchangé : 119** (114 link-rot pré-existant + 2 wildcards + 3 danglings) — le rename a cassé **zéro lien** · suite **977/0** (`foresy_test`, 2 min 27) · SimpleCov **77,18 % (2815/3647) inchangé** · branches 47,87 % | ✅ FAIT (20/09) |
-| O4 | Journal de ce tracker à jour + commit + push + PR dédiée | ⏳ EN COURS |
-| O4 | Journal de ce tracker + PR → CI 6/6 | ⏳ TODO |
+| O4 | Journal de ce tracker à jour + commit + push + PR dédiée | ✅ **CLOSED (25/10 — passe post-absorption)** — les 8 cibles de renames O1 prouvées sur disque (ls 25/10) · le présent fichier sur main et indexé au hub (chunks ::0-20) · cellules basculées à l'entrée de journal 25/10 · CI main verte sur chaque merge doc (dernier : PR #86, run 40171550334) — la clôture documentaire de ce tracker = effectuée par la passe de réconciliation |
 
 **Périmètre maintenu : strictement documentaire — aucune modification fonctionnelle ; W2-D2 reste sur sa branche dédiée, sans mélange.**
 
 ## 6. Journal de suivi
+
+### 2026-10-25 — Clôture O4 (passe de réconciliation post-absorption)
+
+- **Preuves O1-O3 re-confirmées sur main (25/10) :** les 8 cibles de renames présentes sur disque — `[Obsolete]_2026_01_05_TECH-DEBT-dry-monads-missing` · `[Obsolete]_2025_12_19_google_oauth_service_mock_solution` · `[Obsolete]_2025_12_18_GoogleOauthService_Fix_Resolution` · `[Obsolete]_2025_12_19_csrf_security_analysis_same_site_none` · `[Obsolete]_2025_12_26_BACKLOG` · `[DONE]_2026_02_02_github-workflows-monitor-improvements` · `[DONE]_2026_08_18_migration_strategy` · `[DONE]_2026_09_17_D12_LEDGER_PATH_Chiffrage` — et le présent fichier sur main (hub : knowledge 2544, chunks ::0-20).
+- **Contradiction résolue (transparence) :** l'annonce O2 « corrections des 5 verdicts appliquées au tracker d'hygiène » (20/09) n'était pas visible dans le tracker d'hygiène sur main — réapplication exécutée dans la présente passe (les 6 cellules requalifiées avec les chemins réels) ; consignée au tracker d'hygiène (journal 25/10).
+- Le statut « ⏳ EN COURS / TODO » de la cellule O4 = état d'archive de l'époque, jamais basculé — corrigé ici sans réécriture d'historique.
 
 ### 2026-09-20 (quinquies) — Relance du BACKLOG transverse (demande CTO) — réponse « doublon hub RAG ? »
 
