@@ -126,6 +126,7 @@ critère de validation mesurable. Décision CTO requise pour P2 (arbitrage exclu
 | Date | Étape | Notes |
 |---|---|---|
 | 2026-09-24 | Audit réalisé (ce document) | Constats S-1..S-4, PM-1..PM-5, exposition 4/4 ✅ |
+| 2026-11-08 | **P1 réalisé + PM-6 intégré** | les 10 endpoints FC-08 ( Companies/UserCompanies + onboarding atomique, SIREN dynamiques, extraction ids) · **PM-6 révélé par le replay**: l'ordre d'auth initial (Logout/Revoke avant les flows métier) tuait le token — 401 métier ×20 en trace, **masqués par les scripts gardés** — corrigé: Move en dossier de clôture + garde strict niveau collection (401/403/500 = échec) + rotation propagée vérifiée · re-certification: Newman ×2 post-PM-6 (métier 201/200 vivants) · résiduel: PM-5 optionnel; **PM-7 signalé**: l'« Archive CRA » du dossier CRAs (position 5) soft-delete le CRA avant submit/lock/export/entries (404 actif-scope) |
 | — | *à compléter à chaque état substantiel* | — |
 
 ---
