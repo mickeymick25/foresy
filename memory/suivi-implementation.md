@@ -3,11 +3,11 @@
 # Suivi d'avancement de l'implémentation
 
 <!-- created: 2026-10-03 -->
-<!-- updated: 2026-10-25 -->
+<!-- updated: 2026-11-08 -->
 
 ## suivi_impl::001
 <!-- created: 2026-10-03 -->
-<!-- updated: 2026-10-25 -->
+<!-- updated: 2026-11-08 -->
 Suivi d'avancement consolidé de l'implémentation — **fichier vivant**, mis à jour à chaque état substantiel
 (règle anti-drift). Les entrées `fc08::NNN` de la source principale restent la vérité ; cette table est
 l'index de progression. Le fichier est délimité par une entrée atomique : toute mise à jour se fait
@@ -27,10 +27,10 @@ l'index de progression. Le fichier est délimité par une entrée atomique : tou
 | fc08::022 | **incident-CI 24/10** — scripts Ruby versionnés = périmètre Quality Gates applicables au dépôt (Brakeman exit 7 + RuboCop 26 offenses F sur un parse error du script) | ✅ **VALIDÉE (CTO 24/10) + ENREGISTRÉE** (vérifié Chroma 25/10 : `fc08_022.md::fc08::022` top-1 à d=0,28, contenu = fichier versionné) — fix `aedd70e4` (CI 6/6, run 40121939127) · archivé tracker P6 §7 (PR #83, `4928d00`) · renumérotation fc08::019→022 (collision #27 + catégorie indexeur — PRs #84/#85, `81726806`) | tracker P6 §7 (L78+) · `memory/fc08_022.md` |
 | suivi_impl::001 | **#28 — prévention structurelle ledger** : isolation stub_const ×6 (les overlays singleton inerts) + garde INV-D12-03 fail-fast (avant tout Git-call) + W3-D2 aligné | ✅ **CERTIFIÉE (2026-10-03)** — RED ×2 → GREEN ×2 · batch ledger 72/0 · suite 1137/0 · ledger réel inchangé (1 commit) · purge #24 non touchée | cadrage `[DONE]_2026_10_03_28_ledger_prevention_cadrage.md` (§6 journal) · fc08::020 proposée |
 
-**Métriques de référence (2026-10-24, post zéro-warnings merge `679ea3ad` — crass 1.0.8 + les configs zéro-warnings en prod)** : suite **1148/0** · couverture **86,26 % lignes / 61,03 % branches**
-· RuboCop **249 files / 0** · RSwag **437 (mesuré) · audit 36/36** · Brakeman 0 · Zeitzeitwerk OK · bundle audit 0 vulnérabilité (DB 1269, commit `03da937a9e17`) ·
-verrou 72,5 (intact) · CI 6/6 · production **vérifiée post-merge** (`/health` 200 ×5 après les 000 ×3 du build — le pic d'indisponibilité free tier est documenté) ·
-hub : knowledge **2544 chunks** · mémoires **23** (25/10 — les réindexations post-absorption, bullet Hub au tracker P6 §7).
+**Métriques de référence (2026-11-08, post vague sécurité PR #88 — merge `6c7dc2f7`)** : suite **1148/0 ×3** (seeds 58340/64809/60863) · couverture **86,26 % lignes / 61,03 % branches** (3020/3501 · 885/1450)
+· **Rails 8.1.4.1** + rack 3.2.8 + addressable 2.9.2 + html-sanitizer 1.7.2 · RuboCop **250 files / 0** · RSwag **437 (mesuré) · audit 36/36** · Brakeman 0 · Zeitwerk OK · verrou 72,5 (intact) · CI 6/6 · production `/health` 200 (réveil free tier documenté) ·
+**« Zéro vulnérabilité détectée par bundle audit avec la base 7e90cbd au 8 novembre 2026 »** ·
+hub : knowledge **2550 chunks** · mémoires **23** (25/10 → 08/11 : les réindexations post-absorption et trackers).
 
 **Ouvert / en attente** :
 - **fc08::021** (#22) — ✅ VALIDÉE (CTO 23/10) + **ENREGISTRÉE** (vérifiée Chroma 2026-10-23 : top-hit récupéré +
@@ -50,6 +50,8 @@ hub : knowledge **2544 chunks** · mémoires **23** (25/10 — les réindexation
   délimiter) · #7-#10 (distinguer besoins démontrés vs non-mesurés) · **FC-09** : décision à partir de
   "docs/ROADMAP.md" + valeur métier, jamais un pourcentage · hygiènes/options : passe cosmétique documentaire +
   mini-audit #18 ;
+- **vague de sécurité 08/11 — PR #88 (`6c7dc2f7`)** : ✅ **CLOSE (livraison + CI)** — Rails **8.1.4.1** + rack 3.2.8 + addressable 2.9.2 + html-sanitizer 1.7.2 — **« Zéro vulnérabilité détectée par bundle audit avec la base 7e90cbd au 8 novembre 2026 »** · suite 1148/0 ×3 · couverture inchangée · sondes non authentifiées OK (`/health` 200 post-réveil · `/up` 200 · 401s attendus) · **réserve : S-1/S-2/S-4 authentifiées (credentials CTO) — dernier contrôle opérationnel** ;
+- **#16 — Postman FC-08** : 🟠 **prochain chantier (CTO 08/11)** — dépendance #16↔#20 **obsolète, retirée** (#20 CLOSED 25/09 — descendance #23/PR #56 livrée, rate limiting v0.1.4) ; reste = PM-1/PM-2/PM-3 + description 36 endpoints + README L110 ;
 - **#29 — passe « zéro-warnings » (O-2) — ✅ CLOSED (24/10)** : les 20 renames + les runners ubuntu-24.04 + le variant_processor — le merge `679ea3ad`, le health 200 ×5 ; **R-2 SimpleCov différé = un chantier séparé** (le verrou P6.1 intact — le déterminisme ×2 sera exigé avant/après si l'arbitrage retient le chantier) ;
 - **#2 — absorption chore/p6-coverage-plan** : ✅ **CLOSED (24-25/10)** — arbitrage **O-2** rendu ; absorption mergée PR #82 (`97d85eec`) · incident-CI corrigé `aedd70e4` (CI 6/6, run 40121939127) et archivé (tracker P6 §7 — PR #83, `4928d00`) · mémoire fc08::022 (PR #85, `81726806`) · réconciliation docs (#86, `4b3781fb`) · réconcils trackers 20/09 en cours (la présente passe) — détail : BACKLOG #2 + tracker P6 §7 ;
 - **#22-bis** — claim standard `exp` des refresh tokens (dette C-0 tracée à #22) — **chantier indépendant** ;
