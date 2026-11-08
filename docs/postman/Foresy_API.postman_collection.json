@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Foresy API [Postman_Collection]",
-    "description": "Collection Postman pour tester et debugger l'API Foresy en production et développement. 28 endpoints avec scripts de test automatisés (extraction tokens/IDs). Variables: base_url, jwt_token, refresh_token, mission_id, cra_id, entry_id.",
+    "description": "Collection Postman pour tester et debugger l'API Foresy en production et développement. 36 endpoints API v1 (alignés routes.rb) + 2 sondes d'infrastructure préexistantes (GET /, GET /health). Scripts de test automatisés (extraction tokens/IDs). Variables: base_url, base_url_local, jwt_token, refresh_token, mission_id, cra_id, entry_id, client_company_id, company_id, user_company_id, company_siren, company_siret.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -42,6 +42,26 @@
     },
     {
       "key": "client_company_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "company_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_company_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "company_siren",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "company_siret",
       "value": "",
       "type": "string"
     }
@@ -409,6 +429,450 @@
               ]
             },
             "description": "Endpoint appelé en cas d'échec OAuth."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Companies",
+      "description": "FC-08 (§36-37) — Companies : onboarding atomique (company + rôle en un POST, §37.2), listage actif (§36.1), fiche, mise à jour (§37.3-adjacent). Création avec SIREN/SIRET uniques par exécution (INV-09/12 — replay ×2 ; jamais de valeurs en dur, cf. e2e_companies). Scripts extraient `company_id` (l'alimentation des autres dossiers/requêtes). Requiert Authorization après Login.",
+      "item": [
+        {
+          "name": "Create Company (Onboarding atomique)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// SIREN/SIRET uniques par exécution (INV-09/12) — replay Newman ×2 sans données résiduelles",
+                  "var siren = '9' + String(Date.now()).slice(-8);",
+                  "pm.collectionVariables.set('company_siren', siren);",
+                  "pm.collectionVariables.set('company_siret', siren + '00012');"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Create Company (onboarding atomique) response is valid', function () {",
+                  "    if (pm.response.code === 201) {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.test('Company id present', function () { pm.expect(jsonData.id).to.not.be.empty; });",
+                  "        if (jsonData.id) {",
+                  "            pm.collectionVariables.set('company_id', jsonData.id);",
+                  "        }",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company\": {\n    \"name\": \"Foresy Postman\",\n    \"siren\": \"{{company_siren}}\",\n    \"siret\": \"{{company_siret}}\",\n    \"legal_form\": \"EI\",\n    \"vat_regime\": \"franchise\"\n  },\n  \"role\": \"independent\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/companies",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "companies"
+              ]
+            },
+            "description": "Onboarding atomique (§37.2, INV-16) — company + rôle indépendant en un POST. SIREN/SIRET générés par exécution (INV-09/12). Retourne `id` (201) — extrait vers `company_id`."
+          },
+          "response": []
+        },
+        {
+          "name": "List Companies",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('List Companies response is valid', function () {",
+                  "    if (pm.response.code === 200) {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.test('Meta total present', function () { pm.expect(jsonData.meta).to.have.property('total'); });",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/companies",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "companies"
+              ]
+            },
+            "description": "Liste les relations companies de l'utilisateur authentifié (scope actif explicite §36.1 — soft delete exclu)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Company",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/companies/{{company_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "companies",
+                "{{company_id}}"
+              ]
+            },
+            "description": "Fiche de la company créée (§43 — propriétaire seulement)."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Company",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Update Company response is valid', function () {",
+                  "    if (pm.response.code === 200) {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.test('Name updated', function () { pm.expect(jsonData.name).to.eq('Foresy Postman Updated'); });",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company\": {\n    \"name\": \"Foresy Postman Updated\",\n    \"vat_regime\": \"reelle_simplifiee\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/companies/{{company_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "companies",
+                "{{company_id}}"
+              ]
+            },
+            "description": "Met à jour la company (payload imbriqué `company` — e2e step 7)."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "UserCompanies",
+      "description": "FC-08 (§37) — UserCompanies : relations user↔company (rôles indépendant/client, soft delete). Création sur `{{company_id}}` créé en amont (rôle `client` — e2e Scenario 5), extraction `user_company_id`. L'entrée de clôture de ce dossier = la soft delete de la company (ordre e2e steps 16→17).",
+      "item": [
+        {
+          "name": "Create UserCompany",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Create UserCompany response is valid', function () {",
+                  "    if (pm.response.code === 201) {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.test('Relationship id present', function () { pm.expect(jsonData.id).to.not.be.empty; });",
+                  "        pm.test('Role is client', function () { pm.expect(jsonData.role).to.eq('client'); });",
+                  "        if (jsonData.id) {",
+                  "            pm.collectionVariables.set('user_company_id', jsonData.id);",
+                  "        }",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_id\": \"{{company_id}}\",\n  \"role\": \"client\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/user_companies",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "user_companies"
+              ]
+            },
+            "description": "Ajoute un rôle `client` à la company (e2e Scenario 5 — §37.2, INV-18 : tout `user_id` du payload est ignoré, §42). Retourne `id` (201) — extrait vers `user_company_id`."
+          },
+          "response": []
+        },
+        {
+          "name": "List UserCompanies",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('List UserCompanies response is valid', function () {",
+                  "    if (pm.response.code === 200) {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.test('Meta total present', function () { pm.expect(jsonData.meta).to.have.property('total'); });",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/user_companies",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "user_companies"
+              ]
+            },
+            "description": "Relations actives de l'utilisateur (scope actif explicite §31 — les soft-deleted sont exclues)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get UserCompany",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Get UserCompany response is valid', function () {",
+                  "    if (pm.response.code === 200) {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.test('Role is client', function () { pm.expect(jsonData.role).to.eq('client'); });",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/user_companies/{{user_company_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "user_companies",
+                "{{user_company_id}}"
+              ]
+            },
+            "description": "Fiche de la relation créée (§43 — propriétaire seulement)."
+          },
+          "response": []
+        },
+        {
+          "name": "Update UserCompany",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Update UserCompany response is valid', function () {",
+                  "    if (pm.response.code === 200) {",
+                  "        pm.test('Role stays client', function () { pm.expect(pm.response.json().role).to.eq('client'); });",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"client\",\n  \"user_id\": \"ignoré (§37.3 — attributs protégés jamais lus)\",\n  \"company_id\": \"ignoré\",\n  \"deleted_at\": \"ignoré\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/user_companies/{{user_company_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "user_companies",
+                "{{user_company_id}}"
+              ]
+            },
+            "description": "Mise à jour du rôle uniquement (§37.3) — les attributs protégés (user_id, company_id, deleted_at) sont structuralement ignorés (payload du test spec)."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete UserCompany (Soft delete)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/user_companies/{{user_company_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "user_companies",
+                "{{user_company_id}}"
+              ]
+            },
+            "description": "Soft delete de la relation (§37.4 — 200 `message`)."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Company (Soft delete — clôture du scénario)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/companies/{{company_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "companies",
+                "{{company_id}}"
+              ]
+            },
+            "description": "Soft delete de la company = clôture du scénario §37.4/INV-21. ⚠️ Positionne la requête DELETE de l'endpoint Companies en FIN de scénario (e2e steps 16→17 : la relation est supprimée AVANT la company — POST un rôle sur une company soft-deleted n'est pas un contrat couvert)."
           },
           "response": []
         }

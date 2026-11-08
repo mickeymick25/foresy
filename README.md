@@ -118,7 +118,7 @@ Foresy est une application Ruby on Rails API-only qui fournit une API RESTful ro
 - **Couverture** : 📊 SimpleCov **86.26 % lignes (3020/3501) / 61.03 % branches (885/1450)** (rapport HTML + Cobertura XML)
 - **Code quality** : RuboCop 250 files, 0 offenses (24/10 — leçon fc08::022 : scripts Ruby versionnés = périmètre Quality Gates du dépôt)
 - **Security audit** : Brakeman 0 warnings (mode strict), Bundle audit 0 vulnérabilités
-- **Collection Postman** : 28 endpoints avec scripts de test automatisés
+- **Collection Postman** : 36 endpoints API v1 (+2 sondes d'infrastructure) avec scripts de test automatisés
 
 ## 🏗️ Architecture
 
@@ -264,7 +264,7 @@ JWT_SECRET=your_jwt_secret_key
 | [Git Ledger](docs/technical/guides/2026_08_18_git_ledger_operations.md) | Permissions, sécurité, checklist staging |
 | [Plan de remédiation](docs/technical/audits/[DONE]_2026_07_22_Architecture_Debt_Audit_and_Plan.md) | Audit 25 points + 25 tâches (100% terminé) |
 | [Release notes v0.1.0](docs/RELEASE_NOTES_v0.1.0.md) | Breaking changes, nouveautés, déploiement |
-| [Collection Postman](docs/postman/Foresy_API.postman_collection.json) | 28 endpoints avec scripts de test |
+| [Collection Postman](docs/postman/Foresy_API.postman_collection.json) | 36 endpoints API v1 (+2 sondes d'infra) avec scripts de test |
 | [BACKLOG](docs/BACKLOG.md) | Backlog transverse et tâches restantes |
 | [Index documentation](docs/index.md) | Navigation centrale |
 
